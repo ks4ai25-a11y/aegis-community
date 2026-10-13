@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/RepositoryV1.json",
+  "title": "RepositoryV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "repository_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "owner_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "app_id": {
+      "type": "string",
+      "const": "app_demo"
+    },
+    "asset_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$"
+    },
+    "mode": {
+      "type": "string",
+      "const": "repo_offline"
+    },
+    "map_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "schema_version",
+    "repository_id",
+    "owner_id",
+    "app_id",
+    "asset_id",
+    "mode",
+    "map_digest",
+    "created_at"
+  ]
+}

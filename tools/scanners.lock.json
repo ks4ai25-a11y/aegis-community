@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "resolved_at": "2026-10-12T15:16:00Z",
+  "signature_review": "pending; immutable registry digest is not publisher identity verification",
+  "tools": [
+    {"id":"semgrep_ce","version":"1.180.0","image":"semgrep/semgrep@sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3","upstream":"https://github.com/semgrep/semgrep/releases/tag/v1.180.0","license_review":"pending; CLI and engine licensing differ"},
+    {"id":"osv_v2","version":"2.7.0","image":"ghcr.io/google/osv-scanner@sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0","upstream":"https://github.com/google/osv-scanner/releases/tag/v2.7.0","license_review":"pending"},
+    {"id":"trivy","version":"0.75.0","image":"aquasec/trivy@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa","upstream":"https://github.com/aquasecurity/trivy/releases/tag/v0.75.0","license_review":"pending"},
+    {"id":"syft","version":"1.54.1","image":"anchore/syft@sha256:3eb5379ba7b409c3f4069b686110527af0c47df993fa5c10d13e7cf34f49b1aa","upstream":"https://github.com/anchore/syft/releases/tag/v1.54.1","license_review":"pending"},
+    {"id":"gitleaks","version":"8.30.1","image":"ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f","upstream":"https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1","license_review":"pending"}
+  ]
+}

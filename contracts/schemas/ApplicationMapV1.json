@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ApplicationMapV1.json",
+  "title": "ApplicationMapV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "application_id": {
+      "type": "string",
+      "const": "app_demo"
+    },
+    "source_ref": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "commit_sha": {
+      "type": "string",
+      "pattern": "^(|[0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "extractors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 32
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ]
+      },
+      "maxItems": 16
+    },
+    "sensitive_ops": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 512
+      },
+      "maxItems": 100
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 512
+      },
+      "maxItems": 100
+    },
+    "auth_boundaries": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 512
+      },
+      "maxItems": 100
+    },
+    "frameworks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 32
+      },
+      "maxItems": 16
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1048576
+          }
+        },
+        "required": [
+          "path",
+          "digest",
+          "size"
+        ]
+      },
+      "maxItems": 10000
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": [
+              "unknown"
+            ]
+          },
+          "pattern": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "origin": {
+            "type": "string",
+            "const": "declared_route"
+          },
+          "auth_signal": {
+            "type": "string",
+            "const": "not assessed"
+          },
+          "confidence": {
+            "type": "string",
+            "const": "low"
+          },
+          "source_path": {
+            "type": "string",
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "method",
+          "pattern",
+          "origin",
+          "auth_signal",
+          "confidence",
+          "source_path"
+        ]
+      },
+      "maxItems": 10000
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 512
+      },
+      "minItems": 1,
+      "maxItems": 32
+    },
+    "content_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "application_id",
+    "source_ref",
+    "commit_sha",
+    "observed_at",
+    "extractors",
+    "sensitive_ops",
+    "models",
+    "auth_boundaries",
+    "frameworks",
+    "files",
+    "routes",
+    "unknowns",
+    "content_digest"
+  ]
+}

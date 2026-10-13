@@ -1,0 +1,33 @@
+{
+  "grant": {
+    "schema_version": "1.0",
+    "scope_grant_id": "01a130f8-60b9-774f-b711-5ec03a11df1e",
+    "owner_id": "01a130ab-a6b8-71ba-b6ef-36de8d41d989",
+    "app_id": "app_demo",
+    "asset_id": "bundled-waf-fixture",
+    "ownership_evidence": "Aegis-owned bundled synthetic fixture",
+    "mode": "test_lab",
+    "allowed_protocols": [
+      "http"
+    ],
+    "allowed_routes": [
+      "/catalog",
+      "/test-pattern"
+    ],
+    "allowed_tests": [
+      "crs-synthetic-sqli-pattern-v1"
+    ],
+    "network_profile": "test_lab_only",
+    "network_addresses": [
+      "fixture-origin:8080"
+    ],
+    "max_concurrency": 1,
+    "max_requests": 4,
+    "max_duration_seconds": 30,
+    "created_at": "2026-10-12T16:35:46.48948167Z",
+    "expires_at": "2026-10-12T16:45:46.489475545Z"
+  },
+  "approved_digest": "sha256:9c67ff4841bc8438edb8c5f08edb27465444f4cbaa398864c1720eaf152cbd7a",
+  "state": "active",
+  "requests_remaining": 0
+}

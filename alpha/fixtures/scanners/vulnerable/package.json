@@ -1,0 +1,1 @@
+{"name":"aegis-synthetic-scanner-fixture","version":"1.0.0","private":true,"scripts":{"postinstall":"echo THIS_SCRIPT_MUST_NEVER_EXECUTE"},"dependencies":{"lodash":"4.17.20"}}

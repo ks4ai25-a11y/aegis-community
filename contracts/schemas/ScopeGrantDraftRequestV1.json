@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScopeGrantDraftRequestV1.json",
+  "title": "ScopeGrantDraftRequestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "app_id": {
+      "type": "string",
+      "const": "app_demo"
+    },
+    "mode": {
+      "type": "string",
+      "const": "test_lab"
+    },
+    "fixture_id": {
+      "type": "string",
+      "const": "crs-synthetic-sqli-pattern-v1"
+    },
+    "lifetime_minutes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 60
+    }
+  },
+  "required": [
+    "app_id",
+    "mode",
+    "fixture_id",
+    "lifetime_minutes"
+  ]
+}

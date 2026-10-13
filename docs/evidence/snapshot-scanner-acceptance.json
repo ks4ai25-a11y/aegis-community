@@ -1,0 +1,888 @@
+{
+  "schema_version": "1.0",
+  "scope": "operator-launched-pinned-offline-snapshot-fixtures",
+  "checks": [
+    {
+      "id": "semgrep_ce-vulnerable",
+      "result": "PASS",
+      "execution": {
+        "invocation": {
+          "args": [
+            "semgrep",
+            "scan",
+            "--config",
+            "/rules",
+            "--json",
+            "--metrics=off",
+            "--disable-version-check",
+            "/src"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:c15281a9678f4402fa7cf77330c04f2864dec18ad26854cffc35c38f824faafb",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "semgrep_ce",
+        "tool_version": "1.180.0",
+        "tool_image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
+        "tool_lock_digest": "sha256:b4adea195b32a9e565dd57a80c69bf799c7138d3a2ea708a3c7a2b5d97dc295b",
+        "rule_pack_digest": "sha256:5dd7451cd8a2a49a8613f87096fc3222be6f4386204f43804bef890a6f68b510",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:1fe34cbffa049c1c3700dd2cd8bb44477b05f90600365c3aea45d9094f912a9a",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": "fake-secret.txt",
+              "digest": "sha256:46c0c7252868ae400898552b9fa727030310817b4113fcdd5ebeb932d5a5fb22",
+              "size": 59
+            },
+            {
+              "path": "package-lock.json",
+              "digest": "sha256:4f34fa3e7b13474932c58072bc7293564d6563e4b949dad4ae150f8a27ac80a3",
+              "size": 415
+            },
+            {
+              "path": "package.json",
+              "digest": "sha256:517b9f5e99e0ad8c41c075193eae10ab4cbc657b7c2f80446a87a47134377d52",
+              "size": 176
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:463d921273c5ad7019546e1ad7bebec0e5325dcb21a2a52dfc992089ef72f4bf",
+              "size": 171
+            }
+          ],
+          "included_bytes": 821,
+          "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
+        },
+        "started_at": "2026-10-13T00:31:49.029232Z",
+        "duration_ms": 3382,
+        "exit_code": 0,
+        "status": "completed",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-058a24e7e792f4a02149b69371af91d8",
+        "result": {
+          "status": "completed",
+          "findings": [
+            {
+              "schema_version": "1.0",
+              "id": "sha256:1c5405131f4dc434c72c7b5573f8b53196231d71d09a24624b8dd666b4473a37",
+              "app_id": "app_demo",
+              "repository_id": "local-operator-repository",
+              "category": "static_pattern",
+              "summary": "Unverified semgrep_ce finding: rules.aegis.synthetic-python-sql-concat",
+              "status": "suspected",
+              "severity": "medium",
+              "confidence": "low",
+              "evidence_tier": "T0",
+              "path": "query.py",
+              "line": 3,
+              "provenance": [
+                {
+                  "tool_id": "semgrep_ce",
+                  "tool_version": "1.180.0",
+                  "tool_image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
+                  "parser_version": "1.0",
+                  "input_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4",
+                  "rule_id": "rules.aegis.synthetic-python-sql-concat"
+                }
+              ],
+              "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+              "created_at": "2026-10-13T00:31:53.443334Z"
+            }
+          ],
+          "diagnostics": []
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending.",
+          "The current Semgrep pack contains only the bundled synthetic rule; it is not a general SAST rule suite."
+        ]
+      }
+    },
+    {
+      "id": "semgrep_ce-safe",
+      "result": "PASS",
+      "execution": {
+        "invocation": {
+          "args": [
+            "semgrep",
+            "scan",
+            "--config",
+            "/rules",
+            "--json",
+            "--metrics=off",
+            "--disable-version-check",
+            "/src"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:c15281a9678f4402fa7cf77330c04f2864dec18ad26854cffc35c38f824faafb",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "semgrep_ce",
+        "tool_version": "1.180.0",
+        "tool_image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
+        "tool_lock_digest": "sha256:b4adea195b32a9e565dd57a80c69bf799c7138d3a2ea708a3c7a2b5d97dc295b",
+        "rule_pack_digest": "sha256:5dd7451cd8a2a49a8613f87096fc3222be6f4386204f43804bef890a6f68b510",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:aaa3722fa79fb167789a62eee457fd6386727bbda9693efd3623e600c9426b8a",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": "package-lock.json",
+              "digest": "sha256:9cc1bf529b51f0e4c81fb33078614cf9205e2f27731da695c430e10c91d423dd",
+              "size": 403
+            },
+            {
+              "path": "package.json",
+              "digest": "sha256:bb9bed19a71e0670de43479f0ddbf80b36b4509163b3b08f83fdb161a8cbd1a2",
+              "size": 107
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:ab93a7e772aed15784b9aef50f4078d82f8d2a802953d8e69eb313fe111f498e",
+              "size": 167
+            }
+          ],
+          "included_bytes": 677,
+          "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
+        },
+        "started_at": "2026-10-13T00:31:53.510589Z",
+        "duration_ms": 5047,
+        "exit_code": 0,
+        "status": "completed",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-bd6d496f9e9a5dba73ad92e2955f95ae",
+        "result": {
+          "status": "completed",
+          "findings": [],
+          "diagnostics": []
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending.",
+          "The current Semgrep pack contains only the bundled synthetic rule; it is not a general SAST rule suite."
+        ]
+      }
+    },
+    {
+      "id": "gitleaks-vulnerable",
+      "result": "PASS",
+      "execution": {
+        "invocation": {
+          "args": [
+            "dir",
+            "/src",
+            "--report-format",
+            "json",
+            "--report-path",
+            "/dev/stdout",
+            "--redact=100",
+            "--exit-code",
+            "0"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:c15281a9678f4402fa7cf77330c04f2864dec18ad26854cffc35c38f824faafb",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "gitleaks",
+        "tool_version": "8.30.1",
+        "tool_image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
+        "tool_lock_digest": "sha256:b4adea195b32a9e565dd57a80c69bf799c7138d3a2ea708a3c7a2b5d97dc295b",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:1fe34cbffa049c1c3700dd2cd8bb44477b05f90600365c3aea45d9094f912a9a",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": "fake-secret.txt",
+              "digest": "sha256:46c0c7252868ae400898552b9fa727030310817b4113fcdd5ebeb932d5a5fb22",
+              "size": 59
+            },
+            {
+              "path": "package-lock.json",
+              "digest": "sha256:4f34fa3e7b13474932c58072bc7293564d6563e4b949dad4ae150f8a27ac80a3",
+              "size": 415
+            },
+            {
+              "path": "package.json",
+              "digest": "sha256:517b9f5e99e0ad8c41c075193eae10ab4cbc657b7c2f80446a87a47134377d52",
+              "size": 176
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:463d921273c5ad7019546e1ad7bebec0e5325dcb21a2a52dfc992089ef72f4bf",
+              "size": 171
+            }
+          ],
+          "included_bytes": 821,
+          "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
+        },
+        "started_at": "2026-10-13T00:31:59.435088Z",
+        "duration_ms": 900,
+        "exit_code": 0,
+        "status": "completed",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-d20281b089605e9abb67b5c9a5223b25",
+        "result": {
+          "status": "completed",
+          "findings": [
+            {
+              "schema_version": "1.0",
+              "id": "sha256:bbbbafac61ec080a923d83ea25bcbb93d36b583afba88d40a31c889f05ec5ed4",
+              "app_id": "app_demo",
+              "repository_id": "local-operator-repository",
+              "category": "secret_candidate",
+              "summary": "Possible exposed credential; rotate after owner review. Matched value omitted.",
+              "status": "suspected",
+              "severity": "high",
+              "confidence": "low",
+              "evidence_tier": "T0",
+              "path": "fake-secret.txt",
+              "line": 1,
+              "provenance": [
+                {
+                  "tool_id": "gitleaks",
+                  "tool_version": "8.30.1",
+                  "tool_image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
+                  "parser_version": "1.0",
+                  "input_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4",
+                  "rule_id": "github-pat"
+                }
+              ],
+              "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+              "created_at": "2026-10-13T00:32:01.013058Z"
+            }
+          ],
+          "diagnostics": []
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."
+        ]
+      }
+    },
+    {
+      "id": "gitleaks-safe",
+      "result": "PASS",
+      "execution": {
+        "invocation": {
+          "args": [
+            "dir",
+            "/src",
+            "--report-format",
+            "json",
+            "--report-path",
+            "/dev/stdout",
+            "--redact=100",
+            "--exit-code",
+            "0"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:c15281a9678f4402fa7cf77330c04f2864dec18ad26854cffc35c38f824faafb",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "gitleaks",
+        "tool_version": "8.30.1",
+        "tool_image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
+        "tool_lock_digest": "sha256:b4adea195b32a9e565dd57a80c69bf799c7138d3a2ea708a3c7a2b5d97dc295b",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:aaa3722fa79fb167789a62eee457fd6386727bbda9693efd3623e600c9426b8a",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": "package-lock.json",
+              "digest": "sha256:9cc1bf529b51f0e4c81fb33078614cf9205e2f27731da695c430e10c91d423dd",
+              "size": 403
+            },
+            {
+              "path": "package.json",
+              "digest": "sha256:bb9bed19a71e0670de43479f0ddbf80b36b4509163b3b08f83fdb161a8cbd1a2",
+              "size": 107
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:ab93a7e772aed15784b9aef50f4078d82f8d2a802953d8e69eb313fe111f498e",
+              "size": 167
+            }
+          ],
+          "included_bytes": 677,
+          "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
+        },
+        "started_at": "2026-10-13T00:32:01.087862Z",
+        "duration_ms": 916,
+        "exit_code": 0,
+        "status": "completed",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-c008554ece76c47a878944a59f73ec65",
+        "result": {
+          "status": "completed",
+          "findings": [],
+          "diagnostics": []
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."
+        ]
+      }
+    },
+    {
+      "id": "syft-vulnerable",
+      "result": "PASS",
+      "execution": {
+        "invocation": {
+          "args": [
+            "dir:/src",
+            "-o",
+            "cyclonedx-json"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:c15281a9678f4402fa7cf77330c04f2864dec18ad26854cffc35c38f824faafb",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "syft",
+        "tool_version": "1.54.1",
+        "tool_image_digest": "sha256:3eb5379ba7b409c3f4069b686110527af0c47df993fa5c10d13e7cf34f49b1aa",
+        "tool_lock_digest": "sha256:b4adea195b32a9e565dd57a80c69bf799c7138d3a2ea708a3c7a2b5d97dc295b",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:1fe34cbffa049c1c3700dd2cd8bb44477b05f90600365c3aea45d9094f912a9a",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": "fake-secret.txt",
+              "digest": "sha256:46c0c7252868ae400898552b9fa727030310817b4113fcdd5ebeb932d5a5fb22",
+              "size": 59
+            },
+            {
+              "path": "package-lock.json",
+              "digest": "sha256:4f34fa3e7b13474932c58072bc7293564d6563e4b949dad4ae150f8a27ac80a3",
+              "size": 415
+            },
+            {
+              "path": "package.json",
+              "digest": "sha256:517b9f5e99e0ad8c41c075193eae10ab4cbc657b7c2f80446a87a47134377d52",
+              "size": 176
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:463d921273c5ad7019546e1ad7bebec0e5325dcb21a2a52dfc992089ef72f4bf",
+              "size": 171
+            }
+          ],
+          "included_bytes": 821,
+          "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
+        },
+        "started_at": "2026-10-13T00:32:02.642593Z",
+        "duration_ms": 2391,
+        "exit_code": 0,
+        "status": "completed",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-e747c851448ce4e0d98816b4ebb0dab4",
+        "result": {
+          "status": "completed",
+          "findings": [],
+          "diagnostics": [],
+          "sbom": {
+            "bomFormat": "CycloneDX",
+            "components": [
+              {
+                "name": "aegis-synthetic-vulnerable",
+                "version": "1.0.0",
+                "purl": "pkg:npm/aegis-synthetic-vulnerable@1.0.0"
+              },
+              {
+                "name": "lodash",
+                "version": "4.17.20",
+                "purl": "pkg:npm/lodash@4.17.20"
+              },
+              {
+                "name": "/src/package-lock.json",
+                "version": "",
+                "purl": ""
+              }
+            ],
+            "specVersion": "1.7",
+            "version": 1
+          }
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."
+        ]
+      }
+    },
+    {
+      "id": "syft-safe",
+      "result": "PASS",
+      "execution": {
+        "invocation": {
+          "args": [
+            "dir:/src",
+            "-o",
+            "cyclonedx-json"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:c15281a9678f4402fa7cf77330c04f2864dec18ad26854cffc35c38f824faafb",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "syft",
+        "tool_version": "1.54.1",
+        "tool_image_digest": "sha256:3eb5379ba7b409c3f4069b686110527af0c47df993fa5c10d13e7cf34f49b1aa",
+        "tool_lock_digest": "sha256:b4adea195b32a9e565dd57a80c69bf799c7138d3a2ea708a3c7a2b5d97dc295b",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:aaa3722fa79fb167789a62eee457fd6386727bbda9693efd3623e600c9426b8a",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": "package-lock.json",
+              "digest": "sha256:9cc1bf529b51f0e4c81fb33078614cf9205e2f27731da695c430e10c91d423dd",
+              "size": 403
+            },
+            {
+              "path": "package.json",
+              "digest": "sha256:bb9bed19a71e0670de43479f0ddbf80b36b4509163b3b08f83fdb161a8cbd1a2",
+              "size": 107
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:ab93a7e772aed15784b9aef50f4078d82f8d2a802953d8e69eb313fe111f498e",
+              "size": 167
+            }
+          ],
+          "included_bytes": 677,
+          "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
+        },
+        "started_at": "2026-10-13T00:32:05.601823Z",
+        "duration_ms": 1807,
+        "exit_code": 0,
+        "status": "completed",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-04f8e3ebde7105d8ae1e6df20d86c7a5",
+        "result": {
+          "status": "completed",
+          "findings": [],
+          "diagnostics": [],
+          "sbom": {
+            "bomFormat": "CycloneDX",
+            "components": [
+              {
+                "name": "aegis-synthetic-safe",
+                "version": "1.0.0",
+                "purl": "pkg:npm/aegis-synthetic-safe@1.0.0"
+              },
+              {
+                "name": "lodash",
+                "version": "4.17.21",
+                "purl": "pkg:npm/lodash@4.17.21"
+              },
+              {
+                "name": "/src/package-lock.json",
+                "version": "",
+                "purl": ""
+              }
+            ],
+            "specVersion": "1.7",
+            "version": 1
+          }
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."
+        ]
+      }
+    },
+    {
+      "id": "osv_v2-vulnerable",
+      "result": "PASS",
+      "execution": {
+        "invocation": {
+          "args": [
+            "scan",
+            "source",
+            "--offline-vulnerabilities",
+            "--no-resolve",
+            "--format",
+            "json",
+            "-r",
+            "/src"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0,
+            1
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:c15281a9678f4402fa7cf77330c04f2864dec18ad26854cffc35c38f824faafb",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "osv_v2",
+        "tool_version": "2.7.0",
+        "tool_image_digest": "sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0",
+        "tool_lock_digest": "sha256:b4adea195b32a9e565dd57a80c69bf799c7138d3a2ea708a3c7a2b5d97dc295b",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:1fe34cbffa049c1c3700dd2cd8bb44477b05f90600365c3aea45d9094f912a9a",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": "fake-secret.txt",
+              "digest": "sha256:46c0c7252868ae400898552b9fa727030310817b4113fcdd5ebeb932d5a5fb22",
+              "size": 59
+            },
+            {
+              "path": "package-lock.json",
+              "digest": "sha256:4f34fa3e7b13474932c58072bc7293564d6563e4b949dad4ae150f8a27ac80a3",
+              "size": 415
+            },
+            {
+              "path": "package.json",
+              "digest": "sha256:517b9f5e99e0ad8c41c075193eae10ab4cbc657b7c2f80446a87a47134377d52",
+              "size": 176
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:463d921273c5ad7019546e1ad7bebec0e5325dcb21a2a52dfc992089ef72f4bf",
+              "size": 171
+            }
+          ],
+          "included_bytes": 821,
+          "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
+        },
+        "started_at": "2026-10-13T00:32:07.679791Z",
+        "duration_ms": 671,
+        "exit_code": 127,
+        "status": "tool_error",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-b22c708f028d0759a8849b4010bdc3ab",
+        "result": {
+          "status": "tool_error",
+          "findings": [],
+          "diagnostics": [
+            {
+              "code": "TOOL_EXIT",
+              "message": "Scanner failed or required offline data was unavailable; no zero-findings claim."
+            }
+          ]
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."
+        ]
+      }
+    },
+    {
+      "id": "osv_v2-safe",
+      "result": "PASS",
+      "execution": {
+        "invocation": {
+          "args": [
+            "scan",
+            "source",
+            "--offline-vulnerabilities",
+            "--no-resolve",
+            "--format",
+            "json",
+            "-r",
+            "/src"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0,
+            1
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:c15281a9678f4402fa7cf77330c04f2864dec18ad26854cffc35c38f824faafb",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "osv_v2",
+        "tool_version": "2.7.0",
+        "tool_image_digest": "sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0",
+        "tool_lock_digest": "sha256:b4adea195b32a9e565dd57a80c69bf799c7138d3a2ea708a3c7a2b5d97dc295b",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:aaa3722fa79fb167789a62eee457fd6386727bbda9693efd3623e600c9426b8a",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": "package-lock.json",
+              "digest": "sha256:9cc1bf529b51f0e4c81fb33078614cf9205e2f27731da695c430e10c91d423dd",
+              "size": 403
+            },
+            {
+              "path": "package.json",
+              "digest": "sha256:bb9bed19a71e0670de43479f0ddbf80b36b4509163b3b08f83fdb161a8cbd1a2",
+              "size": 107
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:ab93a7e772aed15784b9aef50f4078d82f8d2a802953d8e69eb313fe111f498e",
+              "size": 167
+            }
+          ],
+          "included_bytes": 677,
+          "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
+        },
+        "started_at": "2026-10-13T00:32:08.684242Z",
+        "duration_ms": 543,
+        "exit_code": 127,
+        "status": "tool_error",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-d9300b187e3b742b796e6f0ac5c8cf19",
+        "result": {
+          "status": "tool_error",
+          "findings": [],
+          "diagnostics": [
+            {
+              "code": "TOOL_EXIT",
+              "message": "Scanner failed or required offline data was unavailable; no zero-findings claim."
+            }
+          ]
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."
+        ]
+      }
+    },
+    {
+      "id": "trivy-vulnerable",
+      "result": "PASS",
+      "execution": {
+        "invocation": {
+          "args": [
+            "fs",
+            "--scanners",
+            "vuln",
+            "--skip-db-update",
+            "--skip-java-db-update",
+            "--offline-scan",
+            "--format",
+            "json",
+            "/src"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:c15281a9678f4402fa7cf77330c04f2864dec18ad26854cffc35c38f824faafb",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "trivy",
+        "tool_version": "0.75.0",
+        "tool_image_digest": "sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa",
+        "tool_lock_digest": "sha256:b4adea195b32a9e565dd57a80c69bf799c7138d3a2ea708a3c7a2b5d97dc295b",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:1fe34cbffa049c1c3700dd2cd8bb44477b05f90600365c3aea45d9094f912a9a",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": "fake-secret.txt",
+              "digest": "sha256:46c0c7252868ae400898552b9fa727030310817b4113fcdd5ebeb932d5a5fb22",
+              "size": 59
+            },
+            {
+              "path": "package-lock.json",
+              "digest": "sha256:4f34fa3e7b13474932c58072bc7293564d6563e4b949dad4ae150f8a27ac80a3",
+              "size": 415
+            },
+            {
+              "path": "package.json",
+              "digest": "sha256:517b9f5e99e0ad8c41c075193eae10ab4cbc657b7c2f80446a87a47134377d52",
+              "size": 176
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:463d921273c5ad7019546e1ad7bebec0e5325dcb21a2a52dfc992089ef72f4bf",
+              "size": 171
+            }
+          ],
+          "included_bytes": 821,
+          "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
+        },
+        "started_at": "2026-10-13T00:32:09.610322Z",
+        "duration_ms": 795,
+        "exit_code": 1,
+        "status": "tool_error",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-dbddbb57d76e0506dec2c82952fe7721",
+        "result": {
+          "status": "tool_error",
+          "findings": [],
+          "diagnostics": [
+            {
+              "code": "TOOL_EXIT",
+              "message": "Scanner failed or required offline data was unavailable; no zero-findings claim."
+            }
+          ]
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."
+        ]
+      }
+    },
+    {
+      "id": "trivy-safe",
+      "result": "PASS",
+      "execution": {
+        "invocation": {
+          "args": [
+            "fs",
+            "--scanners",
+            "vuln",
+            "--skip-db-update",
+            "--skip-java-db-update",
+            "--offline-scan",
+            "--format",
+            "json",
+            "/src"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:c15281a9678f4402fa7cf77330c04f2864dec18ad26854cffc35c38f824faafb",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "trivy",
+        "tool_version": "0.75.0",
+        "tool_image_digest": "sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa",
+        "tool_lock_digest": "sha256:b4adea195b32a9e565dd57a80c69bf799c7138d3a2ea708a3c7a2b5d97dc295b",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:aaa3722fa79fb167789a62eee457fd6386727bbda9693efd3623e600c9426b8a",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": "package-lock.json",
+              "digest": "sha256:9cc1bf529b51f0e4c81fb33078614cf9205e2f27731da695c430e10c91d423dd",
+              "size": 403
+            },
+            {
+              "path": "package.json",
+              "digest": "sha256:bb9bed19a71e0670de43479f0ddbf80b36b4509163b3b08f83fdb161a8cbd1a2",
+              "size": 107
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:ab93a7e772aed15784b9aef50f4078d82f8d2a802953d8e69eb313fe111f498e",
+              "size": 167
+            }
+          ],
+          "included_bytes": 677,
+          "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
+        },
+        "started_at": "2026-10-13T00:32:10.80778Z",
+        "duration_ms": 651,
+        "exit_code": 1,
+        "status": "tool_error",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-0d569e25a99047cc06839454e9c2ca82",
+        "result": {
+          "status": "tool_error",
+          "findings": [],
+          "diagnostics": [
+            {
+              "code": "TOOL_EXIT",
+              "message": "Scanner failed or required offline data was unavailable; no zero-findings claim."
+            }
+          ]
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."
+        ]
+      }
+    }
+  ],
+  "started_at": "2026-10-13T00:31:48Z",
+  "overall": "PASS",
+  "completed_at": "2026-10-13T00:32:11Z",
+  "limitations": [
+    "Only trusted bundled inert inputs and local Docker Desktop tested.",
+    "OSV/Trivy missing offline databases remain tool_error; no coverage or exploitability claim.",
+    "Operator-launched executor is not durable controller job orchestration.",
+    "Publisher signature/licence review, larger rule packs, recovery of host workspaces after SIGKILL and independent review remain pending."
+  ]
+}

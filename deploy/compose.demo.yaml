@@ -1,0 +1,89 @@
+name: aegis-community
+x-hardening: &hardening
+  read_only: true
+  user: "10001:10001"
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 128
+  mem_limit: 384m
+  cpus: 1.0
+  tmpfs: ["/tmp:rw,noexec,nosuid,size=64m,uid=10001,gid=10001"]
+  logging:
+    driver: json-file
+    options: {max-size: "2m", max-file: "2"}
+services:
+  deployer:
+    <<: *hardening
+    image: aegis-community/controller:0.1.0-alpha.1
+    entrypoint: [policy-deployer]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m,uid=10001,gid=10001", "/var/log/aegis:rw,noexec,nosuid,size=20m,uid=10001,gid=10001", "/data:rw,nosuid,size=16m,uid=10001,gid=10001", "/config:rw,nosuid,size=16m,uid=10001,gid=10001"]
+    network_mode: none
+    depends_on: [gateway]
+    volumes: ["gateway_policies:/var/lib/deployer", "gateway_socket:/run/gateway", "deployer_socket:/run/deployer"]
+    restart: unless-stopped
+  init:
+    <<: *hardening
+    image: aegis-community/controller:0.1.0-alpha.1
+    build: {context: .., dockerfile: controller/Dockerfile}
+    entrypoint: [aegisctl, init]
+    network_mode: none
+    environment: {AEGIS_DATA: /var/lib/aegis, GATEWAY_POLICY_ROOT: /var/lib/deployer}
+    volumes: ["controller_data:/var/lib/aegis", "gateway_policies:/var/lib/deployer"]
+  demo-origin:
+    <<: *hardening
+    image: aegis-community/demo-origin:0.1.0-alpha.1
+    build: {context: .., dockerfile: demo/origin/Dockerfile}
+    networks: [origin_net]
+  gateway:
+    <<: *hardening
+    image: aegis-community/gateway:0.1.0-alpha.1
+    build: {context: .., dockerfile: gateway/Dockerfile}
+    mem_limit: 768m
+    cpus: 2.0
+    entrypoint: [caddy, run, --config, /var/lib/deployer/active.Caddyfile, --adapter, caddyfile]
+    depends_on: {init: {condition: service_completed_successfully}, demo-origin: {condition: service_started}}
+    ports: ["127.0.0.1:8080:8080"]
+    networks: [origin_net, management_net, ingress_net]
+    volumes: ["gateway_policies:/var/lib/deployer:ro", "gateway_socket:/run/gateway", "gateway_logs:/var/log/aegis", "gateway_data:/data", "gateway_config:/config"]
+    restart: unless-stopped
+  fixture-origin:
+    <<: *hardening
+    image: aegis-community/demo-origin:0.1.0-alpha.1
+    networks: [fixture_net]
+  verifier:
+    <<: *hardening
+    image: aegis-community/controller:0.1.0-alpha.1
+    entrypoint: [fixture-worker]
+    mem_limit: 1536m
+    cpus: 2.0
+    depends_on: [fixture-origin, init]
+    networks: [fixture_net]
+    environment: {AEGIS_SANDBOX: internal-fixture-v1, VERIFIER_SOCKET: /run/verifier/verifier.sock}
+    volumes: ["verifier_socket:/run/verifier"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=128m,uid=10001,gid=10001", "/data:rw,nosuid,size=16m,uid=10001,gid=10001", "/config:rw,nosuid,size=16m,uid=10001,gid=10001"]
+    restart: unless-stopped
+  controller:
+    <<: *hardening
+    image: aegis-community/controller:0.1.0-alpha.1
+    depends_on: [gateway, verifier, deployer]
+    mem_limit: 512m
+    ports: ["127.0.0.1:7410:7410"]
+    networks: [management_net, ingress_net]
+    environment: {AEGIS_REPOSITORY_ROOT: /opt/aegis/repositories, AEGIS_LISTEN: "0.0.0.0:7410", AEGIS_DATA: /var/lib/aegis, VERIFIER_SOCKET: /run/verifier/verifier.sock}
+    volumes: ["../alpha/fixtures/scanners:/opt/aegis/repositories:ro", "controller_data:/var/lib/aegis", "deployer_socket:/run/deployer", "gateway_logs:/var/log/aegis:ro", "verifier_socket:/run/verifier"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m,uid=10001,gid=10001", "/data:rw,nosuid,size=16m,uid=10001,gid=10001", "/config:rw,nosuid,size=16m,uid=10001,gid=10001"]
+    restart: unless-stopped
+networks:
+  ingress_net: {}
+  origin_net: {internal: true}
+  management_net: {internal: true}
+  fixture_net: {internal: true}
+volumes:
+  gateway_policies:
+  deployer_socket:
+  controller_data:
+  gateway_socket:
+  gateway_logs:
+  gateway_data:
+  gateway_config:
+  verifier_socket:

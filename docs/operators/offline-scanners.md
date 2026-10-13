@@ -1,0 +1,34 @@
+# Operator-launched offline scanner executor
+
+This is an internal preview facility for Linux/macOS operators with a Linux Docker engine. It is separate from the web controller. The console does not yet schedule durable scanner jobs. Do not use it to execute application code or repository scripts; that feature remains unavailable pending a disposable VM boundary.
+
+Build the CLI and both Linux guard architectures:
+
+```sh
+make research-build
+```
+
+Preload exact images from `tools/scanners.lock.json` using your operator-controlled image preparation process. The executor refuses to pull images. It does not provision offline OSV/Trivy databases yet; those tools return tool_error rather than a clean scan result.
+
+A reproducible trusted-fixture invocation, from the Aegis checkout:
+
+```sh
+bin/aegis-research scan-offline semgrep_ce "$PWD/alpha/fixtures/scanners/vulnerable" "$PWD"
+```
+
+The first path must be canonical and symlink-free. The last path is your trusted Aegis installation containing its tool lock, bundled rules and built guards. The native operator process must be non-root. The container uses the same non-root UID/GID to read mode-0400 private snapshot files. No repository code, dependency installation or git hook runs. Inputs omitted by the inventory profile are explicitly outside coverage.
+
+Supported pinned IDs are `semgrep_ce`, `gitleaks`, `syft`, `osv_v2` and `trivy`. `bandit` has a parser blueprint but is not pinned/executable yet. Semgrep currently uses only the bundled synthetic rule, so its coverage is deliberately narrow. Trivy's default is offline vulnerability scanning, not automatic configuration review. Syft emits a minimized package-coordinate summary. It is not a complete SBOM or an exploit proof.
+
+The JSON execution receipt includes snapshot, tool, rules, guard and invocation identities. Exit 0 means a complete or partial tool run, never that an application is secure. Exit 1 means refusal, tool_error, cancellation/deadline or unconfirmed cleanup. Check `status`, `result.diagnostics` and `cleanup_state`; missing/failed tools cannot establish zero findings. Source workspaces and containers are removed after normal completion, cancellation and timeout when cleanup is confirmed.
+
+The guard enforces an independent container deadline even if the host CLI is killed. Host SIGKILL can leave private host snapshot/guard directories. Their automatic durable recovery is unfinished. Do not delete arbitrary temporary directories or other containers; identify only the affected execution's exact private workspaces and randomly named `aegis-scan-…` container. No default source/AI upload or paid service is used.
+
+Acceptance commands use only bundled trusted inert data and touch only containers created for their tests:
+
+```sh
+python3 tests/integration/snapshot_scanner_acceptance.py
+python3 tests/integration/scanner_guard_acceptance.py
+```
+
+The first test requires the local QA `jsonschema` validator described by contract acceptance. These checks are not external security sign-off or a production release gate pass. ADR 016 records the remaining requirements and limits.

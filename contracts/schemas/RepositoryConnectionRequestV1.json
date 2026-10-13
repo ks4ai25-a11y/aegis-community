@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/RepositoryConnectionRequestV1.json",
+  "title": "RepositoryConnectionRequestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "app_id": {
+      "type": "string",
+      "const": "app_demo"
+    },
+    "asset_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$"
+    },
+    "acknowledge_read_only": {
+      "type": "boolean",
+      "const": true
+    }
+  },
+  "required": [
+    "app_id",
+    "asset_id",
+    "acknowledge_read_only"
+  ]
+}

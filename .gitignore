@@ -1,0 +1,13 @@
+bin/
+**/node_modules/
+**/dist/
+**/*.tsbuildinfo
+**/__pycache__/
+**/.env
+**/.env.*
+*.db
+*.db-wal
+*.db-shm
+*.pem
+*.key
+.DS_Store

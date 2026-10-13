@@ -1,0 +1,58 @@
+package contracts
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+func TestClientRejectsRemoteAdministration(t *testing.T) {
+	for _, u := range []string{"http://169.254.169.254/api/v1", "https://example.com/api/v1", "http://127.0.0.1/api/v1?redirect=evil", "http://user:pass@127.0.0.1/api/v1"} {
+		if _, e := NewResearchClient(u, "fixture", "fixture"); e == nil {
+			t.Fatal("remote or ambiguous endpoint accepted", u)
+		}
+	}
+}
+func TestGeneratedScopeRequest(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" || r.URL.Path != "/api/v1/scope-grants" || r.Header.Get("X-CSRF-Token") != "csrf-fixture" {
+			t.Error("generated request differs from spec")
+		}
+		cookie, e := r.Cookie("aegis_session")
+		if e != nil || cookie.Value != "session-fixture" {
+			t.Error("owner session missing")
+		}
+		var in ScopeGrantDraftRequestV1
+		if e = json.NewDecoder(r.Body).Decode(&in); e != nil || in.LifetimeMinutes != 10 {
+			t.Error("invalid request", e)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(201)
+		json.NewEncoder(w).Encode(ScopeGrantRecordV1{State: "draft", RequestsRemaining: 4})
+	}))
+	defer srv.Close()
+	c, e := NewResearchClient(srv.URL+"/api/v1", "session-fixture", "csrf-fixture")
+	if e != nil {
+		t.Fatal(e)
+	}
+	r, e := c.CreateScopeGrant(context.Background(), ScopeGrantDraftRequestV1{AppId: "app_demo", Mode: "test_lab", FixtureId: "crs-synthetic-sqli-pattern-v1", LifetimeMinutes: 10})
+	if e != nil || r.State != "draft" {
+		t.Fatal(r, e)
+	}
+}
+func TestGeneratedClientDoesNotFollowRedirect(t *testing.T) {
+	targetHit := false
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { targetHit = true }))
+	defer target.Close()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, target.URL, 302) }))
+	defer srv.Close()
+	c, e := NewResearchClient(srv.URL+"/api/v1", "fixture", "fixture")
+	if e != nil {
+		t.Fatal(e)
+	}
+	if _, e = c.ListVerifications(context.Background()); e == nil || targetHit {
+		t.Fatal("redirect followed or accepted")
+	}
+}

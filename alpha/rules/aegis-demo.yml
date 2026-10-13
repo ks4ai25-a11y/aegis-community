@@ -1,0 +1,6 @@
+rules:
+  - id: aegis.synthetic-python-sql-concat
+    languages: [python]
+    severity: WARNING
+    message: Synthetic unsafe query construction candidate; exploitability unverified.
+    pattern: $DB.execute("SELECT * FROM products WHERE name='" + $INPUT + "'")

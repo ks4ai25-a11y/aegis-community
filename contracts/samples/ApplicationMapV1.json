@@ -1,0 +1,47 @@
+{
+  "source_ref": "mounted-asset:vulnerable",
+  "commit_sha": "",
+  "observed_at": "2026-10-12T16:34:21.643992756Z",
+  "extractors": [
+    {
+      "id": "next-file-conventions",
+      "version": "1.1"
+    }
+  ],
+  "sensitive_ops": [],
+  "models": [],
+  "auth_boundaries": [],
+  "schema_version": "1.0",
+  "application_id": "app_demo",
+  "frameworks": [],
+  "files": [
+    {
+      "path": "fake-secret.txt",
+      "digest": "sha256:46c0c7252868ae400898552b9fa727030310817b4113fcdd5ebeb932d5a5fb22",
+      "size": 59
+    },
+    {
+      "path": "package-lock.json",
+      "digest": "sha256:4f34fa3e7b13474932c58072bc7293564d6563e4b949dad4ae150f8a27ac80a3",
+      "size": 415
+    },
+    {
+      "path": "package.json",
+      "digest": "sha256:517b9f5e99e0ad8c41c075193eae10ab4cbc657b7c2f80446a87a47134377d52",
+      "size": 176
+    },
+    {
+      "path": "query.py",
+      "digest": "sha256:463d921273c5ad7019546e1ad7bebec0e5325dcb21a2a52dfc992089ef72f4bf",
+      "size": 171
+    }
+  ],
+  "routes": [],
+  "unknowns": [
+    "Declared route files do not prove runtime reachability or authorization enforcement.",
+    "Dynamic registration, server actions, cross-file ownership and database semantics are not yet assessed.",
+    "The content digest covers included working-tree files, not a proof that the checkout is clean. Protected files and generated directories are omitted.",
+    "Commit identity unavailable; no commit provenance claim."
+  ],
+  "content_digest": "sha256:4eeffaf9e51310019689a09a1311495ffbbe298b252ba7c755c8b160bc54023b"
+}

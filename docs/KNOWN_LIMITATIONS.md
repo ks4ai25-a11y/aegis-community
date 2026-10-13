@@ -1,0 +1,15 @@
+# Current known limitations
+
+Aegis is an unfinished internal demo preview. Default mode is Observe. The gateway's WAF acts only on HTTP requests passing through its configured route. A matched rule is not proof of a successful exploit; a passing synthetic test is not proof an arbitrary application is secure.
+
+The current configuration supports the bundled Go demo and fixed hostname/origin only. Production TLS, custom app registration, trusted CDN proxy ranges, rate-limit controls and rule-expiry scheduling are not implemented. Docker origin ports are not published. Only loopback gateway and controller ports are published; this is not a host firewall audit or an HA deployment.
+
+The controller and gateway can fail independently. Controller/collector loss leaves the current gateway policy active. Gateway failure causes an outage; no automatic origin bypass is provided. Gateway restart uses its own persisted active configuration. Controller crash during a leased fixture times out without a passing report. Remaining crash windows, disk-full behaviour, upgrade/restore and volume corruption must pass fault injection before release.
+
+Scanner parsing and owner-scoped read-only repository registration exist. Provisioned mounts are bound to one owner; arbitrary browser host paths and remote cloning are unavailable. Current map responses are capped at 60,000 bytes. Pinned Semgrep/Gitleaks/Syft compatibility is tested against private snapshots. An operator-only executor runs fixed offline tools with an independent container deadline guard. This is not durable controller scanner orchestration. Host SIGKILL workspace recovery remains incomplete. Offline vulnerability databases, freshness policy, comprehensive repository/lockfile coverage, user-configurable retention and durable scan scheduling remain incomplete; fixed WAF fixture jobs have durable leases and exact owner-approved scopes. Zero findings never establishes safety. Inventory does not execute repository scripts. Symlinks and oversized input are rejected.
+
+The tenant-isolation challenge uses only bundled trusted code and synthetic users. Arbitrary customer code/patch execution is unavailable until a separate disposable VM boundary exists. Docker isolation alone is not presented as sufficient for that feature. Findings require declared owner semantics and independent verification.
+
+AI is off by default and no provider is required for the demo. Desktop AI pairing, MCP permissions, provider adapters and real provider GUI tests remain unavailable. No raw secrets or repository content are uploaded automatically.
+
+Local tests and hashes are not independent sign-off or publisher signature validation. Public beta is NO-GO until every H7 gate has actual evidence, including independent installation and security/legal review. No production, volumetric DDoS, human-parity red team, exhaustive business-logic, or absolute protection claim is made.

@@ -1,0 +1,496 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerExecutionV1.json",
+  "title": "ScannerExecutionV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "invocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "maxItems": 32
+        },
+        "network_profile": {
+          "type": "string",
+          "const": "none"
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 120,
+          "maximum": 120
+        },
+        "max_output_bytes": {
+          "type": "integer",
+          "minimum": 8388608,
+          "maximum": 8388608
+        },
+        "finding_exit_codes": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "minItems": 1,
+          "maxItems": 4
+        }
+      },
+      "required": [
+        "args",
+        "network_profile",
+        "timeout_seconds",
+        "max_output_bytes",
+        "finding_exit_codes"
+      ]
+    },
+    "sandbox_profile": {
+      "type": "string",
+      "const": "repo_offline-network-none-v1"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "tool_id": {
+      "type": "string",
+      "enum": [
+        "semgrep_ce",
+        "osv_v2",
+        "trivy",
+        "syft",
+        "gitleaks"
+      ]
+    },
+    "tool_version": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "tool_image_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "tool_lock_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "rule_pack_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "guard_binary_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "duration_limit_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120
+    },
+    "source_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "input_map_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "commit_sha": {
+          "type": "string",
+          "pattern": "^(|[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string",
+                "maxLength": 512
+              },
+              "digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1048576
+              }
+            },
+            "required": [
+              "path",
+              "digest",
+              "size"
+            ]
+          },
+          "maxItems": 10000
+        },
+        "included_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 67108864
+        },
+        "snapshot_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "schema_version",
+        "input_map_digest",
+        "commit_sha",
+        "files",
+        "included_bytes",
+        "snapshot_digest"
+      ]
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 140000
+    },
+    "exit_code": {
+      "type": "integer",
+      "minimum": -1,
+      "maximum": 255
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "completed_partial",
+        "completed_stale_db",
+        "tool_error"
+      ]
+    },
+    "cleanup_state": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "unconfirmed"
+      ]
+    },
+    "container_id": {
+      "type": "string",
+      "pattern": "^aegis-scan-[0-9a-f]{32}$"
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "completed",
+            "completed_partial",
+            "completed_stale_db",
+            "tool_error"
+          ]
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "schema_version": {
+                "type": "string",
+                "const": "1.0"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "app_id": {
+                "type": "string",
+                "maxLength": 128
+              },
+              "repository_id": {
+                "type": "string",
+                "maxLength": 128
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "static_pattern",
+                  "secret_candidate",
+                  "known_vulnerable_dependency",
+                  "configuration_claim"
+                ]
+              },
+              "summary": {
+                "type": "string",
+                "maxLength": 512
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "suspected",
+                  "corroborated",
+                  "reproduced",
+                  "remediating",
+                  "fixed_or_mitigated",
+                  "monitored"
+                ]
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "informational",
+                  "low",
+                  "medium",
+                  "high",
+                  "critical"
+                ]
+              },
+              "confidence": {
+                "type": "string",
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              "evidence_tier": {
+                "type": "string",
+                "enum": [
+                  "T0",
+                  "T1",
+                  "T2",
+                  "T3",
+                  "T4",
+                  "T5"
+                ]
+              },
+              "path": {
+                "type": "string",
+                "maxLength": 512
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000000
+              },
+              "package_url": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "installed_version": {
+                "type": "string",
+                "maxLength": 128
+              },
+              "advisories": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 128
+                },
+                "maxItems": 64
+              },
+              "secret_fingerprint": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "provenance": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "tool_id": {
+                      "type": "string",
+                      "maxLength": 32
+                    },
+                    "tool_version": {
+                      "type": "string",
+                      "maxLength": 64
+                    },
+                    "tool_image_digest": {
+                      "type": "string",
+                      "pattern": "^sha256:[0-9a-f]{64}$"
+                    },
+                    "parser_version": {
+                      "type": "string",
+                      "const": "1.0"
+                    },
+                    "input_digest": {
+                      "type": "string",
+                      "pattern": "^sha256:[0-9a-f]{64}$"
+                    },
+                    "rule_id": {
+                      "type": "string",
+                      "maxLength": 160
+                    }
+                  },
+                  "required": [
+                    "tool_id",
+                    "tool_version",
+                    "tool_image_digest",
+                    "parser_version",
+                    "input_digest"
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 16
+              },
+              "coverage_note": {
+                "type": "string",
+                "maxLength": 512
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "schema_version",
+              "id",
+              "app_id",
+              "repository_id",
+              "category",
+              "summary",
+              "status",
+              "severity",
+              "confidence",
+              "evidence_tier",
+              "provenance",
+              "coverage_note",
+              "created_at"
+            ]
+          },
+          "maxItems": 10000
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "message": {
+                "type": "string",
+                "maxLength": 512
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ]
+          },
+          "maxItems": 64
+        },
+        "sbom": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "bomFormat": {
+              "type": "string",
+              "const": "CycloneDX"
+            },
+            "specVersion": {
+              "type": "string",
+              "enum": [
+                "1.4",
+                "1.5",
+                "1.6",
+                "1.7"
+              ]
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1
+            },
+            "components": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "version": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "purl": {
+                    "type": "string",
+                    "maxLength": 1024
+                  }
+                },
+                "required": [
+                  "name",
+                  "version",
+                  "purl"
+                ]
+              },
+              "maxItems": 10000
+            }
+          },
+          "required": [
+            "bomFormat",
+            "specVersion",
+            "version",
+            "components"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "findings",
+        "diagnostics"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 512
+      },
+      "minItems": 1,
+      "maxItems": 16
+    }
+  },
+  "required": [
+    "invocation",
+    "sandbox_profile",
+    "schema_version",
+    "tool_id",
+    "tool_version",
+    "tool_image_digest",
+    "tool_lock_digest",
+    "guard_binary_digest",
+    "duration_limit_seconds",
+    "source_snapshot",
+    "started_at",
+    "duration_ms",
+    "exit_code",
+    "status",
+    "cleanup_state",
+    "container_id",
+    "result",
+    "limitations"
+  ]
+}

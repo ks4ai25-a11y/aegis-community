@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "job_id": "01a130f8-60c9-7284-a179-159391385f2a",
+  "owner_id": "01a130ab-a6b8-71ba-b6ef-36de8d41d989",
+  "app_id": "app_demo",
+  "job_type": "waf_fixture",
+  "scope_grant_id": "01a130f8-60b9-774f-b711-5ec03a11df1e",
+  "input_digest": "sha256:b997d91d31e0775c89fb470615c703dab0d07d75874e591e15b7f1170a723766",
+  "state": "success",
+  "attempts": 1,
+  "created_at": "2026-10-12T16:35:46.505165712Z",
+  "finished_at": "2026-10-12T16:35:47.923834004Z",
+  "report_digest": "sha256:a4979b94c732d252b01aa71fca0f7919c871876273d8eda0fef65d583afad208"
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "scope": "trusted-static-fixture-guard-failures",
+  "checks": [
+    {
+      "id": "guard_deadline_never_returns_completed_zero_findings",
+      "result": "PASS",
+      "detail": {
+        "exit_code": 124,
+        "duration_ms": 1424,
+        "guard_binary_digest": "sha256:c15281a9678f4402fa7cf77330c04f2864dec18ad26854cffc35c38f824faafb"
+      }
+    },
+    {
+      "id": "actual_container_input_tamper_refused_before_scanner",
+      "result": "PASS",
+      "detail": {
+        "guard_exit_code": 125,
+        "scanner_output_bytes": 0
+      }
+    },
+    {
+      "id": "container_guard_survives_host_cli_sigkill",
+      "result": "PASS",
+      "detail": {
+        "guard_exit_code": 124,
+        "elapsed_after_cli_kill_seconds": 7.765,
+        "network_profile": "none",
+        "read_only_mounts": true,
+        "log_driver": "none"
+      }
+    },
+    {
+      "id": "test_owned_host_workspaces_cleaned_after_sigkill",
+      "result": "PASS",
+      "detail": {
+        "workspace_count": 3
+      }
+    }
+  ],
+  "started_at": "2026-10-13T00:36:06Z",
+  "overall": "PASS",
+  "completed_at": "2026-10-13T00:36:19Z",
+  "limitations": [
+    "Local ARM64 Docker Desktop and trusted inert inputs only.",
+    "Host SIGKILL leaves private host workspaces until operator cleanup; durable job workspace recovery is still required.",
+    "No arbitrary user-code execution, VM boundary or independent isolation review claim."
+  ]
+}

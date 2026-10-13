@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/FindingV1.json",
+  "title": "FindingV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "app_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "repository_id": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "static_pattern",
+        "secret_candidate",
+        "known_vulnerable_dependency",
+        "configuration_claim"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "suspected",
+        "corroborated",
+        "reproduced",
+        "remediating",
+        "fixed_or_mitigated",
+        "monitored"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "informational",
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "evidence_tier": {
+      "type": "string",
+      "enum": [
+        "T0",
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T5"
+      ]
+    },
+    "path": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "line": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000000
+    },
+    "package_url": {
+      "type": "string",
+      "maxLength": 1024
+    },
+    "installed_version": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "advisories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 128
+      },
+      "maxItems": 64
+    },
+    "secret_fingerprint": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tool_id": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "tool_version": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "tool_image_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "parser_version": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "input_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "rule_id": {
+            "type": "string",
+            "maxLength": 160
+          }
+        },
+        "required": [
+          "tool_id",
+          "tool_version",
+          "tool_image_digest",
+          "parser_version",
+          "input_digest"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 16
+    },
+    "coverage_note": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "app_id",
+    "repository_id",
+    "category",
+    "summary",
+    "status",
+    "severity",
+    "confidence",
+    "evidence_tier",
+    "provenance",
+    "coverage_note",
+    "created_at"
+  ]
+}

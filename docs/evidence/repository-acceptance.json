@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "scope": "local-provisioned-read-only-scanner-fixtures",
+  "started_at": "2026-10-12T19:59:42Z",
+  "checks": [
+    {
+      "id": "only_provisioned_fixture_asset_ids_available",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "reconnect_preserves_repository_and_content_identity",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "live_map_matches_file_bytes_and_preserves_unknowns",
+      "result": "PASS",
+      "detail": {
+        "map_digest": "sha256:4eeffaf9e51310019689a09a1311495ffbbe298b252ba7c755c8b160bc54023b",
+        "file_count": 4,
+        "input_bytes": 821,
+        "connect_elapsed_ms": 9.1
+      }
+    },
+    {
+      "id": "application_map_does_not_publish_fixture_secret_or_script_contents",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "host_paths_urls_and_traversal_rejected",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "controller_source_mount_is_read_only_and_has_no_docker_socket",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "repository_mount_rejects_actual_write_attempt",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "registered_repository_is_durable_owner_state",
+      "result": "PASS",
+      "detail": null
+    }
+  ],
+  "overall": "PASS",
+  "completed_at": "2026-10-12T19:59:43Z",
+  "limitations": [
+    "Single durably bound mount owner, app_demo and provisioned local read-only roots only.",
+    "No remote clone, credential import, arbitrary repository code execution or durable scanner execution claim.",
+    "Commit metadata is not proof of a clean checkout; conventional .git metadata only.",
+    "Full framework extraction, source snapshotting and external review remain pending."
+  ]
+}

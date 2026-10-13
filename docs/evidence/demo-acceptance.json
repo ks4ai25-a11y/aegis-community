@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "test_scope": "local-bundled-synthetic-demo",
+  "started_at": "2026-10-12T16:39:42Z",
+  "checks": [
+    {
+      "id": "unauthenticated_admin_denied",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "owner_session_enrolled",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "observe_expected_rule_and_access_correlated",
+      "result": "PASS",
+      "detail": {
+        "rule_id": "942100"
+      }
+    },
+    {
+      "id": "default_evidence_excludes_secret_canaries",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "independent_protect_fixture_pass",
+      "result": "PASS",
+      "detail": {
+        "report_digest": "sha256:1664d3570a1b4067e9d22b9508555c64d47a848f98c092f3aaa73069607384b7"
+      }
+    },
+    {
+      "id": "activation_retry_is_idempotent",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "protect_denies_pattern_preserves_benign",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "controller_loss_and_gateway_restart_preserve_protect",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "tested_rollback_restores_observe",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "privilege_and_fixture_network_boundaries",
+      "result": "PASS",
+      "detail": null
+    }
+  ],
+  "overall": "PASS",
+  "completed_at": "2026-10-12T16:39:51Z",
+  "limitations": [
+    "Local ARM64 Docker Desktop run, not independent installation or production certification.",
+    "Trusted bundled fixture only; no untrusted repository execution.",
+    "No TLS, throughput, expiry, independent security review, or AI provider GUI claim."
+  ]
+}

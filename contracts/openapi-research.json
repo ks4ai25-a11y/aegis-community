@@ -1,0 +1,775 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Aegis scoped research API",
+    "version": "0.1.0-alpha.1",
+    "description": "Implemented provisioned read-only repositories and bundled test_lab surface only. This is not the complete v4 API catalogue."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:7410/api/v1"
+    }
+  ],
+  "paths": {
+    "/repos": {
+      "post": {
+        "operationId": "connectRepository",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepositoryV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepositoryConnectionRequestV1"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listRepositories",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepositoryListV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repos/assets": {
+      "get": {
+        "operationId": "listRepositoryAssets",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepositoryAssetListV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repos/{id}": {
+      "get": {
+        "operationId": "getRepository",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepositoryV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          }
+        ]
+      }
+    },
+    "/repos/{id}/map": {
+      "get": {
+        "operationId": "getApplicationMap",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationMapV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          }
+        ]
+      }
+    },
+    "/scope-grants": {
+      "post": {
+        "operationId": "createScopeGrant",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeGrantRecordV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScopeGrantDraftRequestV1"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listScopeGrants",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeGrantListV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scope-grants/{id}": {
+      "get": {
+        "operationId": "getScopeGrant",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeGrantRecordV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          }
+        ]
+      }
+    },
+    "/scope-grants/{id}/approve": {
+      "post": {
+        "operationId": "approveScopeGrant",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeGrantRecordV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScopeGrantApprovalRequestV1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scope-grants/{id}/revoke": {
+      "post": {
+        "operationId": "revokeScopeGrant",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeRevocationReceiptV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyObjectV1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verifications": {
+      "post": {
+        "operationId": "createVerification",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchJobV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationJobInputV1"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listVerifications",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchJobListV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verifications/{id}": {
+      "get": {
+        "operationId": "getVerification",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchJobV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          }
+        ]
+      }
+    },
+    "/verifications/{id}/cancel": {
+      "post": {
+        "operationId": "cancelVerification",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchJobV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyObjectV1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verify/reports/{id}": {
+      "get": {
+        "operationId": "getVerificationReport",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationReportV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ownerSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "aegis_session"
+      }
+    },
+    "schemas": {
+      "ApplicationMapV1": {
+        "$ref": "schemas/ApplicationMapV1.json"
+      },
+      "EmptyObjectV1": {
+        "$ref": "schemas/EmptyObjectV1.json"
+      },
+      "ErrorEnvelopeV1": {
+        "$ref": "schemas/ErrorEnvelopeV1.json"
+      },
+      "FindingV1": {
+        "$ref": "schemas/FindingV1.json"
+      },
+      "PolicyRevisionV1": {
+        "$ref": "schemas/PolicyRevisionV1.json"
+      },
+      "RepositoryAssetListV1": {
+        "$ref": "schemas/RepositoryAssetListV1.json"
+      },
+      "RepositoryConnectionRequestV1": {
+        "$ref": "schemas/RepositoryConnectionRequestV1.json"
+      },
+      "RepositoryListV1": {
+        "$ref": "schemas/RepositoryListV1.json"
+      },
+      "RepositoryV1": {
+        "$ref": "schemas/RepositoryV1.json"
+      },
+      "ResearchJobListV1": {
+        "$ref": "schemas/ResearchJobListV1.json"
+      },
+      "ResearchJobV1": {
+        "$ref": "schemas/ResearchJobV1.json"
+      },
+      "ScannerExecutionV1": {
+        "$ref": "schemas/ScannerExecutionV1.json"
+      },
+      "ScopeGrantApprovalRequestV1": {
+        "$ref": "schemas/ScopeGrantApprovalRequestV1.json"
+      },
+      "ScopeGrantDraftRequestV1": {
+        "$ref": "schemas/ScopeGrantDraftRequestV1.json"
+      },
+      "ScopeGrantListV1": {
+        "$ref": "schemas/ScopeGrantListV1.json"
+      },
+      "ScopeGrantRecordV1": {
+        "$ref": "schemas/ScopeGrantRecordV1.json"
+      },
+      "ScopeGrantV1": {
+        "$ref": "schemas/ScopeGrantV1.json"
+      },
+      "ScopeRevocationReceiptV1": {
+        "$ref": "schemas/ScopeRevocationReceiptV1.json"
+      },
+      "SourceSnapshotManifestV1": {
+        "$ref": "schemas/SourceSnapshotManifestV1.json"
+      },
+      "VerificationJobInputV1": {
+        "$ref": "schemas/VerificationJobInputV1.json"
+      },
+      "VerificationReportV1": {
+        "$ref": "schemas/VerificationReportV1.json"
+      }
+    }
+  }
+}

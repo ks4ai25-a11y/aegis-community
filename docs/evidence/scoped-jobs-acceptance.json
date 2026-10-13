@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "scope": "local-bundled-synthetic-job-worker",
+  "checks": [
+    {
+      "id": "scoped_enqueue_is_idempotent",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "real_independent_report_binds_job_scope_and_controls",
+      "result": "PASS",
+      "detail": {
+        "job_id": "01a130f8-60c9-7284-a179-159391385f2a",
+        "report_digest": "sha256:a4979b94c732d252b01aa71fca0f7919c871876273d8eda0fef65d583afad208"
+      }
+    },
+    {
+      "id": "scope_request_budget_is_enforced",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "revocation_interrupts_real_running_fixture",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "controller_crash_expires_lease_without_false_success",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "id": "job_and_owned_report_survive_controller_restart",
+      "result": "PASS",
+      "detail": null
+    }
+  ],
+  "started_at": "2026-10-12T16:35:46Z",
+  "overall": "PASS",
+  "completed_at": "2026-10-12T16:36:04Z",
+  "limitations": [
+    "Only bundled trusted fixture and local ARM64 Docker Desktop tested.",
+    "No arbitrary staging target, untrusted code execution, signed scope authority or external security review claim.",
+    "Policy preview still uses its separate synchronous fixed fixture path."
+  ]
+}

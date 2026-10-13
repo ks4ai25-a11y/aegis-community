@@ -1,0 +1,108 @@
+// SPDX-License-Identifier: Apache-2.0
+package scanners
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"path"
+	"regexp"
+	"strings"
+	"time"
+)
+
+type Source struct {
+	Tool        string `json:"tool_id"`
+	Version     string `json:"tool_version"`
+	ImageDigest string `json:"tool_image_digest"`
+	Parser      string `json:"parser_version"`
+	InputDigest string `json:"input_digest"`
+	Rule        string `json:"rule_id,omitempty"`
+}
+type Finding struct {
+	Schema            string   `json:"schema_version"`
+	ID                string   `json:"id"`
+	App               string   `json:"app_id"`
+	Repository        string   `json:"repository_id"`
+	Category          string   `json:"category"`
+	Summary           string   `json:"summary"`
+	Status            string   `json:"status"`
+	Severity          string   `json:"severity"`
+	Confidence        string   `json:"confidence"`
+	Tier              string   `json:"evidence_tier"`
+	Path              string   `json:"path,omitempty"`
+	Line              int      `json:"line,omitempty"`
+	Package           string   `json:"package_url,omitempty"`
+	Version           string   `json:"installed_version,omitempty"`
+	Advisories        []string `json:"advisories,omitempty"`
+	SecretFingerprint string   `json:"secret_fingerprint,omitempty"`
+	Provenance        []Source `json:"provenance"`
+	Coverage          string   `json:"coverage_note"`
+	Created           string   `json:"created_at"`
+}
+type Job struct {
+	App, Repository, InputDigest string
+	ToolVersion, ImageDigest     string
+	SecretSalt                   []byte
+}
+type Diagnostic struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+type Result struct {
+	Status      string          `json:"status"`
+	Findings    []Finding       `json:"findings"`
+	Diagnostics []Diagnostic    `json:"diagnostics"`
+	SBOM        json.RawMessage `json:"sbom,omitempty"`
+}
+
+func Hash(b []byte) string { s := sha256.Sum256(b); return "sha256:" + hex.EncodeToString(s[:]) }
+func safePath(p string) (string, error) {
+	p = strings.TrimPrefix(p, "/src/")
+	if strings.Contains(p, "\\") || strings.ContainsRune(p, 0) || strings.HasPrefix(p, "/") {
+		return "", fmt.Errorf("absolute or malformed source path")
+	}
+	c := path.Clean(p)
+	if c == ".." || strings.HasPrefix(c, "../") || c == "." || len(c) > 512 {
+		return "", fmt.Errorf("source path outside repository")
+	}
+	return c, nil
+}
+func newFinding(j Job, tool, kind, rule, file string, line int, sev string) (Finding, error) {
+	if len(rule) > 160 || !regexp.MustCompile(`^[A-Za-z0-9_.:/-]+$`).MatchString(rule) {
+		return Finding{}, fmt.Errorf("invalid scanner rule identity")
+	}
+	p, e := safePath(file)
+	if e != nil {
+		return Finding{}, e
+	}
+	if line < 0 || line > 10000000 {
+		return Finding{}, fmt.Errorf("invalid line")
+	}
+	switch sev {
+	case "critical", "high", "medium", "low", "informational":
+	default:
+		sev = "informational"
+	}
+	f := Finding{Schema: "1.0", App: j.App, Repository: j.Repository, Category: kind, Summary: "Unverified " + tool + " finding: " + rule, Status: "suspected", Severity: sev, Confidence: "low", Tier: "T0", Path: p, Line: line, Provenance: []Source{{tool, j.ToolVersion, j.ImageDigest, "1.0", j.InputDigest, rule}}, Coverage: "Tool-reported static claim only; no application exploitability or remediation proof.", Created: time.Now().UTC().Format(time.RFC3339Nano)}
+	f.ID = Hash([]byte(j.App + "\x00" + j.Repository + "\x00" + kind + "\x00" + rule + "\x00" + p + fmt.Sprint(line)))
+	return f, nil
+}
+func Dedupe(in []Finding) []Finding {
+	out := []Finding{}
+	index := map[string]int{}
+	for _, f := range in {
+		key := f.App + "\x00" + f.Repository + "\x00" + f.ID
+		if f.Package != "" && len(f.Advisories) == 1 {
+			key = f.App + "\x00" + f.Repository + "\x00" + f.Package + "\x00" + f.Version + "\x00" + f.Advisories[0] + "\x00" + f.Path
+		}
+		if i, ok := index[key]; ok {
+			out[i].Provenance = append(out[i].Provenance, f.Provenance...)
+		} else {
+			index[key] = len(out)
+			out = append(out, f)
+		}
+	}
+	return out
+}

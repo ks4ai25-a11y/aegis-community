@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/EmptyObjectV1.json",
+  "title": "EmptyObjectV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {},
+  "required": []
+}

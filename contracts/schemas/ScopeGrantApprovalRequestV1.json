@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScopeGrantApprovalRequestV1.json",
+  "title": "ScopeGrantApprovalRequestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "approved_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "acknowledge_test_scope": {
+      "type": "boolean",
+      "const": true
+    }
+  },
+  "required": [
+    "approved_digest",
+    "acknowledge_test_scope"
+  ]
+}

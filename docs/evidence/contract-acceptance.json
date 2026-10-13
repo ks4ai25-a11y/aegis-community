@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0",
+  "overall": "PASS",
+  "validator": "jsonschema 4.26.0 Draft202012Validator",
+  "checks": [
+    {
+      "schema": "RepositoryAssetListV1",
+      "result": "PASS"
+    },
+    {
+      "schema": "RepositoryListV1",
+      "result": "PASS"
+    },
+    {
+      "schema": "RepositoryV1",
+      "result": "PASS"
+    },
+    {
+      "schema": "ApplicationMapV1",
+      "result": "PASS"
+    },
+    {
+      "schema": "ScopeGrantListV1",
+      "result": "PASS"
+    },
+    {
+      "schema": "ResearchJobListV1",
+      "result": "PASS"
+    },
+    {
+      "schema": "ResearchJobV1",
+      "result": "PASS"
+    },
+    {
+      "schema": "ScopeGrantRecordV1",
+      "result": "PASS"
+    },
+    {
+      "schema": "VerificationReportV1",
+      "result": "PASS"
+    },
+    {
+      "schema": "FindingV1",
+      "result": "PASS"
+    },
+    {
+      "schema": "FindingV1",
+      "result": "PASS"
+    },
+    {
+      "schema": "RepositoryConnectionRequestV1",
+      "negative_result": "REJECTED"
+    },
+    {
+      "schema": "RepositoryConnectionRequestV1",
+      "negative_result": "REJECTED"
+    },
+    {
+      "schema": "ScopeGrantDraftRequestV1",
+      "negative_result": "REJECTED"
+    },
+    {
+      "schema": "ScopeGrantApprovalRequestV1",
+      "negative_result": "REJECTED"
+    },
+    {
+      "schema": "VerificationReportV1",
+      "negative_result": "REJECTED"
+    }
+  ],
+  "limitations": [
+    "Implemented research surface only; complete v4 contract catalogue remains incomplete.",
+    "Bindings are not a substitute for runtime semantic authorization and control validation."
+  ]
+}

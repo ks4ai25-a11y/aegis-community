@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScopeGrantListV1.json",
+  "title": "ScopeGrantListV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "grant": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "schema_version": {
+                "type": "string",
+                "const": "1.0"
+              },
+              "scope_grant_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "owner_id": {
+                "type": "string",
+                "maxLength": 128
+              },
+              "app_id": {
+                "type": "string",
+                "const": "app_demo"
+              },
+              "asset_id": {
+                "type": "string",
+                "const": "bundled-waf-fixture"
+              },
+              "ownership_evidence": {
+                "type": "string",
+                "const": "Aegis-owned bundled synthetic fixture"
+              },
+              "mode": {
+                "type": "string",
+                "const": "test_lab"
+              },
+              "allowed_protocols": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "http"
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "allowed_routes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "/catalog",
+                    "/test-pattern"
+                  ]
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "allowed_tests": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "const": "crs-synthetic-sqli-pattern-v1"
+                },
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "network_profile": {
+                "type": "string",
+                "const": "test_lab_only"
+              },
+              "network_addresses": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "const": "fixture-origin:8080"
+                },
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "max_concurrency": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1
+              },
+              "max_requests": {
+                "type": "integer",
+                "minimum": 4,
+                "maximum": 4
+              },
+              "max_duration_seconds": {
+                "type": "integer",
+                "minimum": 30,
+                "maximum": 30
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "expires_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "schema_version",
+              "scope_grant_id",
+              "owner_id",
+              "app_id",
+              "asset_id",
+              "ownership_evidence",
+              "mode",
+              "allowed_protocols",
+              "allowed_routes",
+              "allowed_tests",
+              "network_profile",
+              "network_addresses",
+              "max_concurrency",
+              "max_requests",
+              "max_duration_seconds",
+              "created_at",
+              "expires_at"
+            ]
+          },
+          "approved_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "revoked"
+            ]
+          },
+          "requests_remaining": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          }
+        },
+        "required": [
+          "grant",
+          "approved_digest",
+          "state",
+          "requests_remaining"
+        ]
+      },
+      "maxItems": 100
+    }
+  },
+  "required": [
+    "items"
+  ]
+}

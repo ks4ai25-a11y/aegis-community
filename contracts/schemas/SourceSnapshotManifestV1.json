@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/SourceSnapshotManifestV1.json",
+  "title": "SourceSnapshotManifestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "input_map_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "commit_sha": {
+      "type": "string",
+      "pattern": "^(|[0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1048576
+          }
+        },
+        "required": [
+          "path",
+          "digest",
+          "size"
+        ]
+      },
+      "maxItems": 10000
+    },
+    "included_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 67108864
+    },
+    "snapshot_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "input_map_digest",
+    "commit_sha",
+    "files",
+    "included_bytes",
+    "snapshot_digest"
+  ]
+}

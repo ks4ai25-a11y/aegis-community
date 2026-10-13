@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "specification": "v4 Master H7",
+  "public_beta": "NO-GO",
+  "gates": [
+    {
+      "gate_id": "GATE-1",
+      "requirement": "Independent fresh installation",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "gate_id": "GATE-2",
+      "requirement": "Expected WAF detection and bypass coverage",
+      "status": "partial",
+      "evidence": [
+        "docs/evidence/demo-acceptance.json"
+      ]
+    },
+    {
+      "gate_id": "GATE-3",
+      "requirement": "Protection during dependency failure",
+      "status": "partial",
+      "evidence": [
+        "docs/evidence/demo-acceptance.json"
+      ]
+    },
+    {
+      "gate_id": "GATE-4",
+      "requirement": "Default privacy and export",
+      "status": "partial",
+      "evidence": [
+        "docs/evidence/demo-acceptance.json"
+      ]
+    },
+    {
+      "gate_id": "GATE-5",
+      "requirement": "Policy rejection, rollback and expiry",
+      "status": "partial",
+      "evidence": [
+        "docs/evidence/demo-acceptance.json"
+      ]
+    },
+    {
+      "gate_id": "GATE-6",
+      "requirement": "Pinned reproducible scanners",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "gate_id": "GATE-7",
+      "requirement": "Runner isolation and independent review",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "gate_id": "GATE-8",
+      "requirement": "Reproducible findings and proofs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "gate_id": "GATE-9",
+      "requirement": "Closed-loop positive and negative controls",
+      "status": "partial",
+      "evidence": [
+        "alpha/lab/tenant_test.go"
+      ]
+    },
+    {
+      "gate_id": "GATE-10",
+      "requirement": "Supply-chain provenance, SBOM and notices",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "gate_id": "GATE-11",
+      "requirement": "Disk-full, restore and upgrade",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "gate_id": "GATE-12",
+      "requirement": "Accurate product claims",
+      "status": "partial",
+      "evidence": [
+        "docs/KNOWN_LIMITATIONS.md",
+        "docs/IMPLEMENTATION_STATUS.md"
+      ]
+    }
+  ]
+}

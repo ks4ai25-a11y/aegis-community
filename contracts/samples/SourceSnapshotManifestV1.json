@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "input_map_digest": "sha256:1fe34cbffa049c1c3700dd2cd8bb44477b05f90600365c3aea45d9094f912a9a",
+  "commit_sha": "",
+  "files": [
+    {
+      "path": "fake-secret.txt",
+      "digest": "sha256:46c0c7252868ae400898552b9fa727030310817b4113fcdd5ebeb932d5a5fb22",
+      "size": 59
+    },
+    {
+      "path": "package-lock.json",
+      "digest": "sha256:4f34fa3e7b13474932c58072bc7293564d6563e4b949dad4ae150f8a27ac80a3",
+      "size": 415
+    },
+    {
+      "path": "package.json",
+      "digest": "sha256:517b9f5e99e0ad8c41c075193eae10ab4cbc657b7c2f80446a87a47134377d52",
+      "size": 176
+    },
+    {
+      "path": "query.py",
+      "digest": "sha256:463d921273c5ad7019546e1ad7bebec0e5325dcb21a2a52dfc992089ef72f4bf",
+      "size": 171
+    }
+  ],
+  "included_bytes": 821,
+  "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
+}

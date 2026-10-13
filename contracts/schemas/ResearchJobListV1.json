@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ResearchJobListV1.json",
+  "title": "ResearchJobListV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "job_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "owner_id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "app_id": {
+            "type": "string",
+            "const": "app_demo"
+          },
+          "job_type": {
+            "type": "string",
+            "const": "waf_fixture"
+          },
+          "scope_grant_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "input_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "success",
+              "failed",
+              "cancelled",
+              "timeout"
+            ]
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "error_code": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "report_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "schema_version",
+          "job_id",
+          "owner_id",
+          "app_id",
+          "job_type",
+          "scope_grant_id",
+          "input_digest",
+          "state",
+          "attempts",
+          "created_at"
+        ]
+      },
+      "maxItems": 100
+    }
+  },
+  "required": [
+    "items"
+  ]
+}

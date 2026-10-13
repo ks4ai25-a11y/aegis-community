@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "report_id": "01a130f8-6203-7252-b23f-6edbb792aad0",
+  "test_scope": "bundled-synthetic-fixture",
+  "scope_grant_id": "01a130f8-60b9-774f-b711-5ec03a11df1e",
+  "job_id": "01a130f8-60c9-7284-a179-159391385f2a",
+  "scope_digest": "sha256:9c67ff4841bc8438edb8c5f08edb27465444f4cbaa398864c1720eaf152cbd7a",
+  "claim_level": "LEVEL_1_CONTROL_TEST",
+  "fixture_id": "crs-synthetic-sqli-pattern-v1",
+  "fixture_digest": "sha256:f550cd04f3101d084b95841de5f8ef307d7154bf12be568a51b3c7193350ff59",
+  "baseline_policy_digest": "sha256:c07c6129e3c33a79e19c10ae264a1e489338adfefcc6863d18cec550407defbb",
+  "candidate_policy_digest": "sha256:b997d91d31e0775c89fb470615c703dab0d07d75874e591e15b7f1170a723766",
+  "gateway_binary_digest": "sha256:8449a28517219bc98a0e3a63e32c1696ea6e598cd96fb6a72add57d4bf1ba396",
+  "started_at": "2026-10-12T16:35:46.819313878Z",
+  "completed_at": "2026-10-12T16:35:47.922182379Z",
+  "checks": [
+    {
+      "id": "control-allowed",
+      "result": "PASS",
+      "baseline_http_status": 200,
+      "candidate_http_status": 200,
+      "rule_ids": []
+    },
+    {
+      "id": "negative-matched-and-mode-correct",
+      "result": "PASS",
+      "baseline_http_status": 200,
+      "candidate_http_status": 200,
+      "rule_ids": [
+        "920350",
+        "942100",
+        "949110"
+      ],
+      "baseline_rule_ids": [
+        "920350",
+        "942100",
+        "949110"
+      ]
+    }
+  ],
+  "overall": "PASS",
+  "limitations": [
+    "Covers only the listed synthetic inputs in the isolated demo.",
+    "No production exploitability, authorization or complete remediation claim.",
+    "Local hashes establish byte identity; a host administrator can replace local history."
+  ],
+  "canonical_sha256": "sha256:a4979b94c732d252b01aa71fca0f7919c871876273d8eda0fef65d583afad208"
+}

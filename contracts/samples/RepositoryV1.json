@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "repository_id": "01a130f7-1562-7df2-b4ab-7485c18224f0",
+  "owner_id": "01a130ab-a6b8-71ba-b6ef-36de8d41d989",
+  "app_id": "app_demo",
+  "asset_id": "vulnerable",
+  "mode": "repo_offline",
+  "map_digest": "sha256:4eeffaf9e51310019689a09a1311495ffbbe298b252ba7c755c8b160bc54023b",
+  "created_at": "2026-10-12T16:34:21.666915172Z"
+}

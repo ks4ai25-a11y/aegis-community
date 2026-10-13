@@ -1,0 +1,15 @@
+**/node_modules
+**/dist
+bin
+.git
+tests/evidence
+**/.env
+**/.env.*
+**/__pycache__
+**/*.tsbuildinfo
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/*.pem
+**/*.key
+docs/evidence

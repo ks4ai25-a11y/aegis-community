@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/VerificationJobInputV1.json",
+  "title": "VerificationJobInputV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "app_id": {
+      "type": "string",
+      "const": "app_demo"
+    },
+    "scope_grant_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "scope_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "fixture_id": {
+      "type": "string",
+      "const": "crs-synthetic-sqli-pattern-v1"
+    },
+    "policy_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "app_id",
+    "scope_grant_id",
+    "scope_digest",
+    "fixture_id",
+    "policy_digest"
+  ]
+}
