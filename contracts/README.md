@@ -14,3 +14,6 @@ Still required: the complete v4 contract catalogue and API surface, runtime JSON
 
 
 `ScannerSuiteV1` and `ScannerSuiteResultV1` describe the immutable terminal index of accepted tool receipts. They preserve independent partial/stale/error flags and T0 evidence, require cleanup to remain pending, and count overlapping tool claims rather than deduplicated vulnerabilities. Actual native scanner fixture results are recorded in `samples/`. These schemas do not advertise a public scanner result route; semantic identity, receipt completeness and atomic derivation are enforced by the private controller boundary.
+
+
+`ScannerLaunchPlanV1`, `ScannerLaunchV1` and `ScannerLaunchRecordV1` describe bounded private prelaunch metadata and immutable controller receipts. They accept opaque engine/registry digests and reserved IDs, without host paths or capabilities. They do not advertise a public launch operation, process-start proof or cleanup release. Exact launch replay still requires live worker authority; general launch-submission serialization omits the private capability.

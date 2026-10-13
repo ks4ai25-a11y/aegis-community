@@ -62,7 +62,7 @@ func claim() Lease {
 	return Lease{Job: j, Map: m, Token: strings.Repeat("b", 64), Deadline: time.Now().Add(time.Minute).UTC()}
 }
 func wire(l Lease) map[string]any {
-	return map[string]any{"schema_version": "1.0", "job": l.Job, "application_map": l.Map, "lease_token": l.Token, "deadline": l.Deadline}
+	return map[string]any{"schema_version": "1.0", "launch_protocol": "1.0", "job": l.Job, "application_map": l.Map, "lease_token": l.Token, "deadline": l.Deadline}
 }
 func TestProtocolLifecycle(t *testing.T) {
 	l := claim()

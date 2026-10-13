@@ -64,7 +64,11 @@ func TestActualParserReceiptsShareControllerDataContract(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			r := scanevidence.Execution{Schema: "1.0", Parser: scanners.ParserVersion, Tool: tool, Version: pin.Version, Image: pin.Image, LockDigest: l.Job.LockDigest, Snapshot: snapshot, Started: started.Format(time.RFC3339Nano), DurationLimit: l.Job.Input.Duration, Invocation: invocation, Profile: "repo_offline-network-none-v1", GuardDigest: source.Hash([]byte("fixture guard claim")), Status: parsed.Status, Cleanup: "complete", Container: "aegis-scan-" + strings.Repeat("a", 32), Result: parsed, Limitations: []string{}}
+			r := scanevidence.Execution{Schema: "1.0", Parser: scanners.ParserVersion, Tool: tool, Version: pin.Version, Image: pin.Image, LockDigest: l.Job.LockDigest, Snapshot: snapshot, Started: started.Format(time.RFC3339Nano), DurationLimit: l.Job.Input.Duration, Invocation: invocation, Profile: "repo_offline-network-none-v1", GuardDigest: source.Hash([]byte("fixture guard claim")), Status: parsed.Status, Cleanup: "complete", Container: "aegis-scan-" + source.Hash([]byte("fixture container " + tool))[7:39], Result: parsed, Limitations: []string{}}
+			plan := scanevidence.LaunchPlan{Tool: tool, Container: r.Container, Engine: source.Hash([]byte("fixture engine")), Workspace: "run-" + source.Hash([]byte("fixture workspace " + tool))[7:39], Registry: source.Hash([]byte("fixture registry")), Snapshot: snapshot.Digest}
+			if _, e = f.client.RegisterLaunch(context.Background(), l, plan, pin.Version, pin.Image); e != nil {
+				t.Fatal("fixture launch registration refused", e)
+			}
 			if tool == "semgrep_ce" {
 				r.RulesDigest = source.Hash([]byte("fixture rule claim"))
 			}

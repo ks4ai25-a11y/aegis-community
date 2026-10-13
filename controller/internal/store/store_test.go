@@ -105,7 +105,7 @@ func TestScannerMigrationUpgradePreservesExistingVersions(t *testing.T) {
 		}
 	}
 	var version int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 8 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 9 {
 		t.Fatal(version, e)
 	}
 	if got, e := s.Get("upgrade-canary"); e != nil || got != "preserved" {
@@ -208,6 +208,13 @@ func TestWorkerRoleMigrationPreservesDispatchWithoutImplicitEnrollment(t *testin
 	var state, hash string
 	if e = s.DB.QueryRow("SELECT state,token_hash FROM scanner_dispatch WHERE slot=1").Scan(&state, &hash); e != nil || state != "cleanup_required" || hash != "capability-hash-fixture" {
 		t.Fatal("migration changed uncertain admission", state, e)
+	}
+	var protocol int
+	if e = s.DB.QueryRow("SELECT launch_protocol FROM scanner_dispatch WHERE slot=1").Scan(&protocol); e != nil || protocol != 0 {
+		t.Fatal("migration invented journaled launch authority", protocol, e)
+	}
+	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_launches").Scan(&n); e != nil || n != 0 {
+		t.Fatal("migration invented launch evidence", n, e)
 	}
 }
 

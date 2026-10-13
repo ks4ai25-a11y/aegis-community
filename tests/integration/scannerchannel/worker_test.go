@@ -117,6 +117,7 @@ func TestRealBanditWorkerFinalizesBoundResultWithoutReleasingCleanup(t *testing.
 		t.Fatal("worker did not finalize accepted receipts", got, e)
 	}
 	assertWorkerAdmissionHeld(t, f)
+	assertRecordedLaunches(t, f, j.ID)
 	logWorkerResult(t, r)
 }
 
@@ -145,6 +146,7 @@ func TestRealWorkerSuiteUsesDistinctJournalsAndIdenticalApprovedInput(t *testing
 		t.Fatal("suite retained source workspace", entries, e)
 	}
 	assertWorkerAdmissionHeld(t, f)
+	assertRecordedLaunches(t, f, j.ID)
 	logWorkerResult(t, r)
 }
 
@@ -179,6 +181,7 @@ func TestRealWorkerMissingOfflineDatabaseStoresToolError(t *testing.T) {
 	if r.Result.Document.Tools[0].Status != "completed" || !r.Result.Document.ToolError {
 		t.Fatal("failed tool prevented full suite derivation")
 	}
+	assertRecordedLaunches(t, f, j.ID)
 	logWorkerResult(t, r)
 }
 
@@ -189,4 +192,30 @@ func logWorkerResult(t *testing.T, r worker.Report) {
 		t.Fatal(e)
 	}
 	t.Logf("SUITE_RESULT %s", b)
+}
+
+func assertRecordedLaunches(t *testing.T, f fixture, job string) {
+	t.Helper()
+	launches, e := f.q.Launches("owner-a", job)
+	if e != nil || len(launches) != len(f.in.Tools) {
+		t.Fatal("actual attempted launches not recorded", e)
+	}
+	receipts, e := f.q.Receipts("owner-a", job)
+	if e != nil || len(receipts) != len(launches) {
+		t.Fatal("launch receipt correspondence lost", e)
+	}
+	for i, l := range launches {
+		ex := receipts[i].Document.Execution
+		if l.Document.Plan.Container != ex.Container || l.Document.Plan.Snapshot != ex.Snapshot.Digest || l.Document.Image != ex.Image || l.Document.Version != ex.Version {
+			t.Fatal("real receipt detached from its launch", l.Document.Plan.Tool)
+		}
+		if i > 0 && (l.Document.Plan.Engine != launches[0].Document.Plan.Engine || l.Document.Plan.Registry != launches[0].Document.Plan.Registry) {
+			t.Fatal("suite changed execution namespace")
+		}
+		b, e := json.Marshal(l)
+		if e != nil {
+			t.Fatal(e)
+		}
+		t.Logf("LAUNCH_RECORD %s", b)
+	}
 }

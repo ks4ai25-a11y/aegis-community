@@ -95,13 +95,13 @@ func (q *Queue) Claim(worker, owner string) (Lease, error) {
 	if until > deadline {
 		until = deadline
 	}
-	if _, e = tx.Exec("INSERT INTO scanner_dispatch VALUES(1,?,?,?,?,?,'active')", j.ID, worker, domain.Hash([]byte(token)), until, deadline); e != nil {
+	if _, e = tx.Exec("INSERT INTO scanner_dispatch(slot,job,worker,token_hash,lease_until,deadline,state,launch_protocol) VALUES(1,?,?,?,?,?,'active',1)", j.ID, worker, domain.Hash([]byte(token)), until, deadline); e != nil {
 		return Lease{}, e
 	}
 	if _, e = tx.Exec("UPDATE scanner_jobs SET state='running' WHERE id=? AND state='queued'", j.ID); e != nil {
 		return Lease{}, e
 	}
-	if e = store.AuditTx(tx, j.Owner, "scanner.claim", j.ID, "running", map[string]any{"worker_id": worker, "request_digest": j.RequestDigest, "map_digest": j.Input.MapDigest, "tool_lock_digest": j.LockDigest, "deadline_unix": deadline}); e != nil {
+	if e = store.AuditTx(tx, j.Owner, "scanner.claim", j.ID, "running", map[string]any{"worker_id": worker, "request_digest": j.RequestDigest, "map_digest": j.Input.MapDigest, "tool_lock_digest": j.LockDigest, "deadline_unix": deadline, "launch_protocol": "1.0"}); e != nil {
 		return Lease{}, e
 	}
 	if e = tx.Commit(); e != nil {
@@ -221,7 +221,8 @@ func (q *Queue) live(tx *sql.Tx, l Lease) (Job, error) {
 	}
 	var id, state string
 	var until, deadline int64
-	e := tx.QueryRow("SELECT job,state,lease_until,deadline FROM scanner_dispatch WHERE slot=1 AND worker=? AND token_hash=?", l.Worker, domain.Hash([]byte(l.Token))).Scan(&id, &state, &until, &deadline)
+	var protocol int
+	e := tx.QueryRow("SELECT job,state,lease_until,deadline,launch_protocol FROM scanner_dispatch WHERE slot=1 AND worker=? AND token_hash=?", l.Worker, domain.Hash([]byte(l.Token))).Scan(&id, &state, &until, &deadline, &protocol)
 	if e == sql.ErrNoRows {
 		return Job{}, ErrLease
 	}
@@ -229,7 +230,7 @@ func (q *Queue) live(tx *sql.Tx, l Lease) (Job, error) {
 		return Job{}, e
 	}
 	now := q.now().Unix()
-	if id != l.Job.ID || state != "active" || until <= now || deadline <= now {
+	if id != l.Job.ID || state != "active" || until <= now || deadline <= now || protocol != 1 {
 		return Job{}, ErrLease
 	}
 	j, e := read(tx.QueryRow("SELECT "+columns+" FROM scanner_jobs WHERE id=?", id))

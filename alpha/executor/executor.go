@@ -37,6 +37,7 @@ type Config struct {
 	GuardDir           string
 	DurationSeconds    int
 	BeforeStart        func(string, string) error
+	BeforeLaunch       func(Execution, string, string) error
 }
 type Execution = scanevidence.Execution
 
@@ -257,6 +258,11 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 	if c.BeforeStart != nil {
 		if e = c.BeforeStart(name, source.Hash([]byte(endpoint+"\n"+fields[2]))); e != nil {
 			return out, fmt.Errorf("durable workspace binding failed")
+		}
+	}
+	if c.BeforeLaunch != nil {
+		if e = c.BeforeLaunch(out, name, source.Hash([]byte(endpoint+"\n"+fields[2]))); e != nil {
+			return out, fmt.Errorf("durable scanner launch authorization failed")
 		}
 	}
 	out.Container = name

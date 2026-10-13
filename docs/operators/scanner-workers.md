@@ -73,3 +73,14 @@ Native acceptance uses an actual controller under the operator UID. The Compose 
 `Client.Finish` checks the full bounded result digest, original identities and accepted receipt references. The result's `finding_claims` counts tool claims, which can overlap. All evidence remains T0. A channel failure after receipt submission reports `finalization_unconfirmed`; it does not establish whether the result committed. Background recovery and operator resume interfaces remain unfinished.
 
 Migration 8 adds an immutable result ledger. Follow the local-demo upgrade guide: protected online backup, build/initialize the shared image, verify zero init exit, then recreate deployer/verifier/controller together. The owner-scoped internal result accessor is implemented; public scanner result routes and GUI are still pending. See ADR 031 and the generated `ScannerSuiteV1` / `ScannerSuiteResultV1` contracts.
+
+
+## Prelaunch intent registration
+
+Before Docker receives a fixed scanner run, the native worker now fsyncs its local journal and calls `POST /internal/v1/scanner/launch`. The canonical envelope contains `schema_version`, original `job_id` / `request_digest` / `lease_token`, and a `plan` with tool ID, Aegis container name, engine digest, workspace ID, registry digest and approved snapshot digest. It contains no filesystem path or cleanup assertion. The envelope is bounded to 8 KiB and must use canonical keys, including nested plan keys.
+
+The controller commits an immutable attempt and audit together, derives the trusted pin/profile/deadline, and refuses changed attempts or a second engine/registry in one suite. The client verifies the exact acknowledgement against its prepared local execution. An executed receipt must match that attempt; container-free preflight output cannot erase an already recorded launch.
+
+Claims require `launch_protocol: "1.0"`. Migration 9 preserves old dispatches with protocol zero and no invented records; they remain occupied and cannot renew new execution. Exact launch replay requires current authority, including after a prior commit. Update all services sharing the controller image using the backup/initializer procedure before using the new worker.
+
+Launch records support later independent verification; they never release admission. A capture/workspace crash before the first record remains uncertain, and zero records do not prove cleanup. Trusted namespace/capture registration and an independent verifier are still required. See ADR 032 and `ScannerLaunchPlanV1`, `ScannerLaunchV1`, `ScannerLaunchRecordV1`.

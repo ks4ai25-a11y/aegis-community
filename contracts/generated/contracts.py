@@ -401,3 +401,59 @@ class ScannerSuiteResultV1DocumentToolsItem(TypedDict):
     status: str
     finding_claims: int
     has_sbom: bool
+class ScannerLaunchPlanV1(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+class ScannerLaunchV1(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    tool_version: str
+    tool_image_digest: str
+    sandbox_profile: str
+    duration_limit_seconds: int
+    plan: ScannerLaunchRecordV1DocumentPlan
+    created_at: str
+    deadline: str
+class ScannerLaunchV1Plan(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+class ScannerLaunchRecordV1(TypedDict):
+    launch_digest: str
+    document: ScannerLaunchRecordV1Document
+class ScannerLaunchRecordV1Document(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    tool_version: str
+    tool_image_digest: str
+    sandbox_profile: str
+    duration_limit_seconds: int
+    plan: ScannerLaunchRecordV1DocumentPlan
+    created_at: str
+    deadline: str
+class ScannerLaunchRecordV1DocumentPlan(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str

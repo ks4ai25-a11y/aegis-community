@@ -24,6 +24,12 @@ func completedReceipt(t *testing.T, status string) (*Queue, Lease, scanevidence.
 	if status == "completed_partial" {
 		r.Result.Diagnostics = []scanevidence.Diagnostic{{Code: "SCAN_PARTIAL", Message: "arbitrary original diagnostic"}}
 	}
+	if status != "tool_error" {
+		p := scanevidence.LaunchPlan{Tool: r.Tool, Container: r.Container, Engine: domain.Hash([]byte("fixture engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("fixture registry")), Snapshot: r.Snapshot.Digest}
+		if _, e := q.RegisterLaunch(l, p); e != nil {
+			t.Fatal(e)
+		}
+	}
 	return q, l, r, path
 }
 

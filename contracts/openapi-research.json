@@ -743,6 +743,15 @@
       "ScannerExecutionV1": {
         "$ref": "schemas/ScannerExecutionV1.json"
       },
+      "ScannerLaunchPlanV1": {
+        "$ref": "schemas/ScannerLaunchPlanV1.json"
+      },
+      "ScannerLaunchRecordV1": {
+        "$ref": "schemas/ScannerLaunchRecordV1.json"
+      },
+      "ScannerLaunchV1": {
+        "$ref": "schemas/ScannerLaunchV1.json"
+      },
       "ScannerSuiteResultV1": {
         "$ref": "schemas/ScannerSuiteResultV1.json"
       },

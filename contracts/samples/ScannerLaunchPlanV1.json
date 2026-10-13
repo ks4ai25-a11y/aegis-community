@@ -1,0 +1,8 @@
+{
+  "tool_id": "bandit",
+  "container_id": "aegis-scan-271c75c8ed728cd6cb054e25d5e16a63",
+  "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+  "workspace_id": "run-64d6a3407025bade056629814b23c667",
+  "registry_digest": "sha256:e4071e5ec0785bdf36cf86e4f596c960c7418b9d81aa9c5591bea8e88220c262",
+  "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614"
+}

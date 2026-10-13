@@ -1,0 +1,27 @@
+{
+  "launch_digest": "sha256:51e3deb2c306582044671a5cd7a833e5908a70cafed8ac5a971230aaebb68c4e",
+  "document": {
+    "schema_version": "1.0",
+    "owner_id": "owner-a",
+    "job_id": "01a13591-0ddb-75f7-8851-52795bd5c600",
+    "request_digest": "sha256:49c8d5e5caf210111dc4eb12e84813b26722b8c5599a6b13dfe53fb47f2453a6",
+    "app_id": "app_demo",
+    "repository_id": "01a13591-0dce-7b00-8e19-781bfa417569",
+    "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+    "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+    "tool_version": "1.9.4",
+    "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+    "sandbox_profile": "repo_offline-network-none-v1",
+    "duration_limit_seconds": 120,
+    "plan": {
+      "tool_id": "bandit",
+      "container_id": "aegis-scan-271c75c8ed728cd6cb054e25d5e16a63",
+      "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+      "workspace_id": "run-64d6a3407025bade056629814b23c667",
+      "registry_digest": "sha256:e4071e5ec0785bdf36cf86e4f596c960c7418b9d81aa9c5591bea8e88220c262",
+      "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614"
+    },
+    "created_at": "2026-10-13T14:01:04.008871Z",
+    "deadline": "2026-10-13T14:04:06Z"
+  }
+}

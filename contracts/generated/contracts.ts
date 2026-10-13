@@ -448,3 +448,65 @@ export interface ScannerSuiteResultV1DocumentToolsItem {
   finding_claims: number;
   has_sbom: boolean;
 }
+export interface ScannerLaunchPlanV1 {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}
+export interface ScannerLaunchV1 {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerLaunchRecordV1DocumentPlan;
+  created_at: string;
+  deadline: string;
+}
+export interface ScannerLaunchV1Plan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}
+export interface ScannerLaunchRecordV1 {
+  launch_digest: string;
+  document: ScannerLaunchRecordV1Document;
+}
+export interface ScannerLaunchRecordV1Document {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerLaunchRecordV1DocumentPlan;
+  created_at: string;
+  deadline: string;
+}
+export interface ScannerLaunchRecordV1DocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}

@@ -53,8 +53,16 @@ CREATE TRIGGER scanner_results_no_update BEFORE UPDATE ON scanner_results BEGIN 
 CREATE TRIGGER scanner_results_no_delete BEFORE DELETE ON scanner_results BEGIN SELECT RAISE(ABORT,'scanner result is immutable'); END;
 `
 
+const scannerLaunchSchema = `
+ALTER TABLE scanner_dispatch ADD COLUMN launch_protocol INTEGER NOT NULL DEFAULT 0 CHECK(launch_protocol IN (0,1));
+CREATE TABLE scanner_launches(job TEXT NOT NULL REFERENCES scanner_jobs(id),tool TEXT NOT NULL,owner TEXT NOT NULL REFERENCES owners(id),request_digest TEXT NOT NULL,container TEXT UNIQUE NOT NULL,workspace TEXT UNIQUE NOT NULL,digest TEXT UNIQUE NOT NULL,document TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(job,tool));
+CREATE INDEX scanner_launches_owner ON scanner_launches(owner,job,tool);
+CREATE TRIGGER scanner_launches_no_update BEFORE UPDATE ON scanner_launches BEGIN SELECT RAISE(ABORT,'scanner launch is immutable'); END;
+CREATE TRIGGER scanner_launches_no_delete BEFORE DELETE ON scanner_launches BEGIN SELECT RAISE(ABORT,'scanner launch is immutable'); END;
+`
+
 func migrate(db *sql.DB) error {
-	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema}
+	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema}
 	var exists int
 	if e := db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='migrations'").Scan(&exists); e != nil {
 		return e

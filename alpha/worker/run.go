@@ -8,8 +8,10 @@ import (
 	"aegis.local/alpha/workerchannel"
 	"aegis.local/alpha/workspace"
 	"aegis.local/source"
+	"aegis.local/source/scanevidence"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -137,11 +139,16 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 				return ErrRun
 			}
 			failure = "SCANNER_EXECUTION_FAILED"
-			ex := executor.Config{LockPath: filepath.Join(cfg.SourceRoot, "tools/scanners.lock.json"), ExpectedLockDigest: l.Job.LockDigest, RulesPath: filepath.Join(cfg.SourceRoot, "alpha/rules"), GuardDir: filepath.Join(cfg.SourceRoot, "bin"), ScratchParent: session.Path, DurationSeconds: l.Job.Input.Duration, BeforeStart: func(name, engine string) error {
+			ex := executor.Config{LockPath: filepath.Join(cfg.SourceRoot, "tools/scanners.lock.json"), ExpectedLockDigest: l.Job.LockDigest, RulesPath: filepath.Join(cfg.SourceRoot, "alpha/rules"), GuardDir: filepath.Join(cfg.SourceRoot, "bin"), ScratchParent: session.Path, DurationSeconds: l.Job.Input.Duration, BeforeLaunch: func(prepared executor.Execution, name, engine string) error {
 				if client.Guard(run, l) != nil {
 					return ErrRun
 				}
-				return session.Bind(name, engine)
+				if e := session.Bind(name, engine); e != nil {
+					return ErrRun
+				}
+				registryDigest := source.Hash([]byte("aegis-scanner-workspace-registry-v1\n" + filepath.Dir(session.Path) + "\n" + fmt.Sprint(os.Geteuid())))
+				_, e := client.RegisterLaunch(run, l, scanevidence.LaunchPlan{Tool: tool, Container: name, Engine: engine, Workspace: filepath.Base(session.Path), Registry: registryDigest, Snapshot: prepared.Snapshot.Digest}, prepared.Version, prepared.Image)
+				return e
 			}}
 			result, runErr := ex.Run(run, tool, l.Job.Input.App, l.Job.Input.Repository, snapshot)
 			if result.Container != "" && result.Cleanup != "complete" {

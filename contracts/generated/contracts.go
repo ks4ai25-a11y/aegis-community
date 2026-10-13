@@ -450,3 +450,65 @@ type ScannerSuiteResultV1DocumentToolsItem struct {
 	FindingClaims int64  `json:"finding_claims"`
 	HasSbom       bool   `json:"has_sbom"`
 }
+type ScannerLaunchPlanV1 struct {
+	ToolId         string `json:"tool_id"`
+	ContainerId    string `json:"container_id"`
+	EngineDigest   string `json:"engine_digest"`
+	WorkspaceId    string `json:"workspace_id"`
+	RegistryDigest string `json:"registry_digest"`
+	SnapshotDigest string `json:"snapshot_digest"`
+}
+type ScannerLaunchV1 struct {
+	SchemaVersion        string                            `json:"schema_version"`
+	OwnerId              string                            `json:"owner_id"`
+	JobId                string                            `json:"job_id"`
+	RequestDigest        string                            `json:"request_digest"`
+	AppId                string                            `json:"app_id"`
+	RepositoryId         string                            `json:"repository_id"`
+	MapDigest            string                            `json:"map_digest"`
+	ToolLockDigest       string                            `json:"tool_lock_digest"`
+	ToolVersion          string                            `json:"tool_version"`
+	ToolImageDigest      string                            `json:"tool_image_digest"`
+	SandboxProfile       string                            `json:"sandbox_profile"`
+	DurationLimitSeconds int64                             `json:"duration_limit_seconds"`
+	Plan                 ScannerLaunchRecordV1DocumentPlan `json:"plan"`
+	CreatedAt            string                            `json:"created_at"`
+	Deadline             string                            `json:"deadline"`
+}
+type ScannerLaunchV1Plan struct {
+	ToolId         string `json:"tool_id"`
+	ContainerId    string `json:"container_id"`
+	EngineDigest   string `json:"engine_digest"`
+	WorkspaceId    string `json:"workspace_id"`
+	RegistryDigest string `json:"registry_digest"`
+	SnapshotDigest string `json:"snapshot_digest"`
+}
+type ScannerLaunchRecordV1 struct {
+	LaunchDigest string                        `json:"launch_digest"`
+	Document     ScannerLaunchRecordV1Document `json:"document"`
+}
+type ScannerLaunchRecordV1Document struct {
+	SchemaVersion        string                            `json:"schema_version"`
+	OwnerId              string                            `json:"owner_id"`
+	JobId                string                            `json:"job_id"`
+	RequestDigest        string                            `json:"request_digest"`
+	AppId                string                            `json:"app_id"`
+	RepositoryId         string                            `json:"repository_id"`
+	MapDigest            string                            `json:"map_digest"`
+	ToolLockDigest       string                            `json:"tool_lock_digest"`
+	ToolVersion          string                            `json:"tool_version"`
+	ToolImageDigest      string                            `json:"tool_image_digest"`
+	SandboxProfile       string                            `json:"sandbox_profile"`
+	DurationLimitSeconds int64                             `json:"duration_limit_seconds"`
+	Plan                 ScannerLaunchRecordV1DocumentPlan `json:"plan"`
+	CreatedAt            string                            `json:"created_at"`
+	Deadline             string                            `json:"deadline"`
+}
+type ScannerLaunchRecordV1DocumentPlan struct {
+	ToolId         string `json:"tool_id"`
+	ContainerId    string `json:"container_id"`
+	EngineDigest   string `json:"engine_digest"`
+	WorkspaceId    string `json:"workspace_id"`
+	RegistryDigest string `json:"registry_digest"`
+	SnapshotDigest string `json:"snapshot_digest"`
+}

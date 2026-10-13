@@ -108,6 +108,9 @@ func (q *Queue) RecordReceipt(l Lease, in scanevidence.Execution) (Receipt, erro
 		if _, e = q.live(tx, l); e != nil {
 			return Receipt{}, e
 		}
+		if e = matchLaunchTx(tx, j, in); e != nil {
+			return Receipt{}, e
+		}
 		m, e = q.authority(tx, j)
 		if e != nil {
 			return Receipt{}, e

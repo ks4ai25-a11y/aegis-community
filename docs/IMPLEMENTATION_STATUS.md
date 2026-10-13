@@ -91,3 +91,12 @@ Scanner finish now derives immutable owner/job-bound result indexes from every r
 Real Bandit, Bandit/Gitleaks and Bandit/OSV/Trivy suites pass terminal derivation; the missing offline databases remain errors and do not stop collection of later requested static tools when cleanup is safe. Actual six-adapter parser fixtures preserve stale-database uncertainty through private finish/replay. Generated suite schemas and bindings describe these bounded result indexes. Evidence: `docs/evidence/scanner-finalization-acceptance.json`.
 
 Independent cleanup verification/admission release, deployable worker pairing and background recovery remain unfinished. Public scanner result APIs/UI, full finding aggregation/investigations, offline databases, disposable VM execution, AI/MCP/desktop integration, supply-chain review and independent H7 gates remain required. No reusable scanner-service or production-release claim is made.
+
+
+## Current prelaunch journal increment (ADR 032)
+
+The private worker records one immutable controller launch intent per selected tool before the fixed Docker command. Local workspace fsync precedes controller commit, and the acknowledgement binds the prepared pin, engine, namespace, snapshot and original job deadline. Executed receipts must match the attempt; a preflight receipt cannot erase it. Migration 9 quarantines legacy dispatches without inventing history, and native claims require launch protocol 1.0. Live authority is required even for exact launch replay.
+
+Real scanner fixtures bind launch records to their durable receipts and terminal results, including a seeded T0 Bandit claim and honest offline database errors. Generated launch schemas describe bounded metadata, not a public launch API. Evidence: `docs/evidence/scanner-launch-acceptance.json`.
+
+Independent cleanup/admission release remains unfinished. Crashes before the first launch record still need trusted workspace/capture namespace binding; zero records are not absence proof. Deployable/background worker pairing, public scanner result UI/API, full finding/investigation lifecycle, databases, disposable VM execution, AI/MCP/desktop integration, supply-chain/legal/security review and independent H7 gates remain required.
