@@ -1,0 +1,188 @@
+{
+  "schema_version": "1.0",
+  "scope": "pinned-offline-Bandit-trusted-fixture-controls",
+  "checks": [
+    {
+      "id": "repository_ini_and_nosec_do_not_suppress_B608",
+      "result": "PASS",
+      "execution": {
+        "parser_version": "1.1",
+        "invocation": {
+          "args": [
+            "--ini",
+            "/dev/null",
+            "--ignore-nosec",
+            "-r",
+            "/src",
+            "-f",
+            "json"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0,
+            1
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "bandit",
+        "tool_version": "1.9.4",
+        "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:0c0838e3adf6a6d6d8db3e7c9903ebbe369e227485962fc05ff9019dca30ff41",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": ".bandit",
+              "digest": "sha256:f8b17845936acb18fa0f3061bbb77e0b87cfb91e169f5464eeb410e3744dd77a",
+              "size": 22
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:8d3284f8e78bd4e26d260aa75a444216e419e5411f44a8f7a3ed4ab7573b8313",
+              "size": 161
+            }
+          ],
+          "included_bytes": 183,
+          "snapshot_digest": "sha256:7451c9a8d79ddbf85e4a2d4d549f4cea2e11a31d11459952716596d93490d838"
+        },
+        "started_at": "2026-10-13T02:07:22.003192Z",
+        "duration_ms": 711,
+        "exit_code": 1,
+        "status": "completed",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-3f436e1bf7cdb690f3c613aaf9dc5bc0",
+        "result": {
+          "status": "completed",
+          "findings": [
+            {
+              "schema_version": "1.0",
+              "id": "sha256:318213af0dd25437c70f33144552154519c8f0a76c056e97991366f76277ab11",
+              "app_id": "app_demo",
+              "repository_id": "local-operator-repository",
+              "category": "static_pattern",
+              "summary": "Unverified bandit finding: B608",
+              "status": "suspected",
+              "severity": "medium",
+              "confidence": "low",
+              "evidence_tier": "T0",
+              "path": "query.py",
+              "line": 3,
+              "provenance": [
+                {
+                  "tool_id": "bandit",
+                  "tool_version": "1.9.4",
+                  "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+                  "parser_version": "1.1",
+                  "input_digest": "sha256:7451c9a8d79ddbf85e4a2d4d549f4cea2e11a31d11459952716596d93490d838",
+                  "rule_id": "B608"
+                }
+              ],
+              "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+              "created_at": "2026-10-13T02:07:23.953841Z"
+            }
+          ],
+          "diagnostics": []
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."
+        ]
+      }
+    },
+    {
+      "id": "top_level_source_canary_not_executed_or_exported",
+      "result": "PASS"
+    },
+    {
+      "id": "syntax_error_is_partial_not_clean_completion",
+      "result": "PASS",
+      "execution": {
+        "parser_version": "1.1",
+        "invocation": {
+          "args": [
+            "--ini",
+            "/dev/null",
+            "--ignore-nosec",
+            "-r",
+            "/src",
+            "-f",
+            "json"
+          ],
+          "network_profile": "none",
+          "timeout_seconds": 120,
+          "max_output_bytes": 8388608,
+          "finding_exit_codes": [
+            0,
+            1
+          ]
+        },
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "duration_limit_seconds": 120,
+        "schema_version": "1.0",
+        "tool_id": "bandit",
+        "tool_version": "1.9.4",
+        "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "source_snapshot": {
+          "schema_version": "1.0",
+          "input_map_digest": "sha256:8c8246ed213b702da976537bc6cbb9004abf2850cbec3e3840f6943c0174eb07",
+          "commit_sha": "",
+          "files": [
+            {
+              "path": ".bandit",
+              "digest": "sha256:f8b17845936acb18fa0f3061bbb77e0b87cfb91e169f5464eeb410e3744dd77a",
+              "size": 22
+            },
+            {
+              "path": "query.py",
+              "digest": "sha256:9fc35933d64d443af7f120a0c92b0c14981c5948a060229833c434c0b22c5855",
+              "size": 42
+            }
+          ],
+          "included_bytes": 64,
+          "snapshot_digest": "sha256:947defc5ba9dcc3a2ccc78a73c9343086dc5ec1acd75f0fd8ab01af60e073337"
+        },
+        "started_at": "2026-10-13T02:07:23.999374Z",
+        "duration_ms": 968,
+        "exit_code": 0,
+        "status": "completed_partial",
+        "cleanup_state": "complete",
+        "container_id": "aegis-scan-20aaf6e2d790478eb5123ea1313c2d9f",
+        "result": {
+          "status": "completed_partial",
+          "findings": [],
+          "diagnostics": [
+            {
+              "code": "SCAN_PARTIAL",
+              "message": "Bandit reported parse errors; coverage incomplete."
+            }
+          ]
+        },
+        "limitations": [
+          "Read-only tool-reported static claims only; no exploit or remediation proof.",
+          "Protected and generated files excluded by inventory; no complete coverage claim.",
+          "Only operator-launched network-none scanner containers; no arbitrary repository code execution.",
+          "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."
+        ]
+      }
+    }
+  ],
+  "started_at": "2026-10-13T02:07:21Z",
+  "overall": "PASS",
+  "completed_at": "2026-10-13T02:07:25Z",
+  "limitations": [
+    "Only trusted inert fixtures and local ARM64 Docker Desktop tested.",
+    "Publisher signature, full transitive notices and independent isolation review remain pending.",
+    "Static Bandit claims are not exploit, fix or global safety evidence."
+  ]
+}

@@ -9,18 +9,19 @@ validator=jsonschema.Draft202012Validator(schema)
 checks=[]
 report={'schema_version':'1.0','scope':'operator-launched-pinned-offline-snapshot-fixtures','checks':checks,'started_at':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())}
 try:
- for tool in ['semgrep_ce','gitleaks','syft','osv_v2','trivy']:
+ for tool in ['semgrep_ce','gitleaks','syft','osv_v2','trivy','bandit']:
   for fixture in ['vulnerable','safe']:
    src=ROOT/'alpha/fixtures/scanners'/fixture
    command=[str(ROOT/'bin/aegis-research'),'scan-offline',tool,str(src),str(ROOT)]
    run=subprocess.run(command,capture_output=True,timeout=150)
    receipt=json.loads(run.stdout);validator.validate(receipt)
+   assert receipt['parser_version']=='1.1'
    assert receipt['cleanup_state']=='complete',receipt['cleanup_state']
    assert 'ghp_' not in json.dumps(receipt)
    expected={p.name:'sha256:'+hashlib.sha256(p.read_bytes()).hexdigest() for p in src.iterdir() if p.is_file()}
    assert {f['path']:f['digest'] for f in receipt['source_snapshot']['files']}==expected
    assert all(s['input_digest']==receipt['source_snapshot']['snapshot_digest'] for f in receipt['result']['findings'] for s in f['provenance'])
-   if tool in ['semgrep_ce','gitleaks']:
+   if tool in ['semgrep_ce','gitleaks','bandit']:
     assert run.returncode==0 and receipt['status']=='completed'
     assert len(receipt['result']['findings'])==(1 if fixture=='vulnerable' else 0)
    elif tool=='syft':

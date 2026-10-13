@@ -7,8 +7,8 @@
       "result": "PASS",
       "detail": {
         "exit_code": 124,
-        "duration_ms": 1420,
-        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6"
+        "duration_ms": 1433,
+        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80"
       }
     },
     {
@@ -38,7 +38,7 @@
       "result": "PASS",
       "detail": {
         "guard_exit_code": 124,
-        "elapsed_after_cli_kill_seconds": 7.712,
+        "elapsed_after_cli_kill_seconds": 7.994,
         "network_profile": "none",
         "read_only_mounts": true,
         "log_driver": "none"
@@ -68,9 +68,9 @@
       }
     }
   ],
-  "started_at": "2026-10-13T01:55:47Z",
+  "started_at": "2026-10-13T02:08:37Z",
   "overall": "PASS",
-  "completed_at": "2026-10-13T01:56:01Z",
+  "completed_at": "2026-10-13T02:08:51Z",
   "limitations": [
     "Local ARM64 Docker Desktop and trusted inert inputs only.",
     "Operator recovery is explicit; durable scanner job orchestration and automatic recovery remain required.",

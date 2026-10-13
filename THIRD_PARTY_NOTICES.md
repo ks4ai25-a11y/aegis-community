@@ -11,6 +11,7 @@ Aegis-authored source is Apache-2.0. This file is an inventory under review, not
 | React, Vite, TypeScript, Lucide | console/package-lock.json | Browser assets / build tools | Notices pending |
 | Semgrep CE | tools/scanners.lock.json | Optional standalone scanner image | CLI/engine licence separation requires review |
 | OSV Scanner V2, Trivy, Syft, Gitleaks | tools/scanners.lock.json | Optional standalone scanner images | Licences, notices and publisher signature review pending |
+| Bandit 1.9.4 | tools/scanners.lock.json; https://github.com/PyCQA/bandit/blob/1.9.4/LICENSE | Optional standalone upstream scanner image | Bandit source Apache-2.0; full container/transitive notices and publisher signature verification pending |
 | Go, Node and Alpine image contents | Dockerfiles | Build/runtime distribution | SBOM and notices pending |
 
 No GPL/AGPL scanner is linked into Aegis core by this implementation. Standalone execution does not by itself remove redistribution obligations. Review exact component licensing and the intended distribution before release.

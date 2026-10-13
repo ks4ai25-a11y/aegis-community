@@ -1,4 +1,5 @@
 {
+  "parser_version": "1.1",
   "invocation": {
     "args": [
       "semgrep",
@@ -18,13 +19,13 @@
     ]
   },
   "sandbox_profile": "repo_offline-network-none-v1",
-  "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752",
+  "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
   "duration_limit_seconds": 120,
   "schema_version": "1.0",
   "tool_id": "semgrep_ce",
   "tool_version": "1.180.0",
   "tool_image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
-  "tool_lock_digest": "sha256:b4adea195b32a9e565dd57a80c69bf799c7138d3a2ea708a3c7a2b5d97dc295b",
+  "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
   "rule_pack_digest": "sha256:5dd7451cd8a2a49a8613f87096fc3222be6f4386204f43804bef890a6f68b510",
   "source_snapshot": {
     "schema_version": "1.0",
@@ -55,12 +56,12 @@
     "included_bytes": 821,
     "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
   },
-  "started_at": "2026-10-13T01:47:45.519815Z",
-  "duration_ms": 2820,
+  "started_at": "2026-10-13T02:07:58.119865Z",
+  "duration_ms": 3245,
   "exit_code": 0,
   "status": "completed",
   "cleanup_state": "complete",
-  "container_id": "aegis-scan-1c65af3e566ecb836d1684efb106358d",
+  "container_id": "aegis-scan-4449a5e67c8b239f2446dca3697f651b",
   "result": {
     "status": "completed",
     "findings": [
@@ -88,7 +89,7 @@
           }
         ],
         "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
-        "created_at": "2026-10-13T01:47:49.274122Z"
+        "created_at": "2026-10-13T02:08:01.799109Z"
       }
     ],
     "diagnostics": []

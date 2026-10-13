@@ -220,6 +220,7 @@ func Parse(tool string, b []byte, j Job) (Result, error) {
 		}
 		if len(raw.Errors) > 0 {
 			r.Status = "completed_partial"
+			r.Diagnostics = append(r.Diagnostics, Diagnostic{"SCAN_PARTIAL", "Bandit reported parse errors; coverage incomplete."})
 		}
 	default:
 		return bad, fmt.Errorf("unsupported scanner")

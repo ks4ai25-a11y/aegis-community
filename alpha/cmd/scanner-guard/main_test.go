@@ -8,13 +8,13 @@ import (
 )
 
 func TestGuardAcceptsOnlyFiniteOfflineToolPrograms(t *testing.T) {
-	for _, tool := range []string{"semgrep_ce", "osv_v2", "trivy", "syft", "gitleaks"} {
+	for _, tool := range []string{"semgrep_ce", "osv_v2", "trivy", "syft", "gitleaks", "bandit"} {
 		binary, args, e := program(tool)
 		if e != nil || binary == "" || len(args) == 0 {
 			t.Fatal(tool, e)
 		}
 	}
-	for _, tool := range []string{"sh", "curl", "/src/script.sh", "bandit", "semgrep_ce;curl remote"} {
+	for _, tool := range []string{"sh", "curl", "/src/script.sh", "semgrep_ce;curl remote"} {
 		if _, _, e := program(tool); e == nil {
 			t.Fatal("arbitrary program accepted", tool)
 		}

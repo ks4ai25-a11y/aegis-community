@@ -296,10 +296,11 @@ export interface SourceSnapshotManifestV1FilesItem {
   size: number;
 }
 export interface ScannerExecutionV1 {
+  parser_version?: "1.0" | "1.1";
   invocation: ScannerExecutionV1Invocation;
   sandbox_profile: "repo_offline-network-none-v1";
   schema_version: "1.0";
-  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks";
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
   tool_version: string;
   tool_image_digest: string;
   tool_lock_digest: string;

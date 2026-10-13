@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+const ParserVersion = "1.1"
+
 type Source struct {
 	Tool        string `json:"tool_id"`
 	Version     string `json:"tool_version"`
@@ -89,7 +91,7 @@ func newFinding(j Job, tool, kind, rule, file string, line int, sev string) (Fin
 	default:
 		sev = "informational"
 	}
-	f := Finding{Schema: "1.0", App: j.App, Repository: j.Repository, Category: kind, Summary: "Unverified " + tool + " finding: " + rule, Status: "suspected", Severity: sev, Confidence: "low", Tier: "T0", Path: p, Line: line, Provenance: []Source{{tool, j.ToolVersion, j.ImageDigest, "1.1", j.InputDigest, rule}}, Coverage: "Tool-reported static claim only; no application exploitability or remediation proof.", Created: time.Now().UTC().Format(time.RFC3339Nano)}
+	f := Finding{Schema: "1.0", App: j.App, Repository: j.Repository, Category: kind, Summary: "Unverified " + tool + " finding: " + rule, Status: "suspected", Severity: sev, Confidence: "low", Tier: "T0", Path: p, Line: line, Provenance: []Source{{tool, j.ToolVersion, j.ImageDigest, ParserVersion, j.InputDigest, rule}}, Coverage: "Tool-reported static claim only; no application exploitability or remediation proof.", Created: time.Now().UTC().Format(time.RFC3339Nano)}
 	f.ID = identityHash([]string{j.App, j.Repository, kind, rule, p, fmt.Sprint(line)})
 	return f, nil
 }

@@ -264,6 +264,7 @@ class SourceSnapshotManifestV1FilesItem(TypedDict):
     digest: str
     size: int
 class ScannerExecutionV1(TypedDict):
+    parser_version: NotRequired[str]
     invocation: ScannerExecutionV1Invocation
     sandbox_profile: str
     schema_version: str

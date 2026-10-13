@@ -33,6 +33,8 @@ func program(tool string) (string, []string, error) {
 		return "trivy", invocation.Args, nil
 	case "syft":
 		return "/syft", invocation.Args, nil
+	case "bandit":
+		return "bandit", invocation.Args, nil
 	case "gitleaks":
 		return "gitleaks", invocation.Args, nil
 	default:

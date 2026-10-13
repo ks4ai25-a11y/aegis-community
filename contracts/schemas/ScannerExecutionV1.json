@@ -5,6 +5,13 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "parser_version": {
+      "type": "string",
+      "enum": [
+        "1.0",
+        "1.1"
+      ]
+    },
     "invocation": {
       "type": "object",
       "additionalProperties": false,
@@ -65,7 +72,8 @@
         "osv_v2",
         "trivy",
         "syft",
-        "gitleaks"
+        "gitleaks",
+        "bandit"
       ]
     },
     "tool_version": {

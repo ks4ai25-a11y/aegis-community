@@ -30,7 +30,7 @@ func BuildInvocation(tool string) (Invocation, error) {
 	case "gitleaks":
 		i.Args = []string{"dir", "/src", "--report-format", "json", "--report-path", "/dev/stdout", "--redact=100", "--exit-code", "0"}
 	case "bandit":
-		i.Args = []string{"-r", "/src", "-f", "json"}
+		i.Args = []string{"--ini", "/dev/null", "--ignore-nosec", "-r", "/src", "-f", "json"}
 		i.FindingExitCodes = []int{0, 1}
 	default:
 		return i, fmt.Errorf("scanner unsupported")

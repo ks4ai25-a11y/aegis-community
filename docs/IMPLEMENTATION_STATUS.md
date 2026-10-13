@@ -9,7 +9,7 @@ This repository is unfinished engineering work. No public-beta, production-safet
 | Capability | Current implementation | Acceptance state |
 | --- | --- | --- |
 | C0 defence foundation | Pinned Caddy/Coraza/CRS, telemetry sanitizer, controller, console, typed policies, isolated WAF fixture | Local ARM64 demo acceptance passed; broader gates pending |
-| C1 security research | Bounded parsers, pinned images, fixed invocation plans and owner-scoped provisioned repository maps | Real Semgrep CE / Gitleaks / Syft fixture runs pass; OSV / Trivy honestly reject missing offline databases |
+| C1 security research | Bounded parsers, pinned images, fixed invocation plans and owner-scoped provisioned repository maps | Real Semgrep CE / Gitleaks / Syft / Bandit fixture runs pass; OSV / Trivy honestly reject missing offline databases |
 | C2 closed loop | Trusted synthetic tenant challenge with correct, incorrect and overbroad variants | Six HTTP controls pass for correct variant; full patch/VM/AI orchestration pending |
 | C3 operational release | Supply chain, full fault/restore tests, independent installations and security review | Not implemented |
 | Desktop AI apps | UI identifies unverified integrations | Pairing, MCP and real GUI acceptance pending |
@@ -19,7 +19,7 @@ This repository is unfinished engineering work. No public-beta, production-safet
 1. Typed deployer separated; controller gateway socket removed. Independent security review and stronger approval receipts remain.
 2. Gateway-local active configuration persisted by deployer; container restart acceptance passed.
 3. Durable scoped WAF jobs and generated research bindings added. Provisioned read-only repository registration added; durable scanner jobs, complete contract catalogue and scope integration for policy preview remain.
-4. Five real pinned images now exercised offline. Provision and age-check OSV/Trivy caches, add adversarial golden cases and stronger pin/signature review.
+4. Six real pinned images now exercised offline. Provision and age-check OSV/Trivy caches, add adversarial golden cases and stronger pin/signature review.
 5. Add isolated synthetic org_red/org_blue reproduction and code-fix regression evidence; reject an overbroad mitigation that breaks benign access.
 6. Add findings, investigations, jobs and provenance views, then optional scoped AI/MCP connections.
 7. Complete all twelve H7 release gates. Independent installation, legal review, provider GUI testing and independent security sign-off remain actual external requirements.
@@ -53,3 +53,5 @@ Parser 1.1 rejects ambiguous/oversized JSON before decoding, separates dependenc
 GitHub CI run 38333989577 passed both source and disposable trusted-demo jobs on Ubuntu 24.04 for commit 2a0df557838fc1851819b30ac4f70dcf16a374f7. This includes the Go race/console checks, research guard builds and real demo/scoped-job/repository journeys. `docs/evidence/hosted-ci-2a0df55.json` records the exact commit and job URLs; it is not independent security sign-off or a complete release-gate pass.
 
 The operator scanner CLI now refuses a second run while its enrolled registry contains a live or unrecovered session. Explicit recovery must confirm the original container is absent before admission resumes. Durable controller scheduling and cross-operator host admission remain unfinished.
+
+Bandit 1.9.4 now executes through the pinned-image, private-snapshot guard. The default fixed profile ignores repository INI and inline suppression settings; AST-only canary and syntax-error controls pass. New execution receipts record parser identity even without findings. See ADR 019 and `docs/evidence/bandit-acceptance.json`; this is not complete Python coverage, a publisher-signature review or durable scan orchestration.

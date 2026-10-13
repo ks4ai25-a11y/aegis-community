@@ -37,6 +37,7 @@ type Config struct {
 	BeforeStart     func(string, string) error
 }
 type Execution struct {
+	Parser        string              `json:"parser_version"`
 	Invocation    scanners.Invocation `json:"invocation"`
 	Profile       string              `json:"sandbox_profile"`
 	GuardDigest   string              `json:"guard_binary_digest"`
@@ -149,7 +150,7 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 	if e = source.ValidateSnapshot(ctx, root, snapshot.Manifest); e != nil {
 		return out, e
 	}
-	out = Execution{Invocation: invocation, Profile: "repo_offline-network-none-v1", Schema: "1.0", Tool: tool.ID, Version: tool.Version, Image: strings.Split(tool.Image, "@")[1], LockDigest: lockDigest, Snapshot: snapshot.Manifest, Started: time.Now().UTC().Format(time.RFC3339Nano), Exit: -1, Status: "tool_error", Cleanup: "unconfirmed", Result: scanners.Result{Status: "tool_error", Findings: []scanners.Finding{}, Diagnostics: []scanners.Diagnostic{}}, Limitations: []string{"Read-only tool-reported static claims only; no exploit or remediation proof.", "Protected and generated files excluded by inventory; no complete coverage claim.", "Only operator-launched network-none scanner containers; no arbitrary repository code execution.", "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."}}
+	out = Execution{Parser: scanners.ParserVersion, Invocation: invocation, Profile: "repo_offline-network-none-v1", Schema: "1.0", Tool: tool.ID, Version: tool.Version, Image: strings.Split(tool.Image, "@")[1], LockDigest: lockDigest, Snapshot: snapshot.Manifest, Started: time.Now().UTC().Format(time.RFC3339Nano), Exit: -1, Status: "tool_error", Cleanup: "unconfirmed", Result: scanners.Result{Status: "tool_error", Findings: []scanners.Finding{}, Diagnostics: []scanners.Diagnostic{}}, Limitations: []string{"Read-only tool-reported static claims only; no exploit or remediation proof.", "Protected and generated files excluded by inventory; no complete coverage claim.", "Only operator-launched network-none scanner containers; no arbitrary repository code execution.", "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."}}
 	var rules *source.Snapshot
 	if toolID == "semgrep_ce" {
 		r, e := os.OpenRoot(c.RulesPath)

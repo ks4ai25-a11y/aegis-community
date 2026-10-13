@@ -184,3 +184,22 @@ func TestConfigurationFindingsRequireSeparateConsent(t *testing.T) {
 		t.Fatal(r, e)
 	}
 }
+
+func TestBanditSyntaxErrorsDisclosePartialCoverageWithoutRawSource(t *testing.T) {
+	report := []byte(`{"results":[],"errors":[{"filename":"private.py","reason":"FAKE_PRIVATE_SYNTAX_CANARY"}]}`)
+	r, e := Parse("bandit", report, job())
+	if e != nil || r.Status != "completed_partial" || len(r.Diagnostics) != 1 || r.Diagnostics[0].Code != "SCAN_PARTIAL" {
+		t.Fatal(r, e)
+	}
+	b, _ := json.Marshal(r)
+	if strings.Contains(string(b), "FAKE_PRIVATE_SYNTAX_CANARY") {
+		t.Fatal("raw parse error escaped normalization")
+	}
+	invocation, e := BuildInvocation("bandit")
+	if e != nil {
+		t.Fatal(e)
+	}
+	if strings.Join(invocation.Args, " ") != "--ini /dev/null --ignore-nosec -r /src -f json" {
+		t.Fatal("uncontrolled Bandit settings", invocation)
+	}
+}

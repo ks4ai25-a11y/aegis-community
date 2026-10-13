@@ -298,6 +298,7 @@ type SourceSnapshotManifestV1FilesItem struct {
 	Size   int64  `json:"size"`
 }
 type ScannerExecutionV1 struct {
+	ParserVersion        string                           `json:"parser_version,omitempty"`
 	Invocation           ScannerExecutionV1Invocation     `json:"invocation"`
 	SandboxProfile       string                           `json:"sandbox_profile"`
 	SchemaVersion        string                           `json:"schema_version"`

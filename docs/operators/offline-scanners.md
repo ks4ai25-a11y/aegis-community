@@ -18,9 +18,9 @@ bin/aegis-research scan-offline semgrep_ce "$PWD/alpha/fixtures/scanners/vulnera
 
 The first path must be canonical and symlink-free. The last path is your trusted Aegis installation containing its tool lock, bundled rules and built guards. The native operator process must be non-root. The container uses the same non-root UID/GID to read mode-0400 private snapshot files. No repository code, dependency installation or git hook runs. Inputs omitted by the inventory profile are explicitly outside coverage.
 
-Supported pinned IDs are `semgrep_ce`, `gitleaks`, `syft`, `osv_v2` and `trivy`. `bandit` has a parser blueprint but is not pinned/executable yet. Semgrep currently uses only the bundled synthetic rule, so its coverage is deliberately narrow. Trivy's default is offline vulnerability scanning, not automatic configuration review. Syft emits a minimized package-coordinate summary. It is not a complete SBOM or an exploit proof.
+Supported pinned IDs are `semgrep_ce`, `gitleaks`, `syft`, `osv_v2`, `trivy` and `bandit`. Bandit 1.9.4 uses a digest-pinned upstream image, built-in tests, a fixed empty INI input and `--ignore-nosec`. Repository `.bandit` settings and inline suppression comments do not silently narrow its scope. Python syntax errors produce partial coverage diagnostics; no repository module is imported or executed. Semgrep currently uses only the bundled synthetic rule, so its coverage is deliberately narrow. Trivy's default is offline vulnerability scanning, not automatic configuration review. Syft emits a minimized package-coordinate summary. It is not a complete SBOM or an exploit proof.
 
-The JSON execution receipt includes snapshot, tool, rules, guard and invocation identities. Exit 0 means a complete or partial tool run, never that an application is secure. Exit 1 means refusal, tool_error, cancellation/deadline or unconfirmed cleanup. Check `status`, `result.diagnostics` and `cleanup_state`; missing/failed tools cannot establish zero findings. Source workspaces and containers are removed after normal completion, cancellation and timeout when cleanup is confirmed.
+The JSON execution receipt includes snapshot, tool, rules, guard, parser and invocation identities, including zero-findings and failed runs. Exit 0 means a complete or partial tool run, never that an application is secure. Exit 1 means refusal, tool_error, cancellation/deadline or unconfirmed cleanup. Check `status`, `result.diagnostics` and `cleanup_state`; missing/failed tools cannot establish zero findings. Source workspaces and containers are removed after normal completion, cancellation and timeout when cleanup is confirmed.
 
 The guard enforces an independent container deadline even if the host CLI is killed. The supported CLI admits one scanner run per operator registry. A second invocation is refused while a live or unrecovered run occupies the registry. This includes crashed runs whose container status remains uncertain. The operator must recover that run before starting another scan. Cross-operator coordination and durable queue admission remain unfinished.
 
@@ -37,6 +37,7 @@ Acceptance commands use only bundled trusted inert data and touch only container
 ```sh
 python3 tests/integration/snapshot_scanner_acceptance.py
 python3 tests/integration/scanner_guard_acceptance.py
+python3 tests/integration/bandit_acceptance.py
 ```
 
 The first test requires the local QA `jsonschema` validator described by contract acceptance. These checks are not external security sign-off or a production release gate pass. ADR 016 records the remaining requirements and limits.
