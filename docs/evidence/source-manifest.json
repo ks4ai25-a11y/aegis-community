@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:e7c1d356878bcb6fa6b81a0b03d5848c0e83e3abe7a311ca1f9cbf39fa2cc48d",
+  "source_tree_sha256": "sha256:20bc956bce17117a9ba04b72ea14307540580fb8d0c537e7c23ff961bdfcef2c",
   "files": [
     {
       "path": ".dockerignore",
@@ -44,7 +44,7 @@
     },
     {
       "path": "alpha/cmd/aegis-research/main.go",
-      "sha256": "63f10a088e517475a696b307679b6fe603776a185de05d0c4445ee154450022a"
+      "sha256": "635393a5d90cd44fe9f92b3453a695eb6728715ab3fdd91b1c3a051845029de8"
     },
     {
       "path": "alpha/cmd/scanner-guard/main.go",
@@ -60,11 +60,11 @@
     },
     {
       "path": "alpha/executor/executor.go",
-      "sha256": "2085d79c4f155e49b2e53186aecbe8fca944829ce1a6e9b5d828bf8f26273589"
+      "sha256": "3c4cdf5f915bdab8a47681c63f4f9636f6bf34c09d9fe0ff01a44694d887ab61"
     },
     {
       "path": "alpha/executor/executor_test.go",
-      "sha256": "826200665a01d157e9219cbf208216547c4721572a6827e65c20928aba7d3ff7"
+      "sha256": "1e5176a0f743b9d84bba8156c22c610370c818346801de84aab9bea31001c93b"
     },
     {
       "path": "alpha/fixtures/scanners/safe/package-lock.json",
@@ -148,7 +148,7 @@
     },
     {
       "path": "alpha/scanners/parse.go",
-      "sha256": "8ece41d14818d71b671dfd5ae168a8c093c44e34c88080d9d22b31e491460a9b"
+      "sha256": "184688defb81ffa6615082a960562a1d413f7aa290c4b31da5258198d4e30139"
     },
     {
       "path": "alpha/scanners/parse_test.go",
@@ -156,7 +156,15 @@
     },
     {
       "path": "alpha/scanners/types.go",
-      "sha256": "4960ff84f8723ca0e51855475164f1fc36f4496a45bed04259f6835ae96f1aa2"
+      "sha256": "58599dbc349f01cd4cfe00db858d761020da07f4674e35e2311786cf295a7a62"
+    },
+    {
+      "path": "alpha/worker/run.go",
+      "sha256": "ca76b8e3b4d3c98300b59b0da73841e9d451e057a1ad0f86768441f03a4c439a"
+    },
+    {
+      "path": "alpha/worker/run_test.go",
+      "sha256": "e4ac58740c75a73ec87659a4ba122370a7aeca1b42327708f278e0324170cecd"
     },
     {
       "path": "alpha/workerchannel/client.go",
@@ -628,7 +636,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "cb318fe860c6e2df888896a83d9771898303f55bcf4086cfd1bb2c26660b293a"
+      "sha256": "1c1a772f9f299d5e72371011ce4b4c2a9599e78563dfec097b5b1f05545d3322"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -711,6 +719,10 @@
       "sha256": "fc6a402beac371104ba1527b6ad7ed85123888bd8c7fff00678a68108d4bad56"
     },
     {
+      "path": "docs/architecture/adr/030-one-shot-authorized-static-worker.md",
+      "sha256": "f080ba7482415e556329b37bde9fc05cb3a4c2be160f92d3a225d80295f2f168"
+    },
+    {
       "path": "docs/operators/local-demo-upgrades.md",
       "sha256": "630e6af7f0e208d3d21877fc06af51ad18c09b88777fd5ec9d1945f87fdb4aad"
     },
@@ -724,7 +736,7 @@
     },
     {
       "path": "docs/operators/scanner-workers.md",
-      "sha256": "e85cfae4e7120023c0909faba07402a7507787ed4792b0a4ae7cfd637a350a9e"
+      "sha256": "1344491d41c79558c060b177d1fff12ce4bfa26a3a330a86254988e09cac4ca2"
     },
     {
       "path": "docs/release-gates.json",
@@ -876,7 +888,7 @@
     },
     {
       "path": "tests/integration/scannerchannel/channel_test.go",
-      "sha256": "4e7419ac5427da5efe32be9d9b4a7f4e84c351bc9853410bce00184aeb5900d9"
+      "sha256": "b827aacf75c2fec7ea1906a1bde7a6d53e84fa62ba054bf688e3d65325423d4a"
     },
     {
       "path": "tests/integration/scannerchannel/go.mod",
@@ -889,6 +901,10 @@
     {
       "path": "tests/integration/scannerchannel/receipt_test.go",
       "sha256": "bc126555359141b5f8ff92e3e7647a4bbe6b86d3ef28529d87a1cbbffe31f83c"
+    },
+    {
+      "path": "tests/integration/scannerchannel/worker_test.go",
+      "sha256": "0a743c5e1b1674e0bbca530430040b30df90b72b53c38bebbb5dfd83f65b98dd"
     },
     {
       "path": "tests/integration/scoped_jobs_acceptance.py",

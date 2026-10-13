@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-10-13T12:54:31.253887+00:00",
+  "status": "PASS",
+  "scope": "One-shot authorized static worker against a real migrated SQLite controller and private Unix handler under the native operator UID; actual pinned local Docker fixture execution. Not deployed Compose worker compatibility or a completed scanner service.",
+  "source_tree_sha256": "sha256:20bc956bce17117a9ba04b72ea14307540580fb8d0c537e7c23ff961bdfcef2c",
+  "source_files": [
+    {
+      "path": "alpha/worker/run.go",
+      "sha256": "sha256:ca76b8e3b4d3c98300b59b0da73841e9d451e057a1ad0f86768441f03a4c439a"
+    },
+    {
+      "path": "alpha/worker/run_test.go",
+      "sha256": "sha256:e4ac58740c75a73ec87659a4ba122370a7aeca1b42327708f278e0324170cecd"
+    },
+    {
+      "path": "alpha/executor/executor.go",
+      "sha256": "sha256:3c4cdf5f915bdab8a47681c63f4f9636f6bf34c09d9fe0ff01a44694d887ab61"
+    },
+    {
+      "path": "alpha/executor/executor_test.go",
+      "sha256": "sha256:1e5176a0f743b9d84bba8156c22c610370c818346801de84aab9bea31001c93b"
+    },
+    {
+      "path": "alpha/cmd/aegis-research/main.go",
+      "sha256": "sha256:635393a5d90cd44fe9f92b3453a695eb6728715ab3fdd91b1c3a051845029de8"
+    },
+    {
+      "path": "alpha/scanners/parse.go",
+      "sha256": "sha256:184688defb81ffa6615082a960562a1d413f7aa290c4b31da5258198d4e30139"
+    },
+    {
+      "path": "alpha/scanners/types.go",
+      "sha256": "sha256:58599dbc349f01cd4cfe00db858d761020da07f4674e35e2311786cf295a7a62"
+    },
+    {
+      "path": "tests/integration/scannerchannel/worker_test.go",
+      "sha256": "sha256:0a743c5e1b1674e0bbca530430040b30df90b72b53c38bebbb5dfd83f65b98dd"
+    },
+    {
+      "path": "tests/integration/scannerchannel/channel_test.go",
+      "sha256": "sha256:b827aacf75c2fec7ea1906a1bde7a6d53e84fa62ba054bf688e3d65325423d4a"
+    }
+  ],
+  "real_component_tests": [
+    {
+      "test": "TestRealKeeperCancelsOnWorkerRevocation",
+      "elapsed_seconds": 5.24
+    },
+    {
+      "test": "TestClaimedMapCanBeCapturedInPrivateWorkerWorkspace",
+      "elapsed_seconds": 0.14
+    },
+    {
+      "test": "TestRealBanditWorkerSubmitsBoundReceiptWithoutCompletingJob",
+      "elapsed_seconds": 4.38
+    },
+    {
+      "test": "TestRealWorkerSuiteUsesDistinctJournalsAndIdenticalApprovedInput",
+      "elapsed_seconds": 4.18
+    },
+    {
+      "test": "TestRealWorkerMissingOfflineDatabaseStoresToolError",
+      "elapsed_seconds": 2.25
+    }
+  ],
+  "real_fixture_execution": {
+    "tools": [
+      {
+        "id": "osv_v2",
+        "version": "2.7.0",
+        "image": "ghcr.io/google/osv-scanner@sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0",
+        "upstream": "https://github.com/google/osv-scanner/releases/tag/v2.7.0",
+        "license_review": "pending"
+      },
+      {
+        "id": "gitleaks",
+        "version": "8.30.1",
+        "image": "ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
+        "upstream": "https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1",
+        "license_review": "pending"
+      },
+      {
+        "id": "bandit",
+        "version": "1.9.4",
+        "image": "ghcr.io/pycqa/bandit/bandit@sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+        "upstream": "https://github.com/PyCQA/bandit/releases/tag/1.9.4",
+        "license_review": "Bandit source Apache-2.0; full image/transitive notices and publisher signature review pending"
+      }
+    ],
+    "runs": 4,
+    "claims": [
+      "Bandit receipt accepted; controller job remains running and global admission occupied.",
+      "Sequential Bandit/Gitleaks use distinct containers and removed per-tool workspaces with identical approved source digest.",
+      "OSV offline database unavailable: durable tool_error, no clean-scan claim, confirmed executor container cleanup."
+    ]
+  },
+  "validation": {
+    "make_test": "PASS; all required race tests, generated checks and console production build",
+    "research_build": "PASS; native CLI and Linux ARM64/AMD64 guards",
+    "alpha_go_vet": "PASS",
+    "scannerchannel_go_vet": "PASS",
+    "git_diff_check": "PASS",
+    "final_real_test_log_sha256": "sha256:c107e8a64e521ed691c6feff91cfdcaf9d7db542808779323a9a66e34e6cad82",
+    "full_test_log_sha256": "sha256:c4be2a87d58b526875f7ef1376d30e089a64e5b8147ae456b9c351c3abc9bbc3"
+  },
+  "limitations": [
+    "Controller terminal aggregation, independent cleanup verification and admission release unfinished.",
+    "Successful invocation returns awaiting_controller_finalization; lease eventually expires without future finalization.",
+    "Native operator-UID fixtures do not prove workstation access to Compose UID 10001 socket.",
+    "Dedicated/background worker deployment, cross-host/VM transport and automatic recovery unfinished.",
+    "Arbitrary repository code execution/disposable VM isolation absent.",
+    "Offline advisory database provisioning, supply-chain signatures/licenses, full AI/MCP/desktop GUI integrations and independent H7 gates remain open."
+  ],
+  "test_corrections": [
+    "Private fixture registry is now created at mode 0700 by workspace.Begin; broad Go test temporary directories were correctly refused.",
+    "Running dispatch occupation is asserted independently of the terminal cleanup_required state.",
+    "A source with no package components does not provide a valid Syft SBOM receipt; sequential execution uses Bandit/Gitleaks instead.",
+    "Missing OSV databases cause an actual offline tool error after bounded container execution, not a preflight-only refusal."
+  ]
+}

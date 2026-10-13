@@ -31,6 +31,7 @@ type fixture struct {
 	s                  *store.Store
 	in                 scanqueue.Input
 	credential, socket string
+	assetRoot          string
 }
 
 func setup(t *testing.T) fixture {
@@ -97,7 +98,7 @@ func setup(t *testing.T) fixture {
 		t.Fatal(e)
 	}
 	t.Cleanup(c.Close)
-	return fixture{c, q, a, s, scanqueue.Input{Schema: "1.0", App: "app_demo", Repository: repo.ID, MapDigest: repo.MapDigest, Mode: "repo_offline", Tools: []string{"bandit"}, Duration: 120}, cred, socket}
+	return fixture{c, q, a, s, scanqueue.Input{Schema: "1.0", App: "app_demo", Repository: repo.ID, MapDigest: repo.MapDigest, Mode: "repo_offline", Tools: []string{"bandit"}, Duration: 120}, cred, socket, root}
 }
 func enqueue(t *testing.T, f fixture) scanqueue.Job {
 	t.Helper()

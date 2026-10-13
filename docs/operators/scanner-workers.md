@@ -46,4 +46,21 @@ The controller has an internal immutable receipt ledger (`Queue.RecordReceipt` /
 
 `POST /internal/v1/scanner/receipt` is available only on the dedicated Unix listener with an active worker Bearer credential. The canonical JSON envelope requires `schema_version`, `job_id`, `request_digest`, `lease_token` and `execution`; the owner comes from enrollment. The envelope is limited to 8 MiB + 4 KiB and execution to 8 MiB. Cookies, Origin, query parameters, content encoding and unknown/case-alias fields are refused.
 
-`Client.SubmitReceipt(ctx, lease, execution)` normalizes before upload and verifies the exact immutable document digest in the acknowledgement. An accepted receipt still reports `cleanup_required: true` and does not complete the job. Exact committed replay is safe after deadline expiry; new expired writes are denied by the controller. No CLI worker service, cleanup release or terminal suite operation is implemented yet. See ADR 029.
+`Client.SubmitReceipt(ctx, lease, execution)` normalizes before upload and verifies the exact immutable document digest in the acknowledgement. An accepted receipt still reports `cleanup_required: true` and does not complete the job. Exact committed replay is safe after deadline expiry; new expired writes are denied by the controller. The one-shot execution path is described below; cleanup release and terminal suite operations remain unfinished. See ADR 029.
+
+
+## One-shot static worker
+
+Build with `make research-build`. On a Linux/macOS operator host with access to the enrolled private socket, credential file and local Docker engine:
+
+```sh
+bin/aegis-research worker-once SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT
+```
+
+Pass the credential file path, never its contents. The asset root is the provisioned parent containing registered asset directories. The source root contains the trusted scanner lock, local rules and built guards. Paths must be absolute and canonical. No image pull, repository hook or dependency installation is performed.
+
+One job is claimed. Each scanner receives a separately journaled snapshot checked against the approved map, with live authority checks before launch. Uncertain cleanup preserves its workspace and stops execution. Exact receipt acknowledgements are printed as bounded metadata; raw scanner output and capabilities are omitted.
+
+Exit zero with `no_job` means nothing was claimed. Exit zero with `awaiting_controller_finalization` means requested receipts were accepted. The controller job remains running and its admission remains occupied; after renewal stops it can time out. This command cannot make that admission reusable. Terminal aggregation and independently verified cleanup release remain required.
+
+Native acceptance uses an actual controller under the operator UID. The Compose demo socket is owned by UID 10001; this command does not establish workstation access to it. Do not loosen socket permissions to bridge that deployment gap. A background worker service and deployable worker/controller pairing remain unfinished. See ADR 030.

@@ -8,7 +8,7 @@ import (
 )
 
 func Parse(tool string, b []byte, j Job) (Result, error) {
-	bad := Result{Status: "tool_error", Findings: []Finding{}, Diagnostics: []Diagnostic{{"INVALID_OUTPUT", "Scanner output invalid or unsupported; no zero-findings claim."}}}
+	bad := Result{Status: "tool_error", Findings: []Finding{}, Diagnostics: []Diagnostic{{Code: "INVALID_OUTPUT", Message: "Scanner output invalid or unsupported; no zero-findings claim."}}}
 	if validateJSON(b) != nil {
 		return bad, fmt.Errorf("invalid bounded scanner JSON")
 	}
@@ -36,7 +36,7 @@ func Parse(tool string, b []byte, j Job) (Result, error) {
 		}
 		if len(raw.Errors) > 0 {
 			r.Status = "completed_partial"
-			r.Diagnostics = append(r.Diagnostics, Diagnostic{"SCAN_PARTIAL", "Semgrep reported errors; coverage incomplete."})
+			r.Diagnostics = append(r.Diagnostics, Diagnostic{Code: "SCAN_PARTIAL", Message: "Semgrep reported errors; coverage incomplete."})
 		}
 		for _, v := range *raw.Results {
 			sev := map[string]string{"ERROR": "high", "WARNING": "medium", "INFO": "informational"}[v.Extra.Severity]
@@ -218,7 +218,7 @@ func Parse(tool string, b []byte, j Job) (Result, error) {
 		}
 		if len(raw.Errors) > 0 {
 			r.Status = "completed_partial"
-			r.Diagnostics = append(r.Diagnostics, Diagnostic{"SCAN_PARTIAL", "Bandit reported parse errors; coverage incomplete."})
+			r.Diagnostics = append(r.Diagnostics, Diagnostic{Code: "SCAN_PARTIAL", Message: "Bandit reported parse errors; coverage incomplete."})
 		}
 	default:
 		return bad, fmt.Errorf("unsupported scanner")

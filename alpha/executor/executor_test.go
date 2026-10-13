@@ -33,6 +33,14 @@ func TestLockRequiresUniqueImmutableImages(t *testing.T) {
 	}
 }
 
+func TestAuthorizedLockMismatchRefusesBeforeExecution(t *testing.T) {
+	c := Config{LockPath: "../../tools/scanners.lock.json", ExpectedLockDigest: "sha256:wrong"}
+	r, e := c.Run(context.Background(), "bandit", "app_demo", "repository", source.Snapshot{})
+	if e == nil || r.Container != "" || r.Schema != "" {
+		t.Fatal("changed lock reached execution", r, e)
+	}
+}
+
 func TestLocalEngineRefusesRemoteEndpoints(t *testing.T) {
 	for _, endpoint := range []string{"tcp://127.0.0.1:2375", "ssh://operator@host", "unix://host/socket", "unix:///tmp/docker.sock?x=1", "unix:///tmp/docker.sock#x", "unix:relative", "unix:///tmp/socket\n"} {
 		if _, e := localEndpoint(endpoint); e == nil {

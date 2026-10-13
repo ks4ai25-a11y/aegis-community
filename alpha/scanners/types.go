@@ -58,7 +58,7 @@ func newFinding(j Job, tool, kind, rule, file string, line int, sev string) (Fin
 	default:
 		sev = "informational"
 	}
-	f := Finding{Schema: "1.0", App: j.App, Repository: j.Repository, Category: kind, Summary: "Unverified " + tool + " finding: " + rule, Status: "suspected", Severity: sev, Confidence: "low", Tier: "T0", Path: p, Line: line, Provenance: []Source{{tool, j.ToolVersion, j.ImageDigest, ParserVersion, j.InputDigest, rule, sev}}, Coverage: "Tool-reported static claim only; no application exploitability or remediation proof.", Created: time.Now().UTC().Format(time.RFC3339Nano)}
+	f := Finding{Schema: "1.0", App: j.App, Repository: j.Repository, Category: kind, Summary: "Unverified " + tool + " finding: " + rule, Status: "suspected", Severity: sev, Confidence: "low", Tier: "T0", Path: p, Line: line, Provenance: []Source{{Tool: tool, Version: j.ToolVersion, ImageDigest: j.ImageDigest, Parser: ParserVersion, InputDigest: j.InputDigest, Rule: rule, Severity: sev}}, Coverage: "Tool-reported static claim only; no application exploitability or remediation proof.", Created: time.Now().UTC().Format(time.RFC3339Nano)}
 	f.ID = identityHash([]string{j.App, j.Repository, kind, tool, rule, p, fmt.Sprint(line)})
 	return f, nil
 }

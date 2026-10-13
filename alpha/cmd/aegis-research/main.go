@@ -6,6 +6,7 @@ import (
 	"aegis.local/alpha/inventory"
 	"aegis.local/alpha/lab"
 	"aegis.local/alpha/scanners"
+	"aegis.local/alpha/worker"
 	"aegis.local/alpha/workspace"
 	"aegis.local/source"
 	"context"
@@ -25,6 +26,17 @@ func main() {
 		usage()
 	}
 	switch os.Args[1] {
+	case "worker-once":
+		if len(os.Args) != 7 {
+			die(fmt.Errorf("usage: aegis-research worker-once SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT"))
+		}
+		ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer cancel()
+		r, e := (worker.Config{Socket: os.Args[2], Credential: os.Args[3], Owner: os.Args[4], SourceRoot: os.Args[5], AssetRoot: os.Args[6]}).RunOnce(ctx)
+		json.NewEncoder(os.Stdout).Encode(r)
+		if e != nil {
+			die(e)
+		}
 	case "recover-workspaces":
 		if len(os.Args) != 2 {
 			die(fmt.Errorf("recover-workspaces takes no path or container arguments"))
@@ -106,7 +118,7 @@ func main() {
 			os.Exit(1)
 		}
 	case "--help":
-		fmt.Println("aegis-research recover-workspaces | scan-offline SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT | inventory CANONICAL_REPO | invocation SCANNER | parse SCANNER VERSION IMAGE_DIGEST INPUT_DIGEST | tenant-verify VARIANT")
+		fmt.Println("aegis-research worker-once SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT | recover-workspaces | scan-offline SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT | inventory CANONICAL_REPO | invocation SCANNER | parse SCANNER VERSION IMAGE_DIGEST INPUT_DIGEST | tenant-verify VARIANT")
 		return
 	case "tenant-verify":
 		if len(os.Args) != 3 {

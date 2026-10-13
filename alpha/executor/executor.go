@@ -29,13 +29,14 @@ type Tool struct {
 	Image   string `json:"image"`
 }
 type Config struct {
-	LockPath        string
-	RulesPath       string
-	ScratchParent   string
-	Docker          string
-	GuardDir        string
-	DurationSeconds int
-	BeforeStart     func(string, string) error
+	LockPath           string
+	ExpectedLockDigest string
+	RulesPath          string
+	ScratchParent      string
+	Docker             string
+	GuardDir           string
+	DurationSeconds    int
+	BeforeStart        func(string, string) error
 }
 type Execution = scanevidence.Execution
 
@@ -112,6 +113,9 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 	tool, lockDigest, e := resolve(c.LockPath, toolID)
 	if e != nil {
 		return out, e
+	}
+	if c.ExpectedLockDigest != "" && lockDigest != c.ExpectedLockDigest {
+		return out, fmt.Errorf("scanner lock differs from authorized job")
 	}
 	if os.Geteuid() <= 0 || os.Getegid() < 0 {
 		return out, fmt.Errorf("operator scanner execution requires a non-root host identity")
