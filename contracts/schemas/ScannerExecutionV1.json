@@ -287,6 +287,10 @@
                 "minimum": 0,
                 "maximum": 10000000
               },
+              "package_name": {
+                "type": "string",
+                "maxLength": 256
+              },
               "package_url": {
                 "type": "string",
                 "maxLength": 1024
@@ -327,7 +331,10 @@
                     },
                     "parser_version": {
                       "type": "string",
-                      "const": "1.0"
+                      "enum": [
+                        "1.0",
+                        "1.1"
+                      ]
                     },
                     "input_digest": {
                       "type": "string",

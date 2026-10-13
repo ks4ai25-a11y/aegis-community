@@ -7,6 +7,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -22,10 +23,10 @@ func TestLeaseJournalAndRecovery(t *testing.T) {
 		t.Fatal(e)
 	}
 	name := "aegis-scan-0123456789abcdef0123456789abcdef"
-	if e = s.Bind(name); e != nil {
+	if e = s.Bind(name, "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"); e != nil {
 		t.Fatal(e)
 	}
-	if e = s.Bind(name); e == nil {
+	if e = s.Bind(name, "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"); e == nil {
 		t.Fatal("container rebound")
 	}
 	future := time.Now().Add(4 * time.Minute)
@@ -38,7 +39,7 @@ func TestLeaseJournalAndRecovery(t *testing.T) {
 	if e != nil || r.Deferred != 1 {
 		t.Fatalf("grace: %+v %v", r, e)
 	}
-	r, e = Recover(context.Background(), root, future, func(_ context.Context, id string) (bool, error) {
+	r, e = Recover(context.Background(), root, future, func(_ context.Context, id, engine string) (bool, error) {
 		if id != name {
 			t.Fatal("wrong container")
 		}
@@ -47,7 +48,7 @@ func TestLeaseJournalAndRecovery(t *testing.T) {
 	if e != nil || r.Deferred != 1 {
 		t.Fatalf("active container: %+v %v", r, e)
 	}
-	r, e = Recover(context.Background(), root, future, func(context.Context, string) (bool, error) { return true, nil })
+	r, e = Recover(context.Background(), root, future, func(context.Context, string, string) (bool, error) { return true, nil })
 	if e != nil || r.Removed != 1 {
 		t.Fatalf("orphan: %+v %v", r, e)
 	}
@@ -66,7 +67,7 @@ func TestRecoveryRefusesSymlinkAndInvalidJournal(t *testing.T) {
 	if e = os.WriteFile(filepath.Join(s.Path, "journal.json"), []byte(`{"schema_version":"1.0","created_unix":1,"container":"unrelated"}`), 0600); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = Recover(context.Background(), root, time.Now(), func(context.Context, string) (bool, error) {
+	if _, e = Recover(context.Background(), root, time.Now(), func(context.Context, string, string) (bool, error) {
 		t.Fatal("invalid identity reached Docker")
 		return true, nil
 	}); e == nil {
@@ -81,5 +82,25 @@ func TestRecoveryRefusesSymlinkAndInvalidJournal(t *testing.T) {
 	}
 	if _, e = os.Stat(outside); e != nil {
 		t.Fatal("unrelated directory touched")
+	}
+}
+
+func TestRecoveryRejectsJournalFIFOWithoutBlocking(t *testing.T) {
+	parent, _ := filepath.EvalSymlinks(t.TempDir())
+	root := filepath.Join(parent, "registry")
+	s, e := Begin(root)
+	if e != nil {
+		t.Fatal(e)
+	}
+	s.Preserve()
+	journal := filepath.Join(s.Path, "journal.json")
+	if e = os.Remove(journal); e != nil {
+		t.Fatal(e)
+	}
+	if e = syscall.Mkfifo(journal, 0600); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = Recover(context.Background(), root, time.Now().Add(4*time.Minute), nil); e == nil {
+		t.Fatal("nonregular journal accepted")
 	}
 }

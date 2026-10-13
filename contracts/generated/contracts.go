@@ -38,6 +38,7 @@ type FindingV1 struct {
 	EvidenceTier      string                                               `json:"evidence_tier"`
 	Path              string                                               `json:"path,omitempty"`
 	Line              int64                                                `json:"line,omitempty"`
+	PackageName       string                                               `json:"package_name,omitempty"`
 	PackageUrl        string                                               `json:"package_url,omitempty"`
 	InstalledVersion  string                                               `json:"installed_version,omitempty"`
 	Advisories        []string                                             `json:"advisories,omitempty"`
@@ -356,6 +357,7 @@ type ScannerExecutionV1ResultFindingsItem struct {
 	EvidenceTier      string                                               `json:"evidence_tier"`
 	Path              string                                               `json:"path,omitempty"`
 	Line              int64                                                `json:"line,omitempty"`
+	PackageName       string                                               `json:"package_name,omitempty"`
 	PackageUrl        string                                               `json:"package_url,omitempty"`
 	InstalledVersion  string                                               `json:"installed_version,omitempty"`
 	Advisories        []string                                             `json:"advisories,omitempty"`

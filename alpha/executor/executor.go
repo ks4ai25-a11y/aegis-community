@@ -34,7 +34,7 @@ type Config struct {
 	Docker          string
 	GuardDir        string
 	DurationSeconds int
-	BeforeStart     func(string) error
+	BeforeStart     func(string, string) error
 }
 type Execution struct {
 	Invocation    scanners.Invocation `json:"invocation"`
@@ -168,6 +168,9 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 		}
 		rules = &captured
 		defer func() {
+			if out.Container != "" && out.Cleanup != "complete" {
+				return
+			}
 			if e := rules.Close(); e != nil {
 				out.Cleanup = "unconfirmed"
 				out.Status = "tool_error"
@@ -184,13 +187,13 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 		return out, e
 	}
 	engineCtx, engineCancel := context.WithTimeout(ctx, 5*time.Second)
-	engine, e := engineCommand(engineCtx, docker, endpoint, "info", "--format", "{{.OSType}} {{.Architecture}}").Output()
+	engine, e := engineCommand(engineCtx, docker, endpoint, "info", "--format", "{{.OSType}} {{.Architecture}} {{.ID}}").Output()
 	engineCancel()
 	if e != nil || len(engine) > 512 {
 		return out, fmt.Errorf("local scanner engine unavailable")
 	}
 	fields := strings.Fields(string(engine))
-	if len(fields) != 2 || fields[0] != "linux" {
+	if len(fields) != 3 || fields[0] != "linux" {
 		return out, fmt.Errorf("Linux scanner engine required")
 	}
 	arch := ""
@@ -219,6 +222,9 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 		return out, e
 	}
 	defer func() {
+		if out.Container != "" && out.Cleanup != "complete" {
+			return
+		}
 		if e := os.RemoveAll(guardRoot); e != nil {
 			out.Status = "tool_error"
 			out.Cleanup = "unconfirmed"
@@ -264,7 +270,7 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 	}
 	name := "aegis-scan-" + hex.EncodeToString(nonce)
 	if c.BeforeStart != nil {
-		if e = c.BeforeStart(name); e != nil {
+		if e = c.BeforeStart(name, source.Hash([]byte(endpoint+"\n"+fields[2]))); e != nil {
 			return out, fmt.Errorf("durable workspace binding failed")
 		}
 	}

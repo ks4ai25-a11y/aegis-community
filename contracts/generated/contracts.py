@@ -34,6 +34,7 @@ class FindingV1(TypedDict):
     evidence_tier: str
     path: NotRequired[str]
     line: NotRequired[int]
+    package_name: NotRequired[str]
     package_url: NotRequired[str]
     installed_version: NotRequired[str]
     advisories: NotRequired[list[str]]
@@ -317,6 +318,7 @@ class ScannerExecutionV1ResultFindingsItem(TypedDict):
     evidence_tier: str
     path: NotRequired[str]
     line: NotRequired[int]
+    package_name: NotRequired[str]
     package_url: NotRequired[str]
     installed_version: NotRequired[str]
     advisories: NotRequired[list[str]]

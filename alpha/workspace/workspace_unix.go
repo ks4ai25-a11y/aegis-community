@@ -20,12 +20,14 @@ import (
 )
 
 var sessionName = regexp.MustCompile(`^run-[0-9a-f]{32}$`)
+var engineDigest = regexp.MustCompile(`^sha256:[0-9a-f]{64}$`)
 var containerName = regexp.MustCompile(`^aegis-scan-[0-9a-f]{32}$`)
 
 type record struct {
 	Version   string `json:"schema_version"`
 	Created   int64  `json:"created_unix"`
 	Container string `json:"container,omitempty"`
+	Engine    string `json:"engine_digest,omitempty"`
 }
 type Session struct {
 	Path   string
@@ -73,7 +75,7 @@ func registry(path string) (*os.File, error) {
 	if e = privateDir(path); e != nil {
 		return nil, e
 	}
-	f, e := os.OpenFile(filepath.Join(path, ".registry-lock"), os.O_CREATE|os.O_RDWR|syscall.O_NOFOLLOW, 0600)
+	f, e := os.OpenFile(filepath.Join(path, ".registry-lock"), os.O_CREATE|os.O_RDWR|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0600)
 	if e != nil {
 		return nil, e
 	}
@@ -161,11 +163,12 @@ func (s *Session) persist() error {
 }
 
 // Bind is called and fsynced before Docker receives the run command.
-func (s *Session) Bind(name string) error {
-	if s.lease == nil || s.record.Container != "" || !containerName.MatchString(name) {
+func (s *Session) Bind(name, engine string) error {
+	if s.lease == nil || s.record.Container != "" || !containerName.MatchString(name) || !engineDigest.MatchString(engine) {
 		return fmt.Errorf("invalid workspace container binding")
 	}
 	s.record.Container = name
+	s.record.Engine = engine
 	return s.persist()
 }
 
@@ -190,7 +193,7 @@ func (s *Session) Preserve() {
 
 // Recover never stops containers. absent must independently confirm the exact
 // journalled container is absent on the operator's selected engine.
-func Recover(ctx context.Context, path string, now time.Time, absent func(context.Context, string) (bool, error)) (out Recovery, err error) {
+func Recover(ctx context.Context, path string, now time.Time, absent func(context.Context, string, string) (bool, error)) (out Recovery, err error) {
 	lock, e := registry(path)
 	if e != nil {
 		return out, e
@@ -222,7 +225,7 @@ func Recover(ctx context.Context, path string, now time.Time, absent func(contex
 		if e = privateDir(p); e != nil {
 			return out, e
 		}
-		f, e := os.OpenFile(filepath.Join(p, "lease"), os.O_RDWR|syscall.O_NOFOLLOW, 0)
+		f, e := os.OpenFile(filepath.Join(p, "lease"), os.O_RDWR|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
 		if e != nil {
 			return out, fmt.Errorf("workspace lease unavailable")
 		}
@@ -246,9 +249,19 @@ func Recover(ctx context.Context, path string, now time.Time, absent func(contex
 		}
 		e = func() error {
 			defer f.Close()
-			journal, e := os.OpenFile(filepath.Join(p, "journal.json"), os.O_RDONLY|syscall.O_NOFOLLOW, 0)
+			journal, e := os.OpenFile(filepath.Join(p, "journal.json"), os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
 			if e != nil {
 				return fmt.Errorf("workspace journal unavailable")
+			}
+			info, e := journal.Stat()
+			if e != nil {
+				journal.Close()
+				return e
+			}
+			stat, ok := info.Sys().(*syscall.Stat_t)
+			if !ok || !info.Mode().IsRegular() || info.Mode().Perm() != 0600 || int(stat.Uid) != os.Geteuid() || info.Size() > 4096 {
+				journal.Close()
+				return fmt.Errorf("invalid private workspace journal")
 			}
 			b, e := io.ReadAll(io.LimitReader(journal, 4097))
 			journal.Close()
@@ -256,7 +269,7 @@ func Recover(ctx context.Context, path string, now time.Time, absent func(contex
 				return fmt.Errorf("invalid workspace journal budget")
 			}
 			var r record
-			if json.Unmarshal(b, &r) != nil || r.Version != "1.0" || r.Created <= 0 || (r.Container != "" && !containerName.MatchString(r.Container)) {
+			if json.Unmarshal(b, &r) != nil || r.Version != "1.0" || r.Created <= 0 || (r.Container != "" && (!containerName.MatchString(r.Container) || !engineDigest.MatchString(r.Engine))) {
 				return fmt.Errorf("invalid workspace journal")
 			}
 			// Independent guard max 120 seconds plus conservative launch/cleanup grace.
@@ -268,7 +281,7 @@ func Recover(ctx context.Context, path string, now time.Time, absent func(contex
 				if absent == nil {
 					return fmt.Errorf("container absence verifier required")
 				}
-				ok, e := absent(ctx, r.Container)
+				ok, e := absent(ctx, r.Container, r.Engine)
 				if e != nil {
 					return e
 				}

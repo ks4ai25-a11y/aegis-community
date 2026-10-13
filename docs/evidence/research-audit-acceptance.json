@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "scope": "actual-local-SQLite-authorization-and-audit-failure-injection",
+  "overall": "PASS",
+  "completed_at": "2026-10-13T09:14:45.473262+08:00",
+  "checks": [
+    {
+      "id": "TestAuditFailureRollsBackResearchAuthorityAndEvidence/draft",
+      "result": "PASS"
+    },
+    {
+      "id": "TestAuditFailureRollsBackResearchAuthorityAndEvidence/approve",
+      "result": "PASS"
+    },
+    {
+      "id": "TestAuditFailureRollsBackResearchAuthorityAndEvidence/enqueue",
+      "result": "PASS"
+    },
+    {
+      "id": "TestAuditFailureRollsBackResearchAuthorityAndEvidence/claim",
+      "result": "PASS"
+    },
+    {
+      "id": "TestAuditFailureRollsBackResearchAuthorityAndEvidence/cancel",
+      "result": "PASS"
+    },
+    {
+      "id": "TestAuditFailureRollsBackResearchAuthorityAndEvidence/revoke",
+      "result": "PASS"
+    },
+    {
+      "id": "TestAuditFailureRollsBackResearchAuthorityAndEvidence/finish",
+      "result": "PASS"
+    },
+    {
+      "id": "TestAuditFailureRollsBackResearchAuthorityAndEvidence/recover",
+      "result": "PASS"
+    },
+    {
+      "id": "TestClaimRejectsCorruptedJobAndPolicyBeforeBudgetReservation/payload",
+      "result": "PASS"
+    },
+    {
+      "id": "TestClaimRejectsCorruptedJobAndPolicyBeforeBudgetReservation/policy",
+      "result": "PASS"
+    }
+  ],
+  "source_digests": {
+    "controller/internal/research/queue.go": "sha256:60791ec9b91db4f843adf885ef5a881a4bc1dd410a7bdd4944e1a604bb68d6be",
+    "controller/internal/research/queue_test.go": "sha256:50151aded49b1bbd3563de67e652d09a9b4ba1dc47a34a8a7510ca21c4316e7d"
+  },
+  "limitations": [
+    "Local database failure-injection tests only; no power-loss filesystem soak claim.",
+    "Local audit hash chain remains under host-administrator trust.",
+    "Durable scanner execution and independent review remain incomplete."
+  ]
+}

@@ -11,8 +11,8 @@
       "id": "real_independent_report_binds_job_scope_and_controls",
       "result": "PASS",
       "detail": {
-        "job_id": "01a130f8-60c9-7284-a179-159391385f2a",
-        "report_digest": "sha256:a4979b94c732d252b01aa71fca0f7919c871876273d8eda0fef65d583afad208"
+        "job_id": "01a132d2-eeaa-790e-9e81-9ce47c58a7c4",
+        "report_digest": "sha256:4242f367785524a2e27c876f827a570d8ea116837300639aed6db7a8b1adfaf1"
       }
     },
     {
@@ -34,11 +34,19 @@
       "id": "job_and_owned_report_survive_controller_restart",
       "result": "PASS",
       "detail": null
+    },
+    {
+      "id": "durable_claim_and_crash_reconciliation_are_audited",
+      "result": "PASS",
+      "detail": {
+        "requests_reserved": 4,
+        "local_hash_chain_verified": true
+      }
     }
   ],
-  "started_at": "2026-10-12T16:35:46Z",
+  "started_at": "2026-10-13T01:14:06Z",
   "overall": "PASS",
-  "completed_at": "2026-10-12T16:36:04Z",
+  "completed_at": "2026-10-13T01:14:24Z",
   "limitations": [
     "Only bundled trusted fixture and local ARM64 Docker Desktop tested.",
     "No arbitrary staging target, untrusted code execution, signed scope authority or external security review claim.",

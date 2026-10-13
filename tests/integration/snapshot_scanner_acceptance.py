@@ -36,5 +36,5 @@ except Exception as e:
  report['overall']='FAIL';report['error']=str(e)[:1800];raise
 finally:
  report['completed_at']=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())
- report['limitations']=['Only trusted bundled inert inputs and local Docker Desktop tested.','OSV/Trivy missing offline databases remain tool_error; no coverage or exploitability claim.','Operator-launched executor is not durable controller job orchestration.','Publisher signature/licence review, larger rule packs, recovery of host workspaces after SIGKILL and independent review remain pending.']
+ report['limitations']=['Only trusted bundled inert inputs and local Docker Desktop tested.','OSV/Trivy missing offline databases remain tool_error; no coverage or exploitability claim.','Operator-launched executor is not durable controller job orchestration.','Publisher signature/licence review, larger rule packs, automatic durable job recovery and independent review remain pending.']
  (ROOT/'docs/evidence/snapshot-scanner-acceptance.json').write_text(json.dumps(report,indent=2)+'\n')

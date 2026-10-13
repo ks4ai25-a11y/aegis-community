@@ -77,10 +77,12 @@ func main() {
 		}
 		cfg := executor.Config{ScratchParent: session.Path, BeforeStart: session.Bind, GuardDir: filepath.Join(os.Args[4], "bin"), DurationSeconds: limit, LockPath: filepath.Join(os.Args[4], "tools/scanners.lock.json"), RulesPath: filepath.Join(os.Args[4], "alpha/rules")}
 		result, runErr := cfg.Run(ctx, os.Args[2], "app_demo", "local-operator-repository", snapshot)
-		if e = snapshot.Close(); e != nil {
-			result.Status = "tool_error"
-			result.Cleanup = "unconfirmed"
-			runErr = fmt.Errorf("source cleanup unconfirmed")
+		if result.Container == "" || result.Cleanup == "complete" {
+			if e = snapshot.Close(); e != nil {
+				result.Status = "tool_error"
+				result.Cleanup = "unconfirmed"
+				runErr = fmt.Errorf("source cleanup unconfirmed")
+			}
 		}
 		if result.Container == "" || result.Cleanup == "complete" {
 			if e = session.Close(); e != nil {

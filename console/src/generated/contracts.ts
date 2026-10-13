@@ -36,6 +36,7 @@ export interface FindingV1 {
   evidence_tier: "T0" | "T1" | "T2" | "T3" | "T4" | "T5";
   path?: string;
   line?: number;
+  package_name?: string;
   package_url?: string;
   installed_version?: string;
   advisories?: Array<string>;
@@ -48,7 +49,7 @@ export interface FindingV1ProvenanceItem {
   tool_id: string;
   tool_version: string;
   tool_image_digest: string;
-  parser_version: "1.0";
+  parser_version: "1.0" | "1.1";
   input_digest: string;
   rule_id?: string;
 }
@@ -354,6 +355,7 @@ export interface ScannerExecutionV1ResultFindingsItem {
   evidence_tier: "T0" | "T1" | "T2" | "T3" | "T4" | "T5";
   path?: string;
   line?: number;
+  package_name?: string;
   package_url?: string;
   installed_version?: string;
   advisories?: Array<string>;
@@ -366,7 +368,7 @@ export interface ScannerExecutionV1ResultFindingsItemProvenanceItem {
   tool_id: string;
   tool_version: string;
   tool_image_digest: string;
-  parser_version: "1.0";
+  parser_version: "1.0" | "1.1";
   input_digest: string;
   rule_id?: string;
 }

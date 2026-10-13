@@ -34,6 +34,7 @@ type Finding struct {
 	Path              string   `json:"path,omitempty"`
 	Line              int      `json:"line,omitempty"`
 	Package           string   `json:"package_url,omitempty"`
+	PackageName       string   `json:"package_name,omitempty"`
 	Version           string   `json:"installed_version,omitempty"`
 	Advisories        []string `json:"advisories,omitempty"`
 	SecretFingerprint string   `json:"secret_fingerprint,omitempty"`
@@ -45,6 +46,7 @@ type Job struct {
 	App, Repository, InputDigest string
 	ToolVersion, ImageDigest     string
 	SecretSalt                   []byte
+	ConfigReview                 bool
 }
 type Diagnostic struct {
 	Code    string `json:"code"`
@@ -57,10 +59,12 @@ type Result struct {
 	SBOM        json.RawMessage `json:"sbom,omitempty"`
 }
 
+func identityHash(parts []string) string { b, _ := json.Marshal(parts); return Hash(b) }
+
 func Hash(b []byte) string { s := sha256.Sum256(b); return "sha256:" + hex.EncodeToString(s[:]) }
 func safePath(p string) (string, error) {
 	p = strings.TrimPrefix(p, "/src/")
-	if strings.Contains(p, "\\") || strings.ContainsRune(p, 0) || strings.HasPrefix(p, "/") {
+	if !boundedCoordinate(p, 512, true) || strings.Contains(p, "\\") || strings.ContainsAny(p, "\x00\r\n\t") || strings.HasPrefix(p, "/") {
 		return "", fmt.Errorf("absolute or malformed source path")
 	}
 	c := path.Clean(p)
@@ -85,17 +89,17 @@ func newFinding(j Job, tool, kind, rule, file string, line int, sev string) (Fin
 	default:
 		sev = "informational"
 	}
-	f := Finding{Schema: "1.0", App: j.App, Repository: j.Repository, Category: kind, Summary: "Unverified " + tool + " finding: " + rule, Status: "suspected", Severity: sev, Confidence: "low", Tier: "T0", Path: p, Line: line, Provenance: []Source{{tool, j.ToolVersion, j.ImageDigest, "1.0", j.InputDigest, rule}}, Coverage: "Tool-reported static claim only; no application exploitability or remediation proof.", Created: time.Now().UTC().Format(time.RFC3339Nano)}
-	f.ID = Hash([]byte(j.App + "\x00" + j.Repository + "\x00" + kind + "\x00" + rule + "\x00" + p + fmt.Sprint(line)))
+	f := Finding{Schema: "1.0", App: j.App, Repository: j.Repository, Category: kind, Summary: "Unverified " + tool + " finding: " + rule, Status: "suspected", Severity: sev, Confidence: "low", Tier: "T0", Path: p, Line: line, Provenance: []Source{{tool, j.ToolVersion, j.ImageDigest, "1.1", j.InputDigest, rule}}, Coverage: "Tool-reported static claim only; no application exploitability or remediation proof.", Created: time.Now().UTC().Format(time.RFC3339Nano)}
+	f.ID = identityHash([]string{j.App, j.Repository, kind, rule, p, fmt.Sprint(line)})
 	return f, nil
 }
 func Dedupe(in []Finding) []Finding {
 	out := []Finding{}
 	index := map[string]int{}
 	for _, f := range in {
-		key := f.App + "\x00" + f.Repository + "\x00" + f.ID
+		key := identityHash([]string{f.App, f.Repository, f.Category, f.ID})
 		if f.Package != "" && len(f.Advisories) == 1 {
-			key = f.App + "\x00" + f.Repository + "\x00" + f.Package + "\x00" + f.Version + "\x00" + f.Advisories[0] + "\x00" + f.Path
+			key = identityHash([]string{f.App, f.Repository, f.Category, f.Package, f.Version, f.Advisories[0], f.Path})
 		}
 		if i, ok := index[key]; ok {
 			out[i].Provenance = append(out[i].Provenance, f.Provenance...)

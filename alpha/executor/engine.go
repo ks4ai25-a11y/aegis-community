@@ -2,6 +2,7 @@
 package executor
 
 import (
+	"aegis.local/source"
 	"context"
 	"fmt"
 	"net/url"
@@ -75,7 +76,7 @@ func engineCommand(ctx context.Context, docker, endpoint string, args ...string)
 
 // ContainerAbsent checks only an exact journalled Aegis name and never removes
 // a container. Recovery fails closed if the engine cannot answer.
-func (c Config) ContainerAbsent(ctx context.Context, name string) (bool, error) {
+func (c Config) ContainerAbsent(ctx context.Context, name, expectedEngine string) (bool, error) {
 	if !scannerName.MatchString(name) {
 		return false, fmt.Errorf("invalid scanner container identity")
 	}
@@ -85,6 +86,10 @@ func (c Config) ContainerAbsent(ctx context.Context, name string) (bool, error) 
 	}
 	bounded, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+	identity, e := engineCommand(bounded, docker, endpoint, "info", "--format", "{{.ID}}").Output()
+	if e != nil || len(identity) > 256 || strings.TrimSpace(string(identity)) == "" || source.Hash([]byte(endpoint+"\n"+strings.TrimSpace(string(identity)))) != expectedEngine {
+		return false, fmt.Errorf("journalled scanner engine identity unconfirmed")
+	}
 	cmd := engineCommand(bounded, docker, endpoint, "ps", "--all", "--filter", "name=^/"+name+"$", "--format", "{{.Names}}")
 	b, e := cmd.Output()
 	if e != nil || len(b) > 512 {

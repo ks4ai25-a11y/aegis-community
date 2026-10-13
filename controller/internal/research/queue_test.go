@@ -7,7 +7,9 @@ import (
 	"aegis.local/controller/internal/verify"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
@@ -245,5 +247,140 @@ func TestRunningWorkerInterruptsOnRevocation(t *testing.T) {
 	got, e := q.Get("owner-a", j.ID)
 	if e != nil || got.State != "cancelled" || got.Report != "" {
 		t.Fatal(got, e)
+	}
+}
+
+// Fail the actual SQLite audit insert, after earlier writes in the transaction.
+// This models persistence failure without substituting a fake audit function.
+func TestAuditFailureRollsBackResearchAuthorityAndEvidence(t *testing.T) {
+	for _, operation := range []string{"draft", "approve", "enqueue", "claim", "cancel", "revoke", "finish", "recover"} {
+		t.Run(operation, func(t *testing.T) {
+			q, now, g, in := fixture(t)
+			var draft GrantRecord
+			var j Job
+			var l Lease
+			var e error
+			if operation == "approve" {
+				draft, e = q.CreateGrant("owner-a", 10)
+			}
+			if operation == "claim" || operation == "cancel" || operation == "revoke" || operation == "finish" || operation == "recover" {
+				j, e = q.Enqueue("owner-a", "audit-failure-key", in)
+			}
+			if e != nil {
+				t.Fatal(e)
+			}
+			if operation == "revoke" || operation == "finish" || operation == "recover" {
+				l, e = q.Claim("test-worker")
+				if e != nil {
+					t.Fatal(e)
+				}
+			}
+			if operation == "recover" {
+				*now = now.Add(16 * time.Second)
+			}
+			before := researchState(t, q.S)
+			if _, e = q.S.DB.Exec("CREATE TRIGGER fixture_audit_failure BEFORE INSERT ON audit BEGIN SELECT RAISE(ABORT,'synthetic audit persistence failure'); END"); e != nil {
+				t.Fatal(e)
+			}
+			switch operation {
+			case "draft":
+				_, e = q.CreateGrant("owner-a", 10)
+			case "approve":
+				_, e = q.Approve("owner-a", draft.Grant.ID, draft.Digest, true)
+			case "enqueue":
+				_, e = q.Enqueue("owner-a", "audit-failure-key", in)
+			case "claim", "recover":
+				_, e = q.Claim("test-worker")
+			case "cancel":
+				e = q.Cancel("owner-a", j.ID)
+			case "revoke":
+				e = q.Revoke("owner-a", g.Grant.ID)
+			case "finish":
+				r := proof(l)
+				e = q.Finish(l, &r, "")
+			}
+			if e == nil {
+				t.Fatal("audit failure ignored")
+			}
+			if after := researchState(t, q.S); after != before {
+				t.Fatalf("unaudited state committed by %s", operation)
+			}
+			if e = q.S.VerifyAudit(); e != nil {
+				t.Fatal(e)
+			}
+		})
+	}
+}
+func researchState(t *testing.T, s *store.Store) string {
+	t.Helper()
+	out := [][][]any{}
+	for _, table := range []string{"scope_grants", "research_jobs", "reports", "report_owners", "audit"} {
+		rows, e := s.DB.Query("SELECT * FROM " + table + " ORDER BY 1,2")
+		if e != nil {
+			t.Fatal(e)
+		}
+		columns, e := rows.Columns()
+		if e != nil {
+			rows.Close()
+			t.Fatal(e)
+		}
+		entries := [][]any{}
+		for rows.Next() {
+			values := make([]any, len(columns))
+			ptrs := make([]any, len(columns))
+			for i := range values {
+				ptrs[i] = &values[i]
+			}
+			if e = rows.Scan(ptrs...); e != nil {
+				rows.Close()
+				t.Fatal(e)
+			}
+			entries = append(entries, values)
+		}
+		e = rows.Err()
+		rows.Close()
+		if e != nil {
+			t.Fatal(e)
+		}
+		out = append(out, entries)
+	}
+	b, e := json.Marshal(out)
+	if e != nil {
+		t.Fatal(e)
+	}
+	return string(b)
+}
+func TestClaimRejectsCorruptedJobAndPolicyBeforeBudgetReservation(t *testing.T) {
+	for _, kind := range []string{"payload", "policy"} {
+		t.Run(kind, func(t *testing.T) {
+			q, _, g, in := fixture(t)
+			j, e := q.Enqueue("owner-a", "corrupt-input-key", in)
+			if e != nil {
+				t.Fatal(e)
+			}
+			switch kind {
+			case "payload":
+				bad := in
+				bad.Fixture = "different-fixture"
+				b, _ := json.Marshal(bad)
+				_, e = q.S.DB.Exec("UPDATE research_jobs SET payload=? WHERE id=?", string(b), j.ID)
+			case "policy":
+				_, e = q.S.DB.Exec("UPDATE policies SET document='{}' WHERE digest=?", in.PolicyDigest)
+			}
+			if e != nil {
+				t.Fatal(e)
+			}
+			if _, e = q.Claim("worker"); e == nil {
+				t.Fatal(fmt.Sprintf("corrupted %s accepted", kind))
+			}
+			grant, e := q.Grant("owner-a", g.Grant.ID)
+			if e != nil || grant.RequestsRemaining != 4 {
+				t.Fatal("budget changed before immutable input validation", grant, e)
+			}
+			job, e := q.Get("owner-a", j.ID)
+			if e != nil || job.State != "queued" || job.Attempts != 0 {
+				t.Fatal(job, e)
+			}
+		})
 	}
 }

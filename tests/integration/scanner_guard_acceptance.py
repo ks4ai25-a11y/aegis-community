@@ -88,6 +88,11 @@ try:
     deferred=subprocess.run([str(BINARY),'recover-workspaces'],env=env,capture_output=True,timeout=10)
     assert deferred.returncode==0 and json.loads(deferred.stdout)['deferred']==1
     journal=session/'journal.json';data=json.loads(journal.read_text());data['created_unix']=int(time.time())-240;journal.write_text(json.dumps(data))
+    original_engine=data['engine_digest'];data['engine_digest']='sha256:'+'0'*64;journal.write_text(json.dumps(data))
+    wrong_engine=subprocess.run([str(BINARY),'recover-workspaces'],env=env,capture_output=True,timeout=10)
+    assert wrong_engine.returncode!=0 and session.exists()
+    check('workspace_recovery_refuses_engine_identity_mismatch',{'workspace_preserved':True})
+    data['engine_digest']=original_engine;journal.write_text(json.dumps(data))
     recovered=subprocess.run([str(BINARY),'recover-workspaces'],env=env,capture_output=True,timeout=10)
     assert recovered.returncode==0 and json.loads(recovered.stdout)['removed']==1 and not session.exists(),recovered.stderr
     check('journalled_host_workspace_recovery_after_sigkill',{'workspace_count':len(mounts),'removed_sessions':1,'grace_age_simulated_in_test':True})

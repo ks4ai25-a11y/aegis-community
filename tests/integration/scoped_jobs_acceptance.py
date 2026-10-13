@@ -63,6 +63,16 @@ try:
  history=call('/verifications')['items'];assert any(x['job_id']==j['job_id'] and x['report_digest']==done['report_digest'] for x in history)
  proof_again=call('/verify/reports/'+done['report_digest']);assert proof_again==proof
  check('job_and_owned_report_survive_controller_restart')
+ records=[item['record'] for item in call('/audit')['items']]
+ for job,actions in [(j,['research.enqueue','research.claim','research.finished']),(j3,['research.enqueue','research.claim','research.recovered'])]:
+  observed={r['action'] for r in records if r['object_id']==job['job_id']}
+  assert set(actions)<=observed,(job['job_id'],observed)
+ claims=[r for r in records if r['action']=='research.claim' and r['object_id']==j['job_id']]
+ assert len(claims)==1 and claims[0]['data']['requests_reserved']==4 and claims[0]['data']['scope_digest']==g['approved_digest']
+ assert all('lease_token' not in json.dumps(r) for r in records)
+ subprocess.run(COMPOSE+['exec','-T','controller','aegisctl','audit','verify'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
+ check('durable_claim_and_crash_reconciliation_are_audited',{'requests_reserved':4,'local_hash_chain_verified':True})
+
  report['overall']='PASS'
 except Exception as e:
  report['overall']='FAIL';report['error']=str(e)[:1800];raise

@@ -49,11 +49,19 @@ func (q *Queue) CreateGrant(owner string, minutes int) (GrantRecord, error) {
 	b, _ := json.Marshal(g)
 	d := domain.Digest(g)
 	expiry, _ := time.Parse(time.RFC3339Nano, g.Expires)
-	_, e := q.S.DB.Exec("INSERT INTO scope_grants(id,owner,app,document,digest,state,expires,created_at) VALUES(?,?,?,?,?,'draft',?,?)", g.ID, owner, g.App, string(b), d, expiry.Unix(), g.Created)
+	tx, e := q.S.DB.Begin()
 	if e != nil {
 		return GrantRecord{}, e
 	}
-	if e = q.S.Audit(owner, "scope.draft", g.ID, "draft", map[string]string{"digest": d}); e != nil {
+	defer tx.Rollback()
+	_, e = tx.Exec("INSERT INTO scope_grants(id,owner,app,document,digest,state,expires,created_at) VALUES(?,?,?,?,?,'draft',?,?)", g.ID, owner, g.App, string(b), d, expiry.Unix(), g.Created)
+	if e != nil {
+		return GrantRecord{}, e
+	}
+	if e = store.AuditTx(tx, owner, "scope.draft", g.ID, "draft", map[string]string{"digest": d}); e != nil {
+		return GrantRecord{}, e
+	}
+	if e = tx.Commit(); e != nil {
 		return GrantRecord{}, e
 	}
 	return GrantRecord{Grant: g, Digest: d, State: "draft", RequestsRemaining: g.Requests}, nil
@@ -87,16 +95,24 @@ func (q *Queue) Approve(owner, id, digest string, ack bool) (GrantRecord, error)
 	if e = scope.Validate(r.Grant, owner, q.now()); e != nil {
 		return r, ErrScope
 	}
-	if e = q.S.Audit(owner, "scope.approve", id, "approved", map[string]string{"digest": digest}); e != nil {
+	tx, e := q.S.DB.Begin()
+	if e != nil {
 		return r, e
 	}
-	res, e := q.S.DB.Exec("UPDATE scope_grants SET state='active' WHERE id=? AND owner=? AND digest=? AND state='draft' AND expires>?", id, owner, digest, q.now().Unix())
+	defer tx.Rollback()
+	res, e := tx.Exec("UPDATE scope_grants SET state='active' WHERE id=? AND owner=? AND digest=? AND state='draft' AND expires>?", id, owner, digest, q.now().Unix())
 	if e != nil {
 		return r, e
 	}
 	n, _ := res.RowsAffected()
 	if n != 1 {
 		return r, ErrConflict
+	}
+	if e = store.AuditTx(tx, owner, "scope.approve", id, "approved", map[string]string{"digest": digest}); e != nil {
+		return r, e
+	}
+	if e = tx.Commit(); e != nil {
+		return r, e
 	}
 	r.State = "active"
 	return r, nil
@@ -116,13 +132,13 @@ func (q *Queue) Revoke(owner, id string) error {
 		return sql.ErrNoRows
 	}
 	_, e = tx.Exec("UPDATE research_jobs SET state=CASE WHEN state='queued' THEN 'cancelled' ELSE state END,cancel_requested=1,error_code='SCOPE_REVOKED',finished_at=CASE WHEN state='queued' THEN ? ELSE finished_at END WHERE scope=? AND owner=? AND state IN ('queued','running')", domain.Now(), id, owner)
-	if e == nil {
-		e = tx.Commit()
-	}
 	if e != nil {
 		return e
 	}
-	return q.S.Audit(owner, "scope.revoke", id, "revoked", nil)
+	if e = store.AuditTx(tx, owner, "scope.revoke", id, "revoked", nil); e != nil {
+		return e
+	}
+	return tx.Commit()
 }
 
 type Input struct {
@@ -208,9 +224,6 @@ func (q *Queue) Enqueue(owner, key string, in Input) (Job, error) {
 	if e != nil || domain.Digest(p) != in.PolicyDigest {
 		return Job{}, fmt.Errorf("unknown immutable policy")
 	}
-	if e = q.S.Audit(owner, "research.enqueue", requestDigest, "scope_checked", map[string]string{"scope_digest": grant.Digest}); e != nil {
-		return Job{}, e
-	}
 	tx, e := q.S.DB.Begin()
 	if e != nil {
 		return Job{}, e
@@ -233,10 +246,13 @@ func (q *Queue) Enqueue(owner, key string, in Input) (Job, error) {
 	id := domain.ID()
 	at := q.now().UTC().Format(time.RFC3339Nano)
 	_, e = tx.Exec("INSERT INTO research_jobs(id,owner,app,kind,scope,input_digest,request_digest,idempotency_key,state,payload,created_at) VALUES(?,?,?,'waf_fixture',?,?,?,?,'queued',?,?)", id, owner, in.App, in.Scope, in.PolicyDigest, requestDigest, key, string(b), at)
-	if e == nil {
-		e = tx.Commit()
-	}
 	if e != nil {
+		return Job{}, e
+	}
+	if e = store.AuditTx(tx, owner, "research.enqueue", id, "queued", map[string]string{"scope_digest": grant.Digest, "request_digest": requestDigest}); e != nil {
+		return Job{}, e
+	}
+	if e = tx.Commit(); e != nil {
 		return Job{}, e
 	}
 	return q.Get(owner, id)
@@ -252,13 +268,40 @@ func (q *Queue) Claim(worker string) (Lease, error) {
 	defer tx.Rollback()
 	now := q.now().Unix()
 	at := q.now().UTC().Format(time.RFC3339Nano)
-	_, e = tx.Exec("UPDATE research_jobs SET state='timeout',error_code='WORKER_LEASE_EXPIRED',finished_at=?,lease_token='' WHERE state='running' AND lease_until<=?", at, now)
+	// Reconcile interrupted/unauthorized jobs with the same audit transaction.
+	rows, e := tx.Query("SELECT id,owner,state FROM research_jobs WHERE (state='running' AND lease_until<=?) OR (state='queued' AND (cancel_requested=1 OR scope NOT IN (SELECT id FROM scope_grants WHERE state='active' AND expires>? AND requests_used=0))) ORDER BY id LIMIT 201", now, now)
 	if e != nil {
 		return Lease{}, e
 	}
-	_, e = tx.Exec("UPDATE research_jobs SET state='cancelled',error_code='SCOPE_UNAVAILABLE',finished_at=? WHERE state='queued' AND (cancel_requested=1 OR scope NOT IN (SELECT id FROM scope_grants WHERE state='active' AND expires>? AND requests_used=0))", at, now)
+	type recovered struct{ id, owner, state string }
+	stale := []recovered{}
+	for rows.Next() {
+		var r recovered
+		if e = rows.Scan(&r.id, &r.owner, &r.state); e != nil {
+			rows.Close()
+			return Lease{}, e
+		}
+		stale = append(stale, r)
+	}
+	e = rows.Err()
+	rows.Close()
 	if e != nil {
 		return Lease{}, e
+	}
+	if len(stale) > 200 {
+		return Lease{}, ErrFull
+	}
+	for _, r := range stale {
+		state, code := "cancelled", "SCOPE_UNAVAILABLE"
+		if r.state == "running" {
+			state, code = "timeout", "WORKER_LEASE_EXPIRED"
+		}
+		if _, e = tx.Exec("UPDATE research_jobs SET state=?,error_code=?,finished_at=?,lease_token='',worker='',lease_until=0 WHERE id=? AND state=?", state, code, at, r.id, r.state); e != nil {
+			return Lease{}, e
+		}
+		if e = store.AuditTx(tx, r.owner, "research.recovered", r.id, state, map[string]string{"error_code": code}); e != nil {
+			return Lease{}, e
+		}
 	}
 	var running int
 	if e = tx.QueryRow("SELECT count(*) FROM research_jobs WHERE state='running'").Scan(&running); e != nil {
@@ -280,8 +323,8 @@ func (q *Queue) Claim(worker string) (Lease, error) {
 	if e != nil {
 		return Lease{}, e
 	}
-	var payload, document, digest string
-	if e = tx.QueryRow("SELECT payload FROM research_jobs WHERE id=?", j.ID).Scan(&payload); e != nil {
+	var payload, document, digest, requestDigest string
+	if e = tx.QueryRow("SELECT payload,request_digest FROM research_jobs WHERE id=?", j.ID).Scan(&payload, &requestDigest); e != nil {
 		return Lease{}, e
 	}
 	if e = tx.QueryRow("SELECT document,digest FROM scope_grants WHERE id=? AND owner=?", j.Scope, j.Owner).Scan(&document, &digest); e != nil {
@@ -291,6 +334,17 @@ func (q *Queue) Claim(worker string) (Lease, error) {
 	var g scope.Grant
 	if json.Unmarshal([]byte(payload), &in) != nil || json.Unmarshal([]byte(document), &g) != nil || domain.Digest(g) != digest || in.ScopeDigest != digest || scope.Validate(g, j.Owner, q.now()) != nil {
 		return Lease{}, ErrScope
+	}
+	if domain.Digest(in) != requestDigest || in.Schema != "1.0" || in.App != j.App || in.Scope != j.Scope || in.Fixture != scope.Fixture || in.PolicyDigest != j.InputDigest {
+		return Lease{}, fmt.Errorf("job input integrity mismatch")
+	}
+	var policyDocument string
+	if e = tx.QueryRow("SELECT document FROM policies WHERE digest=?", in.PolicyDigest).Scan(&policyDocument); e != nil {
+		return Lease{}, e
+	}
+	var p domain.Policy
+	if json.Unmarshal([]byte(policyDocument), &p) != nil || domain.Digest(p) != j.InputDigest {
+		return Lease{}, fmt.Errorf("job policy identity unavailable")
 	}
 	res, e := tx.Exec("UPDATE scope_grants SET requests_used=requests_used+4 WHERE id=? AND owner=? AND state='active' AND expires>? AND requests_used=0", g.ID, j.Owner, now)
 	if e != nil {
@@ -309,12 +363,11 @@ func (q *Queue) Claim(worker string) (Lease, error) {
 	if n != 1 {
 		return Lease{}, ErrLease
 	}
-	if e = tx.Commit(); e != nil {
+	if e = store.AuditTx(tx, j.Owner, "research.claim", j.ID, "running", map[string]any{"worker_id": worker, "requests_reserved": 4, "scope_digest": digest}); e != nil {
 		return Lease{}, e
 	}
-	p, e := q.S.Policy(in.PolicyDigest)
-	if e != nil || domain.Digest(p) != j.InputDigest {
-		return Lease{}, fmt.Errorf("job policy identity unavailable")
+	if e = tx.Commit(); e != nil {
+		return Lease{}, e
 	}
 	j.State = "running"
 	j.Attempts++
@@ -335,7 +388,12 @@ func (q *Queue) Guard(l Lease) error {
 	return nil
 }
 func (q *Queue) Cancel(owner, id string) error {
-	res, e := q.S.DB.Exec("UPDATE research_jobs SET cancel_requested=1,state=CASE WHEN state='queued' THEN 'cancelled' ELSE state END,finished_at=CASE WHEN state='queued' THEN ? ELSE finished_at END,error_code='CANCEL_REQUESTED' WHERE id=? AND owner=? AND state IN ('queued','running')", q.now().UTC().Format(time.RFC3339Nano), id, owner)
+	tx, e := q.S.DB.Begin()
+	if e != nil {
+		return e
+	}
+	defer tx.Rollback()
+	res, e := tx.Exec("UPDATE research_jobs SET cancel_requested=1,state=CASE WHEN state='queued' THEN 'cancelled' ELSE state END,finished_at=CASE WHEN state='queued' THEN ? ELSE finished_at END,error_code='CANCEL_REQUESTED' WHERE id=? AND owner=? AND state IN ('queued','running')", q.now().UTC().Format(time.RFC3339Nano), id, owner)
 	if e != nil {
 		return e
 	}
@@ -343,7 +401,10 @@ func (q *Queue) Cancel(owner, id string) error {
 	if n != 1 {
 		return ErrConflict
 	}
-	return q.S.Audit(owner, "research.cancel", id, "cancel_requested", nil)
+	if e = store.AuditTx(tx, owner, "research.cancel", id, "cancel_requested", nil); e != nil {
+		return e
+	}
+	return tx.Commit()
 }
 func (q *Queue) Finish(l Lease, report *domain.Report, code string) error {
 	tx, e := q.S.DB.Begin()
@@ -404,11 +465,11 @@ func (q *Queue) Finish(l Lease, report *domain.Report, code string) error {
 		}
 	}
 	_, e = tx.Exec("UPDATE research_jobs SET state=?,report_digest=?,error_code=?,finished_at=?,lease_token='',worker='',lease_until=0 WHERE id=? AND lease_token=?", result, digest, code, q.now().UTC().Format(time.RFC3339Nano), l.Job.ID, l.Token)
-	if e == nil {
-		e = tx.Commit()
-	}
 	if e != nil {
 		return e
 	}
-	return q.S.Audit(l.Job.Owner, "research.finished", l.Job.ID, result, map[string]string{"report_digest": digest, "error_code": code})
+	if e = store.AuditTx(tx, l.Job.Owner, "research.finished", l.Job.ID, result, map[string]string{"report_digest": digest, "error_code": code}); e != nil {
+		return e
+	}
+	return tx.Commit()
 }

@@ -11,7 +11,7 @@ const MaxOutput = 8 << 20
 
 func Parse(tool string, b []byte, j Job) (Result, error) {
 	bad := Result{Status: "tool_error", Findings: []Finding{}, Diagnostics: []Diagnostic{{"INVALID_OUTPUT", "Scanner output invalid or unsupported; no zero-findings claim."}}}
-	if len(b) > MaxOutput || !json.Valid(b) {
+	if validateJSON(b) != nil {
 		return bad, fmt.Errorf("invalid bounded scanner JSON")
 	}
 	if j.App == "" || j.Repository == "" || j.InputDigest == "" || j.ToolVersion == "" || j.ImageDigest == "" {
@@ -56,7 +56,7 @@ func Parse(tool string, b []byte, j Job) (Result, error) {
 			Secret string `json:"Secret"`
 			Match  string `json:"Match"`
 		}
-		if len(b) == 0 || b[0] != '[' || json.Unmarshal(b, &raw) != nil {
+		if json.Unmarshal(b, &raw) != nil || raw == nil {
 			return bad, fmt.Errorf("invalid Gitleaks report")
 		}
 		if len(j.SecretSalt) < 32 {
@@ -76,7 +76,7 @@ func Parse(tool string, b []byte, j Job) (Result, error) {
 	case "trivy":
 		var raw struct {
 			Schema  int `json:"SchemaVersion"`
-			Results []struct {
+			Results *[]struct {
 				Target string `json:"Target"`
 				Vulns  []struct {
 					ID         string `json:"VulnerabilityID"`
@@ -100,10 +100,13 @@ func Parse(tool string, b []byte, j Job) (Result, error) {
 				Secrets []json.RawMessage `json:"Secrets"`
 			} `json:"Results"`
 		}
-		if json.Unmarshal(b, &raw) != nil || raw.Schema != 2 {
+		if json.Unmarshal(b, &raw) != nil || raw.Schema != 2 || raw.Results == nil {
 			return bad, fmt.Errorf("unsupported Trivy schema")
 		}
-		for _, group := range raw.Results {
+		for _, group := range *raw.Results {
+			if len(group.Configs) > 0 && !j.ConfigReview {
+				return bad, fmt.Errorf("configuration review requires explicit consent")
+			}
 			if len(group.Secrets) > 0 {
 				return bad, fmt.Errorf("Trivy secrets require separately reviewed consent adapter")
 			}
@@ -112,9 +115,9 @@ func Parse(tool string, b []byte, j Job) (Result, error) {
 				if e != nil {
 					return bad, e
 				}
-				f.Package = v.Identifier.PURL
-				f.Version = v.Version
-				f.Advisories = []string{v.ID}
+				if e = dependencyIdentity(&f, v.Identifier.PURL, v.Pkg, v.Version, v.ID); e != nil {
+					return bad, e
+				}
 				r.Findings = append(r.Findings, f)
 			}
 			for _, v := range group.Configs {
@@ -157,9 +160,13 @@ func Parse(tool string, b []byte, j Job) (Result, error) {
 					if e != nil {
 						return bad, e
 					}
-					f.Package = "pkg:" + strings.ToLower(pkg.Package.Ecosystem) + "/" + pkg.Package.Name
-					f.Version = pkg.Package.Version
-					f.Advisories = []string{v.ID}
+					coordinate, e := osvCoordinate(pkg.Package.Ecosystem, pkg.Package.Name, pkg.Package.Version)
+					if e != nil {
+						return bad, e
+					}
+					if e = dependencyIdentity(&f, coordinate, pkg.Package.Name, pkg.Package.Version, v.ID); e != nil {
+						return bad, e
+					}
 					r.Findings = append(r.Findings, f)
 				}
 			}

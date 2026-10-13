@@ -1,6 +1,6 @@
 # Operator-launched offline scanner executor
 
-This is an internal preview facility for Linux/macOS operators with a Linux Docker engine. It is separate from the web controller. The console does not yet schedule durable scanner jobs. Do not use it to execute application code or repository scripts; that feature remains unavailable pending a disposable VM boundary.
+This is an internal preview facility for Linux/macOS operators with a Linux Docker engine reachable through a local Unix socket. TCP and SSH Docker endpoints are refused. The endpoint is resolved once and bound explicitly for the entire run. It is separate from the web controller. The console does not yet schedule durable scanner jobs. Do not use it to execute application code or repository scripts; that feature remains unavailable pending a disposable VM boundary.
 
 Build the CLI and both Linux guard architectures:
 
@@ -22,7 +22,13 @@ Supported pinned IDs are `semgrep_ce`, `gitleaks`, `syft`, `osv_v2` and `trivy`.
 
 The JSON execution receipt includes snapshot, tool, rules, guard and invocation identities. Exit 0 means a complete or partial tool run, never that an application is secure. Exit 1 means refusal, tool_error, cancellation/deadline or unconfirmed cleanup. Check `status`, `result.diagnostics` and `cleanup_state`; missing/failed tools cannot establish zero findings. Source workspaces and containers are removed after normal completion, cancellation and timeout when cleanup is confirmed.
 
-The guard enforces an independent container deadline even if the host CLI is killed. Host SIGKILL can leave private host snapshot/guard directories. Their automatic durable recovery is unfinished. Do not delete arbitrary temporary directories or other containers; identify only the affected execution's exact private workspaces and randomly named `aegis-scan-…` container. No default source/AI upload or paid service is used.
+The guard enforces an independent container deadline even if the host CLI is killed. Every run creates a mode-0700 session under the current operator's canonical temporary directory, in `aegis-scanner-workspaces-UID`. Its fsynced journal binds the random container identity before launch; a kernel lease protects live runs. Unconfirmed container cleanup preserves the workspace. After a host crash, run:
+
+```sh
+bin/aegis-research recover-workspaces
+```
+
+Recovery skips leased live sessions, defers sessions younger than 180 seconds, and requires the exact journalled container to be absent on the same endpoint and engine identity. A changed or unavailable engine blocks recovery. Engine failures, malformed journals, symlinks and unknown registry entries fail closed. The command accepts no paths or container IDs and does not stop containers. Keep the same temporary-directory setting and local Docker context when recovering. Recovery is an explicit operator action; automatic durable scanner job recovery remains unfinished. Do not delete arbitrary temporary directories or other containers. No default source/AI upload or paid service is used.
 
 Acceptance commands use only bundled trusted inert data and touch only containers created for their tests:
 
