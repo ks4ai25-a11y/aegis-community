@@ -174,13 +174,15 @@ func (c *Client) Claim(ctx context.Context) (Lease, error) {
 	}
 	return l, nil
 }
-func (c *Client) validate(l Lease) error {
+func (c *Client) validate(l Lease) error { return c.validateBinding(l, true) }
+
+func (c *Client) validateBinding(l Lease, live bool) error {
 	j := l.Job
 	in := j.Input
 	now := time.Now()
 	expires, e := time.Parse(time.RFC3339, j.Expires)
 	created, ce := time.Parse(time.RFC3339Nano, j.Created)
-	if j.Schema != "1.0" || !jobPattern.MatchString(j.ID) || j.Owner != c.owner || j.LockDigest != c.lock || j.State != "running" || j.CancelRequested || j.Error != "" || j.Finished != "" || !tokenPattern.MatchString(l.Token) || e != nil || ce != nil || !expires.After(now) || !expires.After(created) || !l.Deadline.After(now) || l.Deadline.After(expires) {
+	if j.Schema != "1.0" || !jobPattern.MatchString(j.ID) || j.Owner != c.owner || j.LockDigest != c.lock || j.State != "running" || j.CancelRequested || j.Error != "" || j.Finished != "" || !tokenPattern.MatchString(l.Token) || e != nil || ce != nil || (live && !expires.After(now)) || !expires.After(created) || (live && !l.Deadline.After(now)) || l.Deadline.After(expires) {
 		return errors.New("invalid lease")
 	}
 	if in.Schema != "1.0" || in.App != "app_demo" || in.Repository == "" || len(in.Repository) > 128 || !hashPattern.MatchString(in.MapDigest) || in.Mode != "repo_offline" || in.Duration < 1 || in.Duration > 120 || len(in.Tools) < 1 || len(in.Tools) > 6 || !sort.StringsAreSorted(in.Tools) {

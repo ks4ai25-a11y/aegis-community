@@ -11,8 +11,8 @@
       "id": "real_independent_report_binds_job_scope_and_controls",
       "result": "PASS",
       "detail": {
-        "job_id": "01a13518-57e3-70d8-8c0f-f5cada4d5f50",
-        "report_digest": "sha256:39908f776fe690dd0f30d756ad63bc5b4eabb1da5d30142d57ab3037027c0de9"
+        "job_id": "01a1353d-0b86-79aa-8abb-2f8ee82c54f6",
+        "report_digest": "sha256:6465bde971f539bffdacb98449f989d55ebea57b123dc66bc3ca802d3ccb451c"
       }
     },
     {
@@ -44,9 +44,9 @@
       }
     }
   ],
-  "started_at": "2026-10-13T11:49:09Z",
+  "started_at": "2026-10-13T12:29:15Z",
   "overall": "PASS",
-  "completed_at": "2026-10-13T11:49:27Z",
+  "completed_at": "2026-10-13T12:29:32Z",
   "limitations": [
     "Only bundled trusted fixture and local ARM64 Docker Desktop tested.",
     "No arbitrary staging target, untrusted code execution, signed scope authority or external security review claim.",

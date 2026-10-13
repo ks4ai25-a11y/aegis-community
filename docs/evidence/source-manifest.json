@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:27a64db8a54d0eb801eefe7684104cf922b0028705efa9c28303f1badcf0447e",
+  "source_tree_sha256": "sha256:e7c1d356878bcb6fa6b81a0b03d5848c0e83e3abe7a311ca1f9cbf39fa2cc48d",
   "files": [
     {
       "path": ".dockerignore",
@@ -160,7 +160,7 @@
     },
     {
       "path": "alpha/workerchannel/client.go",
-      "sha256": "890f022ece690a4e73039922c7f2f60b9f8c38d5e4bb0d57e517ef4cef7f2608"
+      "sha256": "0127c6735271b79273a164975783373923e1d610122ec71041b588b013b5d2cb"
     },
     {
       "path": "alpha/workerchannel/client_test.go",
@@ -185,6 +185,14 @@
     {
       "path": "alpha/workerchannel/private_unix.go",
       "sha256": "626725d600bbd54c301018ad1530984c444e509f4724521bafd8b27713858c91"
+    },
+    {
+      "path": "alpha/workerchannel/receipt.go",
+      "sha256": "23ac94bb428e59f071f00039ac9b5373f5487858f2579963c83c23a73c8a2ef4"
+    },
+    {
+      "path": "alpha/workerchannel/receipt_test.go",
+      "sha256": "c8cad42fe30dd465f952292ca607ddfa043d2db5b370e9e807bff12d466b6f7f"
     },
     {
       "path": "alpha/workspace/workspace_test.go",
@@ -528,7 +536,7 @@
     },
     {
       "path": "controller/internal/scanqueue/receipts.go",
-      "sha256": "bc831e34c694275331282fc81347080c354dcea80f88d11262c5669bd9b43ef4"
+      "sha256": "18b145bb5405b93ab03497faaa039a61a4388fd3d04bab4b2db5e29d531b675a"
     },
     {
       "path": "controller/internal/scanqueue/receipts_test.go",
@@ -547,8 +555,16 @@
       "sha256": "a3fad64a118cecb5551e34b5b55d0a5fea9d7ed6df5b686472e3cb915b587e10"
     },
     {
+      "path": "controller/internal/scantransport/receipt.go",
+      "sha256": "d00068b2d3994cab631bb62414b9a1ae92930c755240afbca9ca1a4b32d33c82"
+    },
+    {
+      "path": "controller/internal/scantransport/receipt_test.go",
+      "sha256": "490790a969f7975b60d765d944e5d0f4f097d13dc099b997852286e5010dd6bf"
+    },
+    {
       "path": "controller/internal/scantransport/server.go",
-      "sha256": "1f212a8194c9f7bddfc36832359ebe036096bcda9bcc7e37406831d6f3c5cbbc"
+      "sha256": "d0521460cf1673bedd689ea79ba3073b8c439b6854648548f433aea20f829b87"
     },
     {
       "path": "controller/internal/scantransport/server_test.go",
@@ -612,7 +628,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "5b7a0548a5c803430603ab71f4d1b05ffa746ca352e7987a04f472dfe7be1a50"
+      "sha256": "cb318fe860c6e2df888896a83d9771898303f55bcf4086cfd1bb2c26660b293a"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -691,6 +707,10 @@
       "sha256": "594417ee3572b139f060f446ed30a9d51120c74e5836938e2c424e2be5a42dd5"
     },
     {
+      "path": "docs/architecture/adr/029-authenticated-private-receipt-submission.md",
+      "sha256": "fc6a402beac371104ba1527b6ad7ed85123888bd8c7fff00678a68108d4bad56"
+    },
+    {
       "path": "docs/operators/local-demo-upgrades.md",
       "sha256": "630e6af7f0e208d3d21877fc06af51ad18c09b88777fd5ec9d1945f87fdb4aad"
     },
@@ -704,7 +724,7 @@
     },
     {
       "path": "docs/operators/scanner-workers.md",
-      "sha256": "40eab99205429b67d75d6d95749400dbb5dbc353f0a008cae84f8fd3b6ca8f98"
+      "sha256": "e85cfae4e7120023c0909faba07402a7507787ed4792b0a4ae7cfd637a350a9e"
     },
     {
       "path": "docs/release-gates.json",
@@ -784,7 +804,15 @@
     },
     {
       "path": "shared/source/scanevidence/json_boundary.go",
-      "sha256": "fecfcb8a60209c4dade6ff1308bf76d22c80bb60da5143c28a8bcff949ccf0a1"
+      "sha256": "3b11666c55a84bbbee3e0458002c522c18475fc6e3dd5ee3d6007b5016bf6a7c"
+    },
+    {
+      "path": "shared/source/scanevidence/submission.go",
+      "sha256": "b67fce4a28419ff395db2b594cc3ac2f98e69ca440ed5192a2c41e95ce37e6c0"
+    },
+    {
+      "path": "shared/source/scanevidence/submission_test.go",
+      "sha256": "bfe45eebbb7b41e02f9947713691edbce2e3919787d1af2005058215da6dd1ae"
     },
     {
       "path": "shared/source/scanevidence/types.go",
@@ -860,7 +888,7 @@
     },
     {
       "path": "tests/integration/scannerchannel/receipt_test.go",
-      "sha256": "63240945a9fd3ff006852186def1d34024dc5cc44e31b9eaccb422c0ba558890"
+      "sha256": "bc126555359141b5f8ff92e3e7647a4bbe6b86d3ef28529d87a1cbbffe31f83c"
     },
     {
       "path": "tests/integration/scoped_jobs_acceptance.py",

@@ -1,0 +1,190 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-10-13T12:31:59.742002+00:00",
+  "status": "PASS",
+  "scope": "Authenticated private Unix receipt HTTP, client normalization/digest acknowledgement and real component storage/replay. Actual scanner execution and suite completion remain unfinished.",
+  "source_tree_sha256": "sha256:e7c1d356878bcb6fa6b81a0b03d5848c0e83e3abe7a311ca1f9cbf39fa2cc48d",
+  "source_files": [
+    {
+      "path": "alpha/workerchannel/client.go",
+      "sha256": "0127c6735271b79273a164975783373923e1d610122ec71041b588b013b5d2cb"
+    },
+    {
+      "path": "alpha/workerchannel/receipt.go",
+      "sha256": "23ac94bb428e59f071f00039ac9b5373f5487858f2579963c83c23a73c8a2ef4"
+    },
+    {
+      "path": "alpha/workerchannel/receipt_test.go",
+      "sha256": "c8cad42fe30dd465f952292ca607ddfa043d2db5b370e9e807bff12d466b6f7f"
+    },
+    {
+      "path": "controller/internal/scanqueue/receipts.go",
+      "sha256": "18b145bb5405b93ab03497faaa039a61a4388fd3d04bab4b2db5e29d531b675a"
+    },
+    {
+      "path": "controller/internal/scantransport/server.go",
+      "sha256": "d0521460cf1673bedd689ea79ba3073b8c439b6854648548f433aea20f829b87"
+    },
+    {
+      "path": "controller/internal/scantransport/receipt.go",
+      "sha256": "d00068b2d3994cab631bb62414b9a1ae92930c755240afbca9ca1a4b32d33c82"
+    },
+    {
+      "path": "controller/internal/scantransport/receipt_test.go",
+      "sha256": "490790a969f7975b60d765d944e5d0f4f097d13dc099b997852286e5010dd6bf"
+    },
+    {
+      "path": "shared/source/scanevidence/submission.go",
+      "sha256": "b67fce4a28419ff395db2b594cc3ac2f98e69ca440ed5192a2c41e95ce37e6c0"
+    },
+    {
+      "path": "shared/source/scanevidence/submission_test.go",
+      "sha256": "bfe45eebbb7b41e02f9947713691edbce2e3919787d1af2005058215da6dd1ae"
+    },
+    {
+      "path": "shared/source/scanevidence/json_boundary.go",
+      "sha256": "3b11666c55a84bbbee3e0458002c522c18475fc6e3dd5ee3d6007b5016bf6a7c"
+    },
+    {
+      "path": "tests/integration/scannerchannel/receipt_test.go",
+      "sha256": "bc126555359141b5f8ff92e3e7647a4bbe6b86d3ef28529d87a1cbbffe31f83c"
+    }
+  ],
+  "checks": [
+    {
+      "scope": "private_controller_http",
+      "status": "PASS",
+      "race_enabled": true,
+      "fresh_execution": true,
+      "top_level_cases": [
+        "TestReceiptHTTPReplayAndExpiredNewWrite",
+        "TestReceiptHTTPHostileBodiesAndAuthorityRefusals",
+        "TestReceiptHTTPAuditFailureIsSanitizedAndAtomic",
+        "TestPrivateWorkerProtocolClaimsGuardsAndFailsWithoutOwnerOverride",
+        "TestWorkerProtocolRejectsMalformedBodiesAndRoleConfusion",
+        "TestWorkerProtocolLeaseCapabilityIsNotEnrollmentCapability",
+        "TestPrivateSocketLifecycleAndProbe",
+        "TestPrivateSocketAndCredentialsRejectUnsafePaths",
+        "TestCuratedToolLockValidation",
+        "TestNonregularWorkerArtifactsRefusedWithoutBlocking"
+      ],
+      "output_sha256": "59393281ad8b1fb102d3817ef5dc128671abb0b873217ddd7f53fa0ef550a026"
+    },
+    {
+      "scope": "client_upload_acknowledgement_and_lease",
+      "status": "PASS",
+      "race_enabled": true,
+      "fresh_execution": true,
+      "top_level_cases": [
+        "TestProtocolLifecycle",
+        "TestClaimBindingRefusals",
+        "TestHostileResponses",
+        "TestEmptyRedirectAndErrorRedaction",
+        "TestUnsafeCredential",
+        "TestUnsafeSocket",
+        "TestAcknowledgementsAndLocalGuardBinding",
+        "TestKeeperWithdrawsAndJoinsTask",
+        "TestKeeperRefusesBeforeTaskAndRedactsTaskError",
+        "TestKeeperFinalGuardAndParentCancellation",
+        "TestKeeperDeadlineDoesNotReportSuccess",
+        "TestReceiptUploadNormalizesAndBindsAcknowledgement",
+        "TestReceiptAcknowledgementTamperingRefused"
+      ],
+      "output_sha256": "362e614dcd032d99d81c611e794d252341560548106a6c5513e80bffd6475b32"
+    },
+    {
+      "scope": "shared_wire_and_normalization",
+      "status": "PASS",
+      "race_enabled": true,
+      "fresh_execution": true,
+      "top_level_cases": [
+        "TestSubmissionCanonicalWireAndCapabilityPrivacy",
+        "TestNormalizePreservesClaimsAndReplacesFreeText",
+        "TestReceiptIdentityCoverageAndProofRefusals",
+        "TestPartialAndPreflightFailureRemainHonest",
+        "TestCanonicalDecodeRejectsHostileReceipt",
+        "TestSBOMProjectionAndHostileFields",
+        "TestDependencyCompletionCannotClaimFreshDatabase",
+        "TestReceiptRequiresRequestedToolSelection"
+      ],
+      "output_sha256": "99b5ef6a8c426196388ffc46ddfd757ac724aaf540b1dffa12269dc1abde1fc1"
+    },
+    {
+      "scope": "actual_private_controller_client_adapter_components",
+      "status": "PASS",
+      "race_enabled": true,
+      "fresh_execution": true,
+      "top_level_cases": [
+        "TestRealClientControllerLifecycle",
+        "TestRealRevocationStopsGuardAndRetainsAdmission",
+        "TestRealOwnerCancellationStopsGuard",
+        "TestRealExpiredLeaseCannotRevive",
+        "TestRealPinsAndOwnerMismatchRefuseClaim",
+        "TestRealKeeperCancelsOnWorkerRevocation",
+        "TestActualParserReceiptsShareControllerDataContract"
+      ],
+      "output_sha256": "a6781948fd7e096aa3a49be01e043a5b3eb9f91f5325051bed79ed9fb9ced7a4"
+    },
+    {
+      "scope": "aegis-receipt-transport-worker.log",
+      "status": "PASS",
+      "passed_checks": 9,
+      "output_sha256": "20496b3c0e96d1d1c8c76e254c5401728792f72395e6012074c44e5f18f6c37f"
+    },
+    {
+      "scope": "aegis-receipt-transport-repository.log",
+      "status": "PASS",
+      "passed_checks": 8,
+      "output_sha256": "3a582a608099bc0f60f509e0b6a30ff291dfb1798411342a20c77e275234679b"
+    },
+    {
+      "scope": "aegis-receipt-transport-scoped.log",
+      "status": "PASS",
+      "passed_checks": 7,
+      "output_sha256": "7619102c9dc7a0b6594b4ce82bfee49d115f1c2e30381726410a35dc144553cc"
+    },
+    {
+      "scope": "aegis-receipt-transport-worker-after-crash.log",
+      "status": "PASS",
+      "passed_checks": 9,
+      "output_sha256": "20496b3c0e96d1d1c8c76e254c5401728792f72395e6012074c44e5f18f6c37f"
+    }
+  ],
+  "full_source_checks": {
+    "command": "make test",
+    "exit_code": 0,
+    "output_sha256": "a57ec0af9e8dc9490e7573d5fb17490e10002c35ca3399793e17f5cabe4473ff",
+    "subsequent_keyed_literal_and_test_cleanup_verified_by_fresh_targeted_suites": true
+  },
+  "static_analysis": [
+    {
+      "command": "cd controller && go vet ./internal/scantransport ./internal/scanqueue",
+      "exit_code": 0
+    },
+    {
+      "command": "cd alpha && go vet ./workerchannel",
+      "exit_code": 0
+    },
+    {
+      "command": "cd shared/source && go vet ./...",
+      "exit_code": 0
+    }
+  ],
+  "local_deployment": {
+    "initializer_exit_code": 0,
+    "schema_version": 7,
+    "all_four_shared_image_services_match": "sha256:f7eb8837db2d312254fcc70eb6f5d05cbb5a07f11085fd1d99685ad8f3bc8169",
+    "doctor_sqlite": "ok",
+    "doctor_mode": "observe",
+    "doctor_policy_digest": "sha256:d6158a4ff8e7585bddd316c8ce1c733bf68d2defd9bbf779b51d3ab09f48744a",
+    "audit_chain": "internally consistent under host-admin trust",
+    "post_crash_private_worker_probe": "PASS",
+    "live_synthetic_receipts_injected": false
+  },
+  "limitations": [
+    "Component tests use actual parsers with synthetic outputs and container/guard claims, not real scanner image execution.",
+    "Named-demo continuity tests exercise doctor/auth/repository/private worker/crash recovery, not a deployed positive receipt from a real worker job.",
+    "Receipt acceptance does not complete the job or confirm/release cleanup.",
+    "Runnable worker execution, terminal aggregation, independent cleanup proof/release, archive rotation, owner scanner API/UI, advisory freshness and v4 release gates remain unfinished."
+  ]
+}

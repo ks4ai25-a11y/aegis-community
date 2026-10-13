@@ -70,6 +70,8 @@ func (s *Server) Handler() http.Handler {
 		}
 		path := r.URL.Path
 		switch path {
+		case "/internal/v1/scanner/receipt":
+			s.receipt(w, r, worker)
 		case "/internal/v1/scanner/identity", "/internal/v1/scanner/claim":
 			if decode(r, &struct{}{}, nil) != nil {
 				failure(w, 400, "INVALID_WORKER_REQUEST")
@@ -160,6 +162,8 @@ func queueError(w http.ResponseWriter, e error) {
 		failure(w, 409, "SCAN_ADMISSION_OCCUPIED")
 	case errors.Is(e, scanqueue.ErrConflict):
 		failure(w, 409, "SCAN_IDENTITY_CONFLICT")
+	case errors.Is(e, scanqueue.ErrFull):
+		failure(w, 429, "SCANNER_STORAGE_FULL")
 	case errors.Is(e, scanqueue.ErrInput):
 		failure(w, 400, "INVALID_WORKER_REQUEST")
 	default:

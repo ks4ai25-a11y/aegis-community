@@ -15,13 +15,7 @@ const maxReceiptBytes = scanevidence.MaxOutput + 4096
 const maxLedgerBytes = 64 << 20
 
 type Pin struct{ Version, Image string }
-type ReceiptDocument struct {
-	Schema    string                 `json:"schema_version"`
-	Owner     string                 `json:"owner_id"`
-	Job       string                 `json:"job_id"`
-	Request   string                 `json:"request_digest"`
-	Execution scanevidence.Execution `json:"execution"`
-}
+type ReceiptDocument = scanevidence.Document
 type Receipt struct {
 	Digest   string          `json:"digest"`
 	Document ReceiptDocument `json:"document"`
@@ -132,7 +126,7 @@ func (q *Queue) RecordReceipt(l Lease, in scanevidence.Execution) (Receipt, erro
 	if e != nil {
 		return Receipt{}, ErrInput
 	}
-	d := ReceiptDocument{"1.0", j.Owner, j.ID, j.RequestDigest, normalized}
+	d := ReceiptDocument{Schema: "1.0", Owner: j.Owner, Job: j.ID, Request: j.RequestDigest, Execution: normalized}
 	b, e := json.Marshal(d)
 	if e != nil || len(b) > maxReceiptBytes {
 		return Receipt{}, ErrInput

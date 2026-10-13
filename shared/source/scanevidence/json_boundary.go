@@ -25,8 +25,10 @@ func foldedKey(s string) string {
 	}
 	return string(runes)
 }
-func validateJSON(b []byte) error {
-	if len(b) == 0 || len(b) > MaxOutput || !utf8.Valid(b) {
+func validateJSON(b []byte) error { return validateJSONSize(b, MaxOutput) }
+
+func validateJSONSize(b []byte, limit int) error {
+	if len(b) == 0 || len(b) > limit || !utf8.Valid(b) {
 		return fmt.Errorf("invalid bounded scanner JSON")
 	}
 	d := json.NewDecoder(bytes.NewReader(b))
