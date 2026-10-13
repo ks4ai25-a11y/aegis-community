@@ -48,6 +48,7 @@ type Queue struct {
 	S *store.Store
 	// LockDigest is provisioned by trusted startup, never a browser-selected pin.
 	LockDigest string
+	Pins       map[string]Pin
 	Now        func() time.Time
 }
 

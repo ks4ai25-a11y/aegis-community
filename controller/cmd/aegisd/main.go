@@ -82,7 +82,7 @@ func main() {
 		defer repos.Root.Close()
 	}
 	if socket := os.Getenv("AEGIS_SCANNER_SOCKET"); socket != "" {
-		digest, e := scantransport.LoadLock(env("AEGIS_SCANNER_LOCK", "/opt/aegis/scanners.lock.json"))
+		digest, pins, e := scantransport.LoadPins(env("AEGIS_SCANNER_LOCK", "/opt/aegis/scanners.lock.json"))
 		if e != nil {
 			panic(e)
 		}
@@ -90,7 +90,7 @@ func main() {
 		if e != nil {
 			panic(e)
 		}
-		sq := &scanqueue.Queue{S: s, LockDigest: digest}
+		sq := &scanqueue.Queue{S: s, LockDigest: digest, Pins: pins}
 		go func() {
 			ticker := time.NewTicker(time.Second)
 			defer ticker.Stop()

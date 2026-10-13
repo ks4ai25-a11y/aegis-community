@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:55770a7366be8c0401f080927a628e1fad59b956df238174afc2f2819424f680",
+  "source_tree_sha256": "sha256:27a64db8a54d0eb801eefe7684104cf922b0028705efa9c28303f1badcf0447e",
   "files": [
     {
       "path": ".dockerignore",
@@ -408,7 +408,7 @@
     },
     {
       "path": "controller/cmd/aegisd/main.go",
-      "sha256": "97cfaf6fbfbaf71e3ff4ade366984d9c5f8f327c6486af67eb845783847bacbc"
+      "sha256": "4dea83d909e52af259af6bc04554a26ccff57b1e2787f05f0096477cd700173a"
     },
     {
       "path": "controller/cmd/fixture-worker/main.go",
@@ -520,11 +520,19 @@
     },
     {
       "path": "controller/internal/scanqueue/queue.go",
-      "sha256": "3491031c3d3fb7ab001acf1a8a14da4e14f6bcc58c873b47fe5d78b2d52b8361"
+      "sha256": "79b62b673854c01f8aacfbc34623980d49a87e43072ffe2937c8c5ed3963e941"
     },
     {
       "path": "controller/internal/scanqueue/queue_test.go",
       "sha256": "bcbb116480cb78d67012c05bb6ceeeae2b1a5c32bce46edf1c097668fed15655"
+    },
+    {
+      "path": "controller/internal/scanqueue/receipts.go",
+      "sha256": "bc831e34c694275331282fc81347080c354dcea80f88d11262c5669bd9b43ef4"
+    },
+    {
+      "path": "controller/internal/scanqueue/receipts_test.go",
+      "sha256": "b7b00a6107fb77a3225b43251f46c4fd475e546e1ee8f9f3ad243b0f290d14dc"
     },
     {
       "path": "controller/internal/scanqueue/worker_auth_test.go",
@@ -536,7 +544,7 @@
     },
     {
       "path": "controller/internal/scantransport/lock.go",
-      "sha256": "32fd5b4b8b67d177647e908297c6ad72ddde18d713aac4cf491034ecfe98516c"
+      "sha256": "a3fad64a118cecb5551e34b5b55d0a5fea9d7ed6df5b686472e3cb915b587e10"
     },
     {
       "path": "controller/internal/scantransport/server.go",
@@ -564,7 +572,7 @@
     },
     {
       "path": "controller/internal/store/migrations.go",
-      "sha256": "917c89f775ea953716fadb5362e3a98cb0ddbb89bf86dcd335d4783ad23ae589"
+      "sha256": "79745473e20b44e7343bbbe53da39460f2491c9877fccd9399799f203f8278e1"
     },
     {
       "path": "controller/internal/store/reports.go",
@@ -576,7 +584,7 @@
     },
     {
       "path": "controller/internal/store/store_test.go",
-      "sha256": "1912f3064bb0c3192017b84ac6ca3de9475c9708e25c84fed358e5dd4ea86234"
+      "sha256": "c5ded500f257f1c3941630da55702b9f8ec8dd41960bc57966d033ca93fec201"
     },
     {
       "path": "controller/internal/verify/verify.go",
@@ -604,7 +612,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "c3fd9ce91d0821d93474dc6d637c18fa1e615e3e044850186ac3d609529b29d9"
+      "sha256": "5b7a0548a5c803430603ab71f4d1b05ffa746ca352e7987a04f472dfe7be1a50"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -679,6 +687,10 @@
       "sha256": "e0e0e1de6662720021a7d746d58067644ab1eb8979e0abc33d9b34d87ea1fc13"
     },
     {
+      "path": "docs/architecture/adr/028-append-only-scanner-receipt-ledger.md",
+      "sha256": "594417ee3572b139f060f446ed30a9d51120c74e5836938e2c424e2be5a42dd5"
+    },
+    {
       "path": "docs/operators/local-demo-upgrades.md",
       "sha256": "630e6af7f0e208d3d21877fc06af51ad18c09b88777fd5ec9d1945f87fdb4aad"
     },
@@ -692,7 +704,7 @@
     },
     {
       "path": "docs/operators/scanner-workers.md",
-      "sha256": "f2af4ce3b471c6597d7932aa36669fecb7da5578d32426122c49978d5a8aab0a"
+      "sha256": "40eab99205429b67d75d6d95749400dbb5dbc353f0a008cae84f8fd3b6ca8f98"
     },
     {
       "path": "docs/release-gates.json",
@@ -836,7 +848,7 @@
     },
     {
       "path": "tests/integration/scannerchannel/channel_test.go",
-      "sha256": "4f8d272604be5220efb2380d0d8e0745c68e968ed25064fa7b5dab0b7e68e5a0"
+      "sha256": "4e7419ac5427da5efe32be9d9b4a7f4e84c351bc9853410bce00184aeb5900d9"
     },
     {
       "path": "tests/integration/scannerchannel/go.mod",
@@ -848,7 +860,7 @@
     },
     {
       "path": "tests/integration/scannerchannel/receipt_test.go",
-      "sha256": "273fed43167178b20ee5c658829ea6e922554a8c216e246cddeff17a4198e9f5"
+      "sha256": "63240945a9fd3ff006852186def1d34024dc5cc44e31b9eaccb422c0ba558890"
     },
     {
       "path": "tests/integration/scoped_jobs_acceptance.py",

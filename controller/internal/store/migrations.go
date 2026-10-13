@@ -38,8 +38,16 @@ CREATE TABLE scanner_workers(id TEXT PRIMARY KEY,owner TEXT NOT NULL REFERENCES 
 CREATE INDEX scanner_workers_owner ON scanner_workers(owner,state,expires);
 `
 
+// Receipts are append-only under the controller/local-host trust boundary.
+const scannerReceiptSchema = `
+CREATE TABLE scanner_receipts(job TEXT NOT NULL REFERENCES scanner_jobs(id),tool TEXT NOT NULL,owner TEXT NOT NULL REFERENCES owners(id),request_digest TEXT NOT NULL,digest TEXT UNIQUE NOT NULL,document TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(job,tool));
+CREATE INDEX scanner_receipts_owner ON scanner_receipts(owner,job,tool);
+CREATE TRIGGER scanner_receipts_no_update BEFORE UPDATE ON scanner_receipts BEGIN SELECT RAISE(ABORT,'scanner receipt is immutable'); END;
+CREATE TRIGGER scanner_receipts_no_delete BEFORE DELETE ON scanner_receipts BEGIN SELECT RAISE(ABORT,'scanner receipt is immutable'); END;
+`
+
 func migrate(db *sql.DB) error {
-	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema}
+	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema}
 	var exists int
 	if e := db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='migrations'").Scan(&exists); e != nil {
 		return e

@@ -39,9 +39,9 @@
       "result": "PASS"
     }
   ],
-  "started_at": "2026-10-13T03:32:55Z",
+  "started_at": "2026-10-13T11:49:27Z",
   "overall": "PASS",
-  "completed_at": "2026-10-13T03:32:57Z",
+  "completed_at": "2026-10-13T11:49:29Z",
   "limitations": [
     "Only local operator credential delivery on the named trusted demo checked.",
     "Credential bytes were never read or exported by this acceptance harness.",

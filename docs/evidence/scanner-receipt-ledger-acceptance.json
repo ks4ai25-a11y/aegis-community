@@ -1,0 +1,138 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-10-13T11:55:45.736739+00:00",
+  "status": "PASS",
+  "scope": "Internal durable normalized receipt ledger, component interoperability and named local-demo schema-seven upgrade continuity. Transport ingest and actual scanner execution are not implemented.",
+  "source_tree_sha256": "sha256:27a64db8a54d0eb801eefe7684104cf922b0028705efa9c28303f1badcf0447e",
+  "source_files": [
+    {
+      "path": "controller/internal/scanqueue/receipts.go",
+      "sha256": "bc831e34c694275331282fc81347080c354dcea80f88d11262c5669bd9b43ef4"
+    },
+    {
+      "path": "controller/internal/scanqueue/receipts_test.go",
+      "sha256": "b7b00a6107fb77a3225b43251f46c4fd475e546e1ee8f9f3ad243b0f290d14dc"
+    },
+    {
+      "path": "controller/internal/scanqueue/queue.go",
+      "sha256": "79b62b673854c01f8aacfbc34623980d49a87e43072ffe2937c8c5ed3963e941"
+    },
+    {
+      "path": "controller/internal/store/migrations.go",
+      "sha256": "79745473e20b44e7343bbbe53da39460f2491c9877fccd9399799f203f8278e1"
+    },
+    {
+      "path": "controller/internal/store/store_test.go",
+      "sha256": "c5ded500f257f1c3941630da55702b9f8ec8dd41960bc57966d033ca93fec201"
+    },
+    {
+      "path": "controller/internal/scantransport/lock.go",
+      "sha256": "a3fad64a118cecb5551e34b5b55d0a5fea9d7ed6df5b686472e3cb915b587e10"
+    },
+    {
+      "path": "controller/cmd/aegisd/main.go",
+      "sha256": "4dea83d909e52af259af6bc04554a26ccff57b1e2787f05f0096477cd700173a"
+    },
+    {
+      "path": "tests/integration/scannerchannel/channel_test.go",
+      "sha256": "4e7419ac5427da5efe32be9d9b4a7f4e84c351bc9853410bce00184aeb5900d9"
+    },
+    {
+      "path": "tests/integration/scannerchannel/receipt_test.go",
+      "sha256": "63240945a9fd3ff006852186def1d34024dc5cc44e31b9eaccb422c0ba558890"
+    }
+  ],
+  "checks": [
+    {
+      "scope": "receipt_ledger_and_migration",
+      "status": "PASS",
+      "race_enabled": true,
+      "fresh_execution": true,
+      "top_level_cases": [
+        "TestReceiptMigrationPreservesVersionSixWorkerAndPriorState",
+        "TestReceiptLedgerPersistsImmutableReplayAcrossRestart",
+        "TestReceiptLedgerRefusesIdentityPinsAndExpiredNewWrites",
+        "TestReceiptAuditFailureRollsBackEvidence",
+        "TestReceiptLedgerBoundsTotalBytesBeforeInsert",
+        "TestReceiptReadChecksDigestAndRelationalIdentity"
+      ],
+      "output_sha256": "e5dc1f7551337764736adec0649cb132433a0e73f73a3b32ef16b2f449257a93"
+    },
+    {
+      "scope": "real_controller_client_adapter_ledger_components",
+      "status": "PASS",
+      "race_enabled": true,
+      "fresh_execution": true,
+      "top_level_cases": [
+        "TestRealClientControllerLifecycle",
+        "TestRealRevocationStopsGuardAndRetainsAdmission",
+        "TestRealOwnerCancellationStopsGuard",
+        "TestRealExpiredLeaseCannotRevive",
+        "TestRealPinsAndOwnerMismatchRefuseClaim",
+        "TestRealKeeperCancelsOnWorkerRevocation",
+        "TestActualParserReceiptsShareControllerDataContract"
+      ],
+      "output_sha256": "5e4f04577598e23b38d562b5956024eff6896a5d9351db63b323b1471a8e8e45"
+    },
+    {
+      "scope": "aegis-receipt-ledger-worker.log",
+      "status": "PASS",
+      "passed_checks": 9,
+      "output_sha256": "20496b3c0e96d1d1c8c76e254c5401728792f72395e6012074c44e5f18f6c37f"
+    },
+    {
+      "scope": "aegis-receipt-ledger-repository.log",
+      "status": "PASS",
+      "passed_checks": 8,
+      "output_sha256": "3a582a608099bc0f60f509e0b6a30ff291dfb1798411342a20c77e275234679b"
+    },
+    {
+      "scope": "aegis-receipt-ledger-scoped.log",
+      "status": "PASS",
+      "passed_checks": 7,
+      "output_sha256": "7619102c9dc7a0b6594b4ce82bfee49d115f1c2e30381726410a35dc144553cc"
+    },
+    {
+      "scope": "aegis-receipt-ledger-worker-after-crash.log",
+      "status": "PASS",
+      "passed_checks": 9,
+      "output_sha256": "20496b3c0e96d1d1c8c76e254c5401728792f72395e6012074c44e5f18f6c37f"
+    }
+  ],
+  "full_source_checks": {
+    "command": "make test",
+    "exit_code": 0,
+    "output_sha256": "6bbe881e0563a350c7514120c794acb3dd0d65cc6469e40e0e3ccda6143670bf",
+    "subsequent_test_only_changes_verified_by_fresh_component_suite": true
+  },
+  "static_analysis": {
+    "command": "cd controller && go vet ./internal/scanqueue ./internal/scantransport ./internal/store ./cmd/aegisd",
+    "exit_code": 0
+  },
+  "local_upgrade": {
+    "protected_online_backup_created": true,
+    "initializer_exit_code": 0,
+    "schema_version": 7,
+    "all_four_shared_image_services_match": "sha256:532c8e5c23cccec91a688a40431233c40bda519e7c59b302ea5519ecedb95890",
+    "doctor_sqlite": "ok",
+    "doctor_mode": "observe",
+    "doctor_policy_digest": "sha256:d6158a4ff8e7585bddd316c8ce1c733bf68d2defd9bbf779b51d3ab09f48744a",
+    "audit_chain": "internally consistent under host-admin trust",
+    "post_crash_worker_probe_passed": true,
+    "live_synthetic_receipts_injected": false
+  },
+  "prior_hosted_ci": {
+    "commit": "af47a376773bfbfb155085073c7e8b0c80dae416",
+    "run_id": 38391287124,
+    "conclusion": "success",
+    "covers_current_change": false
+  },
+  "limitations": [
+    "The ingest function is internal; no transport receipt endpoint or client submission method is implemented.",
+    "Component adapter tests use synthetic raw outputs/container claims; they do not run scanner images or attest guard/rule/cleanup.",
+    "Receipt acceptance preserves unverified evidence and leaves the job/admission unchanged.",
+    "Host administrators can alter SQLite/schema; append-only triggers are application/host trust controls, not independent signatures.",
+    "Archive rotation for the bounded ledger remains unfinished.",
+    "Actual worker execution, independent cleanup confirmation/release, terminal suite aggregation, owner scanner API/UI and release gates remain unfinished."
+  ]
+}

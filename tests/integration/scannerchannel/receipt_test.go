@@ -5,6 +5,7 @@ package scannerchannelacceptance
 
 import (
 	"aegis.local/alpha/scanners"
+	"aegis.local/controller/internal/scanqueue"
 	"aegis.local/source"
 	"aegis.local/source/scanevidence"
 	"context"
@@ -51,6 +52,11 @@ func TestActualParserReceiptsShareControllerDataContract(t *testing.T) {
 		"trivy":      `{"SchemaVersion":2,"Results":[{"Target":"/src/query.py","Vulnerabilities":[{"VulnerabilityID":"CVE-2026-99999","PkgName":"fixture-package","InstalledVersion":"1.0","Severity":"HIGH","PkgIdentifier":{"PURL":"pkg:npm/fixture-package@1.0"}}]}]}`,
 		"syft":       `{"bomFormat":"CycloneDX","specVersion":"1.6","components":[{"name":"fixture-package","version":"1.0","purl":"pkg:npm/fixture-package@1.0"}]}`,
 	}
+	controllerJob, e := f.q.Get(l.Job.Owner, l.Job.ID)
+	if e != nil {
+		t.Fatal(e)
+	}
+	controllerLease := scanqueue.Lease{Job: controllerJob, Worker: "worker-a", Token: l.Token}
 	for tool, input := range inputs {
 		t.Run(tool, func(t *testing.T) {
 			started := time.Now().UTC()
@@ -87,7 +93,15 @@ func TestActualParserReceiptsShareControllerDataContract(t *testing.T) {
 			if (tool == "osv_v2" || tool == "trivy") && got.Status != "completed_stale_db" {
 				t.Fatal("adapter receipt claimed database freshness without evidence")
 			}
-			safe, _ := json.Marshal(got)
+			stored, e := f.q.RecordReceipt(controllerLease, r)
+			if e != nil || stored.Document.Execution.Status != got.Status {
+				t.Fatal("controller failed to ingest actual adapter fixture", e)
+			}
+			replay, e := f.q.RecordReceipt(controllerLease, r)
+			if e != nil || replay.Digest != stored.Digest {
+				t.Fatal("controller receipt replay failed", e)
+			}
+			safe, _ := json.Marshal(stored)
 			if strings.Contains(string(safe), "private arbitrary tool text") || strings.Contains(string(safe), "synthetic-only-fixture-value") {
 				t.Fatal("raw scanner text escaped normalized boundary")
 			}
@@ -98,4 +112,16 @@ func TestActualParserReceiptsShareControllerDataContract(t *testing.T) {
 			}
 		})
 	}
+	receipts, e := f.q.Receipts(l.Job.Owner, l.Job.ID)
+	if e != nil || len(receipts) != 6 {
+		t.Fatal("six owner-bound tool receipts not persisted", e)
+	}
+	job, e := f.q.Get(l.Job.Owner, l.Job.ID)
+	if e != nil || job.State != "running" {
+		t.Fatal("receipt ingestion fabricated suite completion")
+	}
+	if e = f.s.VerifyAudit(); e != nil {
+		t.Fatal(e)
+	}
+
 }

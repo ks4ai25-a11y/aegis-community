@@ -105,7 +105,7 @@ func TestScannerMigrationUpgradePreservesExistingVersions(t *testing.T) {
 		}
 	}
 	var version int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 6 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 7 {
 		t.Fatal(version, e)
 	}
 	if got, e := s.Get("upgrade-canary"); e != nil || got != "preserved" {
@@ -208,5 +208,54 @@ func TestWorkerRoleMigrationPreservesDispatchWithoutImplicitEnrollment(t *testin
 	var state, hash string
 	if e = s.DB.QueryRow("SELECT state,token_hash FROM scanner_dispatch WHERE slot=1").Scan(&state, &hash); e != nil || state != "cleanup_required" || hash != "capability-hash-fixture" {
 		t.Fatal("migration changed uncertain admission", state, e)
+	}
+}
+
+func TestReceiptMigrationPreservesVersionSixWorkerAndPriorState(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "v6-receipts.db")
+	db, e := sql.Open("sqlite", path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	previous := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema}
+	for i, body := range previous {
+		if _, e = db.Exec(body); e != nil {
+			t.Fatal(e)
+		}
+		if _, e = db.Exec("INSERT INTO migrations VALUES(?,?)", i+1, domain.Hash([]byte(body))); e != nil {
+			t.Fatal(e)
+		}
+	}
+	for _, statement := range []string{
+		"INSERT INTO owners VALUES('receipt-owner','fixture','2026-10-13T00:00:00Z')",
+		"INSERT INTO scanner_workers VALUES('receipt-worker','receipt-owner','fixture-capability-hash','active',1791849600,'2026-10-13T00:00:00Z')",
+		"INSERT INTO settings VALUES('receipt-upgrade-canary','preserved')",
+	} {
+		if _, e = db.Exec(statement); e != nil {
+			t.Fatal(e)
+		}
+	}
+	db.Close()
+	s, e := Open(path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	for i, body := range previous {
+		var hash string
+		if e = s.DB.QueryRow("SELECT checksum FROM migrations WHERE version=?", i+1).Scan(&hash); e != nil || hash != domain.Hash([]byte(body)) {
+			t.Fatal("deployed migration checksum changed")
+		}
+	}
+	var hash, state string
+	if e = s.DB.QueryRow("SELECT token_hash,state FROM scanner_workers WHERE id='receipt-worker'").Scan(&hash, &state); e != nil || hash != "fixture-capability-hash" || state != "active" {
+		t.Fatal("receipt migration altered enrollment")
+	}
+	var n int
+	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_receipts").Scan(&n); e != nil || n != 0 {
+		t.Fatal("migration invented evidence")
+	}
+	if value, e := s.Get("receipt-upgrade-canary"); e != nil || value != "preserved" {
+		t.Fatal("upgrade lost prior state")
 	}
 }

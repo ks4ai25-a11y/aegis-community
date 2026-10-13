@@ -79,7 +79,11 @@ func setup(t *testing.T) fixture {
 	if _, e = a.EnrollFile("owner-a", "worker-a", 60, cred); e != nil {
 		t.Fatal(e)
 	}
-	q := &scanqueue.Queue{S: s, LockDigest: domain.Hash([]byte("trusted fixture pins"))}
+	digest, pins, e := scantransport.LoadPins("../../../tools/scanners.lock.json")
+	if e != nil {
+		t.Fatal(e)
+	}
+	q := &scanqueue.Queue{S: s, LockDigest: digest, Pins: pins}
 	socket := filepath.Join(dir, "worker.sock")
 	listener, e := scantransport.Listen(socket)
 	if e != nil {
