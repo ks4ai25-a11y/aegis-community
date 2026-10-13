@@ -105,7 +105,7 @@ func TestScannerMigrationUpgradePreservesExistingVersions(t *testing.T) {
 		}
 	}
 	var version int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 5 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 6 {
 		t.Fatal(version, e)
 	}
 	if got, e := s.Get("upgrade-canary"); e != nil || got != "preserved" {
@@ -160,5 +160,53 @@ func TestScannerLeaseMigrationPreservesVersionFourJobs(t *testing.T) {
 	var n int
 	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_dispatch").Scan(&n); e != nil || n != 0 {
 		t.Fatal("migration fabricated a worker claim", n, e)
+	}
+}
+
+func TestWorkerRoleMigrationPreservesDispatchWithoutImplicitEnrollment(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "v5-worker.db")
+	db, e := sql.Open("sqlite", path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	previous := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema}
+	for i, body := range previous {
+		if _, e = db.Exec(body); e != nil {
+			t.Fatal(e)
+		}
+		if _, e = db.Exec("INSERT INTO migrations VALUES(?,?)", i+1, domain.Hash([]byte(body))); e != nil {
+			t.Fatal(e)
+		}
+	}
+	for _, statement := range []string{
+		"INSERT INTO owners VALUES('worker-upgrade-owner','fixture','2026-10-13T00:00:00Z')",
+		"INSERT INTO repositories VALUES('worker-upgrade-repo','worker-upgrade-owner','app_demo','fixture','map-fixture','2026-10-13T00:00:00Z')",
+		"INSERT INTO application_maps VALUES('worker-upgrade-repo','map-fixture','{}','2026-10-13T00:00:00Z')",
+		"INSERT INTO scanner_jobs(id,owner,repository,app,map_digest,lock_digest,request_digest,idempotency_key,payload,state,created_at,expires) VALUES('worker-upgrade-job','worker-upgrade-owner','worker-upgrade-repo','app_demo','map-fixture','lock-fixture','request-fixture','upgrade-key','{}','running','2026-10-13T00:00:00Z',1791849600)",
+		"INSERT INTO scanner_dispatch VALUES(1,'worker-upgrade-job','prior-worker','capability-hash-fixture',1791849600,1791849600,'cleanup_required')",
+	} {
+		if _, e = db.Exec(statement); e != nil {
+			t.Fatal(e)
+		}
+	}
+	db.Close()
+	s, e := Open(path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	for i, body := range previous {
+		var hash string
+		if e = s.DB.QueryRow("SELECT checksum FROM migrations WHERE version=?", i+1).Scan(&hash); e != nil || hash != domain.Hash([]byte(body)) {
+			t.Fatal("prior migration checksum changed", i, e)
+		}
+	}
+	var n int
+	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_workers").Scan(&n); e != nil || n != 0 {
+		t.Fatal("migration invented worker authority", n, e)
+	}
+	var state, hash string
+	if e = s.DB.QueryRow("SELECT state,token_hash FROM scanner_dispatch WHERE slot=1").Scan(&state, &hash); e != nil || state != "cleanup_required" || hash != "capability-hash-fixture" {
+		t.Fatal("migration changed uncertain admission", state, e)
 	}
 }

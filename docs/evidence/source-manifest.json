@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:b80e2dfc4e727d9719f01d7c2575c97aa223308eafea4ced35e703c27878f270",
+  "source_tree_sha256": "sha256:d62c2d3227eb4f54b8456b50ad6e4aad65aecca9f776435f4a9d9c66cc1c3841",
   "files": [
     {
       "path": ".dockerignore",
@@ -376,7 +376,7 @@
     },
     {
       "path": "controller/cmd/aegisctl/main.go",
-      "sha256": "c1382242968fdd8e1519f900868a6cacec70d59658e2041be50563f3dcc40e3e"
+      "sha256": "c99ed49355af0f9f3272ed81411b0cf4cc5990f893d3b40cad5e445b1dc666b3"
     },
     {
       "path": "controller/cmd/aegisd/main.go",
@@ -475,12 +475,20 @@
       "sha256": "89a823432d4a77a8764777ec29e53011526c5517c7364204733ec63b1199876b"
     },
     {
+      "path": "controller/internal/scannerauth/auth.go",
+      "sha256": "aa3751a0ab65ddde1e717bc02ada9b494b0d821207f84a48a38328cc3455575d"
+    },
+    {
+      "path": "controller/internal/scannerauth/credential.go",
+      "sha256": "27874596d2a27e83f60bdc16db9adfb4db18c70ab70409ac306ad06e996b22c4"
+    },
+    {
       "path": "controller/internal/scanqueue/lease.go",
-      "sha256": "11c233451e9c7182fa415e4f7c7c6cfdd5cd0847ba52cfcd0fd68c0e50a17393"
+      "sha256": "f10c08e539da53a39ccf2ff92cb6c03855131be9e9bcac8de75a296efd6cbc6d"
     },
     {
       "path": "controller/internal/scanqueue/lease_test.go",
-      "sha256": "9eae367328a74c80f4b7ec3e4fd4d04325f5261f7072b1c05fd1f2ac2d7c4713"
+      "sha256": "2b82be1aaa1d77b2ee6526a7965954aa4ae26a5bc43c6aae7aeba11b1969dfd2"
     },
     {
       "path": "controller/internal/scanqueue/queue.go",
@@ -488,7 +496,11 @@
     },
     {
       "path": "controller/internal/scanqueue/queue_test.go",
-      "sha256": "23d3be100a02e277fa69cadc5d89423f6249c51247caed57031a3ccba26de85b"
+      "sha256": "bcbb116480cb78d67012c05bb6ceeeae2b1a5c32bce46edf1c097668fed15655"
+    },
+    {
+      "path": "controller/internal/scanqueue/worker_auth_test.go",
+      "sha256": "0a9cbd02ad06403ed81f6c88e25baf3767ace843e30bc3df7c4ec3c4a9bf2ea5"
     },
     {
       "path": "controller/internal/scope/scope.go",
@@ -500,7 +512,7 @@
     },
     {
       "path": "controller/internal/store/migrations.go",
-      "sha256": "412b9f21554aab4e477ce0a3338ccdf5416495fdc049d8699f851173e09a565a"
+      "sha256": "917c89f775ea953716fadb5362e3a98cb0ddbb89bf86dcd335d4783ad23ae589"
     },
     {
       "path": "controller/internal/store/reports.go",
@@ -512,7 +524,7 @@
     },
     {
       "path": "controller/internal/store/store_test.go",
-      "sha256": "ad3f671c1e1ed0226b9a11ebf0013e14c4e2c94550615cba5f207623ae0994ed"
+      "sha256": "1912f3064bb0c3192017b84ac6ca3de9475c9708e25c84fed358e5dd4ea86234"
     },
     {
       "path": "controller/internal/verify/verify.go",
@@ -540,7 +552,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "9cf19fe2f238efdb21df198cfafd8b4a44f922abb869580885931068de22862d"
+      "sha256": "0948b2c6624cdd0801c1d2c2306b2e7ac8c603a2dcbca988a831c488f3255989"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -595,6 +607,10 @@
       "sha256": "49992e8c87cea38b1fbb6616d95d5954c08f3a2e1bfaa493ea6f92ade58d0341"
     },
     {
+      "path": "docs/architecture/adr/023-owner-bound-scanner-worker-role.md",
+      "sha256": "dd092e9118f517b5a169282f835f537a7b2351d27c9f95bdcf223edccf7d1459"
+    },
+    {
       "path": "docs/operators/local-demo-upgrades.md",
       "sha256": "630e6af7f0e208d3d21877fc06af51ad18c09b88777fd5ec9d1945f87fdb4aad"
     },
@@ -605,6 +621,10 @@
     {
       "path": "docs/operators/repositories.md",
       "sha256": "9b27f2f6cd276aed2b21fbb62e70c321f5521abb88b5ea6f85f4ca2c572f667f"
+    },
+    {
+      "path": "docs/operators/scanner-workers.md",
+      "sha256": "c5d76e1175f9dcb64d8540d47e2196d78ea740f34de875ec2bd69533e4e5a3ec"
     },
     {
       "path": "docs/release-gates.json",
@@ -713,6 +733,10 @@
     {
       "path": "tests/integration/scanner_guard_acceptance.py",
       "sha256": "bee4b0cb8ef2ff41705740fed3e1ad0620b1448d6996713a73ca5e3951798195"
+    },
+    {
+      "path": "tests/integration/scanner_worker_enrollment_acceptance.py",
+      "sha256": "d0f8a823a32d3db59655ebc82c3097ecffa7a22b4d8d0e563cbe7b3b4224494b"
     },
     {
       "path": "tests/integration/scoped_jobs_acceptance.py",

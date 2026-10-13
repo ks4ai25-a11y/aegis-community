@@ -43,6 +43,11 @@ func fixture(t *testing.T) (*Queue, Input, string) {
 		t.Fatal(e)
 	}
 	now := time.Date(2026, 10, 13, 0, 0, 0, 0, time.UTC)
+	for _, worker := range []string{"trusted-worker", "another-worker", "successor-worker", "other-worker"} {
+		if _, e = s.DB.Exec("INSERT INTO scanner_workers VALUES(?,'owner-a',?,'active',?,?)", worker, domain.Hash([]byte(worker)), now.Add(24*time.Hour).Unix(), domain.Now()); e != nil {
+			t.Fatal(e)
+		}
+	}
 	q := &Queue{S: s, LockDigest: domain.Hash([]byte("trusted-tool-lock")), Now: func() time.Time { return now }}
 	return q, Input{"1.0", "app_demo", repo.ID, repo.MapDigest, "repo_offline", []string{"bandit", "semgrep_ce"}, 120}, db
 }

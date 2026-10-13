@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0",
+  "scope": "owner-bound-scanner-worker-role-and-local-credential-delivery",
+  "overall": "PASS",
+  "completed_at": "2026-10-13T03:03:32.498309+00:00",
+  "checks": [
+    {
+      "id": "TestWorkerEnrollmentHashPrivacyAndOwnership",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerRoleCannotTransferOrUseOwnerAuthority",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerRevocationClosesAuthenticationClaimAndRenewal",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerAuthenticationThenRevocationCannotRaceClaim",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerExpiryCannotExtendOtherwiseLiveLease",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerEnrollmentAndRevocationAuditFailureRollback",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerEnrollmentBudgetsAndNoSilentRotation",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerCredentialFileIsPrivateExclusiveAndAuditBound",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerRetainedEnrollmentBudget",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerRoleMigrationPreservesDispatchWithoutImplicitEnrollment",
+      "result": "PASS"
+    }
+  ],
+  "source_hashes": {
+    "controller/internal/scannerauth/auth.go": "sha256:aa3751a0ab65ddde1e717bc02ada9b494b0d821207f84a48a38328cc3455575d",
+    "controller/internal/scannerauth/credential.go": "sha256:27874596d2a27e83f60bdc16db9adfb4db18c70ab70409ac306ad06e996b22c4",
+    "controller/internal/scanqueue/lease.go": "sha256:f10c08e539da53a39ccf2ff92cb6c03855131be9e9bcac8de75a296efd6cbc6d",
+    "controller/internal/scanqueue/worker_auth_test.go": "sha256:0a9cbd02ad06403ed81f6c88e25baf3767ace843e30bc3df7c4ec3c4a9bf2ea5",
+    "controller/internal/store/migrations.go": "sha256:917c89f775ea953716fadb5362e3a98cb0ddbb89bf86dcd335d4783ad23ae589",
+    "controller/internal/store/store_test.go": "sha256:1912f3064bb0c3192017b84ac6ca3de9475c9708e25c84fed358e5dd4ea86234",
+    "controller/cmd/aegisctl/main.go": "sha256:c99ed49355af0f9f3272ed81411b0cf4cc5990f893d3b40cad5e445b1dc666b3"
+  },
+  "observed_shared_image": "sha256:a56079afb225a2665964a54eab98e39a4e54c8be82025d252ce6dea570ce3317",
+  "observed_shared_image_services": [
+    "aegis-community-init-1",
+    "aegis-community-deployer-1",
+    "aegis-community-verifier-1",
+    "aegis-community-controller-1"
+  ],
+  "live_regressions": [
+    {
+      "evidence": "docs/evidence/scanner-worker-enrollment-acceptance.json",
+      "result": "PASS",
+      "checks_passed": 6
+    },
+    {
+      "evidence": "docs/evidence/repository-acceptance.json",
+      "result": "PASS",
+      "checks_passed": 8
+    },
+    {
+      "evidence": "docs/evidence/scoped-jobs-acceptance.json",
+      "result": "PASS",
+      "checks_passed": 7
+    }
+  ],
+  "limitations": [
+    "Worker transport and actual durable scanner execution are not implemented by this increment.",
+    "Local operator and host filesystem remain trusted.",
+    "Immutable receipt/finding ingestion, verified cleanup release, scanner API/UI and independent release gates remain unfinished."
+  ]
+}

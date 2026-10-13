@@ -19,7 +19,7 @@ func enqueueClaim(t *testing.T, q *Queue, in Input) Lease {
 	if _, e := q.Enqueue("owner-a", "lease-test-key", in); e != nil {
 		t.Fatal(e)
 	}
-	l, e := q.Claim("trusted-worker")
+	l, e := q.Claim("trusted-worker", "owner-a")
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -34,7 +34,7 @@ func TestLeaseClaimBindsMapAndSerializesAdmission(t *testing.T) {
 	if got := l.Deadline.Sub(q.now()); got != 310*time.Second {
 		t.Fatal("unexpected bounded suite deadline", got)
 	}
-	if _, e := q.Claim("another-worker"); !errors.Is(e, ErrCleanup) {
+	if _, e := q.Claim("another-worker", "owner-a"); !errors.Is(e, ErrCleanup) {
 		t.Fatal("concurrent admission accepted", e)
 	}
 	if e := q.Guard(l); e != nil {
@@ -111,7 +111,7 @@ func TestCancelledRunningLeaseNeverAcceptsSuccessOrReleasesSlot(t *testing.T) {
 	if e != nil || j.State != "cancelled" {
 		t.Fatal(j, e)
 	}
-	if _, e = q.Claim("trusted-worker"); !errors.Is(e, ErrCleanup) {
+	if _, e = q.Claim("trusted-worker", "owner-a"); !errors.Is(e, ErrCleanup) {
 		t.Fatal("cancellation implied external cleanup", e)
 	}
 }
@@ -132,7 +132,7 @@ func TestCrashRecoveryRetainsUncertainDispatchAfterRestart(t *testing.T) {
 	defer s.DB.Close()
 	q.S = s
 	*now = now.Add(16 * time.Second)
-	if _, e = q.Claim("successor-worker"); !errors.Is(e, ErrCleanup) {
+	if _, e = q.Claim("successor-worker", "owner-a"); !errors.Is(e, ErrCleanup) {
 		t.Fatal("uncertain prior execution automatically repeated", e)
 	}
 	j, e := q.Get("owner-a", l.Job.ID)
@@ -159,7 +159,7 @@ func TestQueuedExpiryDoesNotAcquireOrExecute(t *testing.T) {
 		t.Fatal(e)
 	}
 	*now = now.Add(15 * time.Minute)
-	if _, e = q.Claim("trusted-worker"); e != sql.ErrNoRows {
+	if _, e = q.Claim("trusted-worker", "owner-a"); e != sql.ErrNoRows {
 		t.Fatal(e)
 	}
 	got, e := q.Get("owner-a", j.ID)
@@ -191,7 +191,7 @@ func TestChangedSourceOrPinsRefusedBeforeClaim(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			if _, e = q.Claim("trusted-worker"); !errors.Is(e, ErrConflict) {
+			if _, e = q.Claim("trusted-worker", "owner-a"); !errors.Is(e, ErrConflict) {
 				t.Fatal("changed authority accepted", e)
 			}
 			got, e := q.Get("owner-a", j.ID)
@@ -249,7 +249,7 @@ func TestClaimAndRecoveryAuditFailureRollback(t *testing.T) {
 		}
 	}
 	on()
-	if _, e = q.Claim("trusted-worker"); e == nil {
+	if _, e = q.Claim("trusted-worker", "owner-a"); e == nil {
 		t.Fatal("claim succeeded without audit")
 	}
 	got, e := q.Get("owner-a", j.ID)
@@ -262,7 +262,7 @@ func TestClaimAndRecoveryAuditFailureRollback(t *testing.T) {
 		t.Fatal("rolled-back admission survived")
 	}
 	off()
-	l, e := q.Claim("trusted-worker")
+	l, e := q.Claim("trusted-worker", "owner-a")
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -301,7 +301,7 @@ func TestToolFailureKeepsCleanupAdmissionClosed(t *testing.T) {
 	if e != nil || got.State != "tool_error" {
 		t.Fatal(got, e)
 	}
-	if _, e = q.Claim("other-worker"); !errors.Is(e, ErrCleanup) {
+	if _, e = q.Claim("other-worker", "owner-a"); !errors.Is(e, ErrCleanup) {
 		t.Fatal("tool error implied cleanup", e)
 	}
 }
@@ -314,7 +314,7 @@ func TestConcurrentWorkersClaimOnlyOnce(t *testing.T) {
 	errs := make(chan error, 8)
 	for i := 0; i < 8; i++ {
 		wg.Add(1)
-		go func() { defer wg.Done(); _, e := q.Claim("trusted-worker"); errs <- e }()
+		go func() { defer wg.Done(); _, e := q.Claim("trusted-worker", "owner-a"); errs <- e }()
 	}
 	wg.Wait()
 	close(errs)

@@ -4,17 +4,19 @@ package main
 import (
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/policy"
+	"aegis.local/controller/internal/scannerauth"
 	"aegis.local/controller/internal/store"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		die("usage: aegisctl --version | init | doctor | policy validate FILE | audit verify | backup FILE | report verify FILE")
+		die("usage: aegisctl --version | init | doctor | policy validate FILE | audit verify | backup FILE | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID")
 	}
 	args := os.Args[1:]
 	root := os.Getenv("AEGIS_DATA")
@@ -47,6 +49,42 @@ func main() {
 			die(e.Error())
 		}
 		fmt.Println("Initialized persisted policy configuration")
+	case "scanner-worker":
+		if len(args) < 3 || (args[1] != "enroll" && args[1] != "revoke") {
+			die("usage: scanner-worker enroll ID MINUTES ABSOLUTE_CREDENTIAL_FILE | scanner-worker revoke ID")
+		}
+		s, e := store.Open(filepath.Join(root, "aegis.db"))
+		if e != nil {
+			die("Worker state unavailable")
+		}
+		defer s.DB.Close()
+		owner, e := s.Get("repository_mount_owner")
+		if e != nil {
+			die("Connect an owned provisioned repository before worker enrollment")
+		}
+		registry := &scannerauth.Registry{S: s}
+		if args[1] == "revoke" {
+			if len(args) != 3 {
+				die("usage: scanner-worker revoke ID")
+			}
+			if e = registry.Revoke(owner, args[2]); e != nil {
+				die("Worker revocation failed")
+			}
+			fmt.Println("Worker revoked; running cancellation requested and cleanup admission retained")
+			break
+		}
+		if len(args) != 5 {
+			die("usage: scanner-worker enroll ID MINUTES ABSOLUTE_CREDENTIAL_FILE")
+		}
+		minutes, e := strconv.Atoi(args[3])
+		if e != nil {
+			die("Worker lifetime must be 1–1440 minutes")
+		}
+		worker, e := registry.EnrollFile(owner, args[2], minutes, args[4])
+		if e != nil {
+			die(e.Error())
+		}
+		fmt.Printf("Worker %s enrolled for owner %s until %s; credential written privately\n", worker.ID, worker.Owner, worker.Expires)
 	case "doctor":
 		s, e := store.Open(filepath.Join(root, "aegis.db"))
 		if e != nil {

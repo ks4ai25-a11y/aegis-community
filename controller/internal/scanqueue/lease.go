@@ -30,8 +30,8 @@ type Lease struct {
 
 // Claim is a controller-internal operation. Its caller must authenticate the
 // isolated worker before calling; browser owner sessions do not grant this role.
-func (q *Queue) Claim(worker string) (Lease, error) {
-	if !workerPattern.MatchString(worker) || !digestPattern.MatchString(q.LockDigest) {
+func (q *Queue) Claim(worker, owner string) (Lease, error) {
+	if !workerPattern.MatchString(worker) || owner == "" || len(owner) > 128 || !digestPattern.MatchString(q.LockDigest) {
 		return Lease{}, ErrInput
 	}
 	tx, e := q.S.DB.Begin()
@@ -40,6 +40,9 @@ func (q *Queue) Claim(worker string) (Lease, error) {
 	}
 	defer tx.Rollback()
 	now := q.now().Unix()
+	if e = workerAuthority(tx, worker, owner, now); e != nil {
+		return Lease{}, e
+	}
 	if e = q.reconcileTx(tx, now); e != nil {
 		return Lease{}, e
 	}
@@ -53,7 +56,7 @@ func (q *Queue) Claim(worker string) (Lease, error) {
 		}
 		return Lease{}, ErrCleanup
 	}
-	j, e := read(tx.QueryRow("SELECT "+columns+" FROM scanner_jobs WHERE state='queued' AND cancel_requested=0 AND expires>? ORDER BY created_at,id LIMIT 1", now))
+	j, e := read(tx.QueryRow("SELECT "+columns+" FROM scanner_jobs WHERE state='queued' AND cancel_requested=0 AND owner=? AND expires>? ORDER BY created_at,id LIMIT 1", owner, now))
 	if e == sql.ErrNoRows {
 		if e = tx.Commit(); e != nil {
 			return Lease{}, e
@@ -198,6 +201,9 @@ func (q *Queue) reconcileTx(tx *sql.Tx, now int64) error {
 	final, code := "timeout", "WORKER_LEASE_EXPIRED"
 	if j.CancelRequested {
 		final, code = "cancelled", "OWNER_CANCELLED"
+		if j.Error == "WORKER_REVOKED" {
+			code = "WORKER_REVOKED"
+		}
 	} else if deadline <= now {
 		code = "JOB_DEADLINE_EXCEEDED"
 	}
@@ -228,6 +234,9 @@ func (q *Queue) live(tx *sql.Tx, l Lease) (Job, error) {
 	}
 	j, e := read(tx.QueryRow("SELECT "+columns+" FROM scanner_jobs WHERE id=?", id))
 	if e != nil {
+		return Job{}, e
+	}
+	if e = workerAuthority(tx, l.Worker, j.Owner, now); e != nil {
 		return Job{}, e
 	}
 	if j.State != "running" || j.CancelRequested || j.RequestDigest != l.Job.RequestDigest {
@@ -296,4 +305,18 @@ func (q *Queue) Fail(l Lease, code string) error {
 		return e
 	}
 	return tx.Commit()
+}
+
+// Enrollment is checked inside claim/renew transactions, closing the gap
+// between transport authentication and a concurrent operator revocation.
+func workerAuthority(tx *sql.Tx, worker, owner string, now int64) error {
+	var n int
+	e := tx.QueryRow("SELECT count(*) FROM scanner_workers w JOIN settings s ON s.key='repository_mount_owner' AND s.value=w.owner WHERE w.id=? AND w.owner=? AND w.state='active' AND w.expires>?", worker, owner, now).Scan(&n)
+	if e != nil {
+		return e
+	}
+	if n != 1 {
+		return ErrLease
+	}
+	return nil
 }

@@ -33,8 +33,13 @@ const scannerLeaseSchema = `
 CREATE TABLE scanner_dispatch(slot INTEGER PRIMARY KEY CHECK(slot=1),job TEXT UNIQUE NOT NULL REFERENCES scanner_jobs(id),worker TEXT NOT NULL,token_hash TEXT NOT NULL,lease_until INTEGER NOT NULL,deadline INTEGER NOT NULL,state TEXT NOT NULL CHECK(state IN ('active','cleanup_required')));
 `
 
+const scannerWorkerSchema = `
+CREATE TABLE scanner_workers(id TEXT PRIMARY KEY,owner TEXT NOT NULL REFERENCES owners(id),token_hash TEXT UNIQUE NOT NULL,state TEXT NOT NULL CHECK(state IN ('active','revoked')),expires INTEGER NOT NULL,created_at TEXT NOT NULL);
+CREATE INDEX scanner_workers_owner ON scanner_workers(owner,state,expires);
+`
+
 func migrate(db *sql.DB) error {
-	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema}
+	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema}
 	var exists int
 	if e := db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='migrations'").Scan(&exists); e != nil {
 		return e
