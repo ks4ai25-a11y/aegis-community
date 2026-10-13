@@ -21,8 +21,8 @@ func clientLaunchFixture(l Lease) (scanevidence.LaunchRecord, scanevidence.Launc
 		m.Bytes += f.Size
 	}
 	b, _ := json.Marshal(m)
-	p := scanevidence.LaunchPlan{Tool: "bandit", Container: "aegis-scan-" + strings.Repeat("a", 32), Engine: source.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: source.Hash([]byte("registry")), Snapshot: source.Hash(b)}
-	d := scanevidence.Launch{Schema: "1.0", Owner: l.Job.Owner, Job: l.Job.ID, Request: l.Job.RequestDigest, App: l.Job.Input.App, Repository: l.Job.Input.Repository, Map: l.Map.Digest, Lock: l.Job.LockDigest, Version: "1.9.4", Image: source.Hash([]byte("image")), Profile: "repo_offline-network-none-v1", Duration: l.Job.Input.Duration, Plan: p, Created: time.Now().UTC().Format(time.RFC3339Nano), Deadline: l.Deadline.Format(time.RFC3339Nano)}
+	p := scanevidence.LaunchPlan{Guard: l.Guards.AMD64, Architecture: "amd64", Tool: "bandit", Container: "aegis-scan-" + strings.Repeat("a", 32), Engine: source.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: source.Hash([]byte("registry")), Snapshot: source.Hash(b)}
+	d := scanevidence.Launch{Schema: "1.1", GuardSet: l.Guards.Digest, GuardProtocol: l.Guards.Protocol, Owner: l.Job.Owner, Job: l.Job.ID, Request: l.Job.RequestDigest, App: l.Job.Input.App, Repository: l.Job.Input.Repository, Map: l.Map.Digest, Lock: l.Job.LockDigest, Version: "1.9.4", Image: source.Hash([]byte("image")), Profile: "repo_offline-network-none-v1", Duration: l.Job.Input.Duration, Plan: p, Created: time.Now().UTC().Format(time.RFC3339Nano), Deadline: l.Deadline.Format(time.RFC3339Nano)}
 	b, _ = json.Marshal(d)
 	return scanevidence.LaunchRecord{Digest: source.Hash(b), Document: d}, p
 }
@@ -53,7 +53,7 @@ func TestLaunchClientBindsAcknowledgementAndRefusesExpiredRegistration(t *testin
 }
 
 func TestLaunchClientRejectsIndependentlyAlteredAcknowledgements(t *testing.T) {
-	for _, kind := range []string{"owner", "job", "request", "app", "repository", "map", "lock", "version", "image", "profile", "duration", "container", "engine", "workspace", "registry", "snapshot", "created", "deadline", "state", "hash"} {
+	for _, kind := range []string{"owner", "job", "request", "app", "repository", "map", "lock", "version", "image", "profile", "duration", "container", "engine", "workspace", "registry", "snapshot", "created", "deadline", "state", "hash", "guard", "guard_set", "guard_protocol", "architecture"} {
 		t.Run(kind, func(t *testing.T) {
 			l := claim()
 			record, p := clientLaunchFixture(l)
@@ -96,6 +96,14 @@ func TestLaunchClientRejectsIndependentlyAlteredAcknowledgements(t *testing.T) {
 				record.Document.Created = l.Deadline.Format(time.RFC3339Nano)
 			case "deadline":
 				record.Document.Deadline = l.Deadline.Add(time.Second).Format(time.RFC3339Nano)
+			case "guard":
+				record.Document.Plan.Guard = source.Hash([]byte("wrong"))
+			case "guard_set":
+				record.Document.GuardSet = source.Hash([]byte("wrong"))
+			case "guard_protocol":
+				record.Document.GuardProtocol = "relative-duration"
+			case "architecture":
+				record.Document.Plan.Architecture = "arm64"
 			case "state":
 				state = "cleaned"
 			}
@@ -122,6 +130,34 @@ func TestClaimRequiresLaunchProtocol(t *testing.T) {
 			c, _ := fixture(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { json.NewEncoder(w).Encode(body) }))
 			if _, e := c.Claim(context.Background()); e == nil {
 				t.Fatal("unsupported prelaunch protocol accepted")
+			}
+		})
+	}
+}
+
+func TestClaimRefusesMissingInvalidOrRelativeGuardSet(t *testing.T) {
+	for _, kind := range []string{"missing", "hash", "protocol", "same", "null"} {
+		t.Run(kind, func(t *testing.T) {
+			l := claim()
+			body := wire(l)
+			switch kind {
+			case "missing":
+				delete(body, "guard_set")
+			case "null":
+				body["guard_set"] = nil
+			case "hash":
+				l.Guards.Digest = source.Hash([]byte("wrong"))
+				body["guard_set"] = l.Guards
+			case "protocol":
+				l.Guards.Protocol = "relative-duration"
+				body["guard_set"] = l.Guards
+			case "same":
+				l.Guards.ARM64 = l.Guards.AMD64
+				body["guard_set"] = l.Guards
+			}
+			c, _ := fixture(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { json.NewEncoder(w).Encode(body) }))
+			if _, e := c.Claim(context.Background()); e == nil {
+				t.Fatal("unsupported guard set claim accepted")
 			}
 		})
 	}

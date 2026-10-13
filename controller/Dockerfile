@@ -17,11 +17,17 @@ COPY controller/go.mod controller/go.sum ./
 RUN go mod download
 COPY controller/ ./
 RUN CGO_ENABLED=0 go build -trimpath -o /out/aegisd ./cmd/aegisd && CGO_ENABLED=0 go build -trimpath -o /out/aegisctl ./cmd/aegisctl && CGO_ENABLED=0 go build -trimpath -o /out/fixture-worker ./cmd/fixture-worker && CGO_ENABLED=0 go build -trimpath -o /out/policy-deployer ./cmd/policy-deployer
+FROM golang:1.27.1-alpine3.23@sha256:0908ac9b9319e09d7c238aabe914e0395c51d63c4e3d0ae8c554fda9158a5769 AS scanner-guard-build
+WORKDIR /src/alpha
+COPY shared/source/ /src/shared/source/
+COPY alpha/ ./
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -buildvcs=false -o /guards/scanner-guard-linux-amd64 ./cmd/scanner-guard && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -buildvcs=false -o /guards/scanner-guard-linux-arm64 ./cmd/scanner-guard
 FROM alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
 RUN addgroup -g 10001 aegis && adduser -D -u 10001 -G aegis aegis && mkdir -p /run/scanner /var/lib/aegis /run/verifier /var/log/aegis /run/gateway /run/deployer /var/lib/deployer /data /config && chmod 700 /run/scanner && chown -R 10001:10001 /run/scanner /var/lib/aegis /run/verifier /var/log/aegis /run/gateway /run/deployer /var/lib/deployer /data /config
 COPY --from=gateway-build /out/caddy /usr/local/bin/caddy
 COPY --from=controller-build /out/ /usr/local/bin/
 COPY --from=console-build /src/dist /opt/aegis/console
+COPY --from=scanner-guard-build /guards/ /opt/aegis/guards/
 COPY tools/scanners.lock.json /opt/aegis/scanners.lock.json
 USER 10001:10001
 ENV XDG_DATA_HOME=/data XDG_CONFIG_HOME=/config

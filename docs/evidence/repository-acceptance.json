@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "scope": "local-provisioned-read-only-scanner-fixtures",
-  "started_at": "2026-10-13T14:34:30Z",
+  "started_at": "2026-10-13T15:00:35Z",
   "checks": [
     {
       "id": "only_provisioned_fixture_asset_ids_available",
@@ -20,7 +20,7 @@
         "map_digest": "sha256:4eeffaf9e51310019689a09a1311495ffbbe298b252ba7c755c8b160bc54023b",
         "file_count": 4,
         "input_bytes": 821,
-        "connect_elapsed_ms": 9.23
+        "connect_elapsed_ms": 10.04
       }
     },
     {
@@ -50,7 +50,7 @@
     }
   ],
   "overall": "PASS",
-  "completed_at": "2026-10-13T14:34:31Z",
+  "completed_at": "2026-10-13T15:00:35Z",
   "limitations": [
     "Single durably bound mount owner, app_demo and provisioned local read-only roots only.",
     "No remote clone, credential import, arbitrary repository code execution or durable scanner execution claim.",

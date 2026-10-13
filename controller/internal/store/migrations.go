@@ -69,8 +69,12 @@ CREATE TRIGGER scanner_workspaces_no_update BEFORE UPDATE ON scanner_workspaces 
 CREATE TRIGGER scanner_workspaces_no_delete BEFORE DELETE ON scanner_workspaces BEGIN SELECT RAISE(ABORT,'scanner workspace is immutable'); END;
 `
 
+const scannerGuardSchema = `
+ALTER TABLE scanner_dispatch ADD COLUMN guard_set_digest TEXT NOT NULL DEFAULT '';
+`
+
 func migrate(db *sql.DB) error {
-	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema}
+	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema}
 	var exists int
 	if e := db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='migrations'").Scan(&exists); e != nil {
 		return e

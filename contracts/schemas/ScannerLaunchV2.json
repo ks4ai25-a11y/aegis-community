@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerLaunchV2.json",
+  "title": "ScannerLaunchV2",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.1"
+    },
+    "owner_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "request_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "app_id": {
+      "type": "string",
+      "const": "app_demo"
+    },
+    "repository_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "map_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "tool_lock_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "tool_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "tool_image_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "sandbox_profile": {
+      "type": "string",
+      "const": "repo_offline-network-none-v1"
+    },
+    "duration_limit_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tool_id": {
+          "type": "string",
+          "enum": [
+            "semgrep_ce",
+            "osv_v2",
+            "trivy",
+            "syft",
+            "gitleaks",
+            "bandit"
+          ]
+        },
+        "container_id": {
+          "type": "string",
+          "pattern": "^aegis-scan-[0-9a-f]{32}$"
+        },
+        "engine_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^run-[0-9a-f]{32}$"
+        },
+        "registry_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "snapshot_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "guard_binary_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "guard_architecture": {
+          "type": "string",
+          "enum": [
+            "amd64",
+            "arm64"
+          ]
+        }
+      },
+      "required": [
+        "tool_id",
+        "container_id",
+        "engine_digest",
+        "workspace_id",
+        "registry_digest",
+        "snapshot_digest",
+        "guard_binary_digest",
+        "guard_architecture"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "guard_set_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "guard_protocol": {
+      "type": "string",
+      "const": "absolute-deadline-v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "owner_id",
+    "job_id",
+    "request_digest",
+    "app_id",
+    "repository_id",
+    "map_digest",
+    "tool_lock_digest",
+    "tool_version",
+    "tool_image_digest",
+    "sandbox_profile",
+    "duration_limit_seconds",
+    "plan",
+    "created_at",
+    "deadline",
+    "guard_set_digest",
+    "guard_protocol"
+  ]
+}

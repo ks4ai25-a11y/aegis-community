@@ -51,11 +51,31 @@ try:
     csrf=response["csrf_token"]; check("owner_session_enrolled")
     current=call("/sites/site_demo/policy")
     assert current["policy"]["requested_mode"]=="observe","Run from Observe mode"
+    cursor=0
+    # The API returns oldest-first pages. Start after retained history so a
+    # repeated acceptance run cannot mistake the first page for fresh events.
+    for _ in range(501):
+        page=call("/sites/site_demo/events?limit=100&cursor="+str(cursor))
+        cursor=page["cursor"]
+        if len(page["items"])<100:
+            break
+    else:
+        raise AssertionError("Retained event history exceeded its paging budget")
     request_id=gateway("/test-pattern?query=1%27%20OR%20%271%27%3D%271",200,"observe")
     gateway("/catalog?query=PRIVACY_CANARY_QUERY_9182",200,"observe")
-    time.sleep(1.5)
-    records=call("/sites/site_demo/events?limit=100")["items"]
-    correlated=[x["event"] for x in records if x["event"]["request_id"]==request_id]
+    deadline=time.monotonic()+15
+    records=[]
+    while True:
+        page=call("/sites/site_demo/events?limit=100&cursor="+str(cursor))
+        cursor=page["cursor"]
+        records.extend(page["items"])
+        correlated=[x["event"] for x in records if x["event"]["request_id"]==request_id]
+        if (any("942100" in e["rule_ids"] for e in correlated)
+                and any(e["source"]=="caddy-access" for e in correlated)):
+            break
+        if time.monotonic()>=deadline:
+            raise AssertionError("Timed out waiting for the request's CRS 942100 and access events")
+        time.sleep(.25)
     assert any("942100" in e["rule_ids"] for e in correlated),correlated
     assert any(e["source"]=="caddy-access" for e in correlated)
     check("observe_expected_rule_and_access_correlated",{"rule_id":"942100"})

@@ -152,7 +152,7 @@ func TestLaunchRequiresExactEarlierWorkspaceReservation(t *testing.T) {
 	for _, kind := range []string{"absent", "workspace", "registry", "snapshot", "clock"} {
 		t.Run(kind, func(t *testing.T) {
 			q, l, r, _ := receiptFixture(t, "bandit")
-			p := scanevidence.LaunchPlan{Tool: "bandit", Container: "aegis-scan-" + strings.Repeat("a", 32), Engine: domain.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("registry")), Snapshot: r.Snapshot.Digest}
+			p := scanevidence.LaunchPlan{Guard: q.Guards.AMD64, Architecture: "amd64", Tool: "bandit", Container: "aegis-scan-" + strings.Repeat("a", 32), Engine: domain.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("registry")), Snapshot: r.Snapshot.Digest}
 			if kind != "absent" {
 				reserveLaunchWorkspace(t, q, l, p)
 			}

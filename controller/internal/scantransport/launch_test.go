@@ -15,7 +15,7 @@ import (
 func launchBody(t *testing.T) (*Server, string, string) {
 	t.Helper()
 	s, token, l, r := receiptFixture(t)
-	p := scanevidence.LaunchPlan{Tool: r.Tool, Container: "aegis-scan-" + strings.Repeat("a", 32), Engine: source.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: source.Hash([]byte("registry")), Snapshot: r.Snapshot.Digest}
+	p := scanevidence.LaunchPlan{Guard: s.Q.Guards.AMD64, Architecture: "amd64", Tool: r.Tool, Container: "aegis-scan-" + strings.Repeat("a", 32), Engine: source.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: source.Hash([]byte("registry")), Snapshot: r.Snapshot.Digest}
 	if _, e := s.Q.ReserveWorkspace(l, scanevidence.WorkspacePlan{Tool: p.Tool, Workspace: p.Workspace, Registry: p.Registry, Snapshot: p.Snapshot}); e != nil {
 		t.Fatal(e)
 	}

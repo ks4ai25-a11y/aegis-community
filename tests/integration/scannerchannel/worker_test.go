@@ -93,6 +93,15 @@ func TestRealBanditWorkerFinalizesBoundResultWithoutReleasingCleanup(t *testing.
 	j := enqueue(t, f)
 	r, e := workerConfig(t, f).RunOnce(context.Background())
 	if e != nil || r.State != "completed" || r.Job != j.ID || len(r.Receipts) != 1 || r.FailureReported {
+		failedReceipts, _ := f.q.Receipts("owner-a", j.ID)
+		for _, receipt := range failedReceipts {
+			ex := receipt.Document.Execution
+			codes := []string{}
+			for _, d := range ex.Result.Diagnostics {
+				codes = append(codes, d.Code)
+			}
+			t.Logf("FAILED_SCANNER_METADATA tool=%s exit=%d duration_ms=%d status=%s guard=%s codes=%v", ex.Tool, ex.Exit, ex.Duration, ex.Status, ex.GuardDigest, codes)
+		}
 		got, _ := f.q.Get("owner-a", j.ID)
 		t.Fatal(r, e, got.Error)
 	}
@@ -219,7 +228,7 @@ func assertRecordedLaunches(t *testing.T, f fixture, job string) {
 		}
 		t.Logf("WORKSPACE_RECORD %s", b)
 		ex := receipts[i].Document.Execution
-		if l.Document.Plan.Container != ex.Container || l.Document.Plan.Snapshot != ex.Snapshot.Digest || l.Document.Image != ex.Image || l.Document.Version != ex.Version {
+		if l.Document.Schema != "1.1" || l.Document.GuardSet != f.q.Guards.Digest || l.Document.GuardProtocol != "absolute-deadline-v1" || l.Document.Plan.Guard != ex.GuardDigest || f.q.Guards.Architecture(ex.GuardDigest) != l.Document.Plan.Architecture || l.Document.Plan.Container != ex.Container || l.Document.Plan.Snapshot != ex.Snapshot.Digest || l.Document.Image != ex.Image || l.Document.Version != ex.Version {
 			t.Fatal("real receipt detached from its launch", l.Document.Plan.Tool)
 		}
 		if i > 0 && (l.Document.Plan.Engine != launches[0].Document.Plan.Engine || l.Document.Plan.Registry != launches[0].Document.Plan.Registry) {

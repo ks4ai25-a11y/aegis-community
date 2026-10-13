@@ -1,0 +1,31 @@
+{
+  "launch_digest": "sha256:a6ef229d97819830de9564289549adc155cefae47cbfe65bbd2f580790a9aea6",
+  "document": {
+    "schema_version": "1.1",
+    "owner_id": "owner-a",
+    "job_id": "01a135c6-1895-7562-8d2e-61017f642c86",
+    "request_digest": "sha256:364fce3a7e40b5f33485a7c03f098cf1298d106b81660b2ca5ba36adf23c7547",
+    "app_id": "app_demo",
+    "repository_id": "01a135c6-1837-7c9a-8a50-d5191e4af68a",
+    "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+    "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+    "tool_version": "1.9.4",
+    "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+    "sandbox_profile": "repo_offline-network-none-v1",
+    "duration_limit_seconds": 120,
+    "plan": {
+      "tool_id": "bandit",
+      "container_id": "aegis-scan-4a0efa3916ce98888a74cbbf9e1169df",
+      "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+      "workspace_id": "run-eac00f49b47d84e92960cfe6875a75b4",
+      "registry_digest": "sha256:5b241acfff019d1273601bd3d8d4cf51d0fd67ffa8a683a25a3eb27da4abd8e8",
+      "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614",
+      "guard_binary_digest": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2",
+      "guard_architecture": "arm64"
+    },
+    "created_at": "2026-10-13T14:58:58.196061Z",
+    "deadline": "2026-10-13T15:02:02Z",
+    "guard_set_digest": "sha256:a73082528e3f7f03e1c8171d7c1a4067250da9d7fd44b08762c6f71359c69069",
+    "guard_protocol": "absolute-deadline-v1"
+  }
+}

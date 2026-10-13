@@ -25,7 +25,7 @@ func completedReceipt(t *testing.T, status string) (*Queue, Lease, scanevidence.
 		r.Result.Diagnostics = []scanevidence.Diagnostic{{Code: "SCAN_PARTIAL", Message: "arbitrary original diagnostic"}}
 	}
 	if status != "tool_error" {
-		p := scanevidence.LaunchPlan{Tool: r.Tool, Container: r.Container, Engine: domain.Hash([]byte("fixture engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("fixture registry")), Snapshot: r.Snapshot.Digest}
+		p := scanevidence.LaunchPlan{Guard: q.Guards.AMD64, Architecture: "amd64", Tool: r.Tool, Container: r.Container, Engine: domain.Hash([]byte("fixture engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("fixture registry")), Snapshot: r.Snapshot.Digest}
 		reserveLaunchWorkspace(t, q, l, p)
 		if _, e := q.RegisterLaunch(l, p); e != nil {
 			t.Fatal(e)

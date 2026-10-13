@@ -6,6 +6,7 @@ package scanqueue
 import (
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/store"
+	"aegis.local/source/scanevidence"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -49,6 +50,7 @@ type Queue struct {
 	// LockDigest is provisioned by trusted startup, never a browser-selected pin.
 	LockDigest string
 	Pins       map[string]Pin
+	Guards     scanevidence.GuardSet
 	Now        func() time.Time
 }
 

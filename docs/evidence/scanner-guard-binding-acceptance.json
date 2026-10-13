@@ -1,0 +1,681 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-10-13T15:09:43.741575+00:00",
+  "status": "PASS",
+  "scope": "Controller-provisioned packaged guard hashes bound to fresh dispatches, schema 1.1 launch authorization and new executed receipts; additive schema 11. Local package identity, not runtime attestation or cleanup release.",
+  "source_tree_sha256": "sha256:3bc60d394e1e536cee0c908c6559f74983ffe9b790a375e7ade5e984f730eac0",
+  "source_files": [
+    {
+      "path": "shared/source/scanevidence/guard.go",
+      "sha256": "sha256:4e39cb2b615f31980e6e0f391809fbeed7c0a4e27972d5760b366901b60d57b1"
+    },
+    {
+      "path": "shared/source/scanevidence/guard_test.go",
+      "sha256": "sha256:f925d5f3593fdb449d7bd4e1ef334f15c88057ccafaf7c646075f7e8fabc906f"
+    },
+    {
+      "path": "shared/source/scanevidence/launch.go",
+      "sha256": "sha256:5b004962384f1c423e3352da7c1a557e97290457f6a705b2fd38bf3f73434c4e"
+    },
+    {
+      "path": "controller/Dockerfile",
+      "sha256": "sha256:7ae091810c38df3802d7d323c5041560b24b9ea4036b8a45d8a43ecb73c0312d"
+    },
+    {
+      "path": "controller/cmd/aegisd/main.go",
+      "sha256": "sha256:5536210d5c1822452619e7bbb984beaa7affe87f4c22619b74d6512cd0cf30f5"
+    },
+    {
+      "path": "controller/internal/scantransport/guards.go",
+      "sha256": "sha256:0a2d6ef5d96acebe4b1e0631a59c425b4af85b3c60347044209d737d2bc232cd"
+    },
+    {
+      "path": "controller/internal/scantransport/guards_test.go",
+      "sha256": "sha256:3ab9f0055ad539b9aae558adfea1b3df666baf18641af3bc15353ae11d4c23e1"
+    },
+    {
+      "path": "controller/internal/scantransport/guard_open_unix.go",
+      "sha256": "sha256:db30a8526676b07bc2e1f569061d7435e5ada50b86427bb5c2fa8d62c1e5d952"
+    },
+    {
+      "path": "controller/internal/scanqueue/queue.go",
+      "sha256": "sha256:51669fafea7e4f46f1cc02ded04712788d24ce996c0f6f9ff080157f1fb56742"
+    },
+    {
+      "path": "controller/internal/scanqueue/lease.go",
+      "sha256": "sha256:b67e3b27565b2225c982c0d8ce4fd34210a817db77b4e1d2fa7cfd8bb3e5baee"
+    },
+    {
+      "path": "controller/internal/scanqueue/launch.go",
+      "sha256": "sha256:9b162996f46d65809bee6c90bfd73bfe671402966833be079a3a67baf1ac7854"
+    },
+    {
+      "path": "controller/internal/scanqueue/guard_test.go",
+      "sha256": "sha256:700700175fc0caef17765ffa19b91a928f94964520503b9e45267ddb68c166ef"
+    },
+    {
+      "path": "controller/internal/store/migrations.go",
+      "sha256": "sha256:e7155037f9777b6f7acb427cf8b6a4b2ced580d0a24ac056cda9ac296cb2b349"
+    },
+    {
+      "path": "controller/internal/store/store_test.go",
+      "sha256": "sha256:2afd82476d370c1a7b34b19b745ad60c34b3b15a6dd696f4cb6d362af872b97f"
+    },
+    {
+      "path": "alpha/workerchannel/client.go",
+      "sha256": "sha256:c72349cfa336733d9f1335c6f687c593d80bb911d1e21e04cb0d9769de953328"
+    },
+    {
+      "path": "alpha/workerchannel/launch.go",
+      "sha256": "sha256:85bfae71bc2323f521c9ab93153954d4dcdacc178158d6679faa35e341a2fc19"
+    },
+    {
+      "path": "alpha/workerchannel/launch_test.go",
+      "sha256": "sha256:97422db14096b55f9a6258851f8316c9f4e51c921747919d9824ae6ba99578e9"
+    },
+    {
+      "path": "alpha/worker/run.go",
+      "sha256": "sha256:12bf0457b2ef3b1cd59d705717dcaeeb5cc80e1302ba5ce9dc666c613bb1c06d"
+    },
+    {
+      "path": "tests/integration/scannerchannel/channel_test.go",
+      "sha256": "sha256:3e6c990f61b51d0372b7cb59e117323172e473230a59f4241a496b4dafa4842c"
+    },
+    {
+      "path": "tests/integration/scannerchannel/worker_test.go",
+      "sha256": "sha256:c0e5e6984b515b46103ea771021e38bccf28ea36ea166d1d3e10566e5cd2684b"
+    },
+    {
+      "path": "Makefile",
+      "sha256": "sha256:84a13922803eee7fc63543883a70f87b821f4fdc2bc34630347c71db4e46d6ec"
+    },
+    {
+      "path": "scripts/generate_contracts.py",
+      "sha256": "sha256:6b47b40dcc62d083d6775db61b76ed8ea7b50de5fa12c6134839f0a1c93aa0e9"
+    },
+    {
+      "path": "tests/integration/demo_acceptance.py",
+      "sha256": "sha256:e2ce5465fa100c7c0018311095a89218de988b889c75de2e869701ef5c53345a"
+    }
+  ],
+  "race_test_results": {
+    "controller": {
+      "passed_groups": 83,
+      "log_sha256": "sha256:c063966c488a9f99155d1940723ddc5fc690011c58bfdf25d4f06b512d49c498"
+    },
+    "alpha": {
+      "passed_groups": 35,
+      "log_sha256": "sha256:9237d964f79fd679c79266e4197aebba4f8e1d785d53a6f76e5f086e5454d7be"
+    },
+    "shared": {
+      "passed_groups": 13,
+      "log_sha256": "sha256:1f43260ba915296e86d1298e611eed9fc24ceb3f06df90bd045e692c53ae25e8"
+    },
+    "real_scanners": {
+      "passed_groups": 5,
+      "log_sha256": "sha256:67ec986204aa55273709cb723b4d0b465581854e5e3b2e21aac25e2eb3300c83"
+    },
+    "deadline_probes": {
+      "passed_groups": 1,
+      "log_sha256": "sha256:c1c4c0cac29b8a0e475d463278d722c56bdeaec0238b222fbb84f3e7f6d5e76b"
+    },
+    "bandit_follow_up": {
+      "passed_groups": 3,
+      "log_sha256": "sha256:a1131f71b4c8dfb1b376ba5ea9b55a021e9fdaff754e242939c70f4c49844961"
+    }
+  },
+  "approved_guard_set": {
+    "schema_version": "1.0",
+    "protocol": "absolute-deadline-v1",
+    "linux_amd64": "sha256:f282c3e1d0ce9cdf445744442151f9fb081a5027e74126981e7f7981e51665d9",
+    "linux_arm64": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2",
+    "guard_set_digest": "sha256:a73082528e3f7f03e1c8171d7c1a4067250da9d7fd44b08762c6f71359c69069"
+  },
+  "native_packaged_hash_agreement": {
+    "status": "PASS",
+    "architectures": {
+      "amd64": "sha256:f282c3e1d0ce9cdf445744442151f9fb081a5027e74126981e7f7981e51665d9",
+      "arm64": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2"
+    },
+    "package_log_sha256": "sha256:c5b0b52f427ce4fe808478aef104e694c7b1cfa4b32ffc5ac8b1c19fc924999f",
+    "build_flags": "CGO_ENABLED=0 GOOS=linux fixed GOARCH; -trimpath -buildvcs=false; Go 1.27.1"
+  },
+  "actual_native_launch_records": [
+    {
+      "launch_digest": "sha256:a6ef229d97819830de9564289549adc155cefae47cbfe65bbd2f580790a9aea6",
+      "document": {
+        "schema_version": "1.1",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-1895-7562-8d2e-61017f642c86",
+        "request_digest": "sha256:364fce3a7e40b5f33485a7c03f098cf1298d106b81660b2ca5ba36adf23c7547",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-1837-7c9a-8a50-d5191e4af68a",
+        "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "1.9.4",
+        "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "bandit",
+          "container_id": "aegis-scan-4a0efa3916ce98888a74cbbf9e1169df",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-eac00f49b47d84e92960cfe6875a75b4",
+          "registry_digest": "sha256:5b241acfff019d1273601bd3d8d4cf51d0fd67ffa8a683a25a3eb27da4abd8e8",
+          "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614",
+          "guard_binary_digest": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2",
+          "guard_architecture": "arm64"
+        },
+        "created_at": "2026-10-13T14:58:58.196061Z",
+        "deadline": "2026-10-13T15:02:02Z",
+        "guard_set_digest": "sha256:a73082528e3f7f03e1c8171d7c1a4067250da9d7fd44b08762c6f71359c69069",
+        "guard_protocol": "absolute-deadline-v1"
+      }
+    },
+    {
+      "launch_digest": "sha256:d266b60da85edb598ce4d91c240b11dabf1ae922aa6e1b129dfbf96859ad7c79",
+      "document": {
+        "schema_version": "1.1",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-2398-7dfa-8409-6535470f9220",
+        "request_digest": "sha256:a80ba341bed84a79e1ba3e552d958f16b17db472b20c1e07baf11fe728411319",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-22ee-7710-ad8c-ad716299c4ee",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "1.9.4",
+        "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "bandit",
+          "container_id": "aegis-scan-9d7f06fe84f315bfb2639c1842ca0fee",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-e1cd3890c40170a73ef46e0a44c484a0",
+          "registry_digest": "sha256:7c3df845f60753093f9a3b40d2bf2fec6c27df640165092cf4644297f35389f6",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+          "guard_binary_digest": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2",
+          "guard_architecture": "arm64"
+        },
+        "created_at": "2026-10-13T14:59:00.872675Z",
+        "deadline": "2026-10-13T15:04:10Z",
+        "guard_set_digest": "sha256:a73082528e3f7f03e1c8171d7c1a4067250da9d7fd44b08762c6f71359c69069",
+        "guard_protocol": "absolute-deadline-v1"
+      }
+    },
+    {
+      "launch_digest": "sha256:d19583844700c31bf406dd6de84c3c797d33e497fba3074bc58709d232ed6c28",
+      "document": {
+        "schema_version": "1.1",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-2398-7dfa-8409-6535470f9220",
+        "request_digest": "sha256:a80ba341bed84a79e1ba3e552d958f16b17db472b20c1e07baf11fe728411319",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-22ee-7710-ad8c-ad716299c4ee",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "8.30.1",
+        "tool_image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "gitleaks",
+          "container_id": "aegis-scan-3c0e86796deb090af01ce1007514e6e2",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-e4aa827ea1c70c3cedb9a36825fe8c35",
+          "registry_digest": "sha256:7c3df845f60753093f9a3b40d2bf2fec6c27df640165092cf4644297f35389f6",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+          "guard_binary_digest": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2",
+          "guard_architecture": "arm64"
+        },
+        "created_at": "2026-10-13T14:59:02.487921Z",
+        "deadline": "2026-10-13T15:04:10Z",
+        "guard_set_digest": "sha256:a73082528e3f7f03e1c8171d7c1a4067250da9d7fd44b08762c6f71359c69069",
+        "guard_protocol": "absolute-deadline-v1"
+      }
+    },
+    {
+      "launch_digest": "sha256:f92880e7d579abe57d81dc0ede8f7d86f41877c7cdde576e3252c8a77d105871",
+      "document": {
+        "schema_version": "1.1",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-316d-73c4-adbb-d60fae5da5f0",
+        "request_digest": "sha256:9268668c1993a841ccf36f04641073b6a5a39d970aa105d3d40a2848a31b49b9",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-310e-71b5-80d8-306a750bcf08",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "1.9.4",
+        "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "bandit",
+          "container_id": "aegis-scan-927cc6bf02b6027c8e4a4168ce4adfe9",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-bc78ba38704818bd6743fce951a0e068",
+          "registry_digest": "sha256:a395641ea64056800d362e901a61d8e875db85c371b498ab8ae805326d26149a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+          "guard_binary_digest": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2",
+          "guard_architecture": "arm64"
+        },
+        "created_at": "2026-10-13T14:59:04.09446Z",
+        "deadline": "2026-10-13T15:06:18Z",
+        "guard_set_digest": "sha256:a73082528e3f7f03e1c8171d7c1a4067250da9d7fd44b08762c6f71359c69069",
+        "guard_protocol": "absolute-deadline-v1"
+      }
+    },
+    {
+      "launch_digest": "sha256:fd1bd72ad3dad7fcdcf1fe949c52cdf7bbf64597875b56e81d2014ef4b28ce4f",
+      "document": {
+        "schema_version": "1.1",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-316d-73c4-adbb-d60fae5da5f0",
+        "request_digest": "sha256:9268668c1993a841ccf36f04641073b6a5a39d970aa105d3d40a2848a31b49b9",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-310e-71b5-80d8-306a750bcf08",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "2.7.0",
+        "tool_image_digest": "sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "osv_v2",
+          "container_id": "aegis-scan-dd1a9563c45ab02ae3f107f214ba0f26",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-1beec909c2e8a4c3ccc093c200f94722",
+          "registry_digest": "sha256:a395641ea64056800d362e901a61d8e875db85c371b498ab8ae805326d26149a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+          "guard_binary_digest": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2",
+          "guard_architecture": "arm64"
+        },
+        "created_at": "2026-10-13T14:59:05.807468Z",
+        "deadline": "2026-10-13T15:06:18Z",
+        "guard_set_digest": "sha256:a73082528e3f7f03e1c8171d7c1a4067250da9d7fd44b08762c6f71359c69069",
+        "guard_protocol": "absolute-deadline-v1"
+      }
+    },
+    {
+      "launch_digest": "sha256:576525736e4138bb09025f307549dc0e6278feb94879449708360a5ec9d77a4d",
+      "document": {
+        "schema_version": "1.1",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-316d-73c4-adbb-d60fae5da5f0",
+        "request_digest": "sha256:9268668c1993a841ccf36f04641073b6a5a39d970aa105d3d40a2848a31b49b9",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-310e-71b5-80d8-306a750bcf08",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "0.75.0",
+        "tool_image_digest": "sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "trivy",
+          "container_id": "aegis-scan-ae2f8cf111b1dc5c845884d0c017bd72",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-003a7fb3309355b35234de840b3c39fa",
+          "registry_digest": "sha256:a395641ea64056800d362e901a61d8e875db85c371b498ab8ae805326d26149a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+          "guard_binary_digest": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2",
+          "guard_architecture": "arm64"
+        },
+        "created_at": "2026-10-13T14:59:07.236447Z",
+        "deadline": "2026-10-13T15:06:18Z",
+        "guard_set_digest": "sha256:a73082528e3f7f03e1c8171d7c1a4067250da9d7fd44b08762c6f71359c69069",
+        "guard_protocol": "absolute-deadline-v1"
+      }
+    }
+  ],
+  "actual_native_workspace_records": [
+    {
+      "workspace_digest": "sha256:b355dea99a1d172be4e227c8420d97b7beb18e92295ccdf8389311800818d521",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-1895-7562-8d2e-61017f642c86",
+        "request_digest": "sha256:364fce3a7e40b5f33485a7c03f098cf1298d106b81660b2ca5ba36adf23c7547",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-1837-7c9a-8a50-d5191e4af68a",
+        "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "bandit",
+          "workspace_id": "run-eac00f49b47d84e92960cfe6875a75b4",
+          "registry_digest": "sha256:5b241acfff019d1273601bd3d8d4cf51d0fd67ffa8a683a25a3eb27da4abd8e8",
+          "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614"
+        },
+        "created_at": "2026-10-13T14:58:57.339113Z",
+        "deadline": "2026-10-13T15:02:02Z"
+      }
+    },
+    {
+      "workspace_digest": "sha256:370525a898ac0bd196ad8823a66a22e65469d71f51c4f00401baf23d4abd2b0f",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-2398-7dfa-8409-6535470f9220",
+        "request_digest": "sha256:a80ba341bed84a79e1ba3e552d958f16b17db472b20c1e07baf11fe728411319",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-22ee-7710-ad8c-ad716299c4ee",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "bandit",
+          "workspace_id": "run-e1cd3890c40170a73ef46e0a44c484a0",
+          "registry_digest": "sha256:7c3df845f60753093f9a3b40d2bf2fec6c27df640165092cf4644297f35389f6",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:59:00.184377Z",
+        "deadline": "2026-10-13T15:04:10Z"
+      }
+    },
+    {
+      "workspace_digest": "sha256:2b070178bb8e6b886ddee3a786bc46c87a12a323a0bfa0b4c32038c064b29210",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-2398-7dfa-8409-6535470f9220",
+        "request_digest": "sha256:a80ba341bed84a79e1ba3e552d958f16b17db472b20c1e07baf11fe728411319",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-22ee-7710-ad8c-ad716299c4ee",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "gitleaks",
+          "workspace_id": "run-e4aa827ea1c70c3cedb9a36825fe8c35",
+          "registry_digest": "sha256:7c3df845f60753093f9a3b40d2bf2fec6c27df640165092cf4644297f35389f6",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:59:01.968908Z",
+        "deadline": "2026-10-13T15:04:10Z"
+      }
+    },
+    {
+      "workspace_digest": "sha256:ee12cd85f45bf23dafdd64a2d2302bad47dfc12879d23b573b4124f5dc719e97",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-316d-73c4-adbb-d60fae5da5f0",
+        "request_digest": "sha256:9268668c1993a841ccf36f04641073b6a5a39d970aa105d3d40a2848a31b49b9",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-310e-71b5-80d8-306a750bcf08",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "bandit",
+          "workspace_id": "run-bc78ba38704818bd6743fce951a0e068",
+          "registry_digest": "sha256:a395641ea64056800d362e901a61d8e875db85c371b498ab8ae805326d26149a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:59:03.716546Z",
+        "deadline": "2026-10-13T15:06:18Z"
+      }
+    },
+    {
+      "workspace_digest": "sha256:568c33b52a2018bac7109bb95512b3c465243be755f0f2ce6c85dd017b123637",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-316d-73c4-adbb-d60fae5da5f0",
+        "request_digest": "sha256:9268668c1993a841ccf36f04641073b6a5a39d970aa105d3d40a2848a31b49b9",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-310e-71b5-80d8-306a750bcf08",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "osv_v2",
+          "workspace_id": "run-1beec909c2e8a4c3ccc093c200f94722",
+          "registry_digest": "sha256:a395641ea64056800d362e901a61d8e875db85c371b498ab8ae805326d26149a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:59:05.411468Z",
+        "deadline": "2026-10-13T15:06:18Z"
+      }
+    },
+    {
+      "workspace_digest": "sha256:c9b9885753a1c99ff81adb64a0f60bf5ff18ea565eae94ddd5054d346b6ac3d5",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-316d-73c4-adbb-d60fae5da5f0",
+        "request_digest": "sha256:9268668c1993a841ccf36f04641073b6a5a39d970aa105d3d40a2848a31b49b9",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-310e-71b5-80d8-306a750bcf08",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "trivy",
+          "workspace_id": "run-003a7fb3309355b35234de840b3c39fa",
+          "registry_digest": "sha256:a395641ea64056800d362e901a61d8e875db85c371b498ab8ae805326d26149a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:59:06.726102Z",
+        "deadline": "2026-10-13T15:06:18Z"
+      }
+    }
+  ],
+  "actual_native_results": [
+    {
+      "result_digest": "sha256:0dac80f9fefe1a937a01b42929dd20e040ad8f2011f8fd32ba23680c838c0b46",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-1895-7562-8d2e-61017f642c86",
+        "request_digest": "sha256:364fce3a7e40b5f33485a7c03f098cf1298d106b81660b2ca5ba36adf23c7547",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-1837-7c9a-8a50-d5191e4af68a",
+        "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614",
+        "status": "completed",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:a0ebdfb7a163812324f4ae18caa90a8b000916bdf64e2d6698ac281f53f650a9",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 1,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-13T14:58:59.616311Z"
+      }
+    },
+    {
+      "result_digest": "sha256:0d65ad7a607ce960c79e4567dcdb1ced6bac6af336ce147f37534a936ef4ae44",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-2398-7dfa-8409-6535470f9220",
+        "request_digest": "sha256:a80ba341bed84a79e1ba3e552d958f16b17db472b20c1e07baf11fe728411319",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-22ee-7710-ad8c-ad716299c4ee",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+        "status": "completed",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:d06007817a77f66bcbceb2aaf7af16aea6c478fd15ae93142d636c16c4bd786b",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "gitleaks",
+            "receipt_digest": "sha256:7d46a94cc314de50f7d8e94e2f253bcc07c8f55fc5bdb41728465ddaf90b128c",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 0,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-13T14:59:03.294752Z"
+      }
+    },
+    {
+      "result_digest": "sha256:012e1a37395023ef4c71c96435f819a71b3522db032940943e14c2c0cecedc67",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135c6-316d-73c4-adbb-d60fae5da5f0",
+        "request_digest": "sha256:9268668c1993a841ccf36f04641073b6a5a39d970aa105d3d40a2848a31b49b9",
+        "app_id": "app_demo",
+        "repository_id": "01a135c6-310e-71b5-80d8-306a750bcf08",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+        "status": "tool_error",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:f8f28d44faca889c810754cc6af9341acfdfa9a06a35eae6e8a1ea1b4d167fac",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "osv_v2",
+            "receipt_digest": "sha256:a56f76c2ae9734fd74fb3880ef350a6d29f56edec2c6c8656c691156bac7c8a4",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "trivy",
+            "receipt_digest": "sha256:ac939a32d83a3506af3839495fdfe4bc83df679012fa96a020d515f4cafed271",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 0,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": true,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-13T14:59:08.208332Z"
+      }
+    }
+  ],
+  "actual_deadline_probes": [
+    {
+      "case": "expired",
+      "container": "aegis-scan-a4fbab88120654a00fd43e167aa101b7",
+      "exit_code": 124,
+      "guard_binary_digest": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2",
+      "image": "ghcr.io/pycqa/bandit/bandit@sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+      "source_mounted": false
+    },
+    {
+      "case": "malformed",
+      "container": "aegis-scan-1ec066cc2e5a07854d7b47b30fd0ef9f",
+      "exit_code": 125,
+      "guard_binary_digest": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2",
+      "image": "ghcr.io/pycqa/bandit/bandit@sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+      "source_mounted": false
+    }
+  ],
+  "actual_static_scanner_execution_count": 6,
+  "schema_validation": {
+    "status": "PASS",
+    "validator": "jsonschema 4.26.0; Draft 2020-12 with date-time checks",
+    "actual_launch_payloads": 6,
+    "documents_plans_wrappers_and_guard_set_checks": 19
+  },
+  "validation": {
+    "make_test": "PASS; complete race suite, generated checks and console build",
+    "full_test_log_sha256": "sha256:8b5c215d7115daf00af3369f2a7cca3d30234070afc5baeefdbd16f254440e9c",
+    "research_build": "PASS; native CLI and both reproducible Linux guards",
+    "research_build_log_sha256": "sha256:9b19c126f0fe7fcdf068589ee1b50d2c794c60f3b368d80e9573211de5ce1cb6",
+    "go_vet": "PASS; controller, alpha, shared source and scanner-channel integration"
+  },
+  "retained_initial_failure": {
+    "log_sha256": "sha256:a73085bc943883a7615b97a2ef5c45885da67fcbb08316e5be3a412a3072a8a0",
+    "failed_test": "TestRealBanditWorkerFinalizesBoundResultWithoutReleasingCleanup",
+    "observed": "One seeded Bandit attempt returned tool_error while the image build was running; the cause was not established. Its receipt/result stayed an error and cleanup admission was held.",
+    "follow_up": "Three seeded Bandit runs and a complete final real scanner suite passed. Original failure evidence is retained, not reclassified."
+  },
+  "prior_commit_hosted_ci": {
+    "commit": "216a9552d46e2d1b412f689df5ef222b729270e4",
+    "status": "success",
+    "run_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38416162435"
+  },
+  "verification_notes": [
+    "Controller startup independently reads/hashes the fixed packaged guard files and checks ELF/Go command/toolchain/build settings without Docker access.",
+    "Fresh dispatches bind the approved set; legacy/rotated sets cannot renew or register execution.",
+    "New launch/receipt metadata must identify an approved architecture and guard digest.",
+    "Historical schema 1.0 records retain readable hash-checked evidence without acquiring execution authority; exact committed receipt replay stays immutable.",
+    "Migration preserves all prior checksums/state/capabilities and invents no guard build authority."
+  ],
+  "limitations": [
+    "Local package/build metadata checks are not publisher signatures or protection against a host administrator.",
+    "Worker launch/receipt hashes do not attest the actual mounted or running bytes.",
+    "Independent original-engine/actual-guard-mount/registry verification, incomplete-allocation recovery, active-lease and queued late-start exclusion and separately authorized cleanup release remain unfinished.",
+    "Cleanup admission remains held. Old guard-less records are not promoted into cleanup proof.",
+    "Native operator-UID fixtures do not prove deployment access to Compose UID 10001 or a reusable background scanner service.",
+    "Full v4 public scanner result UI, findings/investigations, offline databases, disposable VM arbitrary-code isolation, AI/MCP/desktop integrations, supply-chain/legal/security review and independent H7 release gates remain unfinished."
+  ],
+  "live_acceptance": {
+    "gateway_fixture": {
+      "status": "PASS",
+      "passed_checks": 10,
+      "report": "docs/evidence/demo-acceptance.json",
+      "log_sha256": "sha256:6ddeab59bc795c3eeaeed44a1de3917a041e0128652d0f0ff131d5aed4231c5b"
+    },
+    "repository": {
+      "status": "PASS",
+      "passed_checks": 8,
+      "report": "docs/evidence/repository-acceptance.json",
+      "log_sha256": "sha256:3a582a608099bc0f60f509e0b6a30ff291dfb1798411342a20c77e275234679b"
+    },
+    "scoped_jobs": {
+      "status": "PASS",
+      "passed_checks": 7,
+      "report": "docs/evidence/scoped-jobs-acceptance.json",
+      "log_sha256": "sha256:7619102c9dc7a0b6594b4ce82bfee49d115f1c2e30381726410a35dc144553cc"
+    },
+    "worker_enrollment": {
+      "status": "PASS",
+      "passed_checks": 9,
+      "report": "docs/evidence/scanner-worker-enrollment-acceptance.json",
+      "log_sha256": "sha256:20496b3c0e96d1d1c8c76e254c5401728792f72395e6012074c44e5f18f6c37f"
+    }
+  },
+  "retained_demo_acceptance_failure": {
+    "original_log_sha256": "sha256:f0b8d39fc7f810db607fe9b9596219e06aa865c4a82b637670be513af12b164e",
+    "bounded_wait_failure_log_sha256": "sha256:d98402c2c3b2094c1e2868e950f613b1e1e669737b47162be49e60c39d713b66",
+    "cause": "Acceptance queried the oldest 100 retained events without following the cursor; repeated runs missed newer requests. A bounded wait alone also failed.",
+    "fix": "Advance past retained history, then follow cursors while waiting at most 15 seconds for the exact request CRS 942100 and access records. Corrected live acceptance passed."
+  },
+  "rollout": {
+    "schema_version": 11,
+    "shared_controller_image": "sha256:9750b0c66bfa366eaba4d7c786884af2e1678d9a530c3c861cd3280510323630",
+    "services": [
+      "init",
+      "controller",
+      "deployer",
+      "verifier"
+    ],
+    "protected_pre_upgrade_backup": "/var/lib/aegis/pre-guard-schema11-20261013.db",
+    "backup_mode": "0600; remained inside named controller data volume",
+    "sqlite": "ok",
+    "audit": "internally consistent; local host-admin trust applies",
+    "final_mode": "observe",
+    "cleanup_admission": "held"
+  }
+}

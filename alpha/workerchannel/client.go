@@ -5,6 +5,7 @@ package workerchannel
 
 import (
 	"aegis.local/source"
+	"aegis.local/source/scanevidence"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -67,6 +68,7 @@ type Lease struct {
 	Map      source.Map
 	Token    string `json:"-"`
 	Deadline time.Time
+	Guards   scanevidence.GuardSet
 }
 type Client struct {
 	socket, credential, owner, lock string
@@ -159,18 +161,19 @@ func (c *Client) Identity(ctx context.Context) (Identity, error) {
 }
 func (c *Client) Claim(ctx context.Context) (Lease, error) {
 	var wire struct {
-		LaunchProtocol    string     `json:"launch_protocol"`
-		WorkspaceProtocol string     `json:"workspace_protocol"`
-		Schema            string     `json:"schema_version"`
-		Job               Job        `json:"job"`
-		Map               source.Map `json:"application_map"`
-		Token             string     `json:"lease_token"`
-		Deadline          time.Time  `json:"deadline"`
+		LaunchProtocol    string                `json:"launch_protocol"`
+		Guards            scanevidence.GuardSet `json:"guard_set"`
+		WorkspaceProtocol string                `json:"workspace_protocol"`
+		Schema            string                `json:"schema_version"`
+		Job               Job                   `json:"job"`
+		Map               source.Map            `json:"application_map"`
+		Token             string                `json:"lease_token"`
+		Deadline          time.Time             `json:"deadline"`
 	}
 	if e := c.call(ctx, "claim", struct{}{}, &wire, maxResponse); e != nil {
 		return Lease{}, e
 	}
-	l := Lease{Job: wire.Job, Map: wire.Map, Token: wire.Token, Deadline: wire.Deadline}
+	l := Lease{Job: wire.Job, Map: wire.Map, Token: wire.Token, Deadline: wire.Deadline, Guards: wire.Guards}
 	if wire.Schema != "1.0" || wire.LaunchProtocol != "1.0" || wire.WorkspaceProtocol != "1.0" || c.validate(l) != nil {
 		return Lease{}, errors.New("scanner claim binding rejected")
 	}
@@ -184,7 +187,7 @@ func (c *Client) validateBinding(l Lease, live bool) error {
 	now := time.Now()
 	expires, e := time.Parse(time.RFC3339, j.Expires)
 	created, ce := time.Parse(time.RFC3339Nano, j.Created)
-	if j.Schema != "1.0" || !jobPattern.MatchString(j.ID) || j.Owner != c.owner || j.LockDigest != c.lock || j.State != "running" || j.CancelRequested || j.Error != "" || j.Finished != "" || !tokenPattern.MatchString(l.Token) || e != nil || ce != nil || (live && !expires.After(now)) || !expires.After(created) || (live && !l.Deadline.After(now)) || l.Deadline.After(expires) {
+	if !l.Guards.Valid() || j.Schema != "1.0" || !jobPattern.MatchString(j.ID) || j.Owner != c.owner || j.LockDigest != c.lock || j.State != "running" || j.CancelRequested || j.Error != "" || j.Finished != "" || !tokenPattern.MatchString(l.Token) || e != nil || ce != nil || (live && !expires.After(now)) || !expires.After(created) || (live && !l.Deadline.After(now)) || l.Deadline.After(expires) {
 		return errors.New("invalid lease")
 	}
 	if in.Schema != "1.0" || in.App != "app_demo" || in.Repository == "" || len(in.Repository) > 128 || !hashPattern.MatchString(in.MapDigest) || in.Mode != "repo_offline" || in.Duration < 1 || in.Duration > 120 || len(in.Tools) < 1 || len(in.Tools) > 6 || !sort.StringsAreSorted(in.Tools) {

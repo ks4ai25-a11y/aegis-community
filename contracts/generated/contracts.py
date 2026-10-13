@@ -499,3 +499,75 @@ class ScannerWorkspaceRecordV1DocumentPlan(TypedDict):
     workspace_id: str
     registry_digest: str
     snapshot_digest: str
+class ScannerGuardSetV1(TypedDict):
+    schema_version: str
+    protocol: str
+    linux_amd64: str
+    linux_arm64: str
+    guard_set_digest: str
+class ScannerLaunchPlanV2(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+    guard_binary_digest: str
+    guard_architecture: str
+class ScannerLaunchV2(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    tool_version: str
+    tool_image_digest: str
+    sandbox_profile: str
+    duration_limit_seconds: int
+    plan: ScannerLaunchRecordV2DocumentPlan
+    created_at: str
+    deadline: str
+    guard_set_digest: str
+    guard_protocol: str
+class ScannerLaunchV2Plan(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+    guard_binary_digest: str
+    guard_architecture: str
+class ScannerLaunchRecordV2(TypedDict):
+    launch_digest: str
+    document: ScannerLaunchRecordV2Document
+class ScannerLaunchRecordV2Document(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    tool_version: str
+    tool_image_digest: str
+    sandbox_profile: str
+    duration_limit_seconds: int
+    plan: ScannerLaunchRecordV2DocumentPlan
+    created_at: str
+    deadline: str
+    guard_set_digest: str
+    guard_protocol: str
+class ScannerLaunchRecordV2DocumentPlan(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+    guard_binary_digest: str
+    guard_architecture: str

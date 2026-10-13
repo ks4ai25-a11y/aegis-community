@@ -9,6 +9,7 @@ import (
 	"aegis.local/controller/internal/scannerauth"
 	"aegis.local/controller/internal/scanqueue"
 	"aegis.local/controller/internal/store"
+	"aegis.local/source/scanevidence"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -48,7 +49,8 @@ func fixture(t *testing.T) (*Server, scannerauth.Enrollment, scanqueue.Input) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	q := &scanqueue.Queue{S: s, LockDigest: domain.Hash([]byte("trusted test lock"))}
+	guards, _ := scanevidence.NewGuardSet(domain.Hash([]byte("guard")), domain.Hash([]byte("arm64 guard")))
+	q := &scanqueue.Queue{Guards: guards, S: s, LockDigest: domain.Hash([]byte("trusted test lock"))}
 	return &Server{Q: q, Auth: auth}, enrollment, scanqueue.Input{Schema: "1.0", App: "app_demo", Repository: repo.ID, MapDigest: repo.MapDigest, Mode: "repo_offline", Tools: []string{"bandit"}, Duration: 120}
 }
 func call(t *testing.T, h http.Handler, token, path, body string, status int) map[string]any {

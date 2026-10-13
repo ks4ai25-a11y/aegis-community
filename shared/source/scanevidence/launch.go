@@ -9,29 +9,33 @@ import (
 // LaunchPlan identifies a proposed fixed scanner attempt. Registry is a digest
 // of an operator-provisioned private namespace, never a filesystem path.
 type LaunchPlan struct {
-	Tool      string `json:"tool_id"`
-	Container string `json:"container_id"`
-	Engine    string `json:"engine_digest"`
-	Workspace string `json:"workspace_id"`
-	Registry  string `json:"registry_digest"`
-	Snapshot  string `json:"snapshot_digest"`
+	Tool         string `json:"tool_id"`
+	Container    string `json:"container_id"`
+	Engine       string `json:"engine_digest"`
+	Workspace    string `json:"workspace_id"`
+	Registry     string `json:"registry_digest"`
+	Snapshot     string `json:"snapshot_digest"`
+	Guard        string `json:"guard_binary_digest,omitempty"`
+	Architecture string `json:"guard_architecture,omitempty"`
 }
 type Launch struct {
-	Schema     string     `json:"schema_version"`
-	Owner      string     `json:"owner_id"`
-	Job        string     `json:"job_id"`
-	Request    string     `json:"request_digest"`
-	App        string     `json:"app_id"`
-	Repository string     `json:"repository_id"`
-	Map        string     `json:"map_digest"`
-	Lock       string     `json:"tool_lock_digest"`
-	Version    string     `json:"tool_version"`
-	Image      string     `json:"tool_image_digest"`
-	Profile    string     `json:"sandbox_profile"`
-	Duration   int        `json:"duration_limit_seconds"`
-	Plan       LaunchPlan `json:"plan"`
-	Created    string     `json:"created_at"`
-	Deadline   string     `json:"deadline"`
+	Schema        string     `json:"schema_version"`
+	Owner         string     `json:"owner_id"`
+	Job           string     `json:"job_id"`
+	Request       string     `json:"request_digest"`
+	App           string     `json:"app_id"`
+	Repository    string     `json:"repository_id"`
+	Map           string     `json:"map_digest"`
+	Lock          string     `json:"tool_lock_digest"`
+	Version       string     `json:"tool_version"`
+	Image         string     `json:"tool_image_digest"`
+	Profile       string     `json:"sandbox_profile"`
+	Duration      int        `json:"duration_limit_seconds"`
+	Plan          LaunchPlan `json:"plan"`
+	Created       string     `json:"created_at"`
+	Deadline      string     `json:"deadline"`
+	GuardSet      string     `json:"guard_set_digest,omitempty"`
+	GuardProtocol string     `json:"guard_protocol,omitempty"`
 }
 type LaunchRecord struct {
 	Digest   string `json:"launch_digest"`

@@ -20,7 +20,7 @@ func launchFixture(t *testing.T) (*Queue, Lease, scanevidence.Execution, scanevi
 	r.Container = "aegis-scan-" + strings.Repeat("a", 32)
 	r.GuardDigest = domain.Hash([]byte("guard"))
 	r.Cleanup = "complete"
-	p := scanevidence.LaunchPlan{Tool: r.Tool, Container: r.Container, Engine: domain.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("registry")), Snapshot: r.Snapshot.Digest}
+	p := scanevidence.LaunchPlan{Guard: q.Guards.AMD64, Architecture: "amd64", Tool: r.Tool, Container: r.Container, Engine: domain.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("registry")), Snapshot: r.Snapshot.Digest}
 	reserveLaunchWorkspace(t, q, l, p)
 	return q, l, r, p
 }
@@ -190,7 +190,7 @@ func TestSuiteLaunchesCannotSwitchExecutionEngineOrRegistry(t *testing.T) {
 		t.Run(kind, func(t *testing.T) {
 			q, l, r, _ := receiptFixture(t, "bandit", "gitleaks")
 			q.Pins["gitleaks"] = Pin{Version: "8.30.1", Image: domain.Hash([]byte("gitleaks image"))}
-			p := scanevidence.LaunchPlan{Tool: "bandit", Container: "aegis-scan-" + strings.Repeat("a", 32), Engine: domain.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("registry")), Snapshot: r.Snapshot.Digest}
+			p := scanevidence.LaunchPlan{Guard: q.Guards.AMD64, Architecture: "amd64", Tool: "bandit", Container: "aegis-scan-" + strings.Repeat("a", 32), Engine: domain.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("registry")), Snapshot: r.Snapshot.Digest}
 			reserveLaunchWorkspace(t, q, l, p)
 			if _, e := q.RegisterLaunch(l, p); e != nil {
 				t.Fatal(e)

@@ -5,6 +5,7 @@ package workerchannel
 
 import (
 	"aegis.local/source"
+	"aegis.local/source/scanevidence"
 	"context"
 	"encoding/json"
 	"errors"
@@ -59,10 +60,11 @@ func claim() Lease {
 		Lock  string `json:"tool_lock_digest"`
 	}{j.Owner, in, j.LockDigest})
 	j.RequestDigest = source.Hash(b)
-	return Lease{Job: j, Map: m, Token: strings.Repeat("b", 64), Deadline: time.Now().Add(time.Minute).UTC()}
+	guards, _ := scanevidence.NewGuardSet(source.Hash([]byte("guard")), source.Hash([]byte("arm64 guard")))
+	return Lease{Guards: guards, Job: j, Map: m, Token: strings.Repeat("b", 64), Deadline: time.Now().Add(time.Minute).UTC()}
 }
 func wire(l Lease) map[string]any {
-	return map[string]any{"schema_version": "1.0", "launch_protocol": "1.0", "workspace_protocol": "1.0", "job": l.Job, "application_map": l.Map, "lease_token": l.Token, "deadline": l.Deadline}
+	return map[string]any{"schema_version": "1.0", "launch_protocol": "1.0", "workspace_protocol": "1.0", "guard_set": l.Guards, "job": l.Job, "application_map": l.Map, "lease_token": l.Token, "deadline": l.Deadline}
 }
 func TestProtocolLifecycle(t *testing.T) {
 	l := claim()

@@ -5,6 +5,7 @@ import (
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/repository"
 	"aegis.local/controller/internal/store"
+	"aegis.local/source/scanevidence"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -48,7 +49,8 @@ func fixture(t *testing.T) (*Queue, Input, string) {
 			t.Fatal(e)
 		}
 	}
-	q := &Queue{S: s, LockDigest: domain.Hash([]byte("trusted-tool-lock")), Now: func() time.Time { return now }}
+	guards, _ := scanevidence.NewGuardSet(domain.Hash([]byte("guard")), domain.Hash([]byte("arm64 guard")))
+	q := &Queue{Guards: guards, S: s, LockDigest: domain.Hash([]byte("trusted-tool-lock")), Now: func() time.Time { return now }}
 	return q, Input{"1.0", "app_demo", repo.ID, repo.MapDigest, "repo_offline", []string{"bandit", "semgrep_ce"}, 120}, db
 }
 func TestOwnerIdempotencyAndRestart(t *testing.T) {

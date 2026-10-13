@@ -105,7 +105,7 @@ func TestScannerMigrationUpgradePreservesExistingVersions(t *testing.T) {
 		}
 	}
 	var version int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 10 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 11 {
 		t.Fatal(version, e)
 	}
 	if got, e := s.Get("upgrade-canary"); e != nil || got != "preserved" {
@@ -322,6 +322,54 @@ func TestWorkspaceMigrationQuarantinesVersionNineDispatchWithoutInventingReserva
 		var checksum string
 		if e = s.DB.QueryRow("SELECT checksum FROM migrations WHERE version=?", i+1).Scan(&checksum); e != nil || checksum != domain.Hash([]byte(body)) {
 			t.Fatal("prior checksum changed", e)
+		}
+	}
+}
+
+func TestGuardMigrationPreservesVersionTenDispatchWithoutInventingBuildAuthority(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "v10-guards.db")
+	db, e := sql.Open("sqlite", path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	prior := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema}
+	for i, body := range prior {
+		if _, e = db.Exec(body); e != nil {
+			t.Fatal(e)
+		}
+		if _, e = db.Exec("INSERT INTO migrations VALUES(?,?)", i+1, domain.Hash([]byte(body))); e != nil {
+			t.Fatal(e)
+		}
+	}
+	for _, statement := range []string{
+		"INSERT INTO owners VALUES('v10-owner','fixture','2026-10-13T00:00:00Z')",
+		"INSERT INTO repositories VALUES('v10-repo','v10-owner','app_demo','fixture','map','2026-10-13T00:00:00Z')",
+		"INSERT INTO scanner_jobs(id,owner,repository,app,map_digest,lock_digest,request_digest,idempotency_key,payload,state,created_at,expires) VALUES('v10-job','v10-owner','v10-repo','app_demo','map','lock','request','key','{}','running','2026-10-13T00:00:00Z',1791849600)",
+		"INSERT INTO scanner_dispatch VALUES(1,'v10-job','original-worker','original-capability-hash',1791849600,1791849600,'active',1,1)",
+		"INSERT INTO scanner_launches VALUES('v10-job','bandit','v10-owner','request','original-container','original-workspace','original-digest','{}','2026-10-13T00:00:00Z')",
+	} {
+		if _, e = db.Exec(statement); e != nil {
+			t.Fatal(e)
+		}
+	}
+	db.Close()
+	s, e := Open(path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	var state, token, guard string
+	if e = s.DB.QueryRow("SELECT state,token_hash,guard_set_digest FROM scanner_dispatch").Scan(&state, &token, &guard); e != nil || state != "active" || token != "original-capability-hash" || guard != "" {
+		t.Fatal("upgrade invented guard authority", e)
+	}
+	var d string
+	if e = s.DB.QueryRow("SELECT digest FROM scanner_launches").Scan(&d); e != nil || d != "original-digest" {
+		t.Fatal("upgrade rewrote historical evidence", e)
+	}
+	for i, body := range prior {
+		var checksum string
+		if e = s.DB.QueryRow("SELECT checksum FROM migrations WHERE version=?", i+1).Scan(&checksum); e != nil || checksum != domain.Hash([]byte(body)) {
+			t.Fatal("migration checksum changed", e)
 		}
 	}
 }

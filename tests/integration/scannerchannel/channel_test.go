@@ -13,6 +13,8 @@ import (
 	"aegis.local/controller/internal/scanqueue"
 	"aegis.local/controller/internal/scantransport"
 	"aegis.local/controller/internal/store"
+	"aegis.local/source"
+	"aegis.local/source/scanevidence"
 	"context"
 	"encoding/json"
 	"errors"
@@ -88,7 +90,16 @@ func setupSource(t *testing.T, content []byte) fixture {
 	if e != nil {
 		t.Fatal(e)
 	}
-	q := &scanqueue.Queue{S: s, LockDigest: digest, Pins: pins}
+	guards, _ := scanevidence.NewGuardSet(source.Hash([]byte("fixture guard claim")), source.Hash([]byte("fixture arm64 guard claim")))
+	if os.Getenv("AEGIS_REAL_SCANNER_TEST") == "1" {
+		guardRoot, _ := filepath.Abs("../../../bin")
+		guardRoot, _ = filepath.EvalSymlinks(guardRoot)
+		guards, e = scantransport.LoadGuards(guardRoot)
+		if e != nil {
+			t.Fatal(e)
+		}
+	}
+	q := &scanqueue.Queue{Guards: guards, S: s, LockDigest: digest, Pins: pins}
 	socket := filepath.Join(dir, "worker.sock")
 	listener, e := scantransport.Listen(socket)
 	if e != nil {

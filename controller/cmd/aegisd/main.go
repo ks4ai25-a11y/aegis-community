@@ -86,11 +86,15 @@ func main() {
 		if e != nil {
 			panic(e)
 		}
+		guards, e := scantransport.LoadGuards(env("AEGIS_SCANNER_GUARDS", "/opt/aegis/guards"))
+		if e != nil {
+			panic(e)
+		}
 		listener, e := scantransport.Listen(socket)
 		if e != nil {
 			panic(e)
 		}
-		sq := &scanqueue.Queue{S: s, LockDigest: digest, Pins: pins}
+		sq := &scanqueue.Queue{S: s, LockDigest: digest, Pins: pins, Guards: guards}
 		go func() {
 			ticker := time.NewTicker(time.Second)
 			defer ticker.Stop()

@@ -164,7 +164,7 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 				if e := session.Bind(name, engine); e != nil {
 					return ErrRun
 				}
-				_, e := client.RegisterLaunch(run, l, scanevidence.LaunchPlan{Tool: tool, Container: name, Engine: engine, Workspace: filepath.Base(session.Path), Registry: registryDigest, Snapshot: prepared.Snapshot.Digest}, prepared.Version, prepared.Image)
+				_, e := client.RegisterLaunch(run, l, scanevidence.LaunchPlan{Tool: tool, Container: name, Engine: engine, Workspace: filepath.Base(session.Path), Registry: registryDigest, Snapshot: prepared.Snapshot.Digest, Guard: prepared.GuardDigest, Architecture: l.Guards.Architecture(prepared.GuardDigest)}, prepared.Version, prepared.Image)
 				return e
 			}}
 			result, runErr := ex.Run(run, tool, l.Job.Input.App, l.Job.Input.Repository, snapshot)

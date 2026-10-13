@@ -5,6 +5,7 @@ import (
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/store"
 	"aegis.local/source"
+	"aegis.local/source/scanevidence"
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
@@ -26,12 +27,13 @@ type Lease struct {
 	Token    string `json:"-"`
 	Map      source.Map
 	Deadline time.Time
+	Guards   scanevidence.GuardSet
 }
 
 // Claim is a controller-internal operation. Its caller must authenticate the
 // isolated worker before calling; browser owner sessions do not grant this role.
 func (q *Queue) Claim(worker, owner string) (Lease, error) {
-	if !workerPattern.MatchString(worker) || owner == "" || len(owner) > 128 || !digestPattern.MatchString(q.LockDigest) {
+	if !workerPattern.MatchString(worker) || owner == "" || len(owner) > 128 || !digestPattern.MatchString(q.LockDigest) || !q.Guards.Valid() {
 		return Lease{}, ErrInput
 	}
 	tx, e := q.S.DB.Begin()
@@ -95,20 +97,20 @@ func (q *Queue) Claim(worker, owner string) (Lease, error) {
 	if until > deadline {
 		until = deadline
 	}
-	if _, e = tx.Exec("INSERT INTO scanner_dispatch(slot,job,worker,token_hash,lease_until,deadline,state,launch_protocol,workspace_protocol) VALUES(1,?,?,?,?,?,'active',1,1)", j.ID, worker, domain.Hash([]byte(token)), until, deadline); e != nil {
+	if _, e = tx.Exec("INSERT INTO scanner_dispatch(slot,job,worker,token_hash,lease_until,deadline,state,launch_protocol,workspace_protocol,guard_set_digest) VALUES(1,?,?,?,?,?,'active',1,1,?)", j.ID, worker, domain.Hash([]byte(token)), until, deadline, q.Guards.Digest); e != nil {
 		return Lease{}, e
 	}
 	if _, e = tx.Exec("UPDATE scanner_jobs SET state='running' WHERE id=? AND state='queued'", j.ID); e != nil {
 		return Lease{}, e
 	}
-	if e = store.AuditTx(tx, j.Owner, "scanner.claim", j.ID, "running", map[string]any{"worker_id": worker, "request_digest": j.RequestDigest, "map_digest": j.Input.MapDigest, "tool_lock_digest": j.LockDigest, "deadline_unix": deadline, "launch_protocol": "1.0", "workspace_protocol": "1.0"}); e != nil {
+	if e = store.AuditTx(tx, j.Owner, "scanner.claim", j.ID, "running", map[string]any{"worker_id": worker, "request_digest": j.RequestDigest, "map_digest": j.Input.MapDigest, "tool_lock_digest": j.LockDigest, "deadline_unix": deadline, "launch_protocol": "1.0", "workspace_protocol": "1.0", "guard_set_digest": q.Guards.Digest}); e != nil {
 		return Lease{}, e
 	}
 	if e = tx.Commit(); e != nil {
 		return Lease{}, e
 	}
 	j.State = "running"
-	return Lease{Job: j, Worker: worker, Token: token, Map: m, Deadline: time.Unix(deadline, 0).UTC()}, nil
+	return Lease{Job: j, Worker: worker, Token: token, Map: m, Deadline: time.Unix(deadline, 0).UTC(), Guards: q.Guards}, nil
 }
 
 // authority checks registered source identity, not current mounted source bytes.
@@ -219,10 +221,10 @@ func (q *Queue) live(tx *sql.Tx, l Lease) (Job, error) {
 	if len(l.Token) != 64 || !workerPattern.MatchString(l.Worker) {
 		return Job{}, ErrLease
 	}
-	var id, state string
+	var id, state, guardSet string
 	var until, deadline int64
 	var protocol, workspaceProtocol int
-	e := tx.QueryRow("SELECT job,state,lease_until,deadline,launch_protocol,workspace_protocol FROM scanner_dispatch WHERE slot=1 AND worker=? AND token_hash=?", l.Worker, domain.Hash([]byte(l.Token))).Scan(&id, &state, &until, &deadline, &protocol, &workspaceProtocol)
+	e := tx.QueryRow("SELECT job,state,lease_until,deadline,launch_protocol,workspace_protocol,guard_set_digest FROM scanner_dispatch WHERE slot=1 AND worker=? AND token_hash=?", l.Worker, domain.Hash([]byte(l.Token))).Scan(&id, &state, &until, &deadline, &protocol, &workspaceProtocol, &guardSet)
 	if e == sql.ErrNoRows {
 		return Job{}, ErrLease
 	}
@@ -230,7 +232,7 @@ func (q *Queue) live(tx *sql.Tx, l Lease) (Job, error) {
 		return Job{}, e
 	}
 	now := q.now().Unix()
-	if id != l.Job.ID || state != "active" || until <= now || deadline <= now || protocol != 1 || workspaceProtocol != 1 {
+	if id != l.Job.ID || state != "active" || until <= now || deadline <= now || protocol != 1 || workspaceProtocol != 1 || !q.Guards.Valid() || guardSet != q.Guards.Digest {
 		return Job{}, ErrLease
 	}
 	j, e := read(tx.QueryRow("SELECT "+columns+" FROM scanner_jobs WHERE id=?", id))

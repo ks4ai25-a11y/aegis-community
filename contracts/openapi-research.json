@@ -743,14 +743,26 @@
       "ScannerExecutionV1": {
         "$ref": "schemas/ScannerExecutionV1.json"
       },
+      "ScannerGuardSetV1": {
+        "$ref": "schemas/ScannerGuardSetV1.json"
+      },
       "ScannerLaunchPlanV1": {
         "$ref": "schemas/ScannerLaunchPlanV1.json"
+      },
+      "ScannerLaunchPlanV2": {
+        "$ref": "schemas/ScannerLaunchPlanV2.json"
       },
       "ScannerLaunchRecordV1": {
         "$ref": "schemas/ScannerLaunchRecordV1.json"
       },
+      "ScannerLaunchRecordV2": {
+        "$ref": "schemas/ScannerLaunchRecordV2.json"
+      },
       "ScannerLaunchV1": {
         "$ref": "schemas/ScannerLaunchV1.json"
+      },
+      "ScannerLaunchV2": {
+        "$ref": "schemas/ScannerLaunchV2.json"
       },
       "ScannerSuiteResultV1": {
         "$ref": "schemas/ScannerSuiteResultV1.json"

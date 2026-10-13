@@ -33,5 +33,5 @@ repository-verify:
 
 research-build:
 	cd alpha && go build -trimpath -o ../bin/aegis-research ./cmd/aegis-research
-	cd alpha && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -o ../bin/scanner-guard-linux-arm64 ./cmd/scanner-guard
-	cd alpha && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o ../bin/scanner-guard-linux-amd64 ./cmd/scanner-guard
+	cd alpha && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -buildvcs=false -o ../bin/scanner-guard-linux-arm64 ./cmd/scanner-guard
+	cd alpha && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -buildvcs=false -o ../bin/scanner-guard-linux-amd64 ./cmd/scanner-guard

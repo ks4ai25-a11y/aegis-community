@@ -96,3 +96,9 @@ Migration 10 preserves legacy dispatches with workspace protocol zero and no fab
 Rebuild the native CLI and both Linux guards with `make research-build`. The fixed worker passes the original job deadline to PID 1; delayed starts refuse before source reads or scanner creation, and valid runs use the smaller remaining deadline/tool budget. The updated guard refuses older invocations without an absolute deadline. Its changed binary digest is recorded in execution receipts. Standalone offline scans derive a finite local deadline.
 
 This improves late-start control but does not release cleanup admission or attest historical guard provenance. Independent verification must still account for queued requests, containers and trusted workspaces. See ADR 034.
+
+## Provisioned guard build sets
+
+The controller's private scanner channel now loads the two fixed packaged guard files from `/opt/aegis/guards` (or an explicit canonical operator configuration) and binds their actual hashes to fresh dispatches. Rebuild native guards with `make research-build`; both native and Docker guard builds disable VCS metadata to support identical hashes. A worker guard outside the acknowledged set, a changed set during a lease or a receipt naming another guard is refused.
+
+Migration 11 retains historical dispatches with an empty guard-set binding, preserving their records/admission while refusing new execution. Use the protected backup/shared-image initializer upgrade procedure. V1 launch records remain historical; V2 contracts describe schema 1.1 guard-bound records. This provides trusted local package identity, not signatures, runtime attestation or cleanup release. See ADR 035.

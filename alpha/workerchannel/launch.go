@@ -18,7 +18,7 @@ var launchWorkspace = regexp.MustCompile(`^run-[0-9a-f]{32}$`)
 // command. Its exact replay always requires live authority, unlike receipts.
 func (c *Client) RegisterLaunch(ctx context.Context, l Lease, p scanevidence.LaunchPlan, version, image string) (scanevidence.LaunchRecord, error) {
 	bad := errors.New("scanner launch authorization rejected")
-	if c.validate(l) != nil || !launchContainer.MatchString(p.Container) || !launchWorkspace.MatchString(p.Workspace) || !hashPattern.MatchString(p.Engine) || !hashPattern.MatchString(p.Registry) || !hashPattern.MatchString(p.Snapshot) || version == "" || len(version) > 64 || !hashPattern.MatchString(image) {
+	if c.validate(l) != nil || l.Guards.Architecture(p.Guard) != p.Architecture || p.Architecture == "" || !launchContainer.MatchString(p.Container) || !launchWorkspace.MatchString(p.Workspace) || !hashPattern.MatchString(p.Engine) || !hashPattern.MatchString(p.Registry) || !hashPattern.MatchString(p.Snapshot) || version == "" || len(version) > 64 || !hashPattern.MatchString(image) {
 		return scanevidence.LaunchRecord{}, bad
 	}
 	selected := false
@@ -54,7 +54,7 @@ func (c *Client) RegisterLaunch(ctx context.Context, l Lease, p scanevidence.Lau
 	stamp, e := time.Parse(time.RFC3339Nano, d.Created)
 	started, se := time.Parse(time.RFC3339Nano, l.Job.Created)
 	deadline, de := time.Parse(time.RFC3339, d.Deadline)
-	if c.validate(l) != nil || e != nil || se != nil || de != nil || stamp.Before(started) || !deadline.Equal(l.Deadline) || !stamp.Before(deadline) || out.State != "authorized" || out.Record.Digest != source.Hash(b) || d.Schema != "1.0" || d.Owner != l.Job.Owner || d.Job != l.Job.ID || d.Request != l.Job.RequestDigest || d.App != l.Job.Input.App || d.Repository != l.Job.Input.Repository || d.Map != l.Map.Digest || d.Lock != l.Job.LockDigest || d.Version != version || d.Image != image || d.Profile != "repo_offline-network-none-v1" || d.Duration != l.Job.Input.Duration || d.Plan != p {
+	if c.validate(l) != nil || l.Guards.Architecture(p.Guard) != p.Architecture || p.Architecture == "" || e != nil || se != nil || de != nil || stamp.Before(started) || !deadline.Equal(l.Deadline) || !stamp.Before(deadline) || out.State != "authorized" || out.Record.Digest != source.Hash(b) || d.Schema != "1.1" || d.GuardSet != l.Guards.Digest || d.GuardProtocol != l.Guards.Protocol || d.Owner != l.Job.Owner || d.Job != l.Job.ID || d.Request != l.Job.RequestDigest || d.App != l.Job.Input.App || d.Repository != l.Job.Input.Repository || d.Map != l.Map.Digest || d.Lock != l.Job.LockDigest || d.Version != version || d.Image != image || d.Profile != "repo_offline-network-none-v1" || d.Duration != l.Job.Input.Duration || d.Plan != p {
 		return scanevidence.LaunchRecord{}, bad
 	}
 	return out.Record, nil

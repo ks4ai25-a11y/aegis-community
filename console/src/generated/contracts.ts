@@ -558,3 +558,82 @@ export interface ScannerWorkspaceRecordV1DocumentPlan {
   registry_digest: string;
   snapshot_digest: string;
 }
+export interface ScannerGuardSetV1 {
+  schema_version: "1.0";
+  protocol: "absolute-deadline-v1";
+  linux_amd64: string;
+  linux_arm64: string;
+  guard_set_digest: string;
+}
+export interface ScannerLaunchPlanV2 {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+}
+export interface ScannerLaunchV2 {
+  schema_version: "1.1";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerLaunchRecordV2DocumentPlan;
+  created_at: string;
+  deadline: string;
+  guard_set_digest: string;
+  guard_protocol: "absolute-deadline-v1";
+}
+export interface ScannerLaunchV2Plan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+}
+export interface ScannerLaunchRecordV2 {
+  launch_digest: string;
+  document: ScannerLaunchRecordV2Document;
+}
+export interface ScannerLaunchRecordV2Document {
+  schema_version: "1.1";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerLaunchRecordV2DocumentPlan;
+  created_at: string;
+  deadline: string;
+  guard_set_digest: string;
+  guard_protocol: "absolute-deadline-v1";
+}
+export interface ScannerLaunchRecordV2DocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+}

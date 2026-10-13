@@ -62,6 +62,11 @@ workspace_plan=obj({'tool_id':launch_plan['properties']['tool_id'],'workspace_id
 workspace=obj({'schema_version':string(const='1.0'),'owner_id':string(minLength=1,maxLength=128),'job_id':uuid,'request_digest':hash,'app_id':string(const='app_demo'),'repository_id':string(minLength=1,maxLength=128),'map_digest':hash,'tool_lock_digest':hash,'plan':workspace_plan,'created_at':string(format='date-time'),'deadline':string(format='date-time')})
 schemas.update({'ScannerWorkspacePlanV1':workspace_plan,'ScannerWorkspaceV1':workspace,'ScannerWorkspaceRecordV1':obj({'workspace_digest':hash,'document':workspace})})
 
+guard_set=obj({'schema_version':string(const='1.0'),'protocol':string(const='absolute-deadline-v1'),'linux_amd64':hash,'linux_arm64':hash,'guard_set_digest':hash})
+launch_plan_v2=obj({**launch_plan['properties'],'guard_binary_digest':hash,'guard_architecture':string(enum=['amd64','arm64'])})
+launch_v2=obj({**launch['properties'],'schema_version':string(const='1.1'),'plan':launch_plan_v2,'guard_set_digest':hash,'guard_protocol':string(const='absolute-deadline-v1')})
+schemas.update({'ScannerGuardSetV1':guard_set,'ScannerLaunchPlanV2':launch_plan_v2,'ScannerLaunchV2':launch_v2,'ScannerLaunchRecordV2':obj({'launch_digest':hash,'document':launch_v2})})
+
 for name,body in schemas.items():
  document={'$schema':SCHEMA,'$id':'https://aegis.invalid/contracts/'+name+'.json','title':name,**body}
  (ROOT/'contracts/schemas'/f'{name}.json').write_text(json.dumps(document,indent=2)+'\n')
@@ -78,6 +83,11 @@ types={}
 workspace_plan=obj({'tool_id':launch_plan['properties']['tool_id'],'workspace_id':launch_plan['properties']['workspace_id'],'registry_digest':hash,'snapshot_digest':hash})
 workspace=obj({'schema_version':string(const='1.0'),'owner_id':string(minLength=1,maxLength=128),'job_id':uuid,'request_digest':hash,'app_id':string(const='app_demo'),'repository_id':string(minLength=1,maxLength=128),'map_digest':hash,'tool_lock_digest':hash,'plan':workspace_plan,'created_at':string(format='date-time'),'deadline':string(format='date-time')})
 schemas.update({'ScannerWorkspacePlanV1':workspace_plan,'ScannerWorkspaceV1':workspace,'ScannerWorkspaceRecordV1':obj({'workspace_digest':hash,'document':workspace})})
+
+guard_set=obj({'schema_version':string(const='1.0'),'protocol':string(const='absolute-deadline-v1'),'linux_amd64':hash,'linux_arm64':hash,'guard_set_digest':hash})
+launch_plan_v2=obj({**launch_plan['properties'],'guard_binary_digest':hash,'guard_architecture':string(enum=['amd64','arm64'])})
+launch_v2=obj({**launch['properties'],'schema_version':string(const='1.1'),'plan':launch_plan_v2,'guard_set_digest':hash,'guard_protocol':string(const='absolute-deadline-v1')})
+schemas.update({'ScannerGuardSetV1':guard_set,'ScannerLaunchPlanV2':launch_plan_v2,'ScannerLaunchV2':launch_v2,'ScannerLaunchRecordV2':obj({'launch_digest':hash,'document':launch_v2})})
 
 for name,body in schemas.items():flatten(name,body,types)
 def ts(s):

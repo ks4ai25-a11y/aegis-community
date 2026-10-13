@@ -1,0 +1,7 @@
+{
+  "schema_version": "1.0",
+  "protocol": "absolute-deadline-v1",
+  "linux_amd64": "sha256:f282c3e1d0ce9cdf445744442151f9fb081a5027e74126981e7f7981e51665d9",
+  "linux_arm64": "sha256:a6e7a5f7102d156b326e7500bd3c5ea6747affb7f1468ed6abe41b2bf3cb42f2",
+  "guard_set_digest": "sha256:a73082528e3f7f03e1c8171d7c1a4067250da9d7fd44b08762c6f71359c69069"
+}
