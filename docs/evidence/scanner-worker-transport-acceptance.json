@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "scope": "private-authenticated-Unix-scanner-worker-channel",
+  "overall": "PASS",
+  "completed_at": "2026-10-13T03:35:28.036305+00:00",
+  "checks": [
+    {
+      "id": "TestPrivateWorkerProtocolClaimsGuardsAndFailsWithoutOwnerOverride",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerProtocolRejectsMalformedBodiesAndRoleConfusion",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerProtocolLeaseCapabilityIsNotEnrollmentCapability",
+      "result": "PASS"
+    },
+    {
+      "id": "TestPrivateSocketLifecycleAndProbe",
+      "result": "PASS"
+    },
+    {
+      "id": "TestPrivateSocketAndCredentialsRejectUnsafePaths",
+      "result": "PASS"
+    },
+    {
+      "id": "TestCuratedToolLockValidation",
+      "result": "PASS"
+    },
+    {
+      "id": "TestNonregularWorkerArtifactsRefusedWithoutBlocking",
+      "result": "PASS"
+    }
+  ],
+  "source_hashes": {
+    "controller/internal/scantransport/server.go": "sha256:1f212a8194c9f7bddfc36832359ebe036096bcda9bcc7e37406831d6f3c5cbbc",
+    "controller/internal/scantransport/client.go": "sha256:ca112a83ff9542d82de966a9a3520079c0b2b88c21907c7d124206d4572c0bd9",
+    "controller/internal/scantransport/lock.go": "sha256:32fd5b4b8b67d177647e908297c6ad72ddde18d713aac4cf491034ecfe98516c",
+    "controller/internal/scantransport/socket_unix.go": "sha256:3ea0b3cd0a7c89fb3ec1a958ee34665a9099be98355fc0875bbcb0ff1736e403",
+    "controller/internal/scantransport/server_test.go": "sha256:bc300e6b475c3e903af9ee3ecab5aed1840434ff400df64700e15794816e850d",
+    "controller/cmd/aegisd/main.go": "sha256:97cfaf6fbfbaf71e3ff4ade366984d9c5f8f327c6486af67eb845783847bacbc",
+    "controller/cmd/aegisctl/main.go": "sha256:7e9e7730bb3300916be1b1d1d865fdc1f8b6a77fcd6ad48514edb5d74f4f32c0",
+    "deploy/compose.demo.yaml": "sha256:527a667ce1e8a9bd5a9a18203f08e7d541fa435235c8a06503fa2852353c3c25",
+    "controller/Dockerfile": "sha256:43c80786f9ad55c6d57490356f208ffcaf1c7d53a8df1c7ea051282764d791d1"
+  },
+  "observed_shared_image": "sha256:1f1e42f9d33b505742dc7f68b5dd67a363bb1aa80cefa8379e0a3a8c799e3f06",
+  "live_regressions": [
+    {
+      "evidence": "docs/evidence/scanner-worker-enrollment-acceptance.json",
+      "checks_passed": 9,
+      "result": "PASS"
+    },
+    {
+      "evidence": "docs/evidence/repository-acceptance.json",
+      "checks_passed": 8,
+      "result": "PASS"
+    },
+    {
+      "evidence": "docs/evidence/scoped-jobs-acceptance.json",
+      "checks_passed": 7,
+      "result": "PASS"
+    }
+  ],
+  "limitations": [
+    "Actual executor worker, immutable receipt/finding ingestion, verified cleanup release and owner scanner API/UI remain unfinished.",
+    "Only Linux/macOS private sockets implemented; Windows and remote worker transport remain pending.",
+    "Local host/operator trusted; no independent hostile-code isolation or release-gate completion claim."
+  ],
+  "post_crash_observation": "Actual private-socket enrollment/probe acceptance reran successfully after scoped-job suite SIGKILL/restart."
+}

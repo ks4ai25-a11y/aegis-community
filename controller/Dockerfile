@@ -18,10 +18,11 @@ RUN go mod download
 COPY controller/ ./
 RUN CGO_ENABLED=0 go build -trimpath -o /out/aegisd ./cmd/aegisd && CGO_ENABLED=0 go build -trimpath -o /out/aegisctl ./cmd/aegisctl && CGO_ENABLED=0 go build -trimpath -o /out/fixture-worker ./cmd/fixture-worker && CGO_ENABLED=0 go build -trimpath -o /out/policy-deployer ./cmd/policy-deployer
 FROM alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
-RUN addgroup -g 10001 aegis && adduser -D -u 10001 -G aegis aegis && mkdir -p /var/lib/aegis /run/verifier /var/log/aegis /run/gateway /run/deployer /var/lib/deployer /data /config && chown -R 10001:10001 /var/lib/aegis /run/verifier /var/log/aegis /run/gateway /run/deployer /var/lib/deployer /data /config
+RUN addgroup -g 10001 aegis && adduser -D -u 10001 -G aegis aegis && mkdir -p /run/scanner /var/lib/aegis /run/verifier /var/log/aegis /run/gateway /run/deployer /var/lib/deployer /data /config && chmod 700 /run/scanner && chown -R 10001:10001 /run/scanner /var/lib/aegis /run/verifier /var/log/aegis /run/gateway /run/deployer /var/lib/deployer /data /config
 COPY --from=gateway-build /out/caddy /usr/local/bin/caddy
 COPY --from=controller-build /out/ /usr/local/bin/
 COPY --from=console-build /src/dist /opt/aegis/console
+COPY tools/scanners.lock.json /opt/aegis/scanners.lock.json
 USER 10001:10001
 ENV XDG_DATA_HOME=/data XDG_CONFIG_HOME=/config
 ENTRYPOINT ["aegisd"]

@@ -7,6 +7,14 @@
       "result": "PASS"
     },
     {
+      "id": "private_socket_probe_authenticates_enrolled_worker",
+      "result": "PASS"
+    },
+    {
+      "id": "private_socket_permissions_and_service_mount_boundary",
+      "result": "PASS"
+    },
+    {
       "id": "credential_is_private_regular_file_with_expected_size",
       "result": "PASS"
     },
@@ -19,6 +27,10 @@
       "result": "PASS"
     },
     {
+      "id": "revocation_denies_private_socket_probe",
+      "result": "PASS"
+    },
+    {
       "id": "worker_mutations_preserve_local_audit_chain",
       "result": "PASS"
     },
@@ -27,12 +39,12 @@
       "result": "PASS"
     }
   ],
-  "started_at": "2026-10-13T02:59:11Z",
+  "started_at": "2026-10-13T03:32:55Z",
   "overall": "PASS",
-  "completed_at": "2026-10-13T02:59:13Z",
+  "completed_at": "2026-10-13T03:32:57Z",
   "limitations": [
     "Only local operator credential delivery on the named trusted demo checked.",
     "Credential bytes were never read or exported by this acceptance harness.",
-    "Worker transport, scanner execution, receipt ingestion and verified cleanup release remain unfinished."
+    "Actual scanner execution, receipt ingestion and verified cleanup release remain unfinished."
   ]
 }

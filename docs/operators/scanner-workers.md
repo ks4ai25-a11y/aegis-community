@@ -18,4 +18,14 @@ Revocation requests cancellation of a running job and prevents future claim/rene
 
 In the current demo, run these commands via `docker compose -f deploy/compose.demo.yaml exec -T controller aegisctl ...` with the credential path inside its protected controller volume. Update all shared-image services using the local demo upgrade guide before invoking a newer binary against migrated state.
 
-Enrollment is implemented; the worker transport and executor service are still unfinished. These commands alone do not start a scanner, provide Docker access to the controller or complete offline scanner orchestration. The public API has no enrollment endpoint.
+Enrollment and the private Unix channel are implemented; the actual executor worker is still unfinished. These commands alone do not start a scanner, provide Docker access to the controller or complete offline scanner orchestration. The public API has no enrollment endpoint.
+
+The Unix worker channel is now implemented. Check enrolled identity from the trusted controller host:
+
+```sh
+aegisctl scanner-worker probe /var/lib/aegis/offline-worker.token
+```
+
+Set AEGIS_SCANNER_SOCKET to the owned private listener. The demo sets /run/scanner/worker.sock and mounts its private volume only in the controller. Browser cookies and the public dashboard port do not provide this channel. Probe reads the private credential directly and prints only enrollment metadata. Revocation makes subsequent probes fail. Linux/macOS private sockets are implemented; Windows IPC and remote worker transport are not.
+
+The finite private protocol uses POST /internal/v1/scanner/identity and /claim with {}, and /guard and /fail with job_id, request_digest and lease_token; /fail additionally requires a finite error_code. The server derives owner/worker identity from Bearer authentication. Only a private claim response delivers the distinct lease capability. No arbitrary path, command, network target or boolean cleanup acknowledgement is accepted. This is not a public API contract or a completed scanner service: the actual executor worker and result/cleanup ingestion still remain required.

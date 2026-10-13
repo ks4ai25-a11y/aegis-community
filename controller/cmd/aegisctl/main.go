@@ -5,6 +5,7 @@ import (
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/policy"
 	"aegis.local/controller/internal/scannerauth"
+	"aegis.local/controller/internal/scantransport"
 	"aegis.local/controller/internal/store"
 	"context"
 	"encoding/json"
@@ -12,11 +13,12 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		die("usage: aegisctl --version | init | doctor | policy validate FILE | audit verify | backup FILE | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID")
+		die("usage: aegisctl --version | init | doctor | policy validate FILE | audit verify | backup FILE | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE")
 	}
 	args := os.Args[1:]
 	root := os.Getenv("AEGIS_DATA")
@@ -50,6 +52,20 @@ func main() {
 		}
 		fmt.Println("Initialized persisted policy configuration")
 	case "scanner-worker":
+		if len(args) == 3 && args[1] == "probe" {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			socket := os.Getenv("AEGIS_SCANNER_SOCKET")
+			if socket == "" {
+				die("Private scanner socket is not configured")
+			}
+			worker, e := scantransport.Probe(ctx, socket, args[2])
+			if e != nil {
+				die(e.Error())
+			}
+			fmt.Printf("Worker %s authenticated for owner %s until %s\n", worker.ID, worker.Owner, worker.Expires)
+			break
+		}
 		if len(args) < 3 || (args[1] != "enroll" && args[1] != "revoke") {
 			die("usage: scanner-worker enroll ID MINUTES ABSOLUTE_CREDENTIAL_FILE | scanner-worker revoke ID")
 		}

@@ -69,8 +69,8 @@ services:
     mem_limit: 512m
     ports: ["127.0.0.1:7410:7410"]
     networks: [management_net, ingress_net]
-    environment: {AEGIS_REPOSITORY_ROOT: /opt/aegis/repositories, AEGIS_LISTEN: "0.0.0.0:7410", AEGIS_DATA: /var/lib/aegis, VERIFIER_SOCKET: /run/verifier/verifier.sock}
-    volumes: ["../alpha/fixtures/scanners:/opt/aegis/repositories:ro", "controller_data:/var/lib/aegis", "deployer_socket:/run/deployer", "gateway_logs:/var/log/aegis:ro", "verifier_socket:/run/verifier"]
+    environment: {AEGIS_SCANNER_SOCKET: /run/scanner/worker.sock, AEGIS_REPOSITORY_ROOT: /opt/aegis/repositories, AEGIS_LISTEN: "0.0.0.0:7410", AEGIS_DATA: /var/lib/aegis, VERIFIER_SOCKET: /run/verifier/verifier.sock}
+    volumes: ["scanner_socket:/run/scanner", "../alpha/fixtures/scanners:/opt/aegis/repositories:ro", "controller_data:/var/lib/aegis", "deployer_socket:/run/deployer", "gateway_logs:/var/log/aegis:ro", "verifier_socket:/run/verifier"]
     tmpfs: ["/tmp:rw,noexec,nosuid,size=64m,uid=10001,gid=10001", "/data:rw,nosuid,size=16m,uid=10001,gid=10001", "/config:rw,nosuid,size=16m,uid=10001,gid=10001"]
     restart: unless-stopped
 networks:
@@ -82,6 +82,7 @@ volumes:
   gateway_policies:
   deployer_socket:
   controller_data:
+  scanner_socket:
   gateway_socket:
   gateway_logs:
   gateway_data:

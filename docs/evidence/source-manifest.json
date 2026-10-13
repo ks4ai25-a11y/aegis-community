@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:d62c2d3227eb4f54b8456b50ad6e4aad65aecca9f776435f4a9d9c66cc1c3841",
+  "source_tree_sha256": "sha256:3fb53c461435598c258d08480417d29c585e11c0d3deef2addfa6695f43cd6f5",
   "files": [
     {
       "path": ".dockerignore",
@@ -372,15 +372,15 @@
     },
     {
       "path": "controller/Dockerfile",
-      "sha256": "3b64083df72963f5c193b6f1664087c7b1e3ea62b8d14691a01f2210441772a0"
+      "sha256": "43c80786f9ad55c6d57490356f208ffcaf1c7d53a8df1c7ea051282764d791d1"
     },
     {
       "path": "controller/cmd/aegisctl/main.go",
-      "sha256": "c99ed49355af0f9f3272ed81411b0cf4cc5990f893d3b40cad5e445b1dc666b3"
+      "sha256": "7e9e7730bb3300916be1b1d1d865fdc1f8b6a77fcd6ad48514edb5d74f4f32c0"
     },
     {
       "path": "controller/cmd/aegisd/main.go",
-      "sha256": "67f7dc38905972172b7cd8259062d7d40634efede296a764a015f53b6488f685"
+      "sha256": "97cfaf6fbfbaf71e3ff4ade366984d9c5f8f327c6486af67eb845783847bacbc"
     },
     {
       "path": "controller/cmd/fixture-worker/main.go",
@@ -503,6 +503,30 @@
       "sha256": "0a9cbd02ad06403ed81f6c88e25baf3767ace843e30bc3df7c4ec3c4a9bf2ea5"
     },
     {
+      "path": "controller/internal/scantransport/client.go",
+      "sha256": "ca112a83ff9542d82de966a9a3520079c0b2b88c21907c7d124206d4572c0bd9"
+    },
+    {
+      "path": "controller/internal/scantransport/lock.go",
+      "sha256": "32fd5b4b8b67d177647e908297c6ad72ddde18d713aac4cf491034ecfe98516c"
+    },
+    {
+      "path": "controller/internal/scantransport/server.go",
+      "sha256": "1f212a8194c9f7bddfc36832359ebe036096bcda9bcc7e37406831d6f3c5cbbc"
+    },
+    {
+      "path": "controller/internal/scantransport/server_test.go",
+      "sha256": "bc300e6b475c3e903af9ee3ecab5aed1840434ff400df64700e15794816e850d"
+    },
+    {
+      "path": "controller/internal/scantransport/socket_other.go",
+      "sha256": "452a65c7a402c063984eac0f2d3ad7e36da55a6552cb4f3ede02af45519c3039"
+    },
+    {
+      "path": "controller/internal/scantransport/socket_unix.go",
+      "sha256": "3ea0b3cd0a7c89fb3ec1a958ee34665a9099be98355fc0875bbcb0ff1736e403"
+    },
+    {
       "path": "controller/internal/scope/scope.go",
       "sha256": "fbf7c6ff56c33314bef60c25f981efbf4b2e82a7117db6efbab14c2a3941d095"
     },
@@ -548,11 +572,11 @@
     },
     {
       "path": "deploy/compose.demo.yaml",
-      "sha256": "ad7bdc487891677bac335bb1e869dad0ddd678681bc288b4243d8a55104171b1"
+      "sha256": "527a667ce1e8a9bd5a9a18203f08e7d541fa435235c8a06503fa2852353c3c25"
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "0948b2c6624cdd0801c1d2c2306b2e7ac8c603a2dcbca988a831c488f3255989"
+      "sha256": "394aab2edfd5f49b3405950155d489491767e7ba0f5f8ab2b6fddd8dbbeb3f97"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -611,6 +635,10 @@
       "sha256": "dd092e9118f517b5a169282f835f537a7b2351d27c9f95bdcf223edccf7d1459"
     },
     {
+      "path": "docs/architecture/adr/024-private-scanner-worker-transport.md",
+      "sha256": "7d63ece740d5830109200be7f7dc4742846ff31ad79d0971e6cfaba25b4db7bd"
+    },
+    {
       "path": "docs/operators/local-demo-upgrades.md",
       "sha256": "630e6af7f0e208d3d21877fc06af51ad18c09b88777fd5ec9d1945f87fdb4aad"
     },
@@ -624,7 +652,7 @@
     },
     {
       "path": "docs/operators/scanner-workers.md",
-      "sha256": "c5d76e1175f9dcb64d8540d47e2196d78ea740f34de875ec2bd69533e4e5a3ec"
+      "sha256": "a7134c1587549965319fe41ae93a3542f363b27a0d3802dd0a45f09dd7f06bc4"
     },
     {
       "path": "docs/release-gates.json",
@@ -736,7 +764,7 @@
     },
     {
       "path": "tests/integration/scanner_worker_enrollment_acceptance.py",
-      "sha256": "d0f8a823a32d3db59655ebc82c3097ecffa7a22b4d8d0e563cbe7b3b4224494b"
+      "sha256": "c39fceb2fb4b494bf0f8e37ec239e50391cc58798c773e1a96d4f4e53f1ca548"
     },
     {
       "path": "tests/integration/scoped_jobs_acceptance.py",

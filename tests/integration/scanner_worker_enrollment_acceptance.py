@@ -19,6 +19,18 @@ try:
  output=run(['aegisctl','scanner-worker','enroll',worker,'1',path]);created=True
  assert worker in output and 'credential written privately' in output
  check('local_cli_enrolls_without_printing_credential')
+ identity=run(['aegisctl','scanner-worker','probe',path]);assert worker in identity and 'authenticated for owner' in identity
+ check('private_socket_probe_authenticates_enrolled_worker')
+ assert run(['stat','-c','%a','/run/scanner'])=='700'
+ assert run(['stat','-c','%a','/run/scanner/worker.sock'])=='600'
+ names=['aegis-community-init-1','aegis-community-deployer-1','aegis-community-verifier-1','aegis-community-controller-1']
+ mounts=subprocess.check_output(['docker','inspect','--format','{{json .Mounts}}',*names],timeout=20).decode().splitlines()
+ assert len(mounts)==len(names)
+ for name,line in zip(names,mounts):
+  destinations={m['Destination'] for m in json.loads(line)}
+  assert ('/run/scanner' in destinations)==(name=='aegis-community-controller-1')
+  assert not any(p.endswith('docker.sock') for p in destinations)
+ check('private_socket_permissions_and_service_mount_boundary')
  assert run(['stat','-c','%a',path])=='600'
  assert run(['stat','-c','%s',path])=='65'
  run(['test','-f',path]);run(['test','!','-L',path])
@@ -29,6 +41,8 @@ try:
  run(['aegisctl','scanner-worker','revoke',worker])
  run(['aegisctl','scanner-worker','revoke',worker])
  check('local_revocation_is_idempotent')
+ run(['aegisctl','scanner-worker','probe',path],1)
+ check('revocation_denies_private_socket_probe')
  run(['aegisctl','audit','verify'])
  check('worker_mutations_preserve_local_audit_chain')
  run(['rm',path]);run(['test','!','-e',path]);created=False
@@ -41,5 +55,5 @@ finally:
   subprocess.run(COMPOSE+['aegisctl','scanner-worker','revoke',worker],capture_output=True,timeout=20)
   subprocess.run(COMPOSE+['rm',path],capture_output=True,timeout=20)
  report['completed_at']=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())
- report['limitations']=['Only local operator credential delivery on the named trusted demo checked.','Credential bytes were never read or exported by this acceptance harness.','Worker transport, scanner execution, receipt ingestion and verified cleanup release remain unfinished.']
+ report['limitations']=['Only local operator credential delivery on the named trusted demo checked.','Credential bytes were never read or exported by this acceptance harness.','Actual scanner execution, receipt ingestion and verified cleanup release remain unfinished.']
  (ROOT/'docs/evidence/scanner-worker-enrollment-acceptance.json').write_text(json.dumps(report,indent=2)+'\n')
