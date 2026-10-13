@@ -61,6 +61,15 @@ Pass the credential file path, never its contents. The asset root is the provisi
 
 One job is claimed. Each scanner receives a separately journaled snapshot checked against the approved map, with live authority checks before launch. Uncertain cleanup preserves its workspace and stops execution. Exact receipt acknowledgements are printed as bounded metadata; raw scanner output and capabilities are omitted.
 
-Exit zero with `no_job` means nothing was claimed. Exit zero with `awaiting_controller_finalization` means requested receipts were accepted. The controller job remains running and its admission remains occupied; after renewal stops it can time out. This command cannot make that admission reusable. Terminal aggregation and independently verified cleanup release remain required.
+Exit zero with `no_job` means nothing was claimed. The command now prints a durable terminal result: `completed`, `completed_partial`, `completed_stale_db` or `tool_error`. A tool error exits nonzero. These are static scanner statuses; no complete coverage or clean-application conclusion follows. Admission remains occupied for independent cleanup verification. This command cannot make it reusable. Independently verified cleanup release remains required.
 
 Native acceptance uses an actual controller under the operator UID. The Compose demo socket is owned by UID 10001; this command does not establish workstation access to it. Do not loosen socket permissions to bridge that deployment gap. A background worker service and deployable worker/controller pairing remain unfinished. See ADR 030.
+
+
+## Terminal result derivation
+
+`POST /internal/v1/scanner/finish` accepts only the original job/request/lease binding. The controller requires every requested immutable tool receipt and derives terminal state, independent partial/stale/error flags, per-tool claim counts and receipt references. It commits the result, job transition and audit together, then retains `cleanup_required` admission. No worker-supplied status or cleanup boolean is accepted. Exact committed replay can succeed after deadline expiry with active enrollment; it cannot authorize new execution.
+
+`Client.Finish` checks the full bounded result digest, original identities and accepted receipt references. The result's `finding_claims` counts tool claims, which can overlap. All evidence remains T0. A channel failure after receipt submission reports `finalization_unconfirmed`; it does not establish whether the result committed. Background recovery and operator resume interfaces remain unfinished.
+
+Migration 8 adds an immutable result ledger. Follow the local-demo upgrade guide: protected online backup, build/initialize the shared image, verify zero init exit, then recreate deployer/verifier/controller together. The owner-scoped internal result accessor is implemented; public scanner result routes and GUI are still pending. See ADR 031 and the generated `ScannerSuiteV1` / `ScannerSuiteResultV1` contracts.

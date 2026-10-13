@@ -8,6 +8,7 @@ import (
 	"aegis.local/alpha/workspace"
 	"aegis.local/source"
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -84,14 +85,14 @@ func TestWorkerChangedSourceFailsBeforeContainerAndRetainsAdmission(t *testing.T
 	assertCleanupHeld(t, f)
 }
 
-func TestRealBanditWorkerSubmitsBoundReceiptWithoutCompletingJob(t *testing.T) {
+func TestRealBanditWorkerFinalizesBoundResultWithoutReleasingCleanup(t *testing.T) {
 	if os.Getenv("AEGIS_REAL_SCANNER_TEST") != "1" {
 		t.Skip("explicit owned Docker scanner fixture acceptance only")
 	}
-	f := setup(t)
+	f := setupSource(t, []byte("def unsafe(code):\n    return eval(code)\n"))
 	j := enqueue(t, f)
 	r, e := workerConfig(t, f).RunOnce(context.Background())
-	if e != nil || r.State != "awaiting_controller_finalization" || r.Job != j.ID || len(r.Receipts) != 1 || r.FailureReported {
+	if e != nil || r.State != "completed" || r.Job != j.ID || len(r.Receipts) != 1 || r.FailureReported {
 		got, _ := f.q.Get("owner-a", j.ID)
 		t.Fatal(r, e, got.Error)
 	}
@@ -103,11 +104,20 @@ func TestRealBanditWorkerSubmitsBoundReceiptWithoutCompletingJob(t *testing.T) {
 	if ex.Tool != "bandit" || ex.Container == "" || ex.Cleanup != "complete" || ex.Status != "completed" || ex.Snapshot.InputMap != f.in.MapDigest {
 		t.Fatal("actual pinned execution missing", ex)
 	}
+	if len(ex.Result.Findings) == 0 || r.Result == nil || r.Result.Document.FindingClaims != len(ex.Result.Findings) {
+		t.Fatal("seeded scanner claims lost during terminal derivation")
+	}
+	for _, finding := range ex.Result.Findings {
+		if finding.Tier != "T0" || finding.Status != "suspected" {
+			t.Fatal("real static claim was promoted")
+		}
+	}
 	got, e := f.q.Get("owner-a", j.ID)
-	if e != nil || got.State != "running" {
-		t.Fatal("worker falsely finalized job", got, e)
+	if e != nil || got.State != "completed" {
+		t.Fatal("worker did not finalize accepted receipts", got, e)
 	}
 	assertWorkerAdmissionHeld(t, f)
+	logWorkerResult(t, r)
 }
 
 func TestRealWorkerSuiteUsesDistinctJournalsAndIdenticalApprovedInput(t *testing.T) {
@@ -119,7 +129,7 @@ func TestRealWorkerSuiteUsesDistinctJournalsAndIdenticalApprovedInput(t *testing
 	j := enqueue(t, f)
 	cfg := workerConfig(t, f)
 	r, e := cfg.RunOnce(context.Background())
-	if e != nil || r.State != "awaiting_controller_finalization" || len(r.Receipts) != 2 {
+	if e != nil || r.State != "completed" || len(r.Receipts) != 2 {
 		t.Fatal(r, e)
 	}
 	receipts, e := f.q.Receipts("owner-a", j.ID)
@@ -135,6 +145,7 @@ func TestRealWorkerSuiteUsesDistinctJournalsAndIdenticalApprovedInput(t *testing
 		t.Fatal("suite retained source workspace", entries, e)
 	}
 	assertWorkerAdmissionHeld(t, f)
+	logWorkerResult(t, r)
 }
 
 func assertWorkerAdmissionHeld(t *testing.T, f fixture) {
@@ -150,19 +161,32 @@ func TestRealWorkerMissingOfflineDatabaseStoresToolError(t *testing.T) {
 		t.Skip("explicit owned Docker scanner fixture acceptance only")
 	}
 	f := setup(t)
-	f.in.Tools = []string{"osv_v2"}
+	f.in.Tools = []string{"bandit", "osv_v2", "trivy"}
 	j := enqueue(t, f)
 	r, e := workerConfig(t, f).RunOnce(context.Background())
-	if e == nil || r.State != "stopped" || !r.FailureReported || len(r.Receipts) != 1 {
+	if e == nil || r.State != "tool_error" || r.Result == nil || r.FailureReported || len(r.Receipts) != 3 {
 		t.Fatal(r, e)
 	}
 	receipts, e := f.q.Receipts("owner-a", j.ID)
-	if e != nil || len(receipts) != 1 {
+	if e != nil || len(receipts) != 3 {
 		t.Fatal(receipts, e)
 	}
-	ex := receipts[0].Document.Execution
+	ex := receipts[1].Document.Execution
 	if ex.Status != "tool_error" || len(ex.Result.Findings) != 0 || ex.Container != "" && ex.Cleanup != "complete" {
 		t.Fatal("missing database became a clean claim", ex.Status, ex.Container)
 	}
 	assertCleanupHeld(t, f)
+	if r.Result.Document.Tools[0].Status != "completed" || !r.Result.Document.ToolError {
+		t.Fatal("failed tool prevented full suite derivation")
+	}
+	logWorkerResult(t, r)
+}
+
+func logWorkerResult(t *testing.T, r worker.Report) {
+	t.Helper()
+	b, e := json.Marshal(r.Result)
+	if e != nil {
+		t.Fatal(e)
+	}
+	t.Logf("SUITE_RESULT %s", b)
 }

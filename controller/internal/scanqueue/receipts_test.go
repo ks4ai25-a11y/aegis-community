@@ -12,9 +12,12 @@ import (
 	"time"
 )
 
-func receiptFixture(t *testing.T) (*Queue, Lease, scanevidence.Execution, string) {
+func receiptFixture(t *testing.T, tools ...string) (*Queue, Lease, scanevidence.Execution, string) {
 	t.Helper()
 	q, in, path := fixture(t)
+	if len(tools) > 0 {
+		in.Tools = append([]string{}, tools...)
+	}
 	q.Pins = map[string]Pin{"bandit": {"1.9.4", domain.Hash([]byte("fixture-image"))}}
 	l := enqueueClaim(t, q, in)
 	now := q.now()

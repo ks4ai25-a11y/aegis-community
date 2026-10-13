@@ -348,3 +348,56 @@ class ScannerExecutionV1ResultSbomComponentsItem(TypedDict):
     name: str
     version: str
     purl: str
+class ScannerSuiteV1(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    snapshot_digest: str
+    status: str
+    tools: list[ScannerSuiteResultV1DocumentToolsItem]
+    finding_claims: int
+    has_partial: bool
+    has_stale_database: bool
+    has_tool_error: bool
+    evidence_tier: str
+    cleanup_required: bool
+    created_at: str
+class ScannerSuiteV1ToolsItem(TypedDict):
+    tool_id: str
+    receipt_digest: str
+    status: str
+    finding_claims: int
+    has_sbom: bool
+class ScannerSuiteResultV1(TypedDict):
+    result_digest: str
+    document: ScannerSuiteResultV1Document
+class ScannerSuiteResultV1Document(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    snapshot_digest: str
+    status: str
+    tools: list[ScannerSuiteResultV1DocumentToolsItem]
+    finding_claims: int
+    has_partial: bool
+    has_stale_database: bool
+    has_tool_error: bool
+    evidence_tier: str
+    cleanup_required: bool
+    created_at: str
+class ScannerSuiteResultV1DocumentToolsItem(TypedDict):
+    tool_id: str
+    receipt_digest: str
+    status: str
+    finding_claims: int
+    has_sbom: bool

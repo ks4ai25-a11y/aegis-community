@@ -392,3 +392,61 @@ type ScannerExecutionV1ResultSbomComponentsItem struct {
 	Version string `json:"version"`
 	Purl    string `json:"purl"`
 }
+type ScannerSuiteV1 struct {
+	SchemaVersion    string                                  `json:"schema_version"`
+	OwnerId          string                                  `json:"owner_id"`
+	JobId            string                                  `json:"job_id"`
+	RequestDigest    string                                  `json:"request_digest"`
+	AppId            string                                  `json:"app_id"`
+	RepositoryId     string                                  `json:"repository_id"`
+	MapDigest        string                                  `json:"map_digest"`
+	ToolLockDigest   string                                  `json:"tool_lock_digest"`
+	SnapshotDigest   string                                  `json:"snapshot_digest"`
+	Status           string                                  `json:"status"`
+	Tools            []ScannerSuiteResultV1DocumentToolsItem `json:"tools"`
+	FindingClaims    int64                                   `json:"finding_claims"`
+	HasPartial       bool                                    `json:"has_partial"`
+	HasStaleDatabase bool                                    `json:"has_stale_database"`
+	HasToolError     bool                                    `json:"has_tool_error"`
+	EvidenceTier     string                                  `json:"evidence_tier"`
+	CleanupRequired  bool                                    `json:"cleanup_required"`
+	CreatedAt        string                                  `json:"created_at"`
+}
+type ScannerSuiteV1ToolsItem struct {
+	ToolId        string `json:"tool_id"`
+	ReceiptDigest string `json:"receipt_digest"`
+	Status        string `json:"status"`
+	FindingClaims int64  `json:"finding_claims"`
+	HasSbom       bool   `json:"has_sbom"`
+}
+type ScannerSuiteResultV1 struct {
+	ResultDigest string                       `json:"result_digest"`
+	Document     ScannerSuiteResultV1Document `json:"document"`
+}
+type ScannerSuiteResultV1Document struct {
+	SchemaVersion    string                                  `json:"schema_version"`
+	OwnerId          string                                  `json:"owner_id"`
+	JobId            string                                  `json:"job_id"`
+	RequestDigest    string                                  `json:"request_digest"`
+	AppId            string                                  `json:"app_id"`
+	RepositoryId     string                                  `json:"repository_id"`
+	MapDigest        string                                  `json:"map_digest"`
+	ToolLockDigest   string                                  `json:"tool_lock_digest"`
+	SnapshotDigest   string                                  `json:"snapshot_digest"`
+	Status           string                                  `json:"status"`
+	Tools            []ScannerSuiteResultV1DocumentToolsItem `json:"tools"`
+	FindingClaims    int64                                   `json:"finding_claims"`
+	HasPartial       bool                                    `json:"has_partial"`
+	HasStaleDatabase bool                                    `json:"has_stale_database"`
+	HasToolError     bool                                    `json:"has_tool_error"`
+	EvidenceTier     string                                  `json:"evidence_tier"`
+	CleanupRequired  bool                                    `json:"cleanup_required"`
+	CreatedAt        string                                  `json:"created_at"`
+}
+type ScannerSuiteResultV1DocumentToolsItem struct {
+	ToolId        string `json:"tool_id"`
+	ReceiptDigest string `json:"receipt_digest"`
+	Status        string `json:"status"`
+	FindingClaims int64  `json:"finding_claims"`
+	HasSbom       bool   `json:"has_sbom"`
+}

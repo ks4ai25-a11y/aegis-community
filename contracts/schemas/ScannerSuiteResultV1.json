@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerSuiteResultV1.json",
+  "title": "ScannerSuiteResultV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "result_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "owner_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "job_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "request_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "app_id": {
+          "type": "string",
+          "const": "app_demo"
+        },
+        "repository_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "map_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "tool_lock_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "snapshot_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "completed",
+            "completed_partial",
+            "completed_stale_db",
+            "tool_error"
+          ]
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "tool_id": {
+                "type": "string",
+                "enum": [
+                  "semgrep_ce",
+                  "osv_v2",
+                  "trivy",
+                  "syft",
+                  "gitleaks",
+                  "bandit"
+                ]
+              },
+              "receipt_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "completed",
+                  "completed_partial",
+                  "completed_stale_db",
+                  "tool_error"
+                ]
+              },
+              "finding_claims": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "has_sbom": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "tool_id",
+              "receipt_digest",
+              "status",
+              "finding_claims",
+              "has_sbom"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 6
+        },
+        "finding_claims": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60000
+        },
+        "has_partial": {
+          "type": "boolean"
+        },
+        "has_stale_database": {
+          "type": "boolean"
+        },
+        "has_tool_error": {
+          "type": "boolean"
+        },
+        "evidence_tier": {
+          "type": "string",
+          "const": "T0"
+        },
+        "cleanup_required": {
+          "type": "boolean",
+          "const": true
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "schema_version",
+        "owner_id",
+        "job_id",
+        "request_digest",
+        "app_id",
+        "repository_id",
+        "map_digest",
+        "tool_lock_digest",
+        "snapshot_digest",
+        "status",
+        "tools",
+        "finding_claims",
+        "has_partial",
+        "has_stale_database",
+        "has_tool_error",
+        "evidence_tier",
+        "cleanup_required",
+        "created_at"
+      ]
+    }
+  },
+  "required": [
+    "result_digest",
+    "document"
+  ]
+}

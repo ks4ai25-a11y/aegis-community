@@ -93,7 +93,7 @@ func (s *Server) Handler() http.Handler {
 			// Explicit private wire DTO: only this enrolled channel receives the lease
 			// capability. General Lease serialization deliberately omits it.
 			reply(w, 200, map[string]any{"schema_version": "1.0", "job": lease.Job, "application_map": lease.Map, "lease_token": lease.Token, "deadline": lease.Deadline})
-		case "/internal/v1/scanner/guard", "/internal/v1/scanner/fail":
+		case "/internal/v1/scanner/guard", "/internal/v1/scanner/fail", "/internal/v1/scanner/finish":
 			var in LeaseRequest
 			keys := map[string]bool{"job_id": true, "request_digest": true, "lease_token": true}
 			if path == "/internal/v1/scanner/fail" {
@@ -113,6 +113,15 @@ func (s *Server) Handler() http.Handler {
 				return
 			}
 			l := scanqueue.Lease{Job: j, Worker: worker.ID, Token: in.Token}
+			if path == "/internal/v1/scanner/finish" {
+				result, e := s.Q.Finalize(l)
+				if e != nil {
+					queueError(w, e)
+					return
+				}
+				reply(w, 200, result)
+				return
+			}
 			if path == "/internal/v1/scanner/guard" {
 				e = s.Q.Guard(l)
 			} else {

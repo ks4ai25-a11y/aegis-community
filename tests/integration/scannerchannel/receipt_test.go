@@ -5,6 +5,7 @@ package scannerchannelacceptance
 
 import (
 	"aegis.local/alpha/scanners"
+	"aegis.local/alpha/workerchannel"
 	"aegis.local/source"
 	"aegis.local/source/scanevidence"
 	"context"
@@ -114,6 +115,25 @@ func TestActualParserReceiptsShareControllerDataContract(t *testing.T) {
 	if e != nil || job.State != "running" {
 		t.Fatal("receipt ingestion fabricated suite completion")
 	}
+	if e = f.s.VerifyAudit(); e != nil {
+		t.Fatal(e)
+	}
+	refs := make([]workerchannel.ReceiptAcknowledgement, 0, len(receipts))
+	for _, r := range receipts {
+		refs = append(refs, workerchannel.ReceiptAcknowledgement{Schema: "1.0", Job: l.Job.ID, Request: l.Job.RequestDigest, Tool: r.Document.Execution.Tool, Digest: r.Digest, State: "accepted", Cleanup: true})
+	}
+	finished, e := f.client.Finish(context.Background(), l, refs)
+	if e != nil || finished.Document.Status != "completed_stale_db" || !finished.Document.Stale || finished.Document.ToolError || !finished.Document.CleanupRequired {
+		t.Fatal("suite lost offline database uncertainty", finished, e)
+	}
+	if replay, e := f.client.Finish(context.Background(), l, refs); e != nil || replay.Digest != finished.Digest {
+		t.Fatal("real suite replay changed result", e)
+	}
+	stored, e := f.q.Result(l.Job.Owner, l.Job.ID)
+	if e != nil || stored.Digest != finished.Digest {
+		t.Fatal("owner-bound index lost accepted receipts", e)
+	}
+	assertCleanupHeld(t, f)
 	if e = f.s.VerifyAudit(); e != nil {
 		t.Fatal(e)
 	}

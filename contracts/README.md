@@ -11,3 +11,6 @@ Runtime typed decoding rejects unknown/duplicate fields. Additional semantic val
 Still required: the complete v4 contract catalogue and API surface, runtime JSON Schema validation where appropriate, generated core/AI clients, version negotiation, compatibility tests and independent contract review. Aegis's invalid-domain schema identifiers are local identifiers, not remote services.
 
 `SourceSnapshotManifestV1` and `ScannerExecutionV1` describe the operator-only execution boundary; no unsupported controller scan endpoint is advertised. `snapshot_scanner_acceptance.py` checks real pinned-image receipts against Draft 2020-12. Whole-source retention, durable scanner orchestration and independent provenance review remain incomplete.
+
+
+`ScannerSuiteV1` and `ScannerSuiteResultV1` describe the immutable terminal index of accepted tool receipts. They preserve independent partial/stale/error flags and T0 evidence, require cleanup to remain pending, and count overlapping tool claims rather than deduplicated vulnerabilities. Actual native scanner fixture results are recorded in `samples/`. These schemas do not advertise a public scanner result route; semantic identity, receipt completeness and atomic derivation are enforced by the private controller boundary.

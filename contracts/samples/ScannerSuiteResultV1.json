@@ -1,0 +1,31 @@
+{
+  "result_digest": "sha256:02718e4529919ae39e88f3e703e2bee8b680669f77d47267010e99618fb991aa",
+  "document": {
+    "schema_version": "1.0",
+    "owner_id": "owner-a",
+    "job_id": "01a13572-0728-77d0-823b-1b673e86a497",
+    "request_digest": "sha256:a5929954a4078b423f228e19126f526933227518df4ad7df9e8f09348446ac44",
+    "app_id": "app_demo",
+    "repository_id": "01a13572-071a-75d8-9353-e8626d7b2a0b",
+    "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+    "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+    "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614",
+    "status": "completed",
+    "tools": [
+      {
+        "tool_id": "bandit",
+        "receipt_digest": "sha256:46b30a596633c0243892a36639981c7649c8bdc1f1dbb94a63537be9098c23b8",
+        "status": "completed",
+        "finding_claims": 1,
+        "has_sbom": false
+      }
+    ],
+    "finding_claims": 1,
+    "has_partial": false,
+    "has_stale_database": false,
+    "has_tool_error": false,
+    "evidence_tier": "T0",
+    "cleanup_required": true,
+    "created_at": "2026-10-13T13:27:11.792045Z"
+  }
+}

@@ -1,6 +1,6 @@
 # ADR 030: One-shot authorized static worker
 
-Status: implemented for Linux/macOS operator fixtures; release gates remain open.
+Status: implemented for Linux/macOS operator fixtures; release gates remain open. The temporary completion boundary below is superseded by ADR 031.
 
 ## Decision
 

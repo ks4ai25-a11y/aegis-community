@@ -46,8 +46,15 @@ CREATE TRIGGER scanner_receipts_no_update BEFORE UPDATE ON scanner_receipts BEGI
 CREATE TRIGGER scanner_receipts_no_delete BEFORE DELETE ON scanner_receipts BEGIN SELECT RAISE(ABORT,'scanner receipt is immutable'); END;
 `
 
+const scannerResultSchema = `
+CREATE TABLE scanner_results(job TEXT PRIMARY KEY REFERENCES scanner_jobs(id),owner TEXT NOT NULL REFERENCES owners(id),request_digest TEXT NOT NULL,digest TEXT UNIQUE NOT NULL,document TEXT NOT NULL,created_at TEXT NOT NULL);
+CREATE INDEX scanner_results_owner ON scanner_results(owner,job);
+CREATE TRIGGER scanner_results_no_update BEFORE UPDATE ON scanner_results BEGIN SELECT RAISE(ABORT,'scanner result is immutable'); END;
+CREATE TRIGGER scanner_results_no_delete BEFORE DELETE ON scanner_results BEGIN SELECT RAISE(ABORT,'scanner result is immutable'); END;
+`
+
 func migrate(db *sql.DB) error {
-	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema}
+	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema}
 	var exists int
 	if e := db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='migrations'").Scan(&exists); e != nil {
 		return e

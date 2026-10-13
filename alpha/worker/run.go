@@ -34,6 +34,7 @@ type Report struct {
 	State           string                                 `json:"state"`
 	Receipts        []workerchannel.ReceiptAcknowledgement `json:"receipts"`
 	FailureReported bool                                   `json:"failure_reported"`
+	Result          *workerchannel.SuiteResult             `json:"result,omitempty"`
 }
 
 func canonicalDir(path string) bool {
@@ -68,8 +69,8 @@ func openAsset(root *os.Root, ref string) (*os.Root, error) {
 	return opened, nil
 }
 
-// RunOnce claims at most one job. Its successful return means receipts were
-// acknowledged, never that the controller finalized a job or verified cleanup.
+// RunOnce claims at most one job and requests controller derivation from its
+// accepted receipts. A terminal scan result never verifies or releases cleanup.
 func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 	out := Report{Schema: "1.0", State: "not_claimed", Receipts: []workerchannel.ReceiptAcknowledgement{}}
 	if !canonicalDir(cfg.SourceRoot) || !canonicalDir(cfg.AssetRoot) {
@@ -166,7 +167,7 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 				return ErrRun
 			}
 			out.Receipts = append(out.Receipts, ack)
-			if runErr != nil || result.Status == "tool_error" {
+			if runErr != nil && result.Status != "tool_error" {
 				return ErrRun
 			}
 		}
@@ -180,6 +181,15 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 		cancel()
 		return out, ErrRun
 	}
-	out.State = "awaiting_controller_finalization"
+	finished, e := client.Finish(ctx, l, out.Receipts)
+	if e != nil {
+		out.State = "finalization_unconfirmed"
+		return out, ErrRun
+	}
+	out.Result = &finished
+	out.State = finished.Document.Status
+	if finished.Document.ToolError {
+		return out, ErrRun
+	}
 	return out, nil
 }

@@ -35,6 +35,10 @@ type fixture struct {
 }
 
 func setup(t *testing.T) fixture {
+	return setupSource(t, []byte("# static source; never executed\n"))
+}
+
+func setupSource(t *testing.T, content []byte) fixture {
 	t.Helper()
 	s, e := store.Open(filepath.Join(t.TempDir(), "controller.db"))
 	if e != nil {
@@ -54,7 +58,7 @@ func setup(t *testing.T) fixture {
 	if e = os.Mkdir(filepath.Join(root, "fixture"), 0700); e != nil {
 		t.Fatal(e)
 	}
-	if e = os.WriteFile(filepath.Join(root, "fixture", "query.py"), []byte("# static source; never executed\n"), 0600); e != nil {
+	if e = os.WriteFile(filepath.Join(root, "fixture", "query.py"), content, 0600); e != nil {
 		t.Fatal(e)
 	}
 	reg, e := repository.Open(s, root)

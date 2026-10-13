@@ -1,0 +1,282 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-10-13T13:30:29.281098+00:00",
+  "status": "PASS",
+  "scope": "Atomic terminal scan derivation from all requested accepted receipts, private finish/replay/client binding, additive schema 8 and native operator-UID real scanner fixtures. Independent cleanup release and reusable worker deployment remain unfinished.",
+  "source_tree_sha256": "sha256:2e0ec4df5f5230ff594d89d5609862339d1b3ff1f40ffa51957d9882cdbb3a15",
+  "source_files": [
+    {
+      "path": "shared/source/scanevidence/suite.go",
+      "sha256": "sha256:0cac0a1e4e9a8f636ea73dd80ce0855fcbbc349ef0d3a276113ce7229d899051"
+    },
+    {
+      "path": "shared/source/scanevidence/suite_test.go",
+      "sha256": "sha256:1eeb8afb763deec1384696e9d8e7f4d320df0fff32239e9bfacf7424bc776abe"
+    },
+    {
+      "path": "controller/internal/scanqueue/finalize.go",
+      "sha256": "sha256:c47ecbb003f7c3d5f7f5475dc424a9a13b98c18d6998ba3b71d0d14d1db69ca7"
+    },
+    {
+      "path": "controller/internal/scanqueue/finalize_test.go",
+      "sha256": "sha256:2f92e5ed62073b56907c3ac9eaa44761c13fd00c11d208f2bee32d00ae50a783"
+    },
+    {
+      "path": "controller/internal/scanqueue/receipts_test.go",
+      "sha256": "sha256:d6d255c67eb8d2edb732b90241855be7e9d4904c6f71b652eb123c14d2af04df"
+    },
+    {
+      "path": "controller/internal/scantransport/server.go",
+      "sha256": "sha256:0ca56843fc4882162af34a77251252ca1d24e23f6e077a743d293baec52e3ed2"
+    },
+    {
+      "path": "controller/internal/scantransport/finalize_test.go",
+      "sha256": "sha256:33c5bf0867457436914379ac7b77bdef7b662ef13930ccf0b425833708aed12a"
+    },
+    {
+      "path": "controller/internal/store/migrations.go",
+      "sha256": "sha256:702b1a0e63a04ce995ed11fd947acce42df62a8fa4d9eb46f8ef71080e80967b"
+    },
+    {
+      "path": "controller/internal/store/store_test.go",
+      "sha256": "sha256:6e557c128c4e6f38d7118b0858bf2b0d4f270da5eb0d7c61a8139b933319d043"
+    },
+    {
+      "path": "alpha/worker/run.go",
+      "sha256": "sha256:2722ed3554233fe94a851440a1857aa01614e1805dcfd586b7be28417b12dad7"
+    },
+    {
+      "path": "alpha/workerchannel/finalize.go",
+      "sha256": "sha256:0d4a6e957ef858702b439480c1dd771a57990c2f47c3bb30f7385393875a28c6"
+    },
+    {
+      "path": "alpha/workerchannel/finalize_test.go",
+      "sha256": "sha256:04b9a79d897fcc6daebbbe5557a7abcb9da586b5d894244c6467fe39aa4a320e"
+    },
+    {
+      "path": "tests/integration/scannerchannel/channel_test.go",
+      "sha256": "sha256:15c322462fd7545116de9e702ed73afe7baf4e072321f4bf6f217f9e05cab321"
+    },
+    {
+      "path": "tests/integration/scannerchannel/worker_test.go",
+      "sha256": "sha256:5bf3a3afbe9cc3f256c3721c4407bbc94cd38b444e879a7ba92596c9b6c54caa"
+    },
+    {
+      "path": "tests/integration/scannerchannel/receipt_test.go",
+      "sha256": "sha256:71abf11afdf80e56530856bdafcd21a5e936f32674ce7ab5ad3cc6d9e4d55bcf"
+    },
+    {
+      "path": "scripts/generate_contracts.py",
+      "sha256": "sha256:7163ca241e863e0d5f3ceaff5fb9814c8192c76ad7c48cf7b6293d84831d9949"
+    },
+    {
+      "path": "contracts/schemas/ScannerSuiteV1.json",
+      "sha256": "sha256:0a5609df3db3a6e3d1a11cef4dc0f80e00a15b108bd27226983bfeae4cf277f3"
+    },
+    {
+      "path": "contracts/schemas/ScannerSuiteResultV1.json",
+      "sha256": "sha256:4d7b0ba76887eb34770e9975e43980457a9a812a880a9b9d0e03d43061ac1a7d"
+    }
+  ],
+  "race_test_results": {
+    "controller": {
+      "passed_groups": 59,
+      "log_sha256": "sha256:d0aaf26c1b72c8a3808469eda932407bbcbe73e3048436918de54d41c9b46e08"
+    },
+    "client": {
+      "passed_groups": 17,
+      "log_sha256": "sha256:a6f9842aa6d98c119b1795cc33f30a1be6c1d3c1054f0fee031726cdca8938e3"
+    },
+    "shared": {
+      "passed_groups": 10,
+      "log_sha256": "sha256:52522f41e219b4e5ba86495053160d91ec119e4cfbe0ebf9408639216f4f1b45"
+    },
+    "integration": {
+      "passed_groups": 10,
+      "log_sha256": "sha256:f51c2678dde3503d303bbe70f95b53cc79f8c5e7ad84ac7d2b3635cf1580a977"
+    },
+    "real_scanners": {
+      "passed_groups": 5,
+      "log_sha256": "sha256:7a05c91e064b3988a16d53b8dd7efaa2a850ac0b203324649e51f7e5c86ea0e0"
+    }
+  },
+  "actual_native_results": [
+    {
+      "result_digest": "sha256:02718e4529919ae39e88f3e703e2bee8b680669f77d47267010e99618fb991aa",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a13572-0728-77d0-823b-1b673e86a497",
+        "request_digest": "sha256:a5929954a4078b423f228e19126f526933227518df4ad7df9e8f09348446ac44",
+        "app_id": "app_demo",
+        "repository_id": "01a13572-071a-75d8-9353-e8626d7b2a0b",
+        "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614",
+        "status": "completed",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:46b30a596633c0243892a36639981c7649c8bdc1f1dbb94a63537be9098c23b8",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 1,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-13T13:27:11.792045Z"
+      }
+    },
+    {
+      "result_digest": "sha256:421727e5dd2e9bd71afce81767155ed9c6b8a00595eb76caa3eabc1b5c4fb3c1",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a13572-1771-7e7e-bd57-f69db34397db",
+        "request_digest": "sha256:f5244a6de0226564ea51210f461e19dacb7c10a7d6b276f205818c94401772ac",
+        "app_id": "app_demo",
+        "repository_id": "01a13572-175b-74f1-8c9e-4d23d6a6e004",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+        "status": "completed",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:fec8d6bb60a010e2a282a57706cdad7b5628b110b887cc4382093a7e10c23416",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "gitleaks",
+            "receipt_digest": "sha256:6a870e76d32769950ae088647304977e9f1f5f08e9c94a6f223cc5257d912799",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 0,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-13T13:27:16.348647Z"
+      }
+    },
+    {
+      "result_digest": "sha256:53583329a82008f47b9f1aee65443f6a5fac01e31761340ad3032635e4045cc6",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a13572-293c-76be-80c4-a5f6f4560c70",
+        "request_digest": "sha256:2fe0f7ff8efaccbde0dbebe080da098c26f5a8ec4cd6e18c68588b6b553105c4",
+        "app_id": "app_demo",
+        "repository_id": "01a13572-2925-7df2-b578-1afac7817029",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+        "status": "tool_error",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:cf0b7db74456abbb8afc977efec2293b4840f1c4a71525a4603a79d0b824fa4b",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "osv_v2",
+            "receipt_digest": "sha256:eb66a1feefcfa16045e0da2ae93cc4111e5f653c7ac62822562305bc141c4227",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "trivy",
+            "receipt_digest": "sha256:8b46f254a2b4ded4cc6b5bd868748df7505eb2d90da62b8c8fc0cb8c179744f0",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 0,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": true,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-13T13:27:21.522643Z"
+      }
+    }
+  ],
+  "actual_scanner_execution_count": 6,
+  "schema_validation": {
+    "status": "PASS",
+    "validator": "jsonschema 4.26.0; Draft 2020-12 with date-time format checks",
+    "actual_result_payloads": 3,
+    "validated_documents_and_wrappers": 6,
+    "seeded_bandit_finding_claims": 1,
+    "tier": "T0"
+  },
+  "validation": {
+    "make_test": "PASS; final complete race suite/generated checks/console build, followed by fresh seeded/default integration and schema checks",
+    "research_build": "PASS; native CLI and Linux ARM64/AMD64 guards",
+    "go_vet": "PASS; controller, alpha, shared source and scanner-channel integration modules",
+    "git_diff_check": "PASS",
+    "full_test_log_sha256": "sha256:428b1e882b7ad217d4e1f465c1a9caa8fed47649e4026071340f7154eb565891"
+  },
+  "live_regression": {
+    "worker_enrollment": {
+      "passed_checks": 9,
+      "log_sha256": "sha256:20496b3c0e96d1d1c8c76e254c5401728792f72395e6012074c44e5f18f6c37f"
+    },
+    "repository": {
+      "passed_checks": 8,
+      "log_sha256": "sha256:3a582a608099bc0f60f509e0b6a30ff291dfb1798411342a20c77e275234679b"
+    },
+    "scoped_crash": {
+      "passed_checks": 7,
+      "log_sha256": "sha256:bf803b236789153b0ed55ac7b3bdc8ff07f669288b5a1ac0d4779c2b6aced340"
+    }
+  },
+  "deployment": {
+    "schema_version": 8,
+    "shared_image": "sha256:1c3ab595c01ea39495110665c380182876c4a536966089c426df1a270a799232",
+    "services": [
+      "init",
+      "deployer",
+      "verifier",
+      "controller"
+    ],
+    "init_exit_code": 0,
+    "readiness": "SQLite ok; observe policy retained; audit internally consistent under host-admin trust",
+    "owned_scanner_containers_remaining": 0,
+    "protected_online_backup": "/var/lib/aegis/pre-results-schema8-20261013.db",
+    "scope_note": "Repository/crash regressions ran against the exact final runtime image before final seeded test-fixture/golden/doc changes; worker enrollment reran afterwards. Final native fixtures use the actual private handler under operator UID, not workstation access to Compose UID 10001."
+  },
+  "prior_commit_hosted_ci": {
+    "commit": "027653c458613ff937433d14325206953a53c11b",
+    "status": "success",
+    "run_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38400912466"
+  },
+  "limitations": [
+    "Cleanup remains required and dispatch occupied; worker claims cannot release it.",
+    "A completed static suite is not complete application coverage or a security/remediation proof.",
+    "Finding claims can overlap; full cross-tool normalized aggregation/investigation lifecycle unfinished.",
+    "Public scanner result API/GUI, deployable/background worker pairing and automatic recovery remain required.",
+    "Offline advisory databases, arbitrary-code disposable VM isolation, AI/MCP/desktop integrations, signatures/licenses and independent H7 release gates remain open."
+  ],
+  "verification_notes": [
+    "Missing requested receipts are rejected rather than fabricated as empty reports.",
+    "Terminal status preserves independent partial/stale/error flags.",
+    "Clock rollback cannot place finish before accepted receipts.",
+    "Immutable committed replay does not renew execution, repeat audit or release cleanup."
+  ]
+}

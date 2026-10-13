@@ -743,6 +743,12 @@
       "ScannerExecutionV1": {
         "$ref": "schemas/ScannerExecutionV1.json"
       },
+      "ScannerSuiteResultV1": {
+        "$ref": "schemas/ScannerSuiteResultV1.json"
+      },
+      "ScannerSuiteV1": {
+        "$ref": "schemas/ScannerSuiteV1.json"
+      },
       "ScopeGrantApprovalRequestV1": {
         "$ref": "schemas/ScopeGrantApprovalRequestV1.json"
       },

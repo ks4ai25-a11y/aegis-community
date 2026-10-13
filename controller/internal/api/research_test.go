@@ -65,7 +65,7 @@ func TestScopedJobHTTPAndIDOR(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	input := research.Input{"1.0", "app_demo", id, digest, scope.Fixture, p}
+	input := research.Input{Schema: "1.0", App: "app_demo", Scope: id, ScopeDigest: digest, Fixture: scope.Fixture, PolicyDigest: p}
 	headers := map[string]string{"Idempotency-Key": "http-test-key-001"}
 	first := call("POST", "/verifications", input, 202, headers)
 	second := call("POST", "/verifications", input, 202, headers)

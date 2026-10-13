@@ -390,3 +390,61 @@ export interface ScannerExecutionV1ResultSbomComponentsItem {
   version: string;
   purl: string;
 }
+export interface ScannerSuiteV1 {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  snapshot_digest: string;
+  status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  tools: Array<ScannerSuiteResultV1DocumentToolsItem>;
+  finding_claims: number;
+  has_partial: boolean;
+  has_stale_database: boolean;
+  has_tool_error: boolean;
+  evidence_tier: "T0";
+  cleanup_required: true;
+  created_at: string;
+}
+export interface ScannerSuiteV1ToolsItem {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  receipt_digest: string;
+  status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  finding_claims: number;
+  has_sbom: boolean;
+}
+export interface ScannerSuiteResultV1 {
+  result_digest: string;
+  document: ScannerSuiteResultV1Document;
+}
+export interface ScannerSuiteResultV1Document {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  snapshot_digest: string;
+  status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  tools: Array<ScannerSuiteResultV1DocumentToolsItem>;
+  finding_claims: number;
+  has_partial: boolean;
+  has_stale_database: boolean;
+  has_tool_error: boolean;
+  evidence_tier: "T0";
+  cleanup_required: true;
+  created_at: string;
+}
+export interface ScannerSuiteResultV1DocumentToolsItem {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  receipt_digest: string;
+  status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  finding_claims: number;
+  has_sbom: boolean;
+}
