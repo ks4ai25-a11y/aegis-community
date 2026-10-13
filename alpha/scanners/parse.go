@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-const MaxOutput = 8 << 20
-
 func Parse(tool string, b []byte, j Job) (Result, error) {
 	bad := Result{Status: "tool_error", Findings: []Finding{}, Diagnostics: []Diagnostic{{"INVALID_OUTPUT", "Scanner output invalid or unsupported; no zero-findings claim."}}}
 	if validateJSON(b) != nil {

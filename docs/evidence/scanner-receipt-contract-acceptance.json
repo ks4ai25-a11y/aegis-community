@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-10-13T11:34:59.410787+00:00",
+  "status": "PASS",
+  "scope": "Shared receipt decoding/normalization and actual six-adapter parser interoperability from a real controller-authorized six-tool claim. Not persisted ingestion or tool execution.",
+  "source_files": [
+    {
+      "path": "shared/source/scanevidence/decode.go",
+      "sha256": "6cce6d26cc258842f513e5ddc800ac00bb52463957d1c1d88b1f13806ca80226"
+    },
+    {
+      "path": "shared/source/scanevidence/invocation.go",
+      "sha256": "2ea210642db0c6084bf42280d6643ee19dc8b8f3110907beab4d8acdcc118a7a"
+    },
+    {
+      "path": "shared/source/scanevidence/json_boundary.go",
+      "sha256": "fecfcb8a60209c4dade6ff1308bf76d22c80bb60da5143c28a8bcff949ccf0a1"
+    },
+    {
+      "path": "shared/source/scanevidence/types.go",
+      "sha256": "6687043da9761bb0a17f03ba650ac3964430740c221ec59ee1346a38806406dc"
+    },
+    {
+      "path": "shared/source/scanevidence/validate.go",
+      "sha256": "f121cb44d40eb576f2d2f2cad4e3b887adf302dd4009fd227c00c224013063cf"
+    },
+    {
+      "path": "shared/source/scanevidence/validate_test.go",
+      "sha256": "cc018aa098a44427ac6f64ff1e8d4e0ab372471fe1bcb933cbebfc8973d1537b"
+    },
+    {
+      "path": "alpha/scanners/types.go",
+      "sha256": "4960ff84f8723ca0e51855475164f1fc36f4496a45bed04259f6835ae96f1aa2"
+    },
+    {
+      "path": "alpha/scanners/parse.go",
+      "sha256": "8ece41d14818d71b671dfd5ae168a8c093c44e34c88080d9d22b31e491460a9b"
+    },
+    {
+      "path": "alpha/scanners/invocation.go",
+      "sha256": "ba191d51eb8f51edd0e4c25532910369a42c21585259fcda11bfc5e07970e81f"
+    },
+    {
+      "path": "alpha/executor/executor.go",
+      "sha256": "2085d79c4f155e49b2e53186aecbe8fca944829ce1a6e9b5d828bf8f26273589"
+    },
+    {
+      "path": "tests/integration/scannerchannel/receipt_test.go",
+      "sha256": "273fed43167178b20ee5c658829ea6e922554a8c216e246cddeff17a4198e9f5"
+    }
+  ],
+  "source_tree_sha256": "sha256:55770a7366be8c0401f080927a628e1fad59b956df238174afc2f2819424f680",
+  "checks": [
+    {
+      "scope": "shared_receipt_validator",
+      "command": "go test -race -count=1 -json",
+      "status": "PASS",
+      "top_level_cases": [
+        "TestNormalizePreservesClaimsAndReplacesFreeText",
+        "TestReceiptIdentityCoverageAndProofRefusals",
+        "TestPartialAndPreflightFailureRemainHonest",
+        "TestCanonicalDecodeRejectsHostileReceipt",
+        "TestSBOMProjectionAndHostileFields",
+        "TestDependencyCompletionCannotClaimFreshDatabase",
+        "TestReceiptRequiresRequestedToolSelection"
+      ],
+      "subcases": [
+        "TestReceiptIdentityCoverageAndProofRefusals/argv",
+        "TestReceiptIdentityCoverageAndProofRefusals/map",
+        "TestReceiptIdentityCoverageAndProofRefusals/bytes",
+        "TestReceiptIdentityCoverageAndProofRefusals/namespace",
+        "TestReceiptIdentityCoverageAndProofRefusals/cleanup",
+        "TestReceiptIdentityCoverageAndProofRefusals/diagnostic",
+        "TestReceiptIdentityCoverageAndProofRefusals/tier",
+        "TestReceiptIdentityCoverageAndProofRefusals/source",
+        "TestReceiptIdentityCoverageAndProofRefusals/parser",
+        "TestReceiptIdentityCoverageAndProofRefusals/duration",
+        "TestReceiptIdentityCoverageAndProofRefusals/file",
+        "TestReceiptIdentityCoverageAndProofRefusals/snapshot",
+        "TestReceiptIdentityCoverageAndProofRefusals/status",
+        "TestReceiptIdentityCoverageAndProofRefusals/path",
+        "TestReceiptIdentityCoverageAndProofRefusals/fingerprint",
+        "TestReceiptIdentityCoverageAndProofRefusals/exit",
+        "TestReceiptIdentityCoverageAndProofRefusals/pins",
+        "TestReceiptIdentityCoverageAndProofRefusals/network",
+        "TestReceiptIdentityCoverageAndProofRefusals/partial",
+        "TestCanonicalDecodeRejectsHostileReceipt/null",
+        "TestCanonicalDecodeRejectsHostileReceipt/UTF8",
+        "TestCanonicalDecodeRejectsHostileReceipt/depth",
+        "TestCanonicalDecodeRejectsHostileReceipt/duplicate",
+        "TestCanonicalDecodeRejectsHostileReceipt/alias",
+        "TestCanonicalDecodeRejectsHostileReceipt/unknown",
+        "TestCanonicalDecodeRejectsHostileReceipt/trailing",
+        "TestSBOMProjectionAndHostileFields/unknown",
+        "TestSBOMProjectionAndHostileFields/alias",
+        "TestSBOMProjectionAndHostileFields/duplicate",
+        "TestSBOMProjectionAndHostileFields/null",
+        "TestDependencyCompletionCannotClaimFreshDatabase/osv_v2",
+        "TestDependencyCompletionCannotClaimFreshDatabase/trivy"
+      ],
+      "output_sha256": "ab7d7326d1144780e945733c2dc489e5e4a3d25674de0b9cb7d425ae1dbba50a"
+    },
+    {
+      "scope": "actual_adapter_to_shared_contract",
+      "command": "go test -race -count=1 -json",
+      "status": "PASS",
+      "top_level_cases": [
+        "TestActualParserReceiptsShareControllerDataContract"
+      ],
+      "subcases": [
+        "TestActualParserReceiptsShareControllerDataContract/semgrep_ce",
+        "TestActualParserReceiptsShareControllerDataContract/bandit",
+        "TestActualParserReceiptsShareControllerDataContract/gitleaks",
+        "TestActualParserReceiptsShareControllerDataContract/osv_v2",
+        "TestActualParserReceiptsShareControllerDataContract/trivy",
+        "TestActualParserReceiptsShareControllerDataContract/syft"
+      ],
+      "output_sha256": "f7e29e50fe4c3d7ffee27fecb593de4ce226519859cfdaf049a04dc3a809aa87"
+    }
+  ],
+  "full_source_checks": {
+    "command": "make test",
+    "exit_code": 0,
+    "output_sha256": "a5715b21d2445d7d896deb84aab2493ab7f622d569edb838c31c8601732aafe7"
+  },
+  "research_build": {
+    "command": "make research-build",
+    "exit_code": 0,
+    "output_sha256": "5818f963145ab98533801606916da5676260ea0d05a90c699fe9bd7103730962"
+  },
+  "static_analysis": [
+    {
+      "command": "cd shared/source && go vet ./...",
+      "exit_code": 0
+    },
+    {
+      "command": "cd tests/integration/scannerchannel && go vet ./...",
+      "exit_code": 0
+    }
+  ],
+  "prior_hosted_ci": {
+    "commit": "0c435c81cfe2c6f4f600d2b3e512cea3cc8cdc27",
+    "run_id": 38363598077,
+    "conclusion": "success",
+    "covers_current_change": false
+  },
+  "limitations": [
+    "No scanner image or repository code is executed by these new tests.",
+    "The adapter test constructs a manifest from the real controller map and uses synthetic executor fields; it does not independently attest a guard, rule pack, container or cleanup.",
+    "Validation is a pure data contract; controller ingest/append-only persistence and lease authorization must be integrated separately.",
+    "Advisory database freshness is unproven; OSV/Trivy completion normalizes to completed_stale_db.",
+    "Evidence remains T0/suspected; no exploitability, remediation or complete coverage proof.",
+    "Actual worker execution, independent cleanup release, deployed acceptance and v4 release gates remain unfinished."
+  ]
+}

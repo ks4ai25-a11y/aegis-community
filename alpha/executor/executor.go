@@ -6,6 +6,7 @@ package executor
 import (
 	"aegis.local/alpha/scanners"
 	"aegis.local/source"
+	"aegis.local/source/scanevidence"
 	"bytes"
 	"context"
 	"crypto/rand"
@@ -36,28 +37,7 @@ type Config struct {
 	DurationSeconds int
 	BeforeStart     func(string, string) error
 }
-type Execution struct {
-	Parser        string              `json:"parser_version"`
-	Invocation    scanners.Invocation `json:"invocation"`
-	Profile       string              `json:"sandbox_profile"`
-	GuardDigest   string              `json:"guard_binary_digest"`
-	DurationLimit int                 `json:"duration_limit_seconds"`
-	Schema        string              `json:"schema_version"`
-	Tool          string              `json:"tool_id"`
-	Version       string              `json:"tool_version"`
-	Image         string              `json:"tool_image_digest"`
-	LockDigest    string              `json:"tool_lock_digest"`
-	RulesDigest   string              `json:"rule_pack_digest,omitempty"`
-	Snapshot      source.Manifest     `json:"source_snapshot"`
-	Started       string              `json:"started_at"`
-	Duration      int64               `json:"duration_ms"`
-	Exit          int                 `json:"exit_code"`
-	Status        string              `json:"status"`
-	Cleanup       string              `json:"cleanup_state"`
-	Container     string              `json:"container_id"`
-	Result        scanners.Result     `json:"result"`
-	Limitations   []string            `json:"limitations"`
-}
+type Execution = scanevidence.Execution
 
 var scannerName = regexp.MustCompile(`^aegis-scan-[0-9a-f]{32}$`)
 
