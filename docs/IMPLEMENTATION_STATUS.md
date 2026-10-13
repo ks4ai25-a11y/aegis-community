@@ -49,3 +49,7 @@ Research scope and job state changes now commit atomically with their audit reco
 `docs/evidence/research-audit-acceptance.json` records all ten audit-failure/corruption checks with source hashes. The rebuilt local controller passes the scoped-job suite, including persisted claim/reconciliation audit events and chain verification after SIGKILL.
 
 Parser 1.1 rejects ambiguous/oversized JSON before decoding, separates dependency IDs by package/version, preserves declared package names, and refuses configuration findings without separate consent. Ten real pinned fixture runs and a bounded six-parser fuzz run passed; older parser 1.0 receipts remain schema-compatible. Comprehensive ecosystem/rule coverage and durable scanner scheduling remain unfinished. See ADR 018.
+
+GitHub CI run 38333989577 passed both source and disposable trusted-demo jobs on Ubuntu 24.04 for commit 2a0df557838fc1851819b30ac4f70dcf16a374f7. This includes the Go race/console checks, research guard builds and real demo/scoped-job/repository journeys. `docs/evidence/hosted-ci-2a0df55.json` records the exact commit and job URLs; it is not independent security sign-off or a complete release-gate pass.
+
+The operator scanner CLI now refuses a second run while its enrolled registry contains a live or unrecovered session. Explicit recovery must confirm the original container is absent before admission resumes. Durable controller scheduling and cross-operator host admission remain unfinished.

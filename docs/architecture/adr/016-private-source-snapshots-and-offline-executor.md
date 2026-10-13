@@ -21,3 +21,7 @@ Remaining hard requirements: durable scanner queue/leases and narrowly authorize
 ## Operator workspace recovery follow-up
 
 Each CLI scan now uses a private, fsynced per-run journal and a kernel flock lease. The exact random container name is journalled before Docker launch. The explicit `recover-workspaces` command skips live leases and recent sessions, and refuses deletion unless the exact container is absent on the journalled local endpoint and engine identity. It never stops a container. TCP/SSH engine endpoints are rejected; all commands bind a resolved local Unix endpoint. Unconfirmed cleanup retains session data. This is local operator recovery, not the unimplemented durable scanner queue or its automatic recovery service. The crash acceptance test simulates the orphan journal's age inside its isolated test registry; it does not claim a 180-second wall-clock soak test.
+
+## Single-run operator admission
+
+The supported operator CLI serializes session admission under the registry lock and refuses a new scan while any prior session is live or unrecovered. Releasing a crashed process lease is insufficient for admission: explicit recovery must establish absence on the journalled engine first. This enforces one run for the enrolled operator registry. It does not claim cross-operator host-wide arbitration or the unfinished durable controller queue. Concurrent admission and released-orphan refusal are tested.

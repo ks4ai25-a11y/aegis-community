@@ -25,7 +25,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752",
+        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "semgrep_ce",
@@ -62,12 +62,12 @@
           "included_bytes": 821,
           "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
         },
-        "started_at": "2026-10-13T01:47:45.519815Z",
-        "duration_ms": 2820,
+        "started_at": "2026-10-13T01:56:24.562354Z",
+        "duration_ms": 2924,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-1c65af3e566ecb836d1684efb106358d",
+        "container_id": "aegis-scan-2a77076b13b5f1328aafba2c2fdb3a81",
         "result": {
           "status": "completed",
           "findings": [
@@ -95,7 +95,7 @@
                 }
               ],
               "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
-              "created_at": "2026-10-13T01:47:49.274122Z"
+              "created_at": "2026-10-13T01:56:27.846847Z"
             }
           ],
           "diagnostics": []
@@ -132,7 +132,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752",
+        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "semgrep_ce",
@@ -164,12 +164,12 @@
           "included_bytes": 677,
           "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
         },
-        "started_at": "2026-10-13T01:47:49.333808Z",
-        "duration_ms": 3148,
+        "started_at": "2026-10-13T01:56:27.888092Z",
+        "duration_ms": 2704,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-34c86d83988accd2fcfc1af7737e143a",
+        "container_id": "aegis-scan-cabea272e67b291f9580068f51fb6b39",
         "result": {
           "status": "completed",
           "findings": [],
@@ -208,7 +208,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752",
+        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "gitleaks",
@@ -244,12 +244,12 @@
           "included_bytes": 821,
           "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
         },
-        "started_at": "2026-10-13T01:47:52.899283Z",
-        "duration_ms": 442,
+        "started_at": "2026-10-13T01:56:30.928538Z",
+        "duration_ms": 427,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-963e4bff33646e4e78e566a9bc9e10af",
+        "container_id": "aegis-scan-26ed30e64ad0a7e8dc2b9880f8de192d",
         "result": {
           "status": "completed",
           "findings": [
@@ -277,7 +277,7 @@
                 }
               ],
               "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
-              "created_at": "2026-10-13T01:47:53.616313Z"
+              "created_at": "2026-10-13T01:56:31.615829Z"
             }
           ],
           "diagnostics": []
@@ -314,7 +314,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752",
+        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "gitleaks",
@@ -345,12 +345,12 @@
           "included_bytes": 677,
           "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
         },
-        "started_at": "2026-10-13T01:47:53.665375Z",
-        "duration_ms": 445,
+        "started_at": "2026-10-13T01:56:31.65946Z",
+        "duration_ms": 404,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-494272de49d6c547c8c235535ca56b04",
+        "container_id": "aegis-scan-638fe39b69575489fafdba5e75c5c39a",
         "result": {
           "status": "completed",
           "findings": [],
@@ -382,7 +382,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752",
+        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "syft",
@@ -418,12 +418,12 @@
           "included_bytes": 821,
           "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
         },
-        "started_at": "2026-10-13T01:47:54.52812Z",
-        "duration_ms": 1960,
+        "started_at": "2026-10-13T01:56:32.428335Z",
+        "duration_ms": 1985,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-89f64ef7cec191b364e80d023cd1f02f",
+        "container_id": "aegis-scan-d2115673629720a4aa5b69a437f84a9d",
         "result": {
           "status": "completed",
           "findings": [],
@@ -477,7 +477,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752",
+        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "syft",
@@ -508,12 +508,12 @@
           "included_bytes": 677,
           "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
         },
-        "started_at": "2026-10-13T01:47:56.94869Z",
-        "duration_ms": 1728,
+        "started_at": "2026-10-13T01:56:34.742666Z",
+        "duration_ms": 1804,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-f50a50e8b8cc9c148be7664c0ad12df4",
+        "container_id": "aegis-scan-297c7b89b50a23c5571cf813b9b9c197",
         "result": {
           "status": "completed",
           "findings": [],
@@ -573,7 +573,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752",
+        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "osv_v2",
@@ -609,12 +609,12 @@
           "included_bytes": 821,
           "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
         },
-        "started_at": "2026-10-13T01:47:59.020547Z",
-        "duration_ms": 582,
+        "started_at": "2026-10-13T01:56:36.940323Z",
+        "duration_ms": 556,
         "exit_code": 127,
         "status": "tool_error",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-3f3897a0e791b33c5c80e9a8917c2576",
+        "container_id": "aegis-scan-bb90ac1c6a81181b9b7753568172f990",
         "result": {
           "status": "tool_error",
           "findings": [],
@@ -657,7 +657,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752",
+        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "osv_v2",
@@ -688,12 +688,12 @@
           "included_bytes": 677,
           "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
         },
-        "started_at": "2026-10-13T01:47:59.93812Z",
-        "duration_ms": 568,
+        "started_at": "2026-10-13T01:56:37.819453Z",
+        "duration_ms": 664,
         "exit_code": 127,
         "status": "tool_error",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-8577ebcb1211e31a13881a60e66add8c",
+        "container_id": "aegis-scan-7019e26d7973322467c7e222450fcadd",
         "result": {
           "status": "tool_error",
           "findings": [],
@@ -736,7 +736,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752",
+        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "trivy",
@@ -772,12 +772,12 @@
           "included_bytes": 821,
           "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
         },
-        "started_at": "2026-10-13T01:48:00.95233Z",
-        "duration_ms": 734,
+        "started_at": "2026-10-13T01:56:38.888091Z",
+        "duration_ms": 685,
         "exit_code": 1,
         "status": "tool_error",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-a54a73e6918e76b44e33d99f31c62324",
+        "container_id": "aegis-scan-bd47b409159cfbdfd3977aca9ae9231f",
         "result": {
           "status": "tool_error",
           "findings": [],
@@ -820,7 +820,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752",
+        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "trivy",
@@ -851,12 +851,12 @@
           "included_bytes": 677,
           "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
         },
-        "started_at": "2026-10-13T01:48:02.156469Z",
-        "duration_ms": 613,
+        "started_at": "2026-10-13T01:56:39.937377Z",
+        "duration_ms": 616,
         "exit_code": 1,
         "status": "tool_error",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-33ee15a9d3db4eab1af25301e6cba239",
+        "container_id": "aegis-scan-4480759fb0427aa5c51e677e7b145d72",
         "result": {
           "status": "tool_error",
           "findings": [],
@@ -876,9 +876,9 @@
       }
     }
   ],
-  "started_at": "2026-10-13T01:47:45Z",
+  "started_at": "2026-10-13T01:56:24Z",
   "overall": "PASS",
-  "completed_at": "2026-10-13T01:48:03Z",
+  "completed_at": "2026-10-13T01:56:40Z",
   "limitations": [
     "Only trusted bundled inert inputs and local Docker Desktop tested.",
     "OSV/Trivy missing offline databases remain tool_error; no coverage or exploitability claim.",

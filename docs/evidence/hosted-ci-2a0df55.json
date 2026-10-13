@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "scope": "hosted-Ubuntu-24.04-source-and-disposable-trusted-demo",
+  "commit": "2a0df557838fc1851819b30ac4f70dcf16a374f7",
+  "overall": "PASS",
+  "run_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38333989577",
+  "jobs": [
+    {
+      "name": "source",
+      "result": "PASS",
+      "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38333989577/job/115089853319",
+      "completed_at": "2026-10-13T01:50:44Z",
+      "steps": [
+        "Set up job",
+        "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "Run actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e",
+        "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+        "Run make test",
+        "Run make research-build",
+        "Run python3 scripts/source_manifest.py",
+        "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+        "Post Run actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e",
+        "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "Complete job"
+      ]
+    },
+    {
+      "name": "trusted-demo",
+      "result": "PASS",
+      "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38333989577/job/115089853522",
+      "completed_at": "2026-10-13T01:51:55Z",
+      "steps": [
+        "Set up job",
+        "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "Run docker compose -f deploy/compose.demo.yaml build",
+        "Run docker compose -f deploy/compose.demo.yaml up -d",
+        "Wait for local demo liveness",
+        "Run python3 tests/integration/demo_acceptance.py",
+        "Run python3 tests/integration/scoped_jobs_acceptance.py",
+        "Run python3 tests/integration/repository_acceptance.py",
+        "Stop only this disposable CI demo",
+        "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "Complete job"
+      ]
+    }
+  ],
+  "limitations": [
+    "This result applies to the exact commit recorded here.",
+    "Trusted synthetic fixture CI only; no arbitrary untrusted application execution.",
+    "No full scanner-isolation, signature, independent installation or external review gate claim."
+  ]
+}

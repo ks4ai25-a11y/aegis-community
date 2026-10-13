@@ -22,7 +22,9 @@ Supported pinned IDs are `semgrep_ce`, `gitleaks`, `syft`, `osv_v2` and `trivy`.
 
 The JSON execution receipt includes snapshot, tool, rules, guard and invocation identities. Exit 0 means a complete or partial tool run, never that an application is secure. Exit 1 means refusal, tool_error, cancellation/deadline or unconfirmed cleanup. Check `status`, `result.diagnostics` and `cleanup_state`; missing/failed tools cannot establish zero findings. Source workspaces and containers are removed after normal completion, cancellation and timeout when cleanup is confirmed.
 
-The guard enforces an independent container deadline even if the host CLI is killed. Every run creates a mode-0700 session under the current operator's canonical temporary directory, in `aegis-scanner-workspaces-UID`. Its fsynced journal binds the random container identity before launch; a kernel lease protects live runs. Unconfirmed container cleanup preserves the workspace. After a host crash, run:
+The guard enforces an independent container deadline even if the host CLI is killed. The supported CLI admits one scanner run per operator registry. A second invocation is refused while a live or unrecovered run occupies the registry. This includes crashed runs whose container status remains uncertain. The operator must recover that run before starting another scan. Cross-operator coordination and durable queue admission remain unfinished.
+
+Every run creates a mode-0700 session under the current operator's canonical temporary directory, in `aegis-scanner-workspaces-UID`. Its fsynced journal binds the random container identity before launch; a kernel lease protects live runs. Unconfirmed container cleanup preserves the workspace. After a host crash, run:
 
 ```sh
 bin/aegis-research recover-workspaces

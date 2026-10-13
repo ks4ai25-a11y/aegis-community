@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -18,6 +19,8 @@ import (
 	"syscall"
 	"time"
 )
+
+var ErrOccupied = errors.New("scanner workspace registry occupied; finish or recover the existing run")
 
 var sessionName = regexp.MustCompile(`^run-[0-9a-f]{32}$`)
 var engineDigest = regexp.MustCompile(`^sha256:[0-9a-f]{64}$`)
@@ -96,6 +99,23 @@ func Begin(path string) (*Session, error) {
 		return nil, e
 	}
 	defer lock.Close()
+	// The supported operator CLI admits one run at a time. Even an orphan with
+	// a released lease blocks another scan until explicit recovery establishes
+	// absence of the exact container on its original engine.
+	directory, e := os.Open(path)
+	if e != nil {
+		return nil, e
+	}
+	entries, e := directory.ReadDir(2)
+	directory.Close()
+	if e != nil && e != io.EOF {
+		return nil, e
+	}
+	for _, entry := range entries {
+		if entry.Name() != ".registry-lock" {
+			return nil, ErrOccupied
+		}
+	}
 	nonce := make([]byte, 16)
 	if _, e = rand.Read(nonce); e != nil {
 		return nil, e

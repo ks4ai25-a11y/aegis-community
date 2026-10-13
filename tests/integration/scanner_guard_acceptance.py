@@ -63,6 +63,10 @@ try:
    active=subprocess.run([str(BINARY),'recover-workspaces'],env=env,capture_output=True,timeout=10)
    assert active.returncode==0 and json.loads(active.stdout)['active']==1
    check('recovery_preserves_live_kernel_lease',{'active':1})
+   second=subprocess.run([str(BINARY),'scan-offline','syft',str(ROOT/'alpha/fixtures/scanners/safe'),str(ROOT)],env=env,capture_output=True,timeout=10)
+   assert second.returncode!=0 and not second.stdout and b'registry occupied' in second.stderr
+   check('second_scanner_cli_refused_while_first_runs',{'normalized_receipts':0})
+
    waiter=subprocess.Popen(['docker','wait',container],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
    time.sleep(.2);started=time.monotonic();cli.kill();cli.communicate(timeout=5)
    code,error=waiter.communicate(timeout=15)
@@ -87,6 +91,10 @@ try:
     assert session.name.startswith('run-') and not session.is_symlink()
     deferred=subprocess.run([str(BINARY),'recover-workspaces'],env=env,capture_output=True,timeout=10)
     assert deferred.returncode==0 and json.loads(deferred.stdout)['deferred']==1
+    orphan_second=subprocess.run([str(BINARY),'scan-offline','syft',str(ROOT/'alpha/fixtures/scanners/safe'),str(ROOT)],env=env,capture_output=True,timeout=10)
+    assert orphan_second.returncode!=0 and not orphan_second.stdout and b'registry occupied' in orphan_second.stderr
+    check('unrecovered_orphan_blocks_new_cli_scan',{'normalized_receipts':0})
+
     journal=session/'journal.json';data=json.loads(journal.read_text());data['created_unix']=int(time.time())-240;journal.write_text(json.dumps(data))
     original_engine=data['engine_digest'];data['engine_digest']='sha256:'+'0'*64;journal.write_text(json.dumps(data))
     wrong_engine=subprocess.run([str(BINARY),'recover-workspaces'],env=env,capture_output=True,timeout=10)

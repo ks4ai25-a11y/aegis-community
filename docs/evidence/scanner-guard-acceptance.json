@@ -7,8 +7,8 @@
       "result": "PASS",
       "detail": {
         "exit_code": 124,
-        "duration_ms": 1385,
-        "guard_binary_digest": "sha256:2406e2b8c2d35af45367c3516066b2f85ddad50639b02f4bd70958b971159752"
+        "duration_ms": 1420,
+        "guard_binary_digest": "sha256:3f298087e2749419e20323b144b68679d17d556f46974215f0040c9e564049a6"
       }
     },
     {
@@ -27,14 +27,28 @@
       }
     },
     {
+      "id": "second_scanner_cli_refused_while_first_runs",
+      "result": "PASS",
+      "detail": {
+        "normalized_receipts": 0
+      }
+    },
+    {
       "id": "container_guard_survives_host_cli_sigkill",
       "result": "PASS",
       "detail": {
         "guard_exit_code": 124,
-        "elapsed_after_cli_kill_seconds": 7.888,
+        "elapsed_after_cli_kill_seconds": 7.712,
         "network_profile": "none",
         "read_only_mounts": true,
         "log_driver": "none"
+      }
+    },
+    {
+      "id": "unrecovered_orphan_blocks_new_cli_scan",
+      "result": "PASS",
+      "detail": {
+        "normalized_receipts": 0
       }
     },
     {
@@ -54,9 +68,9 @@
       }
     }
   ],
-  "started_at": "2026-10-13T01:48:19Z",
+  "started_at": "2026-10-13T01:55:47Z",
   "overall": "PASS",
-  "completed_at": "2026-10-13T01:48:34Z",
+  "completed_at": "2026-10-13T01:56:01Z",
   "limitations": [
     "Local ARM64 Docker Desktop and trusted inert inputs only.",
     "Operator recovery is explicit; durable scanner job orchestration and automatic recovery remain required.",

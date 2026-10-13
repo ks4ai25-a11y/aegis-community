@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:5646324209a45c21ec64275c166b466bf81dbd8ab482dc97e6050a5e7b4da67f",
+  "source_tree_sha256": "sha256:a84b161d2d1c48ca80faef7d65a033d680df8fab2d9ff9dbcf9cb67ada28cf2e",
   "files": [
     {
       "path": ".dockerignore",
@@ -152,11 +152,11 @@
     },
     {
       "path": "alpha/workspace/workspace_test.go",
-      "sha256": "b9f48aeb7db34515ffade8a5c3d2b701f4dc2a52b15a33ef1c7e94c2f1311368"
+      "sha256": "e227759529054fb6ce22e9fe2b98bc500710730ccb5017955cddcc8eefe4dd8c"
     },
     {
       "path": "alpha/workspace/workspace_unix.go",
-      "sha256": "5cf39e085085468dd454d9a5c2f3444beaa79bfb3cc65f334a25d1385b56bd2c"
+      "sha256": "e0e858aedf0dd0c4a7e7dec0a64f683f34a777e3115e6053c9b82c753e7b2e9a"
     },
     {
       "path": "console/index.html",
@@ -516,7 +516,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "dc1158530bcdbba58f27c199eb1f8e79158f3e7b8bc50b4d89d125ecaf61b570"
+      "sha256": "30fff5027a02fdbb327110d37c56f52fda64c7d7e7541417e2598c63b542d4b6"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -544,7 +544,7 @@
     },
     {
       "path": "docs/architecture/adr/016-private-source-snapshots-and-offline-executor.md",
-      "sha256": "69c42e8331f0c2092d8ac1e146ec10e9f71bf01a1a2eaaeefaed93672cf71b3d"
+      "sha256": "1a4b89e3b5cf915102efa411becd5458b5dd380448cdc0de742895169db3bd7e"
     },
     {
       "path": "docs/architecture/adr/017-atomic-research-authorization-and-audit.md",
@@ -556,7 +556,7 @@
     },
     {
       "path": "docs/operators/offline-scanners.md",
-      "sha256": "262f56f5620c41fc23c6903f70253a1bdcac9b81d8a757e89b87c507878c4a02"
+      "sha256": "b85067aaa1a9c813212f8971db6229913f93cefa2ae6341593e38022b37dc823"
     },
     {
       "path": "docs/operators/repositories.md",
@@ -664,7 +664,7 @@
     },
     {
       "path": "tests/integration/scanner_guard_acceptance.py",
-      "sha256": "97ed98648aa56051410bf347c112e773b3028e6ef12812e7856a8656b4d4c931"
+      "sha256": "bee4b0cb8ef2ff41705740fed3e1ad0620b1448d6996713a73ca5e3951798195"
     },
     {
       "path": "tests/integration/scoped_jobs_acceptance.py",
