@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:3fb53c461435598c258d08480417d29c585e11c0d3deef2addfa6695f43cd6f5",
+  "source_tree_sha256": "sha256:eacbad42505b64d762445dbc562bf767960414857ab27a13b287fe37f9d5a697",
   "files": [
     {
       "path": ".dockerignore",
@@ -157,6 +157,26 @@
     {
       "path": "alpha/scanners/types.go",
       "sha256": "c0bd970a18adcd95e79766d2caf8dee345352c465b3ceedbd5a4297f87d421d0"
+    },
+    {
+      "path": "alpha/workerchannel/client.go",
+      "sha256": "890f022ece690a4e73039922c7f2f60b9f8c38d5e4bb0d57e517ef4cef7f2608"
+    },
+    {
+      "path": "alpha/workerchannel/client_test.go",
+      "sha256": "07441a73c13eabb387c13e994143a80ad10e40e1752373812d385364b6df0dad"
+    },
+    {
+      "path": "alpha/workerchannel/json.go",
+      "sha256": "a149160ef5f1082bc8b59763e68e107c98f3288f24f9d4176732cea9eddd0cd7"
+    },
+    {
+      "path": "alpha/workerchannel/private_other.go",
+      "sha256": "f3b0592c83f95fb9e1f1ab21cb3fa9854d6241fba466b2003052c468ff68d133"
+    },
+    {
+      "path": "alpha/workerchannel/private_unix.go",
+      "sha256": "626725d600bbd54c301018ad1530984c444e509f4724521bafd8b27713858c91"
     },
     {
       "path": "alpha/workspace/workspace_test.go",
@@ -576,7 +596,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "394aab2edfd5f49b3405950155d489491767e7ba0f5f8ab2b6fddd8dbbeb3f97"
+      "sha256": "a6b9e962286d98c024b1fab4c4034e0628134cbea2790679ef605239bd229a1a"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -639,6 +659,10 @@
       "sha256": "7d63ece740d5830109200be7f7dc4742846ff31ad79d0971e6cfaba25b4db7bd"
     },
     {
+      "path": "docs/architecture/adr/025-scanner-side-private-client.md",
+      "sha256": "6efcb0b6e841545a4e0edc61c4a14e6ed65be4aacff864591b408b50d5f3eb93"
+    },
+    {
       "path": "docs/operators/local-demo-upgrades.md",
       "sha256": "630e6af7f0e208d3d21877fc06af51ad18c09b88777fd5ec9d1945f87fdb4aad"
     },
@@ -652,7 +676,7 @@
     },
     {
       "path": "docs/operators/scanner-workers.md",
-      "sha256": "a7134c1587549965319fe41ae93a3542f363b27a0d3802dd0a45f09dd7f06bc4"
+      "sha256": "e62122c1d99fa747dfc188d61306f474fedec0ec3af7174f95ee930c76b743af"
     },
     {
       "path": "docs/release-gates.json",

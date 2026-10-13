@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-10-13T07:26:34.368844+00:00",
+  "status": "PASS",
+  "scope": "Scanner-side Unix client protocol fixtures and source validation; not deployed client/server interoperability or actual tool execution.",
+  "source_files": [
+    {
+      "path": "alpha/workerchannel/client.go",
+      "sha256": "890f022ece690a4e73039922c7f2f60b9f8c38d5e4bb0d57e517ef4cef7f2608"
+    },
+    {
+      "path": "alpha/workerchannel/client_test.go",
+      "sha256": "07441a73c13eabb387c13e994143a80ad10e40e1752373812d385364b6df0dad"
+    },
+    {
+      "path": "alpha/workerchannel/json.go",
+      "sha256": "a149160ef5f1082bc8b59763e68e107c98f3288f24f9d4176732cea9eddd0cd7"
+    },
+    {
+      "path": "alpha/workerchannel/private_other.go",
+      "sha256": "f3b0592c83f95fb9e1f1ab21cb3fa9854d6241fba466b2003052c468ff68d133"
+    },
+    {
+      "path": "alpha/workerchannel/private_unix.go",
+      "sha256": "626725d600bbd54c301018ad1530984c444e509f4724521bafd8b27713858c91"
+    }
+  ],
+  "race_test_cases": [
+    "TestProtocolLifecycle",
+    "TestClaimBindingRefusals",
+    "TestHostileResponses",
+    "TestEmptyRedirectAndErrorRedaction",
+    "TestUnsafeCredential",
+    "TestUnsafeSocket",
+    "TestAcknowledgementsAndLocalGuardBinding"
+  ],
+  "test_output_sha256": "9b024cc7b465884609ef10a87c32f3b9b647a097a9004aa14b3b79940fdb119c",
+  "full_source_check": {
+    "command": "make test",
+    "exit_code": 0,
+    "output_sha256": "d8e59e35274d51455f0f363ba6412e7420e6e55099f20ea4a13229309c420c15"
+  },
+  "static_check": {
+    "command": "cd alpha && go vet ./workerchannel",
+    "exit_code": 0
+  },
+  "prior_hosted_ci": {
+    "commit": "32f3cba568185118930aba98f2938e76ec3ab28e",
+    "run_id": 38342620598,
+    "conclusion": "success",
+    "covers_current_change": false
+  },
+  "limitations": [
+    "Worker execution loop and actual source capture integration remain unfinished.",
+    "No successful receipt or finding ingestion is implemented.",
+    "Cleanup admission is retained; no cleanup release operation is implemented.",
+    "Protocol tests use a local fixture rather than the deployed controller.",
+    "Windows and remote workers remain unsupported.",
+    "Disposable-VM untrusted-code isolation and release gates remain unfinished."
+  ]
+}
