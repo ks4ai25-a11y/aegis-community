@@ -27,10 +27,11 @@ var engineDigest = regexp.MustCompile(`^sha256:[0-9a-f]{64}$`)
 var containerName = regexp.MustCompile(`^aegis-scan-[0-9a-f]{32}$`)
 
 type record struct {
-	Version   string `json:"schema_version"`
-	Created   int64  `json:"created_unix"`
-	Container string `json:"container,omitempty"`
-	Engine    string `json:"engine_digest,omitempty"`
+	Version     string `json:"schema_version"`
+	Created     int64  `json:"created_unix"`
+	Container   string `json:"container,omitempty"`
+	Engine      string `json:"engine_digest,omitempty"`
+	Reservation string `json:"workspace_digest,omitempty"`
 }
 type Session struct {
 	Path   string
@@ -93,7 +94,18 @@ func registry(path string) (*os.File, error) {
 	}
 	return f, nil
 }
-func Begin(path string) (*Session, error) {
+func Begin(path string) (*Session, error) { return begin(path, nil) }
+
+// BeginReserved holds registry admission while authorization commits, before
+// the run directory exists. A failed acknowledgement creates no run workspace.
+func BeginReserved(path string, authorize func(string) (string, error)) (*Session, error) {
+	if authorize == nil {
+		return nil, fmt.Errorf("workspace reservation required")
+	}
+	return begin(path, authorize)
+}
+
+func begin(path string, authorize func(string) (string, error)) (*Session, error) {
 	lock, e := registry(path)
 	if e != nil {
 		return nil, e
@@ -121,6 +133,13 @@ func Begin(path string) (*Session, error) {
 		return nil, e
 	}
 	p := filepath.Join(path, "run-"+hex.EncodeToString(nonce))
+	reservation := ""
+	if authorize != nil {
+		reservation, e = authorize(filepath.Base(p))
+		if e != nil || !engineDigest.MatchString(reservation) {
+			return nil, fmt.Errorf("workspace reservation rejected")
+		}
+	}
 	if e = os.Mkdir(p, 0700); e != nil {
 		return nil, e
 	}
@@ -134,7 +153,7 @@ func Begin(path string) (*Session, error) {
 		os.RemoveAll(p)
 		return nil, e
 	}
-	s := &Session{Path: p, lease: f, record: record{Version: "1.0", Created: time.Now().Unix()}}
+	s := &Session{Path: p, lease: f, record: record{Version: "1.0", Created: time.Now().Unix(), Reservation: reservation}}
 	if e = s.persist(); e != nil {
 		s.Close()
 		return nil, e
@@ -289,7 +308,7 @@ func Recover(ctx context.Context, path string, now time.Time, absent func(contex
 				return fmt.Errorf("invalid workspace journal budget")
 			}
 			var r record
-			if json.Unmarshal(b, &r) != nil || r.Version != "1.0" || r.Created <= 0 || (r.Container != "" && (!containerName.MatchString(r.Container) || !engineDigest.MatchString(r.Engine))) {
+			if json.Unmarshal(b, &r) != nil || r.Version != "1.0" || r.Created <= 0 || (r.Reservation != "" && !engineDigest.MatchString(r.Reservation)) || (r.Container != "" && (!containerName.MatchString(r.Container) || !engineDigest.MatchString(r.Engine))) {
 				return fmt.Errorf("invalid workspace journal")
 			}
 			// Independent guard max 120 seconds plus conservative launch/cleanup grace.

@@ -105,7 +105,7 @@ func TestScannerMigrationUpgradePreservesExistingVersions(t *testing.T) {
 		}
 	}
 	var version int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 9 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 10 {
 		t.Fatal(version, e)
 	}
 	if got, e := s.Get("upgrade-canary"); e != nil || got != "preserved" {
@@ -213,6 +213,12 @@ func TestWorkerRoleMigrationPreservesDispatchWithoutImplicitEnrollment(t *testin
 	if e = s.DB.QueryRow("SELECT launch_protocol FROM scanner_dispatch WHERE slot=1").Scan(&protocol); e != nil || protocol != 0 {
 		t.Fatal("migration invented journaled launch authority", protocol, e)
 	}
+	if e = s.DB.QueryRow("SELECT workspace_protocol FROM scanner_dispatch WHERE slot=1").Scan(&protocol); e != nil || protocol != 0 {
+		t.Fatal("migration invented workspace authority", protocol, e)
+	}
+	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_workspaces").Scan(&n); e != nil || n != 0 {
+		t.Fatal("migration invented workspace records", n, e)
+	}
 	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_launches").Scan(&n); e != nil || n != 0 {
 		t.Fatal("migration invented launch evidence", n, e)
 	}
@@ -264,5 +270,58 @@ func TestReceiptMigrationPreservesVersionSixWorkerAndPriorState(t *testing.T) {
 	}
 	if value, e := s.Get("receipt-upgrade-canary"); e != nil || value != "preserved" {
 		t.Fatal("upgrade lost prior state")
+	}
+}
+
+func TestWorkspaceMigrationQuarantinesVersionNineDispatchWithoutInventingReservations(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "v9-workspaces.db")
+	db, e := sql.Open("sqlite", path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	prior := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema}
+	for i, body := range prior {
+		if _, e = db.Exec(body); e != nil {
+			t.Fatal(e)
+		}
+		if _, e = db.Exec("INSERT INTO migrations VALUES(?,?)", i+1, domain.Hash([]byte(body))); e != nil {
+			t.Fatal(e)
+		}
+	}
+	for _, statement := range []string{
+		"INSERT INTO owners VALUES('v9-owner','fixture','2026-10-13T00:00:00Z')",
+		"INSERT INTO repositories VALUES('v9-repo','v9-owner','app_demo','fixture','map','2026-10-13T00:00:00Z')",
+		"INSERT INTO scanner_jobs(id,owner,repository,app,map_digest,lock_digest,request_digest,idempotency_key,payload,state,created_at,expires) VALUES('v9-job','v9-owner','v9-repo','app_demo','map','lock','request','key','{}','running','2026-10-13T00:00:00Z',1791849600)",
+		"INSERT INTO scanner_dispatch VALUES(1,'v9-job','original-worker','original-capability-hash',1791849600,1791849600,'active',1)",
+		"INSERT INTO scanner_launches VALUES('v9-job','bandit','v9-owner','request','original-container','original-workspace','original-digest','{}','2026-10-13T00:00:00Z')",
+	} {
+		if _, e = db.Exec(statement); e != nil {
+			t.Fatal(e)
+		}
+	}
+	db.Close()
+	s, e := Open(path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	var launch, workspace int
+	var state, hash string
+	if e = s.DB.QueryRow("SELECT state,token_hash,launch_protocol,workspace_protocol FROM scanner_dispatch").Scan(&state, &hash, &launch, &workspace); e != nil || state != "active" || hash != "original-capability-hash" || launch != 1 || workspace != 0 {
+		t.Fatal("upgrade changed or revived old authority", e)
+	}
+	var n int
+	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_workspaces").Scan(&n); e != nil || n != 0 {
+		t.Fatal("upgrade invented reservations", e)
+	}
+	var digest string
+	if e = s.DB.QueryRow("SELECT digest FROM scanner_launches").Scan(&digest); e != nil || digest != "original-digest" {
+		t.Fatal("upgrade rewrote old evidence", e)
+	}
+	for i, body := range prior {
+		var checksum string
+		if e = s.DB.QueryRow("SELECT checksum FROM migrations WHERE version=?", i+1).Scan(&checksum); e != nil || checksum != domain.Hash([]byte(body)) {
+			t.Fatal("prior checksum changed", e)
+		}
 	}
 }

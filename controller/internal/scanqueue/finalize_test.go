@@ -26,6 +26,7 @@ func completedReceipt(t *testing.T, status string) (*Queue, Lease, scanevidence.
 	}
 	if status != "tool_error" {
 		p := scanevidence.LaunchPlan{Tool: r.Tool, Container: r.Container, Engine: domain.Hash([]byte("fixture engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("fixture registry")), Snapshot: r.Snapshot.Digest}
+		reserveLaunchWorkspace(t, q, l, p)
 		if _, e := q.RegisterLaunch(l, p); e != nil {
 			t.Fatal(e)
 		}

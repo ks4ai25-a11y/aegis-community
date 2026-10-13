@@ -17,3 +17,5 @@ Still required: the complete v4 contract catalogue and API surface, runtime JSON
 
 
 `ScannerLaunchPlanV1`, `ScannerLaunchV1` and `ScannerLaunchRecordV1` describe bounded private prelaunch metadata and immutable controller receipts. They accept opaque engine/registry digests and reserved IDs, without host paths or capabilities. They do not advertise a public launch operation, process-start proof or cleanup release. Exact launch replay still requires live worker authority; general launch-submission serialization omits the private capability.
+
+`ScannerWorkspacePlanV1`, `ScannerWorkspaceV1` and `ScannerWorkspaceRecordV1` describe bounded private pre-capture reservation metadata. The plan contains opaque IDs/digests, never paths or cleanup authorization. These generated components do not advertise a public scanner workspace API. See ADR 033.

@@ -10,6 +10,7 @@ import (
 	"aegis.local/source"
 	"aegis.local/source/scanevidence"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -98,6 +99,15 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 		return out, ErrRun
 	}
 	defer assets.Close()
+	registry := cfg.WorkspaceRoot
+	if registry == "" {
+		registry = workspace.DefaultRoot()
+	}
+	canonicalRegistry, e := filepath.EvalSymlinks(filepath.Dir(registry))
+	if e != nil || !filepath.IsAbs(registry) || filepath.Clean(registry) != registry || canonicalRegistry != filepath.Dir(registry) {
+		return out, ErrRun
+	}
+	registryDigest := source.Hash([]byte("aegis-scanner-workspace-registry-v1\n" + registry + "\n" + fmt.Sprint(os.Geteuid())))
 	l, e := client.Claim(ctx)
 	if errors.Is(e, workerchannel.ErrEmpty) {
 		out.State = "no_job"
@@ -107,11 +117,16 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 		return out, ErrRun
 	}
 	out.Job, out.Request, out.State = l.Job.ID, l.Job.RequestDigest, "stopped"
-	registry := cfg.WorkspaceRoot
-	if registry == "" {
-		registry = workspace.DefaultRoot()
-	}
 	failure := "SCANNER_EXECUTION_FAILED"
+	manifest := source.Manifest{Schema: "1.0", InputMap: l.Map.Digest, Commit: l.Map.Commit, Files: l.Map.Files}
+	for _, file := range manifest.Files {
+		manifest.Bytes += file.Size
+	}
+	manifestBytes, e := json.Marshal(manifest)
+	if e != nil {
+		return out, ErrRun
+	}
+	snapshotDigest := source.Hash(manifestBytes)
 	captureRemaining := 60 * time.Second
 	e = client.RunWithLease(ctx, l, func(run context.Context) error {
 		for _, tool := range l.Job.Input.Tools {
@@ -123,7 +138,10 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 			if e != nil {
 				return ErrRun
 			}
-			session, e := workspace.Begin(registry)
+			session, e := workspace.BeginReserved(registry, func(id string) (string, error) {
+				record, err := client.ReserveWorkspace(run, l, scanevidence.WorkspacePlan{Tool: tool, Workspace: id, Registry: registryDigest, Snapshot: snapshotDigest})
+				return record.Digest, err
+			})
 			if e != nil {
 				root.Close()
 				return ErrRun
@@ -146,7 +164,6 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 				if e := session.Bind(name, engine); e != nil {
 					return ErrRun
 				}
-				registryDigest := source.Hash([]byte("aegis-scanner-workspace-registry-v1\n" + filepath.Dir(session.Path) + "\n" + fmt.Sprint(os.Geteuid())))
 				_, e := client.RegisterLaunch(run, l, scanevidence.LaunchPlan{Tool: tool, Container: name, Engine: engine, Workspace: filepath.Base(session.Path), Registry: registryDigest, Snapshot: prepared.Snapshot.Digest}, prepared.Version, prepared.Image)
 				return e
 			}}

@@ -84,3 +84,9 @@ The controller commits an immutable attempt and audit together, derives the trus
 Claims require `launch_protocol: "1.0"`. Migration 9 preserves old dispatches with protocol zero and no invented records; they remain occupied and cannot renew new execution. Exact launch replay requires current authority, including after a prior commit. Update all services sharing the controller image using the backup/initializer procedure before using the new worker.
 
 Launch records support later independent verification; they never release admission. A capture/workspace crash before the first record remains uncertain, and zero records do not prove cleanup. Trusted namespace/capture registration and an independent verifier are still required. See ADR 032 and `ScannerLaunchPlanV1`, `ScannerLaunchV1`, `ScannerLaunchRecordV1`.
+
+## Workspace reservations before source capture
+
+The native worker now requires `workspace_protocol: "1.0"` as well as the launch protocol. It reserves each selected tool's opaque run ID through the private channel while holding local registry admission, before creating that run directory or copying source. Its private journal stores the acknowledged reservation digest. Launches must match that earlier workspace/registry/snapshot reservation. Lost acknowledgements can leave committed reservations without allocated runs; admission remains occupied.
+
+Migration 10 preserves legacy dispatches with workspace protocol zero and no fabricated history. Follow the protected backup/shared-image initializer procedure. A malformed incomplete allocation still requires trusted recovery; do not delete controller admission rows or treat no launches as cleanup proof. Independent registry/engine verification and cleanup release remain unfinished. See ADR 033 and `ScannerWorkspacePlanV1`, `ScannerWorkspaceV1` and `ScannerWorkspaceRecordV1` contracts.

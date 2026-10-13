@@ -100,3 +100,13 @@ The private worker records one immutable controller launch intent per selected t
 Real scanner fixtures bind launch records to their durable receipts and terminal results, including a seeded T0 Bandit claim and honest offline database errors. Generated launch schemas describe bounded metadata, not a public launch API. Evidence: `docs/evidence/scanner-launch-acceptance.json`.
 
 Independent cleanup/admission release remains unfinished. Crashes before the first launch record still need trusted workspace/capture namespace binding; zero records are not absence proof. Deployable/background worker pairing, public scanner result UI/API, full finding/investigation lifecycle, databases, disposable VM execution, AI/MCP/desktop integration, supply-chain/legal/security review and independent H7 gates remain required.
+
+## Current capture reservations (ADR 033)
+
+The supported static worker now commits an immutable owner/job/tool workspace reservation before creating a run directory or copying source. The callback holds local registry admission while validating the private acknowledgement; failure creates no source workspace. The fsynced local journal carries the reservation digest. Later launches must match the earlier workspace/registry/snapshot plan. Migration 10 quarantines older dispatches from new execution without rewriting their evidence or releasing admission.
+
+Real private-channel crash fixtures verify acknowledgement loss after commit and capture-before-launch orphans. Pinned scanner fixtures bind reservations to actual launch/receipt/result records. Evidence: `docs/evidence/scanner-workspace-acceptance.json`. This supersedes ADR 032's supported-worker capture identification gap; an empty ledger still cannot prove absence for legacy or unsupported workers.
+
+Independent cleanup/admission release, trusted namespace provisioning, incomplete-allocation recovery, late-start exclusion and deployable/background worker pairing remain required. Public scanner result API/UI, full findings/investigation lifecycle, offline databases, disposable VM execution, AI/MCP/desktop integration, supply-chain/legal/security review and independent H7 gates remain unfinished.
+
+Hosted CI run 38412015332 exposed an asynchronous fixed-fixture telemetry race: the verifier returned after the first correlated rule (`920350`), before required SQLi rule `942100` drained. The verifier now waits within its existing bounded drain window for the expected correlated rule, deduplicates rule IDs and honors cancellation. It continues to fail without expected evidence; another request cannot supply it. Delayed-output regression tests cover the failure. This is a fixture evidence collection correction, not a relaxation of verification requirements.

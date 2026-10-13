@@ -204,7 +204,20 @@ func assertRecordedLaunches(t *testing.T, f fixture, job string) {
 	if e != nil || len(receipts) != len(launches) {
 		t.Fatal("launch receipt correspondence lost", e)
 	}
+	workspaces, e := f.q.Workspaces("owner-a", job)
+	if e != nil || len(workspaces) != len(launches) {
+		t.Fatal("actual workspace reservations missing", e)
+	}
 	for i, l := range launches {
+		reserved := workspaces[i]
+		if reserved.Document.Plan.Tool != l.Document.Plan.Tool || reserved.Document.Plan.Workspace != l.Document.Plan.Workspace || reserved.Document.Plan.Registry != l.Document.Plan.Registry || reserved.Document.Plan.Snapshot != l.Document.Plan.Snapshot {
+			t.Fatal("launch detached from workspace reservation")
+		}
+		b, e := json.Marshal(reserved)
+		if e != nil {
+			t.Fatal(e)
+		}
+		t.Logf("WORKSPACE_RECORD %s", b)
 		ex := receipts[i].Document.Execution
 		if l.Document.Plan.Container != ex.Container || l.Document.Plan.Snapshot != ex.Snapshot.Digest || l.Document.Image != ex.Image || l.Document.Version != ex.Version {
 			t.Fatal("real receipt detached from its launch", l.Document.Plan.Tool)
@@ -212,7 +225,7 @@ func assertRecordedLaunches(t *testing.T, f fixture, job string) {
 		if i > 0 && (l.Document.Plan.Engine != launches[0].Document.Plan.Engine || l.Document.Plan.Registry != launches[0].Document.Plan.Registry) {
 			t.Fatal("suite changed execution namespace")
 		}
-		b, e := json.Marshal(l)
+		b, e = json.Marshal(l)
 		if e != nil {
 			t.Fatal(e)
 		}

@@ -758,6 +758,15 @@
       "ScannerSuiteV1": {
         "$ref": "schemas/ScannerSuiteV1.json"
       },
+      "ScannerWorkspacePlanV1": {
+        "$ref": "schemas/ScannerWorkspacePlanV1.json"
+      },
+      "ScannerWorkspaceRecordV1": {
+        "$ref": "schemas/ScannerWorkspaceRecordV1.json"
+      },
+      "ScannerWorkspaceV1": {
+        "$ref": "schemas/ScannerWorkspaceV1.json"
+      },
       "ScopeGrantApprovalRequestV1": {
         "$ref": "schemas/ScopeGrantApprovalRequestV1.json"
       },

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerWorkspacePlanV1.json",
+  "title": "ScannerWorkspacePlanV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "tool_id": {
+      "type": "string",
+      "enum": [
+        "semgrep_ce",
+        "osv_v2",
+        "trivy",
+        "syft",
+        "gitleaks",
+        "bandit"
+      ]
+    },
+    "workspace_id": {
+      "type": "string",
+      "pattern": "^run-[0-9a-f]{32}$"
+    },
+    "registry_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "snapshot_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "tool_id",
+    "workspace_id",
+    "registry_digest",
+    "snapshot_digest"
+  ]
+}

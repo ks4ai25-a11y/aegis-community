@@ -457,3 +457,45 @@ class ScannerLaunchRecordV1DocumentPlan(TypedDict):
     workspace_id: str
     registry_digest: str
     snapshot_digest: str
+class ScannerWorkspacePlanV1(TypedDict):
+    tool_id: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+class ScannerWorkspaceV1(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    plan: ScannerWorkspaceRecordV1DocumentPlan
+    created_at: str
+    deadline: str
+class ScannerWorkspaceV1Plan(TypedDict):
+    tool_id: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+class ScannerWorkspaceRecordV1(TypedDict):
+    workspace_digest: str
+    document: ScannerWorkspaceRecordV1Document
+class ScannerWorkspaceRecordV1Document(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    plan: ScannerWorkspaceRecordV1DocumentPlan
+    created_at: str
+    deadline: str
+class ScannerWorkspaceRecordV1DocumentPlan(TypedDict):
+    tool_id: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str

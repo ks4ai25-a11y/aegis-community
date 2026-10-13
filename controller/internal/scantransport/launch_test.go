@@ -16,6 +16,9 @@ func launchBody(t *testing.T) (*Server, string, string) {
 	t.Helper()
 	s, token, l, r := receiptFixture(t)
 	p := scanevidence.LaunchPlan{Tool: r.Tool, Container: "aegis-scan-" + strings.Repeat("a", 32), Engine: source.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: source.Hash([]byte("registry")), Snapshot: r.Snapshot.Digest}
+	if _, e := s.Q.ReserveWorkspace(l, scanevidence.WorkspacePlan{Tool: p.Tool, Workspace: p.Workspace, Registry: p.Registry, Snapshot: p.Snapshot}); e != nil {
+		t.Fatal(e)
+	}
 	b, e := scanevidence.EncodeLaunchSubmission(scanevidence.LaunchSubmission{Schema: "1.0", Job: l.Job.ID, Request: l.Job.RequestDigest, Token: l.Token, Plan: p})
 	if e != nil {
 		t.Fatal(e)

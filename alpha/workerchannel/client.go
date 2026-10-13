@@ -159,18 +159,19 @@ func (c *Client) Identity(ctx context.Context) (Identity, error) {
 }
 func (c *Client) Claim(ctx context.Context) (Lease, error) {
 	var wire struct {
-		LaunchProtocol string     `json:"launch_protocol"`
-		Schema         string     `json:"schema_version"`
-		Job            Job        `json:"job"`
-		Map            source.Map `json:"application_map"`
-		Token          string     `json:"lease_token"`
-		Deadline       time.Time  `json:"deadline"`
+		LaunchProtocol    string     `json:"launch_protocol"`
+		WorkspaceProtocol string     `json:"workspace_protocol"`
+		Schema            string     `json:"schema_version"`
+		Job               Job        `json:"job"`
+		Map               source.Map `json:"application_map"`
+		Token             string     `json:"lease_token"`
+		Deadline          time.Time  `json:"deadline"`
 	}
 	if e := c.call(ctx, "claim", struct{}{}, &wire, maxResponse); e != nil {
 		return Lease{}, e
 	}
 	l := Lease{Job: wire.Job, Map: wire.Map, Token: wire.Token, Deadline: wire.Deadline}
-	if wire.Schema != "1.0" || wire.LaunchProtocol != "1.0" || c.validate(l) != nil {
+	if wire.Schema != "1.0" || wire.LaunchProtocol != "1.0" || wire.WorkspaceProtocol != "1.0" || c.validate(l) != nil {
 		return Lease{}, errors.New("scanner claim binding rejected")
 	}
 	return l, nil

@@ -1,0 +1,21 @@
+{
+  "workspace_digest": "sha256:10bd5cc6dcb150bd3b8e39721dc5807eb25108c8c4b00f30d7e8dea84f089ce9",
+  "document": {
+    "schema_version": "1.0",
+    "owner_id": "owner-a",
+    "job_id": "01a135aa-96b8-7121-b3e6-664bd9ca52c0",
+    "request_digest": "sha256:78f8c85ccaf13325841ec9fe7d120fb4833ee8e86df4a89a1677b50079228f87",
+    "app_id": "app_demo",
+    "repository_id": "01a135aa-96a1-7caa-9bed-92166b5d8410",
+    "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+    "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+    "plan": {
+      "tool_id": "bandit",
+      "workspace_id": "run-c199f9791b8935b823b9f3460763e888",
+      "registry_digest": "sha256:3bd9c77549cdf53b7d342fa32cebe64942ba28267fd121ad7b728b6663945aea",
+      "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614"
+    },
+    "created_at": "2026-10-13T14:28:54.652094Z",
+    "deadline": "2026-10-13T14:31:59Z"
+  }
+}

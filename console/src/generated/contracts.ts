@@ -510,3 +510,51 @@ export interface ScannerLaunchRecordV1DocumentPlan {
   registry_digest: string;
   snapshot_digest: string;
 }
+export interface ScannerWorkspacePlanV1 {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}
+export interface ScannerWorkspaceV1 {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  plan: ScannerWorkspaceRecordV1DocumentPlan;
+  created_at: string;
+  deadline: string;
+}
+export interface ScannerWorkspaceV1Plan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}
+export interface ScannerWorkspaceRecordV1 {
+  workspace_digest: string;
+  document: ScannerWorkspaceRecordV1Document;
+}
+export interface ScannerWorkspaceRecordV1Document {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  plan: ScannerWorkspaceRecordV1DocumentPlan;
+  created_at: string;
+  deadline: string;
+}
+export interface ScannerWorkspaceRecordV1DocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}

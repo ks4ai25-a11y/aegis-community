@@ -58,6 +58,10 @@ launch_plan=obj({'tool_id':string(enum=['semgrep_ce','osv_v2','trivy','syft','gi
 launch=obj({'schema_version':string(const='1.0'),'owner_id':string(minLength=1,maxLength=128),'job_id':uuid,'request_digest':hash,'app_id':string(const='app_demo'),'repository_id':string(minLength=1,maxLength=128),'map_digest':hash,'tool_lock_digest':hash,'tool_version':string(minLength=1,maxLength=64),'tool_image_digest':hash,'sandbox_profile':string(const='repo_offline-network-none-v1'),'duration_limit_seconds':integer(1,120),'plan':launch_plan,'created_at':string(format='date-time'),'deadline':string(format='date-time')})
 schemas.update({'ScannerLaunchPlanV1':launch_plan,'ScannerLaunchV1':launch,'ScannerLaunchRecordV1':obj({'launch_digest':hash,'document':launch})})
 
+workspace_plan=obj({'tool_id':launch_plan['properties']['tool_id'],'workspace_id':launch_plan['properties']['workspace_id'],'registry_digest':hash,'snapshot_digest':hash})
+workspace=obj({'schema_version':string(const='1.0'),'owner_id':string(minLength=1,maxLength=128),'job_id':uuid,'request_digest':hash,'app_id':string(const='app_demo'),'repository_id':string(minLength=1,maxLength=128),'map_digest':hash,'tool_lock_digest':hash,'plan':workspace_plan,'created_at':string(format='date-time'),'deadline':string(format='date-time')})
+schemas.update({'ScannerWorkspacePlanV1':workspace_plan,'ScannerWorkspaceV1':workspace,'ScannerWorkspaceRecordV1':obj({'workspace_digest':hash,'document':workspace})})
+
 for name,body in schemas.items():
  document={'$schema':SCHEMA,'$id':'https://aegis.invalid/contracts/'+name+'.json','title':name,**body}
  (ROOT/'contracts/schemas'/f'{name}.json').write_text(json.dumps(document,indent=2)+'\n')
@@ -71,6 +75,10 @@ def flatten(name,schema,types):
   if value.get('type')=='object':value['_binding']=child;flatten(child,value,types)
   if value.get('type')=='array' and value['items'].get('type')=='object':value['items']['_binding']=child+'Item';flatten(child+'Item',value['items'],types)
 types={}
+workspace_plan=obj({'tool_id':launch_plan['properties']['tool_id'],'workspace_id':launch_plan['properties']['workspace_id'],'registry_digest':hash,'snapshot_digest':hash})
+workspace=obj({'schema_version':string(const='1.0'),'owner_id':string(minLength=1,maxLength=128),'job_id':uuid,'request_digest':hash,'app_id':string(const='app_demo'),'repository_id':string(minLength=1,maxLength=128),'map_digest':hash,'tool_lock_digest':hash,'plan':workspace_plan,'created_at':string(format='date-time'),'deadline':string(format='date-time')})
+schemas.update({'ScannerWorkspacePlanV1':workspace_plan,'ScannerWorkspaceV1':workspace,'ScannerWorkspaceRecordV1':obj({'workspace_digest':hash,'document':workspace})})
+
 for name,body in schemas.items():flatten(name,body,types)
 def ts(s):
  if '_binding' in s:return s['_binding']

@@ -97,6 +97,9 @@ func (q *Queue) RegisterLaunch(l Lease, p scanevidence.LaunchPlan) (scanevidence
 	if domain.Digest(manifest) != p.Snapshot {
 		return scanevidence.LaunchRecord{}, ErrInput
 	}
+	if e = matchWorkspaceTx(tx, j, p, q.now().UTC().Format(time.RFC3339Nano)); e != nil {
+		return scanevidence.LaunchRecord{}, e
+	}
 	old, e := launchTx(tx, j, p.Tool)
 	if e == nil {
 		if old.Document.Plan != p || old.Document.Version != pin.Version || old.Document.Image != pin.Image {
@@ -145,6 +148,9 @@ func (q *Queue) RegisterLaunch(l Lease, p scanevidence.LaunchPlan) (scanevidence
 	queued, qe := time.Parse(time.RFC3339Nano, j.Created)
 	if e != nil || qe != nil || created.Before(queued) || !created.Before(time.Unix(deadline, 0)) {
 		return scanevidence.LaunchRecord{}, ErrLease
+	}
+	if e = matchWorkspaceTx(tx, j, p, stamp); e != nil {
+		return scanevidence.LaunchRecord{}, e
 	}
 	d := scanevidence.Launch{Schema: "1.0", Owner: j.Owner, Job: j.ID, Request: j.RequestDigest, App: j.Input.App, Repository: j.Input.Repository, Map: j.Input.MapDigest, Lock: j.LockDigest, Version: pin.Version, Image: pin.Image, Profile: "repo_offline-network-none-v1", Duration: j.Input.Duration, Plan: p, Created: stamp, Deadline: time.Unix(deadline, 0).UTC().Format(time.RFC3339)}
 	b, e := json.Marshal(d)

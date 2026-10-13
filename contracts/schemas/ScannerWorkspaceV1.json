@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerWorkspaceV1.json",
+  "title": "ScannerWorkspaceV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "owner_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "request_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "app_id": {
+      "type": "string",
+      "const": "app_demo"
+    },
+    "repository_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "map_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "tool_lock_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tool_id": {
+          "type": "string",
+          "enum": [
+            "semgrep_ce",
+            "osv_v2",
+            "trivy",
+            "syft",
+            "gitleaks",
+            "bandit"
+          ]
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^run-[0-9a-f]{32}$"
+        },
+        "registry_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "snapshot_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "tool_id",
+        "workspace_id",
+        "registry_digest",
+        "snapshot_digest"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "schema_version",
+    "owner_id",
+    "job_id",
+    "request_digest",
+    "app_id",
+    "repository_id",
+    "map_digest",
+    "tool_lock_digest",
+    "plan",
+    "created_at",
+    "deadline"
+  ]
+}

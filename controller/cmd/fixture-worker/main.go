@@ -17,6 +17,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -175,33 +176,59 @@ func exercise(ctx context.Context, root, binary string, p domain.Policy, port in
 			return statuses, nil, fmt.Errorf("revision mismatch")
 		}
 	}
-	// Wait only for the asynchronous log drain, bounded by the job deadline.
+	if ids[1] == "" {
+		return statuses, nil, fmt.Errorf("fixture request identity unavailable")
+	}
+	rules, e := waitForFixtureRules(ctx, log, ids[1])
+	return statuses, rules, e
+}
+
+// A first unrelated rule is not the expected fixture evidence. Caddy drains
+// sanitized telemetry asynchronously, so wait for the correlated SQLi rule or
+// the bounded drain deadline. Missing evidence still classifies as failure.
+func waitForFixtureRules(ctx context.Context, path, id string) ([]string, error) {
 	rules := []string{}
 	for n := 0; n < 20; n++ {
 		if ctx.Err() != nil {
-			return statuses, nil, ctx.Err()
+			return rules, ctx.Err()
 		}
-		f, e := os.Open(log)
+		seen := map[string]bool{}
+		f, e := os.Open(path)
 		if e == nil {
-			s := bufio.NewScanner(f)
-			s.Buffer(make([]byte, 8192), 8192)
-			for s.Scan() {
+			scan := bufio.NewScanner(f)
+			scan.Buffer(make([]byte, 8192), 8192)
+			for scan.Scan() {
 				var v struct {
 					Request string `json:"request_id"`
 					Rule    string `json:"rule_id"`
 				}
-				if json.Unmarshal(s.Bytes(), &v) == nil && v.Request == ids[1] && v.Rule != "" {
-					rules = append(rules, v.Rule)
+				if json.Unmarshal(scan.Bytes(), &v) == nil && v.Request == id && v.Rule != "" {
+					seen[v.Rule] = true
 				}
 			}
+			e = scan.Err()
 			f.Close()
+			if e != nil {
+				return rules, fmt.Errorf("fixture telemetry unavailable")
+			}
+		} else if !os.IsNotExist(e) {
+			return rules, fmt.Errorf("fixture telemetry unavailable")
 		}
-		if len(rules) > 0 {
-			break
+		rules = rules[:0]
+		for rule := range seen {
+			rules = append(rules, rule)
 		}
-		time.Sleep(100 * time.Millisecond)
+		sort.Strings(rules)
+		if seen["942100"] {
+			return rules, nil
+		}
+		select {
+		case <-ctx.Done():
+			return rules, ctx.Err()
+		case <-time.After(100 * time.Millisecond):
+		}
 	}
-	return statuses, rules, nil
+	return rules, nil
 }
 
 // waitForListener sends no application bytes and cannot reach the fixture origin.

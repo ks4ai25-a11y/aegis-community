@@ -5,6 +5,7 @@ package workspace
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -165,5 +166,68 @@ func TestConcurrentAdmissionNeverCreatesTwoSessions(t *testing.T) {
 	}
 	if count != 1 {
 		t.Fatalf("admitted %d simultaneous sessions", count)
+	}
+}
+
+func TestReservedWorkspaceAuthorizesBeforeAllocationAndJournalsAcknowledgement(t *testing.T) {
+	parent, _ := filepath.EvalSymlinks(t.TempDir())
+	root := filepath.Join(parent, "registry")
+	reservation := "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+	s, e := BeginReserved(root, func(id string) (string, error) {
+		if !sessionName.MatchString(id) {
+			t.Fatal("unsafe reserved id")
+		}
+		if _, e := os.Lstat(filepath.Join(root, id)); !os.IsNotExist(e) {
+			t.Fatal("workspace allocated before acknowledgement")
+		}
+		if _, e := Begin(root); e == nil {
+			t.Fatal("reservation released registry admission")
+		}
+		return reservation, nil
+	})
+	if e != nil {
+		t.Fatal(e)
+	}
+	b, e := os.ReadFile(filepath.Join(s.Path, "journal.json"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	var r record
+	if json.Unmarshal(b, &r) != nil || r.Reservation != reservation || r.Container != "" {
+		t.Fatal("reservation not journaled before capture")
+	}
+	s.Preserve()
+	got, e := Recover(context.Background(), root, time.Now().Add(4*time.Minute), nil)
+	if e != nil || got.Removed != 1 {
+		t.Fatal("container-free capture orphan not recoverable", got, e)
+	}
+}
+func TestFailedWorkspaceAuthorizationCreatesNoRun(t *testing.T) {
+	for _, kind := range []string{"lost_ack", "invalid_digest", "nil"} {
+		t.Run(kind, func(t *testing.T) {
+			parent, _ := filepath.EvalSymlinks(t.TempDir())
+			root := filepath.Join(parent, "registry")
+			authorize := func(string) (string, error) {
+				if kind == "lost_ack" {
+					return "", errors.New("lost acknowledgement")
+				}
+				return "wrong", nil
+			}
+			if kind == "nil" {
+				authorize = nil
+			}
+			if _, e := BeginReserved(root, authorize); e == nil {
+				t.Fatal("unauthorized allocation accepted")
+			}
+			entries, e := os.ReadDir(root)
+			if e != nil && !os.IsNotExist(e) {
+				t.Fatal(e)
+			}
+			for _, entry := range entries {
+				if entry.Name() != ".registry-lock" {
+					t.Fatal("refusal left a run directory")
+				}
+			}
+		})
 	}
 }

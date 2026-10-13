@@ -21,7 +21,15 @@ func launchFixture(t *testing.T) (*Queue, Lease, scanevidence.Execution, scanevi
 	r.GuardDigest = domain.Hash([]byte("guard"))
 	r.Cleanup = "complete"
 	p := scanevidence.LaunchPlan{Tool: r.Tool, Container: r.Container, Engine: domain.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("registry")), Snapshot: r.Snapshot.Digest}
+	reserveLaunchWorkspace(t, q, l, p)
 	return q, l, r, p
+}
+
+func reserveLaunchWorkspace(t *testing.T, q *Queue, l Lease, p scanevidence.LaunchPlan) {
+	t.Helper()
+	if _, e := q.ReserveWorkspace(l, scanevidence.WorkspacePlan{Tool: p.Tool, Workspace: p.Workspace, Registry: p.Registry, Snapshot: p.Snapshot}); e != nil {
+		t.Fatal(e)
+	}
 }
 
 func TestLaunchIsImmutableAuditedAndReplayRequiresLiveLease(t *testing.T) {
@@ -183,6 +191,7 @@ func TestSuiteLaunchesCannotSwitchExecutionEngineOrRegistry(t *testing.T) {
 			q, l, r, _ := receiptFixture(t, "bandit", "gitleaks")
 			q.Pins["gitleaks"] = Pin{Version: "8.30.1", Image: domain.Hash([]byte("gitleaks image"))}
 			p := scanevidence.LaunchPlan{Tool: "bandit", Container: "aegis-scan-" + strings.Repeat("a", 32), Engine: domain.Hash([]byte("engine")), Workspace: "run-" + strings.Repeat("a", 32), Registry: domain.Hash([]byte("registry")), Snapshot: r.Snapshot.Digest}
+			reserveLaunchWorkspace(t, q, l, p)
 			if _, e := q.RegisterLaunch(l, p); e != nil {
 				t.Fatal(e)
 			}
@@ -193,6 +202,16 @@ func TestSuiteLaunchesCannotSwitchExecutionEngineOrRegistry(t *testing.T) {
 				p.Engine = domain.Hash([]byte("another engine"))
 			} else {
 				p.Registry = domain.Hash([]byte("another registry"))
+			}
+			_, reserveErr := q.ReserveWorkspace(l, scanevidence.WorkspacePlan{Tool: p.Tool, Workspace: p.Workspace, Registry: p.Registry, Snapshot: p.Snapshot})
+			if kind == "registry" {
+				if !errors.Is(reserveErr, ErrConflict) {
+					t.Fatal("suite switched reserved namespace", reserveErr)
+				}
+				return
+			}
+			if reserveErr != nil {
+				t.Fatal(reserveErr)
 			}
 			if _, e := q.RegisterLaunch(l, p); !errors.Is(e, ErrConflict) {
 				t.Fatal("suite changed original cleanup namespace", e)

@@ -512,3 +512,51 @@ type ScannerLaunchRecordV1DocumentPlan struct {
 	RegistryDigest string `json:"registry_digest"`
 	SnapshotDigest string `json:"snapshot_digest"`
 }
+type ScannerWorkspacePlanV1 struct {
+	ToolId         string `json:"tool_id"`
+	WorkspaceId    string `json:"workspace_id"`
+	RegistryDigest string `json:"registry_digest"`
+	SnapshotDigest string `json:"snapshot_digest"`
+}
+type ScannerWorkspaceV1 struct {
+	SchemaVersion  string                               `json:"schema_version"`
+	OwnerId        string                               `json:"owner_id"`
+	JobId          string                               `json:"job_id"`
+	RequestDigest  string                               `json:"request_digest"`
+	AppId          string                               `json:"app_id"`
+	RepositoryId   string                               `json:"repository_id"`
+	MapDigest      string                               `json:"map_digest"`
+	ToolLockDigest string                               `json:"tool_lock_digest"`
+	Plan           ScannerWorkspaceRecordV1DocumentPlan `json:"plan"`
+	CreatedAt      string                               `json:"created_at"`
+	Deadline       string                               `json:"deadline"`
+}
+type ScannerWorkspaceV1Plan struct {
+	ToolId         string `json:"tool_id"`
+	WorkspaceId    string `json:"workspace_id"`
+	RegistryDigest string `json:"registry_digest"`
+	SnapshotDigest string `json:"snapshot_digest"`
+}
+type ScannerWorkspaceRecordV1 struct {
+	WorkspaceDigest string                           `json:"workspace_digest"`
+	Document        ScannerWorkspaceRecordV1Document `json:"document"`
+}
+type ScannerWorkspaceRecordV1Document struct {
+	SchemaVersion  string                               `json:"schema_version"`
+	OwnerId        string                               `json:"owner_id"`
+	JobId          string                               `json:"job_id"`
+	RequestDigest  string                               `json:"request_digest"`
+	AppId          string                               `json:"app_id"`
+	RepositoryId   string                               `json:"repository_id"`
+	MapDigest      string                               `json:"map_digest"`
+	ToolLockDigest string                               `json:"tool_lock_digest"`
+	Plan           ScannerWorkspaceRecordV1DocumentPlan `json:"plan"`
+	CreatedAt      string                               `json:"created_at"`
+	Deadline       string                               `json:"deadline"`
+}
+type ScannerWorkspaceRecordV1DocumentPlan struct {
+	ToolId         string `json:"tool_id"`
+	WorkspaceId    string `json:"workspace_id"`
+	RegistryDigest string `json:"registry_digest"`
+	SnapshotDigest string `json:"snapshot_digest"`
+}

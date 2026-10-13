@@ -1,0 +1,595 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-10-13T14:35:25.677644+00:00",
+  "status": "PASS",
+  "scope": "Immutable pre-allocation workspace reservations, acknowledged before run mkdir/source capture, bound to later launches; additive schema 10. Native scanner fixtures use operator UID. Independent cleanup release remains unfinished.",
+  "source_tree_sha256": "sha256:a224718366c5258becccb622e0c907c000d964fafd54b199511fe4470c51a776",
+  "source_files": [
+    {
+      "path": "shared/source/scanevidence/workspace.go",
+      "sha256": "sha256:97fe28787770ce1d5274a236c06c0c94a67af0fa2acbb5f62b3d030a20079784"
+    },
+    {
+      "path": "shared/source/scanevidence/workspace_test.go",
+      "sha256": "sha256:2266961f085b10fc1fe6ad0d3c70849bc3d735ea565d993a4b54e9b0efe8ab59"
+    },
+    {
+      "path": "controller/internal/scanqueue/workspace.go",
+      "sha256": "sha256:34dbcf8efdf5438e2dcb6a0244a53daa137ae8447885ec3b72bdfab4f3b13d3a"
+    },
+    {
+      "path": "controller/internal/scanqueue/workspace_test.go",
+      "sha256": "sha256:3c05b8be6568a350d2ede62b422a5dd080368355937fd70367011b293d6d270b"
+    },
+    {
+      "path": "controller/internal/scanqueue/launch.go",
+      "sha256": "sha256:2da5d2ab027270423b4571c3284f1f943df57f30fc7b8354f70fa95252e3cd58"
+    },
+    {
+      "path": "controller/internal/scanqueue/lease.go",
+      "sha256": "sha256:d2370f4f00f9217fbd1d87a1c43cf3840f46eb8c4ef7901bbcda751288faf7da"
+    },
+    {
+      "path": "controller/internal/scantransport/workspace.go",
+      "sha256": "sha256:4d71939a8aa5e579942f762428daf7a89e88159055519ab35e68161cda456b7e"
+    },
+    {
+      "path": "controller/internal/scantransport/workspace_test.go",
+      "sha256": "sha256:a1aa2ace1ca4994e575302668efa66a157c9480d9eeb670b11eaf714410c2c87"
+    },
+    {
+      "path": "controller/internal/store/migrations.go",
+      "sha256": "sha256:45d9c73e1d46a9760da5dd930b5ec17be617e0c169d0966b9985adf3b7e79172"
+    },
+    {
+      "path": "controller/internal/store/store_test.go",
+      "sha256": "sha256:d048a4f5e41fbf2d93b4ae729dcb107fa76c8dd560403616b8704bb05fbdb54a"
+    },
+    {
+      "path": "alpha/workspace/workspace_unix.go",
+      "sha256": "sha256:25eb804b9c6895ce349606a01b28dfc25ccff0aeff1b688fc8cd6e4e42ccd9d2"
+    },
+    {
+      "path": "alpha/workspace/workspace_test.go",
+      "sha256": "sha256:00ee92df956867f543e54f47dc6172cc559cdc0da9348049e1f6fb233599b2f0"
+    },
+    {
+      "path": "alpha/worker/run.go",
+      "sha256": "sha256:6ee9fa3d62bf295465027f3995a461c80f55e3ed89719dfeabe95c23d5364b54"
+    },
+    {
+      "path": "alpha/workerchannel/workspace.go",
+      "sha256": "sha256:5e5227fbd05c545d58233b037d39f1c084be5f666614303e41b9398e84a609ab"
+    },
+    {
+      "path": "alpha/workerchannel/workspace_test.go",
+      "sha256": "sha256:cb648e810ed94cb5c59304e6363db57aa90234c672b45303181fc8109cf53ec9"
+    },
+    {
+      "path": "alpha/workerchannel/client.go",
+      "sha256": "sha256:17a30a08a8d1e1acba37a6660ad51d68d1c552b0901406a9079e80f633b83d8b"
+    },
+    {
+      "path": "tests/integration/scannerchannel/workspace_test.go",
+      "sha256": "sha256:c08a9bec3779dd99bd1d4515f2371a1fa1d9413b470ceb550b549e30237361c1"
+    },
+    {
+      "path": "tests/integration/scannerchannel/worker_test.go",
+      "sha256": "sha256:a2165c1251a2a803f45cfed81c43dab5cd2a95abb8e29c96d336e27c1b7aaa19"
+    },
+    {
+      "path": "controller/cmd/fixture-worker/main.go",
+      "sha256": "sha256:604c54bbbaeeb51f799d80f58c3351fbb648ecacfdd7b2be0ab33ea4c62dbbed"
+    },
+    {
+      "path": "controller/cmd/fixture-worker/main_test.go",
+      "sha256": "sha256:78f54b6fd9189134dca564785ff6fd5e3c79f7c7720fa3e2758a7ad52bf0eaad"
+    },
+    {
+      "path": "scripts/generate_contracts.py",
+      "sha256": "sha256:b3106aecc0642ba3e41ff2578821bd64a81dbb68a3323b8608f9d0cab8c165bb"
+    }
+  ],
+  "race_test_results": {
+    "controller": {
+      "passed_groups": 82,
+      "log_sha256": "sha256:c2bb5e946011a33b73d99b82231629f5ca5c0ae119958a33606c06a06443f946"
+    },
+    "alpha": {
+      "passed_groups": 30,
+      "log_sha256": "sha256:f52b337fd365095a6e4ccf3221bf17a3a699c7e854fc09dcfb080cdc84d122cf"
+    },
+    "shared": {
+      "passed_groups": 12,
+      "log_sha256": "sha256:d08fef6200891eb07b018f21f8aba87f21a3c78df157b66161850359d0f214c8"
+    },
+    "integration": {
+      "passed_groups": 11,
+      "log_sha256": "sha256:21a32e5c18204d7908cff37a163dd04aacf21f62acb9552c6bc1f1dfa731707f"
+    },
+    "real_scanners": {
+      "passed_groups": 5,
+      "log_sha256": "sha256:e176bb69cae76cc026a8b375327f430ee72713d44dd74301678a09beb5ba04d8"
+    }
+  },
+  "actual_native_workspace_records": [
+    {
+      "workspace_digest": "sha256:731789a4a6ccf88efe5f5439e98f14b10fc272121a0f269f6a14dd52d169d49e",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-a9d7-7995-84b9-52a2a302d45f",
+        "request_digest": "sha256:a31d9dc690ad91c0c0b73047589f1f7306cb4f1a041505011cae9bd7f97bb34d",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-a9c1-76be-8067-228fa6f521b0",
+        "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "bandit",
+          "workspace_id": "run-7e567a7859f8cb7e70c281b961db15d0",
+          "registry_digest": "sha256:feef60304d02110e99bc038ec6573c5310aaefd481c1bea101303f869da2fbbc",
+          "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614"
+        },
+        "created_at": "2026-10-13T14:30:05.058424Z",
+        "deadline": "2026-10-13T14:33:10Z"
+      }
+    },
+    {
+      "workspace_digest": "sha256:b2c0eb94cf5daa1f5e1d0868d61b2f612649bbd8fa46b2396bd6165f23e30ce6",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-b4bb-70c3-8258-49939d35701e",
+        "request_digest": "sha256:2dbbb239c1457f2ae37f0b252238aed3b15ce07df51500e21319252d8189b2d8",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-b4a0-7e7e-aff8-fdc8ba051147",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "bandit",
+          "workspace_id": "run-f658e848d6f07888b1ba455a708a8d8a",
+          "registry_digest": "sha256:cba52f3d70b62203a1f3c308f90b83ff849e195bbc1b4df54270345b750dd17a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:30:07.866553Z",
+        "deadline": "2026-10-13T14:35:17Z"
+      }
+    },
+    {
+      "workspace_digest": "sha256:bcc3f7e22277c47f4c8c65daa6832797b1d582a8c172407e05e0fbbdfa4f0ece",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-b4bb-70c3-8258-49939d35701e",
+        "request_digest": "sha256:2dbbb239c1457f2ae37f0b252238aed3b15ce07df51500e21319252d8189b2d8",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-b4a0-7e7e-aff8-fdc8ba051147",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "gitleaks",
+          "workspace_id": "run-ac6697039bc8634e6cad280039d57fbe",
+          "registry_digest": "sha256:cba52f3d70b62203a1f3c308f90b83ff849e195bbc1b4df54270345b750dd17a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:30:09.736556Z",
+        "deadline": "2026-10-13T14:35:17Z"
+      }
+    },
+    {
+      "workspace_digest": "sha256:12bad57b5c951025b6ae465a510d66867e286bac0071599c8f03fd2410cad866",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-c304-7887-a5d5-ba63c3784051",
+        "request_digest": "sha256:03792019779d3ef4ec585fb52f3e313d1e32258e261ec0bf59a62ea35926dd6d",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-c2e8-7a6b-80bb-bbb4cc2ad047",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "bandit",
+          "workspace_id": "run-f59f2354593174ca9266f65200d903ab",
+          "registry_digest": "sha256:b649dc2c185158fb622da2e23162c763744d77e503960a5310ee49ade8628f8a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:30:11.523761Z",
+        "deadline": "2026-10-13T14:37:26Z"
+      }
+    },
+    {
+      "workspace_digest": "sha256:96320143b3b2d757e08933a41d544da210a6077bf7888d32931325bdab2f79cb",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-c304-7887-a5d5-ba63c3784051",
+        "request_digest": "sha256:03792019779d3ef4ec585fb52f3e313d1e32258e261ec0bf59a62ea35926dd6d",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-c2e8-7a6b-80bb-bbb4cc2ad047",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "osv_v2",
+          "workspace_id": "run-4014f3a25174ca6801b1ab09c72d7869",
+          "registry_digest": "sha256:b649dc2c185158fb622da2e23162c763744d77e503960a5310ee49ade8628f8a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:30:13.291708Z",
+        "deadline": "2026-10-13T14:37:26Z"
+      }
+    },
+    {
+      "workspace_digest": "sha256:e5ae6f67c3706f53ef13e1ed564805fd8ecad7485ff9f9842a40abd41c630e37",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-c304-7887-a5d5-ba63c3784051",
+        "request_digest": "sha256:03792019779d3ef4ec585fb52f3e313d1e32258e261ec0bf59a62ea35926dd6d",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-c2e8-7a6b-80bb-bbb4cc2ad047",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "plan": {
+          "tool_id": "trivy",
+          "workspace_id": "run-578ea10db9d425e4ec2728138246eb5b",
+          "registry_digest": "sha256:b649dc2c185158fb622da2e23162c763744d77e503960a5310ee49ade8628f8a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:30:14.708534Z",
+        "deadline": "2026-10-13T14:37:26Z"
+      }
+    }
+  ],
+  "actual_native_launch_records": [
+    {
+      "launch_digest": "sha256:d2bf5b14bc7fc7204ee30c424ba9db3e029307e2f0b6d92802b34d667993bc42",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-a9d7-7995-84b9-52a2a302d45f",
+        "request_digest": "sha256:a31d9dc690ad91c0c0b73047589f1f7306cb4f1a041505011cae9bd7f97bb34d",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-a9c1-76be-8067-228fa6f521b0",
+        "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "1.9.4",
+        "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "bandit",
+          "container_id": "aegis-scan-12eea597f8b9e3b438c00781666d70c9",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-7e567a7859f8cb7e70c281b961db15d0",
+          "registry_digest": "sha256:feef60304d02110e99bc038ec6573c5310aaefd481c1bea101303f869da2fbbc",
+          "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614"
+        },
+        "created_at": "2026-10-13T14:30:06.197078Z",
+        "deadline": "2026-10-13T14:33:10Z"
+      }
+    },
+    {
+      "launch_digest": "sha256:2921dc4a66c94c2a19cadef9b073dd845422dff579e2e2251287b677dc591010",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-b4bb-70c3-8258-49939d35701e",
+        "request_digest": "sha256:2dbbb239c1457f2ae37f0b252238aed3b15ce07df51500e21319252d8189b2d8",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-b4a0-7e7e-aff8-fdc8ba051147",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "1.9.4",
+        "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "bandit",
+          "container_id": "aegis-scan-b37df3a00aaa05a53f24739546cbd801",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-f658e848d6f07888b1ba455a708a8d8a",
+          "registry_digest": "sha256:cba52f3d70b62203a1f3c308f90b83ff849e195bbc1b4df54270345b750dd17a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:30:08.441322Z",
+        "deadline": "2026-10-13T14:35:17Z"
+      }
+    },
+    {
+      "launch_digest": "sha256:f0338f8513204d2f272205cb56574cfe1276d30ae2c06121676b9695a797e796",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-b4bb-70c3-8258-49939d35701e",
+        "request_digest": "sha256:2dbbb239c1457f2ae37f0b252238aed3b15ce07df51500e21319252d8189b2d8",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-b4a0-7e7e-aff8-fdc8ba051147",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "8.30.1",
+        "tool_image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "gitleaks",
+          "container_id": "aegis-scan-dc737a7671a5cf2e01b246da768e2cca",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-ac6697039bc8634e6cad280039d57fbe",
+          "registry_digest": "sha256:cba52f3d70b62203a1f3c308f90b83ff849e195bbc1b4df54270345b750dd17a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:30:10.293803Z",
+        "deadline": "2026-10-13T14:35:17Z"
+      }
+    },
+    {
+      "launch_digest": "sha256:fadc584ea0e6e31dc53c16c7ec4d6515c55c0296bb40ae1ea910d0279aae806a",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-c304-7887-a5d5-ba63c3784051",
+        "request_digest": "sha256:03792019779d3ef4ec585fb52f3e313d1e32258e261ec0bf59a62ea35926dd6d",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-c2e8-7a6b-80bb-bbb4cc2ad047",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "1.9.4",
+        "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "bandit",
+          "container_id": "aegis-scan-6aff7052a3867dad9977eda86081d07d",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-f59f2354593174ca9266f65200d903ab",
+          "registry_digest": "sha256:b649dc2c185158fb622da2e23162c763744d77e503960a5310ee49ade8628f8a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:30:12.036927Z",
+        "deadline": "2026-10-13T14:37:26Z"
+      }
+    },
+    {
+      "launch_digest": "sha256:9762be58efb282ac68c09eaca92bf41368680ef3a19c1d059caaab02279fe6c5",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-c304-7887-a5d5-ba63c3784051",
+        "request_digest": "sha256:03792019779d3ef4ec585fb52f3e313d1e32258e261ec0bf59a62ea35926dd6d",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-c2e8-7a6b-80bb-bbb4cc2ad047",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "2.7.0",
+        "tool_image_digest": "sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "osv_v2",
+          "container_id": "aegis-scan-e27a8019ca008437b4732d836dc3223a",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-4014f3a25174ca6801b1ab09c72d7869",
+          "registry_digest": "sha256:b649dc2c185158fb622da2e23162c763744d77e503960a5310ee49ade8628f8a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:30:13.802629Z",
+        "deadline": "2026-10-13T14:37:26Z"
+      }
+    },
+    {
+      "launch_digest": "sha256:21f7e8e80e503fffba7746969fef0f9dc830da7f53a79077e9ad5fd61229a7b4",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-c304-7887-a5d5-ba63c3784051",
+        "request_digest": "sha256:03792019779d3ef4ec585fb52f3e313d1e32258e261ec0bf59a62ea35926dd6d",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-c2e8-7a6b-80bb-bbb4cc2ad047",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "tool_version": "0.75.0",
+        "tool_image_digest": "sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa",
+        "sandbox_profile": "repo_offline-network-none-v1",
+        "duration_limit_seconds": 120,
+        "plan": {
+          "tool_id": "trivy",
+          "container_id": "aegis-scan-93e559d18e3ff1f35bd4afb541d7c854",
+          "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+          "workspace_id": "run-578ea10db9d425e4ec2728138246eb5b",
+          "registry_digest": "sha256:b649dc2c185158fb622da2e23162c763744d77e503960a5310ee49ade8628f8a",
+          "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0"
+        },
+        "created_at": "2026-10-13T14:30:15.154179Z",
+        "deadline": "2026-10-13T14:37:26Z"
+      }
+    }
+  ],
+  "actual_native_results": [
+    {
+      "result_digest": "sha256:1ce6aafd2e9a08b64040d296ed418c966316e0129f8f19a57d60f81aca5a903e",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-a9d7-7995-84b9-52a2a302d45f",
+        "request_digest": "sha256:a31d9dc690ad91c0c0b73047589f1f7306cb4f1a041505011cae9bd7f97bb34d",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-a9c1-76be-8067-228fa6f521b0",
+        "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614",
+        "status": "completed",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:35045f083299bd1e19955cfb368cf454737793ba4e08764c78800cbdeb3fc628",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 1,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-13T14:30:07.51327Z"
+      }
+    },
+    {
+      "result_digest": "sha256:e7294f1a2da833806d7e552010e249eb291ab3458ddc2cbbc5f8b50f5ee78fa4",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-b4bb-70c3-8258-49939d35701e",
+        "request_digest": "sha256:2dbbb239c1457f2ae37f0b252238aed3b15ce07df51500e21319252d8189b2d8",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-b4a0-7e7e-aff8-fdc8ba051147",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+        "status": "completed",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:36ac73b0cb683ee8a56b47ba35eb70a1586cff718162f47a3ce7b5a1f902e597",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "gitleaks",
+            "receipt_digest": "sha256:090208dcf12c0e00fa60d24c3966a1fbe1152d857ecc80e9b6e209b896ea69c4",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 0,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-13T14:30:11.200833Z"
+      }
+    },
+    {
+      "result_digest": "sha256:043acdd8799aebaed68fd848de9a9f48794276b6c3ad69a1c7c78f8cb8651ad0",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135ab-c304-7887-a5d5-ba63c3784051",
+        "request_digest": "sha256:03792019779d3ef4ec585fb52f3e313d1e32258e261ec0bf59a62ea35926dd6d",
+        "app_id": "app_demo",
+        "repository_id": "01a135ab-c2e8-7a6b-80bb-bbb4cc2ad047",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+        "status": "tool_error",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:f4992645428290b07746ab4961e2db93c41174306ab54630391a047e2ee28943",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "osv_v2",
+            "receipt_digest": "sha256:21f6b2c40ca44a01f339761e93b7c0b400af2f3040c83170ecf4ff895166fe97",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "trivy",
+            "receipt_digest": "sha256:b45aa0c92fabcd73073a6b33e597339c8653ebf1fa652f30842ee292fe619e9b",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 0,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": true,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-13T14:30:16.291672Z"
+      }
+    }
+  ],
+  "actual_scanner_execution_count": 6,
+  "schema_validation": {
+    "status": "PASS",
+    "validator": "jsonschema 4.26.0; Draft 2020-12 with date-time format checks",
+    "actual_workspace_payloads": 6,
+    "validated_documents_plans_and_wrappers": 18
+  },
+  "validation": {
+    "make_test": "PASS; full race suite, generated checks and console build",
+    "research_build": "PASS; native CLI and Linux ARM64/AMD64 guards",
+    "go_vet": "PASS; controller, alpha, shared source and scanner-channel integration",
+    "full_test_log_sha256": "sha256:093f29c82b11ef99e09073beab362e32a017fa9383a37d2d82a6882898c899e9",
+    "research_build_log_sha256": "sha256:5818f963145ab98533801606916da5676260ea0d05a90c699fe9bd7103730962"
+  },
+  "verification_notes": [
+    "Controller reservation commits and acknowledgement validates while local registry admission is held, before the named run exists.",
+    "Lost acknowledgement after commit creates no named workspace; captured-before-launch orphan remains durably identified after expiry.",
+    "Exact replay requires live authority; a changed workspace or suite namespace is rejected.",
+    "Local kernel-lease journal includes reservation digest and still refuses malformed/unknown orphan state.",
+    "Launches cannot differ from or predate reservations, including clock rollback during preparation.",
+    "Historical schema 9 dispatch state/capability/launch evidence remains unchanged; workspace protocol zero cannot authorize new work.",
+    "Reservations, local recovery, receipts and finalization never release controller admission."
+  ],
+  "hosted_ci_failure_corrected": {
+    "prior_commit": "708eb830ed8b9a61d5713c63c87b9866a6fe4e80",
+    "run_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38412015332",
+    "observed_status": "failure",
+    "cause": "Fixed verifier stopped at first unrelated correlated rule before asynchronous expected SQLi telemetry arrived.",
+    "change": "Bounded expected-rule drain with deduplication, cancellation and delayed/uncorrelated regression tests; expected evidence is still mandatory."
+  },
+  "limitations": [
+    "Reservation metadata is not independent allocation, process or cleanup attestation.",
+    "Namespace digests identify operator-provisioned roots; the controller does not trust them as paths or ownership proofs.",
+    "Incomplete allocation can leave a malformed journal that local recovery refuses; trusted recovery and independent verifier remain required.",
+    "Legacy/unsupported workers and host administrators are not proven absent by zero reservation or launch records.",
+    "Admission remains occupied pending separately authorized trusted engine/container/registry verification and late-start exclusion.",
+    "Native operator-UID fixtures do not prove worker pairing with Compose UID 10001; public result API/UI and background worker remain unfinished.",
+    "Offline databases, full findings/investigations, arbitrary-code disposable VM isolation, AI/MCP/desktop integration, supply-chain/legal/security review and independent H7 gates remain unfinished."
+  ],
+  "live_regression": {
+    "gateway_fixture": {
+      "passed_checks": 10,
+      "log_sha256": "sha256:6ddeab59bc795c3eeaeed44a1de3917a041e0128652d0f0ff131d5aed4231c5b"
+    },
+    "repository": {
+      "passed_checks": 8,
+      "log_sha256": "sha256:3a582a608099bc0f60f509e0b6a30ff291dfb1798411342a20c77e275234679b"
+    },
+    "scoped_crash": {
+      "passed_checks": 7,
+      "log_sha256": "sha256:7619102c9dc7a0b6594b4ce82bfee49d115f1c2e30381726410a35dc144553cc"
+    },
+    "worker_enrollment": {
+      "passed_checks": 9,
+      "log_sha256": "sha256:20496b3c0e96d1d1c8c76e254c5401728792f72395e6012074c44e5f18f6c37f"
+    }
+  },
+  "deployment": {
+    "schema_version": 10,
+    "shared_image": "sha256:4c1f2e0f36e6070be11fee1d8980c61221f757dfcd1c12e605e05b609e645f16",
+    "services": [
+      "init",
+      "deployer",
+      "verifier",
+      "controller"
+    ],
+    "init_exit_code": 0,
+    "readiness": "SQLite ok; observe policy restored; audit internally consistent under host-admin trust",
+    "owned_scanner_containers_remaining": 0,
+    "protected_online_backup": "/var/lib/aegis/pre-workspace-schema10-20261013.db",
+    "scope_note": "Runtime checks use the exact shared image. Scanner execution uses native private-channel fixtures under operator UID, not deployed access to Compose UID 10001."
+  }
+}
