@@ -49,9 +49,10 @@ export interface FindingV1ProvenanceItem {
   tool_id: string;
   tool_version: string;
   tool_image_digest: string;
-  parser_version: "1.0" | "1.1";
+  parser_version: "1.0" | "1.1" | "1.2";
   input_digest: string;
   rule_id?: string;
+  severity_claimed?: "informational" | "low" | "medium" | "high" | "critical";
 }
 export interface ScopeGrantV1 {
   schema_version: "1.0";
@@ -296,7 +297,7 @@ export interface SourceSnapshotManifestV1FilesItem {
   size: number;
 }
 export interface ScannerExecutionV1 {
-  parser_version?: "1.0" | "1.1";
+  parser_version?: "1.0" | "1.1" | "1.2";
   invocation: ScannerExecutionV1Invocation;
   sandbox_profile: "repo_offline-network-none-v1";
   schema_version: "1.0";
@@ -369,9 +370,10 @@ export interface ScannerExecutionV1ResultFindingsItemProvenanceItem {
   tool_id: string;
   tool_version: string;
   tool_image_digest: string;
-  parser_version: "1.0" | "1.1";
+  parser_version: "1.0" | "1.1" | "1.2";
   input_digest: string;
   rule_id?: string;
+  severity_claimed?: "informational" | "low" | "medium" | "high" | "critical";
 }
 export interface ScannerExecutionV1ResultDiagnosticsItem {
   code: string;

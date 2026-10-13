@@ -15,12 +15,13 @@ try:
    command=[str(ROOT/'bin/aegis-research'),'scan-offline',tool,str(src),str(ROOT)]
    run=subprocess.run(command,capture_output=True,timeout=150)
    receipt=json.loads(run.stdout);validator.validate(receipt)
-   assert receipt['parser_version']=='1.1'
+   assert receipt['parser_version']=='1.2'
    assert receipt['cleanup_state']=='complete',receipt['cleanup_state']
    assert 'ghp_' not in json.dumps(receipt)
    expected={p.name:'sha256:'+hashlib.sha256(p.read_bytes()).hexdigest() for p in src.iterdir() if p.is_file()}
    assert {f['path']:f['digest'] for f in receipt['source_snapshot']['files']}==expected
    assert all(s['input_digest']==receipt['source_snapshot']['snapshot_digest'] for f in receipt['result']['findings'] for s in f['provenance'])
+   assert all(s['parser_version']=='1.2' and s['severity_claimed'] in ['informational','low','medium','high','critical'] for f in receipt['result']['findings'] for s in f['provenance'])
    if tool in ['semgrep_ce','gitleaks','bandit']:
     assert run.returncode==0 and receipt['status']=='completed'
     assert len(receipt['result']['findings'])==(1 if fixture=='vulnerable' else 0)

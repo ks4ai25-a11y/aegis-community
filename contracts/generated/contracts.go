@@ -54,6 +54,7 @@ type FindingV1ProvenanceItem struct {
 	ParserVersion   string `json:"parser_version"`
 	InputDigest     string `json:"input_digest"`
 	RuleId          string `json:"rule_id,omitempty"`
+	SeverityClaimed string `json:"severity_claimed,omitempty"`
 }
 type ScopeGrantV1 struct {
 	SchemaVersion      string   `json:"schema_version"`
@@ -374,6 +375,7 @@ type ScannerExecutionV1ResultFindingsItemProvenanceItem struct {
 	ParserVersion   string `json:"parser_version"`
 	InputDigest     string `json:"input_digest"`
 	RuleId          string `json:"rule_id,omitempty"`
+	SeverityClaimed string `json:"severity_claimed,omitempty"`
 }
 type ScannerExecutionV1ResultDiagnosticsItem struct {
 	Code    string `json:"code"`

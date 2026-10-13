@@ -36,13 +36,13 @@ func TestA016DedupeKeepsProvenance(t *testing.T) {
 		t.Fatal(e)
 	}
 	f := r.Findings[0]
-	out := Dedupe([]Finding{f, f})
+	out := mustDedupe(t, []Finding{f, f})
 	if len(out) != 1 || len(out[0].Provenance) != 2 {
 		t.Fatal(out)
 	}
 	other := f
 	other.Repository = "other"
-	if len(Dedupe([]Finding{f, other})) != 2 {
+	if len(mustDedupe(t, []Finding{f, other})) != 2 {
 		t.Fatal("cross-repository merge")
 	}
 }
@@ -119,7 +119,7 @@ func TestDependencyIdentityKeepsSeparatePackagesVersionsAndOwners(t *testing.T) 
 			t.Fatal("missing declared package identity")
 		}
 	}
-	if len(Dedupe(r.Findings)) != 3 {
+	if len(mustDedupe(t, r.Findings)) != 3 {
 		t.Fatal("separate packages merged")
 	}
 	for _, field := range []string{"App", "Repository", "Path"} {
@@ -132,7 +132,7 @@ func TestDependencyIdentityKeepsSeparatePackagesVersionsAndOwners(t *testing.T) 
 		case "Path":
 			f.Path = "other-lock.json"
 		}
-		if len(Dedupe([]Finding{r.Findings[0], f})) != 2 {
+		if len(mustDedupe(t, []Finding{r.Findings[0], f})) != 2 {
 			t.Fatal("scope/location merged", field)
 		}
 	}
@@ -202,4 +202,13 @@ func TestBanditSyntaxErrorsDisclosePartialCoverageWithoutRawSource(t *testing.T)
 	if strings.Join(invocation.Args, " ") != "--ini /dev/null --ignore-nosec -r /src -f json" {
 		t.Fatal("uncontrolled Bandit settings", invocation)
 	}
+}
+
+func mustDedupe(t *testing.T, in []Finding) []Finding {
+	t.Helper()
+	out, e := Dedupe(in)
+	if e != nil {
+		t.Fatal(e)
+	}
+	return out
 }

@@ -228,5 +228,10 @@ func Parse(tool string, b []byte, j Job) (Result, error) {
 	if len(r.Findings) > 10000 {
 		return bad, fmt.Errorf("finding cap exceeded")
 	}
+	merged, e := Dedupe(r.Findings)
+	if e != nil {
+		return bad, e
+	}
+	r.Findings = merged
 	return r, nil
 }

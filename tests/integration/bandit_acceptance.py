@@ -11,7 +11,7 @@ def scan(src):
  result=subprocess.run([str(ROOT/'bin/aegis-research'),'scan-offline','bandit',str(src.resolve()),str(ROOT)],capture_output=True,timeout=145)
  assert result.stdout,'Scanner preflight returned no execution receipt'
  receipt=json.loads(result.stdout);validator.validate(receipt)
- assert receipt['parser_version']=='1.1'
+ assert receipt['parser_version']=='1.2'
  assert receipt['tool_version']=='1.9.4' and receipt['cleanup_state']=='complete'
  assert receipt['invocation']['network_profile']=='none'
  assert receipt['invocation']['args']==['--ini','/dev/null','--ignore-nosec','-r','/src','-f','json']

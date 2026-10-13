@@ -6,7 +6,7 @@
       "id": "semgrep_ce-vulnerable",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "semgrep",
@@ -26,7 +26,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "semgrep_ce",
@@ -63,18 +63,18 @@
           "included_bytes": 821,
           "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
         },
-        "started_at": "2026-10-13T02:07:58.119865Z",
-        "duration_ms": 3245,
+        "started_at": "2026-10-13T02:21:00.982902Z",
+        "duration_ms": 3472,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-4449a5e67c8b239f2446dca3697f651b",
+        "container_id": "aegis-scan-6abbc832faa9e58bf7f2711350ec3375",
         "result": {
           "status": "completed",
           "findings": [
             {
               "schema_version": "1.0",
-              "id": "sha256:59dca14df64e597cfac6dae68b2f75daa008ee86f004b660c94913750eba00f7",
+              "id": "sha256:1dbc00b51ddca4698ca55fdb4a9625a37e5ada5c5e84f0a3edfd9d7c7b4203e1",
               "app_id": "app_demo",
               "repository_id": "local-operator-repository",
               "category": "static_pattern",
@@ -90,13 +90,14 @@
                   "tool_id": "semgrep_ce",
                   "tool_version": "1.180.0",
                   "tool_image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
-                  "parser_version": "1.1",
+                  "parser_version": "1.2",
                   "input_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4",
-                  "rule_id": "rules.aegis.synthetic-python-sql-concat"
+                  "rule_id": "rules.aegis.synthetic-python-sql-concat",
+                  "severity_claimed": "medium"
                 }
               ],
               "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
-              "created_at": "2026-10-13T02:08:01.799109Z"
+              "created_at": "2026-10-13T02:21:06.204007Z"
             }
           ],
           "diagnostics": []
@@ -114,7 +115,7 @@
       "id": "semgrep_ce-safe",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "semgrep",
@@ -134,7 +135,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "semgrep_ce",
@@ -166,12 +167,12 @@
           "included_bytes": 677,
           "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
         },
-        "started_at": "2026-10-13T02:08:01.838879Z",
-        "duration_ms": 2775,
+        "started_at": "2026-10-13T02:21:06.249863Z",
+        "duration_ms": 2996,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-fde5111b1bc702d469fa9e4314eaa5ce",
+        "container_id": "aegis-scan-b83c542ae98e8e0a45d33da962f4ba95",
         "result": {
           "status": "completed",
           "findings": [],
@@ -190,7 +191,7 @@
       "id": "gitleaks-vulnerable",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "dir",
@@ -211,7 +212,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "gitleaks",
@@ -247,18 +248,18 @@
           "included_bytes": 821,
           "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
         },
-        "started_at": "2026-10-13T02:08:05.149361Z",
-        "duration_ms": 480,
+        "started_at": "2026-10-13T02:21:09.570256Z",
+        "duration_ms": 533,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-ed4931c598d9c9305fdbb5384bfa51fe",
+        "container_id": "aegis-scan-8c175d85ff94bfc5e2e9ccb954be592b",
         "result": {
           "status": "completed",
           "findings": [
             {
               "schema_version": "1.0",
-              "id": "sha256:e12fc8f33fe590cde0e0dd352effc376813b9720cc5d19d896a85e0452562b21",
+              "id": "sha256:1b3064d5036726c55b3c70b3fc459dc74aafeb1aa07b2a18fc7a1e593247365b",
               "app_id": "app_demo",
               "repository_id": "local-operator-repository",
               "category": "secret_candidate",
@@ -274,13 +275,14 @@
                   "tool_id": "gitleaks",
                   "tool_version": "8.30.1",
                   "tool_image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
-                  "parser_version": "1.1",
+                  "parser_version": "1.2",
                   "input_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4",
-                  "rule_id": "github-pat"
+                  "rule_id": "github-pat",
+                  "severity_claimed": "high"
                 }
               ],
               "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
-              "created_at": "2026-10-13T02:08:05.891162Z"
+              "created_at": "2026-10-13T02:21:10.432454Z"
             }
           ],
           "diagnostics": []
@@ -297,7 +299,7 @@
       "id": "gitleaks-safe",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "dir",
@@ -318,7 +320,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "gitleaks",
@@ -349,12 +351,12 @@
           "included_bytes": 677,
           "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
         },
-        "started_at": "2026-10-13T02:08:05.936969Z",
-        "duration_ms": 564,
+        "started_at": "2026-10-13T02:21:10.48367Z",
+        "duration_ms": 473,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-922bc66a83c3f660b89b8eff1e2468c0",
+        "container_id": "aegis-scan-d7b668f80ed52e90778a3000fcd77d6a",
         "result": {
           "status": "completed",
           "findings": [],
@@ -372,7 +374,7 @@
       "id": "syft-vulnerable",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "dir:/src",
@@ -387,7 +389,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "syft",
@@ -423,12 +425,12 @@
           "included_bytes": 821,
           "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
         },
-        "started_at": "2026-10-13T02:08:06.861323Z",
-        "duration_ms": 2202,
+        "started_at": "2026-10-13T02:21:11.356889Z",
+        "duration_ms": 1975,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-732f3bfb2d43dc02cda06e8babe7bce8",
+        "container_id": "aegis-scan-adab682c63c9bc61bf41e2172c62ef97",
         "result": {
           "status": "completed",
           "findings": [],
@@ -468,7 +470,7 @@
       "id": "syft-safe",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "dir:/src",
@@ -483,7 +485,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "syft",
@@ -514,12 +516,12 @@
           "included_bytes": 677,
           "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
         },
-        "started_at": "2026-10-13T02:08:09.45257Z",
-        "duration_ms": 1755,
+        "started_at": "2026-10-13T02:21:13.686777Z",
+        "duration_ms": 1984,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-8333ad8172b49a0fabf964db29ea6443",
+        "container_id": "aegis-scan-0e33d3b7092e0297a0dac431c403f262",
         "result": {
           "status": "completed",
           "findings": [],
@@ -559,7 +561,7 @@
       "id": "osv_v2-vulnerable",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "scan",
@@ -580,7 +582,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "osv_v2",
@@ -616,12 +618,12 @@
           "included_bytes": 821,
           "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
         },
-        "started_at": "2026-10-13T02:08:11.666507Z",
-        "duration_ms": 538,
+        "started_at": "2026-10-13T02:21:16.051323Z",
+        "duration_ms": 684,
         "exit_code": 127,
         "status": "tool_error",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-6beacd505ddb0ea412dc9e47a55630d4",
+        "container_id": "aegis-scan-8ed5de64bba3228d2922c0e377542a55",
         "result": {
           "status": "tool_error",
           "findings": [],
@@ -644,7 +646,7 @@
       "id": "osv_v2-safe",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "scan",
@@ -665,7 +667,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "osv_v2",
@@ -696,12 +698,12 @@
           "included_bytes": 677,
           "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
         },
-        "started_at": "2026-10-13T02:08:12.545121Z",
+        "started_at": "2026-10-13T02:21:17.132776Z",
         "duration_ms": 601,
         "exit_code": 127,
         "status": "tool_error",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-3e2d13f4945c999a71aa7e16adb74225",
+        "container_id": "aegis-scan-4dc2d5e08a85206c31f586ba34262e53",
         "result": {
           "status": "tool_error",
           "findings": [],
@@ -724,7 +726,7 @@
       "id": "trivy-vulnerable",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "fs",
@@ -745,7 +747,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "trivy",
@@ -781,12 +783,12 @@
           "included_bytes": 821,
           "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
         },
-        "started_at": "2026-10-13T02:08:13.517513Z",
-        "duration_ms": 640,
+        "started_at": "2026-10-13T02:21:18.116812Z",
+        "duration_ms": 722,
         "exit_code": 1,
         "status": "tool_error",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-730ff318c3ab7fceadc5f1943fdce31a",
+        "container_id": "aegis-scan-d9043dac5878512c76c1cf5691dd99bc",
         "result": {
           "status": "tool_error",
           "findings": [],
@@ -809,7 +811,7 @@
       "id": "trivy-safe",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "fs",
@@ -830,7 +832,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "trivy",
@@ -861,12 +863,12 @@
           "included_bytes": 677,
           "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
         },
-        "started_at": "2026-10-13T02:08:14.53694Z",
-        "duration_ms": 702,
+        "started_at": "2026-10-13T02:21:19.267568Z",
+        "duration_ms": 632,
         "exit_code": 1,
         "status": "tool_error",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-d65a1e7bbb3a4d46aad821e55d8af8ac",
+        "container_id": "aegis-scan-00f62b4321749c775a1a210ad9f3db38",
         "result": {
           "status": "tool_error",
           "findings": [],
@@ -889,7 +891,7 @@
       "id": "bandit-vulnerable",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "--ini",
@@ -909,7 +911,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "bandit",
@@ -945,18 +947,18 @@
           "included_bytes": 821,
           "snapshot_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4"
         },
-        "started_at": "2026-10-13T02:08:15.710279Z",
-        "duration_ms": 817,
+        "started_at": "2026-10-13T02:21:20.426439Z",
+        "duration_ms": 755,
         "exit_code": 1,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-b5a98fe3dbb0fd74e667bd207cd6463d",
+        "container_id": "aegis-scan-f060e66c33e660cf2ceb1ec7b6cc4ba4",
         "result": {
           "status": "completed",
           "findings": [
             {
               "schema_version": "1.0",
-              "id": "sha256:318213af0dd25437c70f33144552154519c8f0a76c056e97991366f76277ab11",
+              "id": "sha256:17674f33f71f5d1bce2d91fd6399570651d5fff3e41e0e92f6ea1d2e23bb6041",
               "app_id": "app_demo",
               "repository_id": "local-operator-repository",
               "category": "static_pattern",
@@ -972,13 +974,14 @@
                   "tool_id": "bandit",
                   "tool_version": "1.9.4",
                   "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
-                  "parser_version": "1.1",
+                  "parser_version": "1.2",
                   "input_digest": "sha256:c82818a0538ff805fb0f8ac48c419c2c7c9fda077590cb50d0b6551b5418c6a4",
-                  "rule_id": "B608"
+                  "rule_id": "B608",
+                  "severity_claimed": "medium"
                 }
               ],
               "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
-              "created_at": "2026-10-13T02:08:17.028673Z"
+              "created_at": "2026-10-13T02:21:21.498298Z"
             }
           ],
           "diagnostics": []
@@ -995,7 +998,7 @@
       "id": "bandit-safe",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "--ini",
@@ -1015,7 +1018,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "bandit",
@@ -1046,12 +1049,12 @@
           "included_bytes": 677,
           "snapshot_digest": "sha256:5301d8e1edc4187f72b7a342c19b2c9d3111d301694ef00e549788ffca4ab315"
         },
-        "started_at": "2026-10-13T02:08:17.078243Z",
-        "duration_ms": 830,
+        "started_at": "2026-10-13T02:21:21.564332Z",
+        "duration_ms": 888,
         "exit_code": 0,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-f266e6b47c2f97e5ac529aac35266a2f",
+        "container_id": "aegis-scan-3dd163f476409e614d5c7eca74da9589",
         "result": {
           "status": "completed",
           "findings": [],
@@ -1066,9 +1069,9 @@
       }
     }
   ],
-  "started_at": "2026-10-13T02:07:58Z",
+  "started_at": "2026-10-13T02:21:00Z",
   "overall": "PASS",
-  "completed_at": "2026-10-13T02:08:18Z",
+  "completed_at": "2026-10-13T02:21:22Z",
   "limitations": [
     "Only trusted bundled inert inputs and local Docker Desktop tested.",
     "OSV/Trivy missing offline databases remain tool_error; no coverage or exploitability claim.",

@@ -6,7 +6,7 @@
       "id": "repository_ini_and_nosec_do_not_suppress_B608",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "--ini",
@@ -26,7 +26,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "bandit",
@@ -52,18 +52,18 @@
           "included_bytes": 183,
           "snapshot_digest": "sha256:7451c9a8d79ddbf85e4a2d4d549f4cea2e11a31d11459952716596d93490d838"
         },
-        "started_at": "2026-10-13T02:07:22.003192Z",
-        "duration_ms": 711,
+        "started_at": "2026-10-13T02:21:54.972688Z",
+        "duration_ms": 851,
         "exit_code": 1,
         "status": "completed",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-3f436e1bf7cdb690f3c613aaf9dc5bc0",
+        "container_id": "aegis-scan-060d5ec7dfa70ceb618ea57993943e75",
         "result": {
           "status": "completed",
           "findings": [
             {
               "schema_version": "1.0",
-              "id": "sha256:318213af0dd25437c70f33144552154519c8f0a76c056e97991366f76277ab11",
+              "id": "sha256:17674f33f71f5d1bce2d91fd6399570651d5fff3e41e0e92f6ea1d2e23bb6041",
               "app_id": "app_demo",
               "repository_id": "local-operator-repository",
               "category": "static_pattern",
@@ -79,13 +79,14 @@
                   "tool_id": "bandit",
                   "tool_version": "1.9.4",
                   "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
-                  "parser_version": "1.1",
+                  "parser_version": "1.2",
                   "input_digest": "sha256:7451c9a8d79ddbf85e4a2d4d549f4cea2e11a31d11459952716596d93490d838",
-                  "rule_id": "B608"
+                  "rule_id": "B608",
+                  "severity_claimed": "medium"
                 }
               ],
               "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
-              "created_at": "2026-10-13T02:07:23.953841Z"
+              "created_at": "2026-10-13T02:21:56.488201Z"
             }
           ],
           "diagnostics": []
@@ -106,7 +107,7 @@
       "id": "syntax_error_is_partial_not_clean_completion",
       "result": "PASS",
       "execution": {
-        "parser_version": "1.1",
+        "parser_version": "1.2",
         "invocation": {
           "args": [
             "--ini",
@@ -126,7 +127,7 @@
           ]
         },
         "sandbox_profile": "repo_offline-network-none-v1",
-        "guard_binary_digest": "sha256:6111cd83ff70b51092679a04a640b6e37dbd04404d761de7c56aae94b2831a80",
+        "guard_binary_digest": "sha256:314ab58b33dc35d6670624c33a95c56da76daba8fb8de40914a5d72b72e52a95",
         "duration_limit_seconds": 120,
         "schema_version": "1.0",
         "tool_id": "bandit",
@@ -152,12 +153,12 @@
           "included_bytes": 64,
           "snapshot_digest": "sha256:947defc5ba9dcc3a2ccc78a73c9343086dc5ec1acd75f0fd8ab01af60e073337"
         },
-        "started_at": "2026-10-13T02:07:23.999374Z",
-        "duration_ms": 968,
+        "started_at": "2026-10-13T02:21:56.541373Z",
+        "duration_ms": 797,
         "exit_code": 0,
         "status": "completed_partial",
         "cleanup_state": "complete",
-        "container_id": "aegis-scan-20aaf6e2d790478eb5123ea1313c2d9f",
+        "container_id": "aegis-scan-8e62c3ff755a704489a8c65eaa7594b5",
         "result": {
           "status": "completed_partial",
           "findings": [],
@@ -177,9 +178,9 @@
       }
     }
   ],
-  "started_at": "2026-10-13T02:07:21Z",
+  "started_at": "2026-10-13T02:21:54Z",
   "overall": "PASS",
-  "completed_at": "2026-10-13T02:07:25Z",
+  "completed_at": "2026-10-13T02:21:57Z",
   "limitations": [
     "Only trusted inert fixtures and local ARM64 Docker Desktop tested.",
     "Publisher signature, full transitive notices and independent isolation review remain pending.",

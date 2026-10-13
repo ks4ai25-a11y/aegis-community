@@ -49,6 +49,7 @@ class FindingV1ProvenanceItem(TypedDict):
     parser_version: str
     input_digest: str
     rule_id: NotRequired[str]
+    severity_claimed: NotRequired[str]
 class ScopeGrantV1(TypedDict):
     schema_version: str
     scope_grant_id: str
@@ -334,6 +335,7 @@ class ScannerExecutionV1ResultFindingsItemProvenanceItem(TypedDict):
     parser_version: str
     input_digest: str
     rule_id: NotRequired[str]
+    severity_claimed: NotRequired[str]
 class ScannerExecutionV1ResultDiagnosticsItem(TypedDict):
     code: str
     message: str

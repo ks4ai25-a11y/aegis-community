@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const ParserVersion = "1.1"
+const ParserVersion = "1.2"
 
 type Source struct {
 	Tool        string `json:"tool_id"`
@@ -21,6 +21,7 @@ type Source struct {
 	Parser      string `json:"parser_version"`
 	InputDigest string `json:"input_digest"`
 	Rule        string `json:"rule_id,omitempty"`
+	Severity    string `json:"severity_claimed,omitempty"`
 }
 type Finding struct {
 	Schema            string   `json:"schema_version"`
@@ -91,24 +92,7 @@ func newFinding(j Job, tool, kind, rule, file string, line int, sev string) (Fin
 	default:
 		sev = "informational"
 	}
-	f := Finding{Schema: "1.0", App: j.App, Repository: j.Repository, Category: kind, Summary: "Unverified " + tool + " finding: " + rule, Status: "suspected", Severity: sev, Confidence: "low", Tier: "T0", Path: p, Line: line, Provenance: []Source{{tool, j.ToolVersion, j.ImageDigest, ParserVersion, j.InputDigest, rule}}, Coverage: "Tool-reported static claim only; no application exploitability or remediation proof.", Created: time.Now().UTC().Format(time.RFC3339Nano)}
-	f.ID = identityHash([]string{j.App, j.Repository, kind, rule, p, fmt.Sprint(line)})
+	f := Finding{Schema: "1.0", App: j.App, Repository: j.Repository, Category: kind, Summary: "Unverified " + tool + " finding: " + rule, Status: "suspected", Severity: sev, Confidence: "low", Tier: "T0", Path: p, Line: line, Provenance: []Source{{tool, j.ToolVersion, j.ImageDigest, ParserVersion, j.InputDigest, rule, sev}}, Coverage: "Tool-reported static claim only; no application exploitability or remediation proof.", Created: time.Now().UTC().Format(time.RFC3339Nano)}
+	f.ID = identityHash([]string{j.App, j.Repository, kind, tool, rule, p, fmt.Sprint(line)})
 	return f, nil
-}
-func Dedupe(in []Finding) []Finding {
-	out := []Finding{}
-	index := map[string]int{}
-	for _, f := range in {
-		key := identityHash([]string{f.App, f.Repository, f.Category, f.ID})
-		if f.Package != "" && len(f.Advisories) == 1 {
-			key = identityHash([]string{f.App, f.Repository, f.Category, f.Package, f.Version, f.Advisories[0], f.Path})
-		}
-		if i, ok := index[key]; ok {
-			out[i].Provenance = append(out[i].Provenance, f.Provenance...)
-		} else {
-			index[key] = len(out)
-			out = append(out, f)
-		}
-	}
-	return out
 }

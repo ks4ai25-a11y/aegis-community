@@ -9,7 +9,8 @@
       "type": "string",
       "enum": [
         "1.0",
-        "1.1"
+        "1.1",
+        "1.2"
       ]
     },
     "invocation": {
@@ -341,7 +342,8 @@
                       "type": "string",
                       "enum": [
                         "1.0",
-                        "1.1"
+                        "1.1",
+                        "1.2"
                       ]
                     },
                     "input_digest": {
@@ -351,6 +353,16 @@
                     "rule_id": {
                       "type": "string",
                       "maxLength": 160
+                    },
+                    "severity_claimed": {
+                      "type": "string",
+                      "enum": [
+                        "informational",
+                        "low",
+                        "medium",
+                        "high",
+                        "critical"
+                      ]
                     }
                   },
                   "required": [
