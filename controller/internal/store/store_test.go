@@ -105,7 +105,7 @@ func TestScannerMigrationUpgradePreservesExistingVersions(t *testing.T) {
 		}
 	}
 	var version int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 4 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 5 {
 		t.Fatal(version, e)
 	}
 	if got, e := s.Get("upgrade-canary"); e != nil || got != "preserved" {
@@ -113,5 +113,52 @@ func TestScannerMigrationUpgradePreservesExistingVersions(t *testing.T) {
 	}
 	if _, e = s.DB.Exec("SELECT count(*) FROM scanner_jobs"); e != nil {
 		t.Fatal(e)
+	}
+}
+
+func TestScannerLeaseMigrationPreservesVersionFourJobs(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "v4.db")
+	db, e := sql.Open("sqlite", path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	previous := []string{schema, researchSchema, repositorySchema, scannerSchema}
+	for i, body := range previous {
+		if _, e = db.Exec(body); e != nil {
+			t.Fatal(e)
+		}
+		if _, e = db.Exec("INSERT INTO migrations VALUES(?,?)", i+1, domain.Hash([]byte(body))); e != nil {
+			t.Fatal(e)
+		}
+	}
+	for _, statement := range []string{
+		"INSERT INTO owners VALUES('upgrade-owner','fixture','2026-10-13T00:00:00Z')",
+		"INSERT INTO repositories VALUES('upgrade-repo','upgrade-owner','app_demo','fixture','map-fixture','2026-10-13T00:00:00Z')",
+		"INSERT INTO application_maps VALUES('upgrade-repo','map-fixture','{}','2026-10-13T00:00:00Z')",
+		"INSERT INTO scanner_jobs(id,owner,repository,app,map_digest,lock_digest,request_digest,idempotency_key,payload,state,created_at,expires) VALUES('upgrade-job','upgrade-owner','upgrade-repo','app_demo','map-fixture','lock-fixture','request-fixture','upgrade-key','{}','queued','2026-10-13T00:00:00Z',1791849600)",
+	} {
+		if _, e = db.Exec(statement); e != nil {
+			t.Fatal(e)
+		}
+	}
+	db.Close()
+	s, e := Open(path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	for i, body := range previous {
+		var hash string
+		if e = s.DB.QueryRow("SELECT checksum FROM migrations WHERE version=?", i+1).Scan(&hash); e != nil || hash != domain.Hash([]byte(body)) {
+			t.Fatal("previous checksum changed", i, e)
+		}
+	}
+	var state, digest string
+	if e = s.DB.QueryRow("SELECT state,request_digest FROM scanner_jobs WHERE id='upgrade-job'").Scan(&state, &digest); e != nil || state != "queued" || digest != "request-fixture" {
+		t.Fatal("old request altered", state, digest, e)
+	}
+	var n int
+	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_dispatch").Scan(&n); e != nil || n != 0 {
+		t.Fatal("migration fabricated a worker claim", n, e)
 	}
 }

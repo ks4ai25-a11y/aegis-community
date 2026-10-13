@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "scope": "internal-scanner-lease-and-SQLite-migration-5",
+  "overall": "PASS",
+  "completed_at": "2026-10-13T02:45:18.767573+00:00",
+  "checks": [
+    {
+      "id": "TestLeaseClaimBindsMapAndSerializesAdmission",
+      "result": "PASS"
+    },
+    {
+      "id": "TestLeaseRenewalCannotReviveOrExceedDeadline",
+      "result": "PASS"
+    },
+    {
+      "id": "TestCancelledRunningLeaseNeverAcceptsSuccessOrReleasesSlot",
+      "result": "PASS"
+    },
+    {
+      "id": "TestCrashRecoveryRetainsUncertainDispatchAfterRestart",
+      "result": "PASS"
+    },
+    {
+      "id": "TestQueuedExpiryDoesNotAcquireOrExecute",
+      "result": "PASS"
+    },
+    {
+      "id": "TestChangedSourceOrPinsRefusedBeforeClaim",
+      "result": "PASS"
+    },
+    {
+      "id": "TestWorkerAndCapabilityForgeryRefused",
+      "result": "PASS"
+    },
+    {
+      "id": "TestClaimAndRecoveryAuditFailureRollback",
+      "result": "PASS"
+    },
+    {
+      "id": "TestToolFailureKeepsCleanupAdmissionClosed",
+      "result": "PASS"
+    },
+    {
+      "id": "TestConcurrentWorkersClaimOnlyOnce",
+      "result": "PASS"
+    },
+    {
+      "id": "TestFailureFinishIsIdempotentAndAuditedAtomically",
+      "result": "PASS"
+    },
+    {
+      "id": "TestScannerLeaseMigrationPreservesVersionFourJobs",
+      "result": "PASS"
+    }
+  ],
+  "source_hashes": {
+    "controller/internal/scanqueue/lease.go": "sha256:11c233451e9c7182fa415e4f7c7c6cfdd5cd0847ba52cfcd0fd68c0e50a17393",
+    "controller/internal/scanqueue/lease_test.go": "sha256:9eae367328a74c80f4b7ec3e4fd4d04325f5261f7072b1c05fd1f2ac2d7c4713",
+    "controller/internal/store/migrations.go": "sha256:412b9f21554aab4e477ce0a3338ccdf5416495fdc049d8699f851173e09a565a",
+    "controller/internal/store/store_test.go": "sha256:ad3f671c1e1ed0226b9a11ebf0013e14c4e2c94550615cba5f207623ae0994ed"
+  },
+  "backup_observation": "aegisctl online backup completed in protected controller volume before migration 5; backup contents were not exported",
+  "live_regressions": [
+    {
+      "evidence": "docs/evidence/repository-acceptance.json",
+      "result": "PASS",
+      "checks_passed": 8
+    },
+    {
+      "evidence": "docs/evidence/scoped-jobs-acceptance.json",
+      "result": "PASS",
+      "checks_passed": 7
+    }
+  ],
+  "limitations": [
+    "No scanner executed through this internal queue during these checks.",
+    "Actual worker enrollment/transport, typed scanner receipt ingestion and verified cleanup release remain unfinished.",
+    "A controller database admission slot is not cross-operator host arbitration or hostile-code isolation certification."
+  ],
+  "observed_shared_image": "sha256:e7ce6153b4390d491baff930f023cea37e82a44f71a58a70d80740649918cce1",
+  "observed_shared_image_services": [
+    "aegis-community-init-1",
+    "aegis-community-deployer-1",
+    "aegis-community-verifier-1",
+    "aegis-community-controller-1"
+  ]
+}

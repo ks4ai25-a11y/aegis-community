@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:ba5abf59473d59f3f42b07484f254710bff4577d977338e2bbeb6279a0f8e907",
+  "source_tree_sha256": "sha256:b80e2dfc4e727d9719f01d7c2575c97aa223308eafea4ced35e703c27878f270",
   "files": [
     {
       "path": ".dockerignore",
@@ -475,6 +475,14 @@
       "sha256": "89a823432d4a77a8764777ec29e53011526c5517c7364204733ec63b1199876b"
     },
     {
+      "path": "controller/internal/scanqueue/lease.go",
+      "sha256": "11c233451e9c7182fa415e4f7c7c6cfdd5cd0847ba52cfcd0fd68c0e50a17393"
+    },
+    {
+      "path": "controller/internal/scanqueue/lease_test.go",
+      "sha256": "9eae367328a74c80f4b7ec3e4fd4d04325f5261f7072b1c05fd1f2ac2d7c4713"
+    },
+    {
       "path": "controller/internal/scanqueue/queue.go",
       "sha256": "3491031c3d3fb7ab001acf1a8a14da4e14f6bcc58c873b47fe5d78b2d52b8361"
     },
@@ -492,7 +500,7 @@
     },
     {
       "path": "controller/internal/store/migrations.go",
-      "sha256": "8747e4eb5a520ccdbf563dab47c87b42c918129130c81bea95a76f91fc350dfd"
+      "sha256": "412b9f21554aab4e477ce0a3338ccdf5416495fdc049d8699f851173e09a565a"
     },
     {
       "path": "controller/internal/store/reports.go",
@@ -504,7 +512,7 @@
     },
     {
       "path": "controller/internal/store/store_test.go",
-      "sha256": "98c2c7b6b60e4cb2dc76ddf1c59a046e985ad001260f1916afa615f161e1c7df"
+      "sha256": "ad3f671c1e1ed0226b9a11ebf0013e14c4e2c94550615cba5f207623ae0994ed"
     },
     {
       "path": "controller/internal/verify/verify.go",
@@ -532,7 +540,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "59e35afeda7127918a7891051f4269b8c1f831f763b4bc27d986370589799798"
+      "sha256": "9cf19fe2f238efdb21df198cfafd8b4a44f922abb869580885931068de22862d"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -581,6 +589,10 @@
     {
       "path": "docs/architecture/adr/021-durable-offline-scanner-submission.md",
       "sha256": "a562b933d930b7131e5055274fdc48d1e01819f43fb1800702db951bf7a82237"
+    },
+    {
+      "path": "docs/architecture/adr/022-durable-scanner-leases-and-uncertain-cleanup.md",
+      "sha256": "49992e8c87cea38b1fbb6616d95d5954c08f3a2e1bfaa493ea6f92ade58d0341"
     },
     {
       "path": "docs/operators/local-demo-upgrades.md",
