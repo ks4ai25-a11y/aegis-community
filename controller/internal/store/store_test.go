@@ -1,6 +1,7 @@
 package store
 
 import (
+	"aegis.local/controller/internal/domain"
 	"context"
 	"database/sql"
 	"path/filepath"
@@ -71,5 +72,46 @@ func TestUnknownMigrationDoesNotTouchSchema(t *testing.T) {
 	var n int
 	if e = db.QueryRow("SELECT count(*) FROM migrations").Scan(&n); e != nil || n != originalCount {
 		t.Fatal("migration history changed", n, e)
+	}
+}
+
+func TestScannerMigrationUpgradePreservesExistingVersions(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "v3.db")
+	db, e := sql.Open("sqlite", path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	for i, body := range []string{schema, researchSchema, repositorySchema} {
+		if _, e = db.Exec(body); e != nil {
+			t.Fatal(e)
+		}
+		if _, e = db.Exec("INSERT INTO migrations VALUES(?,?)", i+1, domain.Hash([]byte(body))); e != nil {
+			t.Fatal(e)
+		}
+	}
+	if _, e = db.Exec("INSERT INTO settings VALUES('upgrade-canary','preserved')"); e != nil {
+		t.Fatal(e)
+	}
+	db.Close()
+	s, e := Open(path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	for i, body := range []string{schema, researchSchema, repositorySchema} {
+		var hash string
+		if e = s.DB.QueryRow("SELECT checksum FROM migrations WHERE version=?", i+1).Scan(&hash); e != nil || hash != domain.Hash([]byte(body)) {
+			t.Fatal("old migration changed", i, e)
+		}
+	}
+	var version int
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 4 {
+		t.Fatal(version, e)
+	}
+	if got, e := s.Get("upgrade-canary"); e != nil || got != "preserved" {
+		t.Fatal(got, e)
+	}
+	if _, e = s.DB.Exec("SELECT count(*) FROM scanner_jobs"); e != nil {
+		t.Fatal(e)
 	}
 }

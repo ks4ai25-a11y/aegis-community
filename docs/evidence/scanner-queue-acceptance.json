@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0",
+  "scope": "internal-offline-scanner-request-persistence-and-local-migration",
+  "overall": "PASS",
+  "completed_at": "2026-10-13T02:33:24.538515+00:00",
+  "checks": [
+    {
+      "id": "TestOwnerIdempotencyAndRestart",
+      "package": "aegis.local/controller/internal/scanqueue",
+      "result": "PASS"
+    },
+    {
+      "id": "TestRejectsRequestAndRepositoryIdentityChanges",
+      "package": "aegis.local/controller/internal/scanqueue",
+      "result": "PASS"
+    },
+    {
+      "id": "TestToolLockChangeAndPayloadCorruption",
+      "package": "aegis.local/controller/internal/scanqueue",
+      "result": "PASS"
+    },
+    {
+      "id": "TestAuditFailureRollsBackEnqueueAndCancel",
+      "package": "aegis.local/controller/internal/scanqueue",
+      "result": "PASS"
+    },
+    {
+      "id": "TestConcurrentIdempotencyAndQueueBudget",
+      "package": "aegis.local/controller/internal/scanqueue",
+      "result": "PASS"
+    },
+    {
+      "id": "TestScannerMigrationUpgradePreservesExistingVersions",
+      "package": "aegis.local/controller/internal/store",
+      "result": "PASS"
+    },
+    {
+      "id": "TestRetainedQueueBudgetIncludesTerminalJobs",
+      "package": "aegis.local/controller/internal/scanqueue",
+      "result": "PASS"
+    },
+    {
+      "id": "TestStoredOwnerAndRelationalIdentityMustMatchRequest/owner",
+      "package": "aegis.local/controller/internal/scanqueue",
+      "result": "PASS"
+    },
+    {
+      "id": "TestStoredOwnerAndRelationalIdentityMustMatchRequest/app",
+      "package": "aegis.local/controller/internal/scanqueue",
+      "result": "PASS"
+    },
+    {
+      "id": "TestStoredOwnerAndRelationalIdentityMustMatchRequest",
+      "package": "aegis.local/controller/internal/scanqueue",
+      "result": "PASS"
+    }
+  ],
+  "source_hashes": {
+    "controller/internal/scanqueue/queue.go": "sha256:3491031c3d3fb7ab001acf1a8a14da4e14f6bcc58c873b47fe5d78b2d52b8361",
+    "controller/internal/scanqueue/queue_test.go": "sha256:23d3be100a02e277fa69cadc5d89423f6249c51247caed57031a3ccba26de85b",
+    "controller/internal/store/migrations.go": "sha256:8747e4eb5a520ccdbf563dab47c87b42c918129130c81bea95a76f91fc350dfd",
+    "controller/internal/store/store_test.go": "sha256:98c2c7b6b60e4cb2dc76ddf1c59a046e985ad001260f1916afa615f161e1c7df"
+  },
+  "limitations": [
+    "Internal persistence component only; no scanner HTTP feature or real worker dispatch.",
+    "Tests use synthetic tool-lock identity and trusted provisioned inert repository fixtures.",
+    "Worker leases, expiry enforcement, receipt ingest, immutable finding storage and scanner UI remain incomplete."
+  ],
+  "observed_upgrade_issue": "First live crash test failed because retained init container used old image and rejected schema version 4. Recreated init/deployer/verifier/controller from the same new image; actual rerun passed.",
+  "live_regressions": [
+    {
+      "evidence": "docs/evidence/repository-acceptance.json",
+      "checks_passed": 8,
+      "result": "PASS"
+    },
+    {
+      "evidence": "docs/evidence/scoped-jobs-acceptance.json",
+      "checks_passed": 7,
+      "result": "PASS"
+    }
+  ],
+  "observed_shared_image": "sha256:34284be2639e1806a7c21f7871eb645d34e64d0c21a27f90b5b21f38f0136c57",
+  "observed_shared_image_services": [
+    "aegis-community-init-1",
+    "aegis-community-deployer-1",
+    "aegis-community-verifier-1",
+    "aegis-community-controller-1"
+  ]
+}

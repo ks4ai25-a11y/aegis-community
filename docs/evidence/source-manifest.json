@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:223448dff5ad13ec7ebee27bc0352d7fd2fc69cfba255294be510fb5caf3c4ce",
+  "source_tree_sha256": "sha256:ba5abf59473d59f3f42b07484f254710bff4577d977338e2bbeb6279a0f8e907",
   "files": [
     {
       "path": ".dockerignore",
@@ -475,6 +475,14 @@
       "sha256": "89a823432d4a77a8764777ec29e53011526c5517c7364204733ec63b1199876b"
     },
     {
+      "path": "controller/internal/scanqueue/queue.go",
+      "sha256": "3491031c3d3fb7ab001acf1a8a14da4e14f6bcc58c873b47fe5d78b2d52b8361"
+    },
+    {
+      "path": "controller/internal/scanqueue/queue_test.go",
+      "sha256": "23d3be100a02e277fa69cadc5d89423f6249c51247caed57031a3ccba26de85b"
+    },
+    {
       "path": "controller/internal/scope/scope.go",
       "sha256": "fbf7c6ff56c33314bef60c25f981efbf4b2e82a7117db6efbab14c2a3941d095"
     },
@@ -484,7 +492,7 @@
     },
     {
       "path": "controller/internal/store/migrations.go",
-      "sha256": "18843de4c0303765c54a4724f429afe522d5ce2b0408f3d30f803b39a6d228a7"
+      "sha256": "8747e4eb5a520ccdbf563dab47c87b42c918129130c81bea95a76f91fc350dfd"
     },
     {
       "path": "controller/internal/store/reports.go",
@@ -496,7 +504,7 @@
     },
     {
       "path": "controller/internal/store/store_test.go",
-      "sha256": "130a417d1a1f3860c747e75593b9c5de782a23d4bbca1f1a59d7f6c8b851a2a1"
+      "sha256": "98c2c7b6b60e4cb2dc76ddf1c59a046e985ad001260f1916afa615f161e1c7df"
     },
     {
       "path": "controller/internal/verify/verify.go",
@@ -524,7 +532,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "45827bb674f6ecf7455dfe1a11f7617b9b48e8297614f242efaf393593687c50"
+      "sha256": "59e35afeda7127918a7891051f4269b8c1f831f763b4bc27d986370589799798"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -569,6 +577,14 @@
     {
       "path": "docs/architecture/adr/020-bounded-static-finding-aggregation.md",
       "sha256": "e1f441a2dc824ae57715b7ae58eb6c588f40b47b90768f2a62a7cb2e39d51181"
+    },
+    {
+      "path": "docs/architecture/adr/021-durable-offline-scanner-submission.md",
+      "sha256": "a562b933d930b7131e5055274fdc48d1e01819f43fb1800702db951bf7a82237"
+    },
+    {
+      "path": "docs/operators/local-demo-upgrades.md",
+      "sha256": "630e6af7f0e208d3d21877fc06af51ad18c09b88777fd5ec9d1945f87fdb4aad"
     },
     {
       "path": "docs/operators/offline-scanners.md",

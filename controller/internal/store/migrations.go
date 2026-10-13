@@ -22,8 +22,15 @@ CREATE TABLE application_maps(repository TEXT NOT NULL REFERENCES repositories(i
 CREATE INDEX repositories_owner ON repositories(owner,created_at,id);
 `
 
+// New version only: previously deployed migration bodies remain immutable.
+const scannerSchema = `
+CREATE TABLE scanner_jobs(id TEXT PRIMARY KEY,owner TEXT NOT NULL REFERENCES owners(id),repository TEXT NOT NULL REFERENCES repositories(id),app TEXT NOT NULL,map_digest TEXT NOT NULL,lock_digest TEXT NOT NULL,request_digest TEXT NOT NULL,idempotency_key TEXT NOT NULL,payload TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('queued','running','completed','completed_partial','completed_stale_db','tool_error','cancelled','timeout')),cancel_requested INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL,expires INTEGER NOT NULL,finished_at TEXT NOT NULL DEFAULT '',error_code TEXT NOT NULL DEFAULT '',UNIQUE(owner,idempotency_key),FOREIGN KEY(repository,map_digest) REFERENCES application_maps(repository,digest));
+CREATE INDEX scanner_jobs_claim ON scanner_jobs(state,expires,created_at,id);
+CREATE INDEX scanner_jobs_owner ON scanner_jobs(owner,created_at,id);
+`
+
 func migrate(db *sql.DB) error {
-	versions := []string{schema, researchSchema, repositorySchema}
+	versions := []string{schema, researchSchema, repositorySchema, scannerSchema}
 	var exists int
 	if e := db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='migrations'").Scan(&exists); e != nil {
 		return e
