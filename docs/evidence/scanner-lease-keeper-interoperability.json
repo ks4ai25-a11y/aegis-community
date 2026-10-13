@@ -1,0 +1,129 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-10-13T07:34:57.529572+00:00",
+  "status": "PASS",
+  "scope": "Actual alpha client/controller component interoperability on private Unix HTTP with real migrated SQLite; cooperative lease-keeper cancellation and join.",
+  "source_files": [
+    {
+      "path": "alpha/workerchannel/client.go",
+      "sha256": "890f022ece690a4e73039922c7f2f60b9f8c38d5e4bb0d57e517ef4cef7f2608"
+    },
+    {
+      "path": "alpha/workerchannel/client_test.go",
+      "sha256": "07441a73c13eabb387c13e994143a80ad10e40e1752373812d385364b6df0dad"
+    },
+    {
+      "path": "alpha/workerchannel/json.go",
+      "sha256": "a149160ef5f1082bc8b59763e68e107c98f3288f24f9d4176732cea9eddd0cd7"
+    },
+    {
+      "path": "alpha/workerchannel/keeper.go",
+      "sha256": "cb37d6c3d0ffdec9c75d77deef4adc3cc4018fa465d7a3a3ffe00e1f05eb2d9c"
+    },
+    {
+      "path": "alpha/workerchannel/keeper_test.go",
+      "sha256": "4c5e5f58dbb638a3819bdd39e7c84b482729850dedda6ca896bc1d7de14f83e3"
+    },
+    {
+      "path": "alpha/workerchannel/private_other.go",
+      "sha256": "f3b0592c83f95fb9e1f1ab21cb3fa9854d6241fba466b2003052c468ff68d133"
+    },
+    {
+      "path": "alpha/workerchannel/private_unix.go",
+      "sha256": "626725d600bbd54c301018ad1530984c444e509f4724521bafd8b27713858c91"
+    },
+    {
+      "path": "tests/integration/scannerchannel/README.md",
+      "sha256": "bb0545a13e28e1634bc3e7c0bcd0e0718202ca392737b8f5f930a2ed73df0c4b"
+    },
+    {
+      "path": "tests/integration/scannerchannel/channel_test.go",
+      "sha256": "4f8d272604be5220efb2380d0d8e0745c68e968ed25064fa7b5dab0b7e68e5a0"
+    },
+    {
+      "path": "tests/integration/scannerchannel/go.mod",
+      "sha256": "ac0569b075c58a6fa3e32e580e0ce99356dc397867292ce8bb464369dcf28804"
+    },
+    {
+      "path": "tests/integration/scannerchannel/go.sum",
+      "sha256": "353b126252771ca6f787439f8b43e4dc6d0bda8b20a0f6c95d79b68ee4cd8d73"
+    }
+  ],
+  "checks": [
+    {
+      "scope": "worker_client_and_keeper",
+      "status": "PASS",
+      "race_enabled": true,
+      "fresh_execution": true,
+      "top_level_test_cases": [
+        "TestProtocolLifecycle",
+        "TestClaimBindingRefusals",
+        "TestHostileResponses",
+        "TestEmptyRedirectAndErrorRedaction",
+        "TestUnsafeCredential",
+        "TestUnsafeSocket",
+        "TestAcknowledgementsAndLocalGuardBinding",
+        "TestKeeperWithdrawsAndJoinsTask",
+        "TestKeeperRefusesBeforeTaskAndRedactsTaskError",
+        "TestKeeperFinalGuardAndParentCancellation",
+        "TestKeeperDeadlineDoesNotReportSuccess"
+      ],
+      "output_sha256": "ebddf3021178279eb96b057293d8ea13cee5dcf5fcdf5289fe6e6092ba080066"
+    },
+    {
+      "scope": "actual_client_controller_interoperability",
+      "status": "PASS",
+      "race_enabled": true,
+      "fresh_execution": true,
+      "top_level_test_cases": [
+        "TestRealClientControllerLifecycle",
+        "TestRealRevocationStopsGuardAndRetainsAdmission",
+        "TestRealOwnerCancellationStopsGuard",
+        "TestRealExpiredLeaseCannotRevive",
+        "TestRealPinsAndOwnerMismatchRefuseClaim",
+        "TestRealKeeperCancelsOnWorkerRevocation"
+      ],
+      "output_sha256": "a5ba60a62abb621890fc3922b48ad006b04fd522c930c3e34a9dfcf147b62e3e"
+    }
+  ],
+  "full_source_checks": {
+    "command": "make test",
+    "exit_code": 0,
+    "output_sha256": "d42d5b43036a6f75ed6ea3659e39257e4012f1feb33d7e150a02a7ec7329e875"
+  },
+  "static_analysis": [
+    {
+      "command": "cd alpha && go vet ./workerchannel",
+      "exit_code": 0
+    },
+    {
+      "command": "cd tests/integration/scannerchannel && go vet ./...",
+      "exit_code": 0
+    }
+  ],
+  "prior_hosted_ci": {
+    "commit": "f835253135754edfca43f05580c974df641b5f98",
+    "run_id": 38362696752,
+    "status": "completed",
+    "conclusion": "success",
+    "covers_current_change": false
+  },
+  "observed_invariants": [
+    "Actual credential-file enrollment and private listener interoperate with the alpha client.",
+    "Claims preserve owner, request, pin and map identity.",
+    "Finite failures persist, exact replay is idempotent, conflicting replay is rejected.",
+    "Revocation and owner cancellation stop renewal immediately but do not assert process cleanup.",
+    "Pending cancellation remains running until lease expiry, then reconciles as cancelled with retained admission.",
+    "Expired lease cannot renew or become a success.",
+    "Real enrollment revocation cancels and joins a cooperative task through the five-second renewal loop.",
+    "Initial/final guard refusals, parent cancellation and deadline expiration cannot produce local success."
+  ],
+  "limitations": [
+    "No actual scanner tool or repository code is executed by these tests.",
+    "No deployed Compose worker/client acceptance is claimed.",
+    "Receipt ingestion and append-only finding provenance remain unfinished.",
+    "No verified cleanup release or admission bypass is implemented.",
+    "RunWithLease requires cooperative task cancellation and independently bounded execution; it does not forcibly stop arbitrary code.",
+    "VM isolation, Windows/remote workers and release gates remain unfinished."
+  ]
+}

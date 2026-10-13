@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:eacbad42505b64d762445dbc562bf767960414857ab27a13b287fe37f9d5a697",
+  "source_tree_sha256": "sha256:968cd2eb6109d57631478b899dddea3099efac720a0f5a0be1e4894a330b5c7a",
   "files": [
     {
       "path": ".dockerignore",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "bbf229ba5601542f4155c3d452376a4794cef91d99b05ba0956021d627ce344f"
+      "sha256": "5660169bc3fbdcadb03420ec7e9b6a0afa3024dbe5672d2e3524b8812a9dbc5e"
     },
     {
       "path": ".gitignore",
@@ -28,7 +28,7 @@
     },
     {
       "path": "Makefile",
-      "sha256": "78f0c8c18eb5cf2e6990ea17a0219206d4bb3f5df30519ceeb9a3fb6343a0967"
+      "sha256": "47cfa87a4632466d1d516d0d5f850d7721ec5ece12a59351c6a7195e3ad3f3f2"
     },
     {
       "path": "README.md",
@@ -169,6 +169,14 @@
     {
       "path": "alpha/workerchannel/json.go",
       "sha256": "a149160ef5f1082bc8b59763e68e107c98f3288f24f9d4176732cea9eddd0cd7"
+    },
+    {
+      "path": "alpha/workerchannel/keeper.go",
+      "sha256": "cb37d6c3d0ffdec9c75d77deef4adc3cc4018fa465d7a3a3ffe00e1f05eb2d9c"
+    },
+    {
+      "path": "alpha/workerchannel/keeper_test.go",
+      "sha256": "4c5e5f58dbb638a3819bdd39e7c84b482729850dedda6ca896bc1d7de14f83e3"
     },
     {
       "path": "alpha/workerchannel/private_other.go",
@@ -596,7 +604,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "a6b9e962286d98c024b1fab4c4034e0628134cbea2790679ef605239bd229a1a"
+      "sha256": "26775057bf084c034dbe94a1b549073097acd5c6f73c70ec65dd0b3fa1f8973e"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -663,6 +671,10 @@
       "sha256": "6efcb0b6e841545a4e0edc61c4a14e6ed65be4aacff864591b408b50d5f3eb93"
     },
     {
+      "path": "docs/architecture/adr/026-scanner-lease-keeper-and-controller-interoperability.md",
+      "sha256": "0e9c5c6c01c3d754e6189e3a97a5abbb444bc33ec946ef2122d1dd064fc0a551"
+    },
+    {
       "path": "docs/operators/local-demo-upgrades.md",
       "sha256": "630e6af7f0e208d3d21877fc06af51ad18c09b88777fd5ec9d1945f87fdb4aad"
     },
@@ -676,7 +688,7 @@
     },
     {
       "path": "docs/operators/scanner-workers.md",
-      "sha256": "e62122c1d99fa747dfc188d61306f474fedec0ec3af7174f95ee930c76b743af"
+      "sha256": "a5f5cb0b512d7f1678e8a905cfaf240f7209cfb4913391d310b4d1a87e200e14"
     },
     {
       "path": "docs/release-gates.json",
@@ -789,6 +801,22 @@
     {
       "path": "tests/integration/scanner_worker_enrollment_acceptance.py",
       "sha256": "c39fceb2fb4b494bf0f8e37ec239e50391cc58798c773e1a96d4f4e53f1ca548"
+    },
+    {
+      "path": "tests/integration/scannerchannel/README.md",
+      "sha256": "bb0545a13e28e1634bc3e7c0bcd0e0718202ca392737b8f5f930a2ed73df0c4b"
+    },
+    {
+      "path": "tests/integration/scannerchannel/channel_test.go",
+      "sha256": "4f8d272604be5220efb2380d0d8e0745c68e968ed25064fa7b5dab0b7e68e5a0"
+    },
+    {
+      "path": "tests/integration/scannerchannel/go.mod",
+      "sha256": "ac0569b075c58a6fa3e32e580e0ce99356dc397867292ce8bb464369dcf28804"
+    },
+    {
+      "path": "tests/integration/scannerchannel/go.sum",
+      "sha256": "353b126252771ca6f787439f8b43e4dc6d0bda8b20a0f6c95d79b68ee4cd8d73"
     },
     {
       "path": "tests/integration/scoped_jobs_acceptance.py",
