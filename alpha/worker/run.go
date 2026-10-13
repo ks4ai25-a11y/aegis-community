@@ -157,7 +157,7 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 				return ErrRun
 			}
 			failure = "SCANNER_EXECUTION_FAILED"
-			ex := executor.Config{LockPath: filepath.Join(cfg.SourceRoot, "tools/scanners.lock.json"), ExpectedLockDigest: l.Job.LockDigest, RulesPath: filepath.Join(cfg.SourceRoot, "alpha/rules"), GuardDir: filepath.Join(cfg.SourceRoot, "bin"), ScratchParent: session.Path, DurationSeconds: l.Job.Input.Duration, BeforeLaunch: func(prepared executor.Execution, name, engine string) error {
+			ex := executor.Config{LockPath: filepath.Join(cfg.SourceRoot, "tools/scanners.lock.json"), ExpectedLockDigest: l.Job.LockDigest, RulesPath: filepath.Join(cfg.SourceRoot, "alpha/rules"), GuardDir: filepath.Join(cfg.SourceRoot, "bin"), ScratchParent: session.Path, DurationSeconds: l.Job.Input.Duration, Deadline: l.Deadline, BeforeLaunch: func(prepared executor.Execution, name, engine string) error {
 				if client.Guard(run, l) != nil {
 					return ErrRun
 				}

@@ -8,6 +8,7 @@ import (
 	"aegis.local/source"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -60,13 +61,43 @@ func (w *boundedStream) Write(p []byte) (int, error) {
 	return w.writer.Write(p)
 }
 
+var errExpired = errors.New("scanner absolute deadline expired")
+
+// startupDeadline rejects late daemon starts and caps remaining execution by
+// both the fixed tool budget and the original absolute deadline. The local host
+// clock is part of the trusted operator boundary, not a remote attestation.
+func startupDeadline(raw string, seconds int, now time.Time) (time.Time, error) {
+	if seconds < 1 || seconds > 120 || len(raw) > 35 {
+		return time.Time{}, fmt.Errorf("invalid scanner deadline")
+	}
+	deadline, e := time.Parse(time.RFC3339Nano, raw)
+	if e != nil || raw != deadline.UTC().Format(time.RFC3339Nano) || deadline.After(now.Add(15*time.Minute)) {
+		return time.Time{}, fmt.Errorf("invalid scanner deadline")
+	}
+	if !deadline.After(now) {
+		return time.Time{}, errExpired
+	}
+	budget := now.Add(time.Duration(seconds) * time.Second)
+	if budget.Before(deadline) {
+		deadline = budget
+	}
+	return deadline, nil
+}
+
 func main() {
-	if len(os.Args) != 3 || os.Getpid() != 1 || os.Geteuid() <= 0 {
+	if len(os.Args) != 4 || os.Getpid() != 1 || os.Geteuid() <= 0 {
 		fmt.Fprintln(os.Stderr, "scanner guard requires non-root container PID 1 and a fixed tool")
 		os.Exit(125)
 	}
 	seconds, e := strconv.Atoi(os.Args[2])
 	if e != nil || seconds < 1 || seconds > 120 {
+		os.Exit(125)
+	}
+	deadline, e := startupDeadline(os.Args[3], seconds, time.Now())
+	if errors.Is(e, errExpired) {
+		os.Exit(124)
+	}
+	if e != nil {
 		os.Exit(125)
 	}
 	binary, args, e := program(os.Args[1])
@@ -75,7 +106,7 @@ func main() {
 	}
 	signalCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
 	defer stop()
-	ctx, cancel := context.WithTimeout(signalCtx, time.Duration(seconds)*time.Second)
+	ctx, cancel := context.WithDeadline(signalCtx, deadline)
 	defer cancel()
 	manifestFile, e := os.Open("/aegis/input-manifest.json")
 	if e != nil {
@@ -128,6 +159,9 @@ func main() {
 			}
 			os.Exit(125)
 		}
+	}
+	if ctx.Err() != nil || !time.Now().Before(deadline) {
+		os.Exit(124)
 	}
 	command := exec.CommandContext(ctx, binary, args...)
 	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}

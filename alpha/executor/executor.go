@@ -35,6 +35,7 @@ type Config struct {
 	ScratchParent      string
 	Docker             string
 	GuardDir           string
+	Deadline           time.Time
 	DurationSeconds    int
 	BeforeStart        func(string, string) error
 	BeforeLaunch       func(Execution, string, string) error
@@ -110,6 +111,9 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 	invocation, e := scanners.BuildInvocation(toolID)
 	if e != nil {
 		return out, e
+	}
+	if !c.Deadline.IsZero() && (!c.Deadline.After(time.Now()) || c.Deadline.After(time.Now().Add(15*time.Minute))) {
+		return out, fmt.Errorf("scanner deadline invalid or expired")
 	}
 	tool, lockDigest, e := resolve(c.LockPath, toolID)
 	if e != nil {
@@ -249,6 +253,10 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 		}
 		seconds = c.DurationSeconds
 	}
+	deadline := c.Deadline
+	if deadline.IsZero() {
+		deadline = time.Now().Add(time.Duration(seconds+5) * time.Second)
+	}
 	out.DurationLimit = seconds
 	nonce := make([]byte, 16)
 	if _, e = rand.Read(nonce); e != nil {
@@ -265,14 +273,21 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 			return out, fmt.Errorf("durable scanner launch authorization failed")
 		}
 	}
+	if ctx.Err() != nil || !deadline.After(time.Now()) {
+		return out, fmt.Errorf("scanner deadline expired before launch")
+	}
 	out.Container = name
 	uid, gid := strconv.Itoa(os.Geteuid()), strconv.Itoa(os.Getegid())
 	args := []string{"run", "--entrypoint", "/aegis/scanner-guard", "--name", name, "--label", "io.aegis.scan=" + name, "--label", "io.aegis.operator_pid=" + strconv.Itoa(os.Getpid()), "--rm", "--pull=never", "--network=none", "--read-only", "--user=" + uid + ":" + gid, "--cap-drop=ALL", "--security-opt=no-new-privileges", "--pids-limit=128", "--memory=768m", "--memory-swap=768m", "--cpus=1", "--log-driver=none", "--tmpfs", "/tmp:rw,noexec,nosuid,size=96m,uid=" + uid + ",gid=" + gid, "-e", "HOME=/tmp", "-e", "SEMGREP_SEND_METRICS=off", "--mount", "type=bind,src=" + snapshot.Path + ",dst=/src,readonly"}
 	if rules != nil {
 		args = append(args, "--mount", "type=bind,src="+rules.Path+",dst=/rules,readonly")
 	}
-	args = append(args, "--mount", "type=bind,src="+guardRoot+",dst=/aegis,readonly", tool.Image, tool.ID, strconv.Itoa(seconds))
-	runCtx, cancel := context.WithTimeout(ctx, time.Duration(seconds+5)*time.Second)
+	args = append(args, "--mount", "type=bind,src="+guardRoot+",dst=/aegis,readonly", tool.Image, tool.ID, strconv.Itoa(seconds), deadline.UTC().Format(time.RFC3339Nano))
+	runDeadline := time.Now().Add(time.Duration(seconds+5) * time.Second)
+	if deadline.Before(runDeadline) {
+		runDeadline = deadline
+	}
+	runCtx, cancel := context.WithDeadline(ctx, runDeadline)
 	defer cancel()
 	stdout := &cappedOutput{limit: invocation.MaxOutput, cancel: cancel}
 	stderr := &cappedOutput{limit: invocation.MaxOutput, cancel: cancel}

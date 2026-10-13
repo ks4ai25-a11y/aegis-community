@@ -90,3 +90,9 @@ Launch records support later independent verification; they never release admiss
 The native worker now requires `workspace_protocol: "1.0"` as well as the launch protocol. It reserves each selected tool's opaque run ID through the private channel while holding local registry admission, before creating that run directory or copying source. Its private journal stores the acknowledged reservation digest. Launches must match that earlier workspace/registry/snapshot reservation. Lost acknowledgements can leave committed reservations without allocated runs; admission remains occupied.
 
 Migration 10 preserves legacy dispatches with workspace protocol zero and no fabricated history. Follow the protected backup/shared-image initializer procedure. A malformed incomplete allocation still requires trusted recovery; do not delete controller admission rows or treat no launches as cleanup proof. Independent registry/engine verification and cleanup release remain unfinished. See ADR 033 and `ScannerWorkspacePlanV1`, `ScannerWorkspaceV1` and `ScannerWorkspaceRecordV1` contracts.
+
+## Original deadline inside the guard
+
+Rebuild the native CLI and both Linux guards with `make research-build`. The fixed worker passes the original job deadline to PID 1; delayed starts refuse before source reads or scanner creation, and valid runs use the smaller remaining deadline/tool budget. The updated guard refuses older invocations without an absolute deadline. Its changed binary digest is recorded in execution receipts. Standalone offline scans derive a finite local deadline.
+
+This improves late-start control but does not release cleanup admission or attest historical guard provenance. Independent verification must still account for queued requests, containers and trusted workspaces. See ADR 034.

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:a224718366c5258becccb622e0c907c000d964fafd54b199511fe4470c51a776",
+  "source_tree_sha256": "sha256:7daa7cd9fe0a1082a0386c00e604a9134f78f6bac3d7f8b52d625da55034a775",
   "files": [
     {
       "path": ".dockerignore",
@@ -48,11 +48,11 @@
     },
     {
       "path": "alpha/cmd/scanner-guard/main.go",
-      "sha256": "58255216bf7ce5577bfc785b1ba48e99b3af75c3b13f1a739fca77b452b3bc4e"
+      "sha256": "57d5e5ffdba995926ef36a0f1e4384a8ef625d2a80fdbdf4685764f420e353b0"
     },
     {
       "path": "alpha/cmd/scanner-guard/main_test.go",
-      "sha256": "a7fdfc6a94ac1f384d8c8402dda64644d00c887d5b141f4846871de58196b1bc"
+      "sha256": "035e200ef8f41ea68390b3b9eb067c000a9c4eefb6df34382f498819240dfda5"
     },
     {
       "path": "alpha/executor/engine.go",
@@ -60,11 +60,15 @@
     },
     {
       "path": "alpha/executor/executor.go",
-      "sha256": "51976ac5f06c02e2b439d357203fbcaf8a30520a6d3a6a6e120a0bc124ce9c1b"
+      "sha256": "26bd28c15da87aeae982505af608ee153f4408f935e5e02a0dbf4b5d93c7bfdc"
     },
     {
       "path": "alpha/executor/executor_test.go",
-      "sha256": "1e5176a0f743b9d84bba8156c22c610370c818346801de84aab9bea31001c93b"
+      "sha256": "20a9a359bc55682a064fd5819e5e6545b3e01abfd07a4c3107d432990c140f1b"
+    },
+    {
+      "path": "alpha/executor/guard_deadline_test.go",
+      "sha256": "b24b3d970b954cb47a3ea09f70813f88f8e41919feb17f08f05d534d4e3fa057"
     },
     {
       "path": "alpha/fixtures/scanners/safe/package-lock.json",
@@ -160,7 +164,7 @@
     },
     {
       "path": "alpha/worker/run.go",
-      "sha256": "6ee9fa3d62bf295465027f3995a461c80f55e3ed89719dfeabe95c23d5364b54"
+      "sha256": "fa2b0b359c60293474c268e1afdff79d0acfeaad562facda0dc8fb52e5b10715"
     },
     {
       "path": "alpha/worker/run_test.go",
@@ -768,7 +772,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "e1f006ca96726a0139c6eec421d78e88b7134d264403852310b42e98ae595be8"
+      "sha256": "8ae552c62cbbeb55c2c11c77ea79f1c21cb7c7e2148cb28faafe9b1d20a62a1d"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -867,6 +871,10 @@
       "sha256": "76a1efdaee44e4a8aed177285d3f524d41bd227e21312c52605250c2446138d0"
     },
     {
+      "path": "docs/architecture/adr/034-independent-absolute-scanner-deadlines.md",
+      "sha256": "bad0fb45d2f7569d5328c205948fb23d8d1ba542ff02e579af8a086ef29a106a"
+    },
+    {
       "path": "docs/operators/local-demo-upgrades.md",
       "sha256": "630e6af7f0e208d3d21877fc06af51ad18c09b88777fd5ec9d1945f87fdb4aad"
     },
@@ -880,7 +888,7 @@
     },
     {
       "path": "docs/operators/scanner-workers.md",
-      "sha256": "3dbf91098d6a5b05dfc330d18e5ba6308e3e8faeffbc930f0edbb95fc1b2bd59"
+      "sha256": "0e58479e42c6b90eff84badced6f500c1af0fa1e8d2f42994377c218fe2f8111"
     },
     {
       "path": "docs/release-gates.json",

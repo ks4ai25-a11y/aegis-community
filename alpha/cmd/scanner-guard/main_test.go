@@ -1,11 +1,45 @@
+// SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
 	"aegis.local/alpha/scanners"
 	"bytes"
 	"context"
+	"errors"
 	"testing"
+	"time"
 )
+
+func TestAbsoluteDeadlineRejectsDelayedStartAndCapsRemainingBudget(t *testing.T) {
+	now := time.Date(2026, 10, 13, 12, 0, 0, 0, time.UTC)
+	for _, offset := range []time.Duration{-time.Second, 0} {
+		if _, e := startupDeadline(now.Add(offset).Format(time.RFC3339Nano), 120, now); !errors.Is(e, errExpired) {
+			t.Fatal("late container start accepted", e)
+		}
+	}
+	soon := now.Add(1500 * time.Millisecond)
+	got, e := startupDeadline(soon.Format(time.RFC3339Nano), 120, now)
+	if e != nil || !got.Equal(soon) {
+		t.Fatal("remaining job deadline replaced by fresh tool budget", got, e)
+	}
+	got, e = startupDeadline(now.Add(5*time.Minute).Format(time.RFC3339Nano), 2, now)
+	if e != nil || !got.Equal(now.Add(2*time.Second)) {
+		t.Fatal("absolute deadline widened fixed tool budget", got, e)
+	}
+}
+func TestAbsoluteDeadlineRequiresCanonicalUTCAndFiniteWindow(t *testing.T) {
+	now := time.Date(2026, 10, 13, 12, 0, 0, 0, time.UTC)
+	for _, raw := range []string{"", "forever", "2026-10-13T12:01:00+00:00", "2026-10-13T12:01:00.000Z", now.Add(16 * time.Minute).Format(time.RFC3339Nano), "2026-10-13T12:01:00Z;echo arbitrary"} {
+		if _, e := startupDeadline(raw, 120, now); e == nil {
+			t.Fatal("invalid deadline accepted", raw)
+		}
+	}
+	for _, seconds := range []int{0, 121, -1} {
+		if _, e := startupDeadline(now.Add(time.Minute).Format(time.RFC3339Nano), seconds, now); e == nil {
+			t.Fatal("invalid tool duration accepted")
+		}
+	}
+}
 
 func TestGuardAcceptsOnlyFiniteOfflineToolPrograms(t *testing.T) {
 	for _, tool := range []string{"semgrep_ce", "osv_v2", "trivy", "syft", "gitleaks", "bandit"} {

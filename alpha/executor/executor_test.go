@@ -5,7 +5,9 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestOutputLimitCancelsAndNeverRetainsOverflow(t *testing.T) {
@@ -57,7 +59,8 @@ func TestLocalEngineRefusesRemoteEndpoints(t *testing.T) {
 	}
 }
 
-func TestUnconfirmedContainerCleanupPreservesPrivateWorkspace(t *testing.T) {
+func syntheticExecutorFixture(t *testing.T) (Config, source.Snapshot) {
+	t.Helper()
 	t.Setenv("DOCKER_HOST", "unix:///tmp/aegis-test-only.sock")
 	t.Setenv("DOCKER_CONTEXT", "")
 	parent, _ := filepath.EvalSymlinks(t.TempDir())
@@ -68,7 +71,7 @@ func TestUnconfirmedContainerCleanupPreservesPrivateWorkspace(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	defer root.Close()
+	t.Cleanup(func() { root.Close() })
 	m, e := source.ReadRootContext(context.Background(), root, "app", "test-repository")
 	if e != nil {
 		t.Fatal(e)
@@ -79,19 +82,26 @@ func TestUnconfirmedContainerCleanupPreservesPrivateWorkspace(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	defer snapshot.Close()
+	t.Cleanup(func() { snapshot.Close() })
 	lock := filepath.Join(parent, "lock.json")
 	os.WriteFile(lock, []byte(`{"schema_version":"1.0","tools":[{"id":"syft","version":"test","image":"anchore/syft@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}]}`), 0600)
 	guard := filepath.Join(parent, "guard")
 	os.Mkdir(guard, 0700)
 	os.WriteFile(filepath.Join(guard, "scanner-guard-linux-arm64"), []byte("synthetic-test-guard-not-executed"), 0500)
+	t.Setenv("AEGIS_TEST_ARGV_LOG", filepath.Join(parent, "argv"))
 	docker := filepath.Join(parent, "fake-docker")
-	os.WriteFile(docker, []byte("#!/bin/sh\ncase \"$3\" in\n info) echo 'linux arm64 synthetic-engine';;\n run) echo '{\"specVersion\":\"1.7\",\"components\":[]}' ;;\n *) exit 1;;\nesac\n"), 0700)
-	result, e := (Config{Docker: docker, GuardDir: guard, LockPath: lock, ScratchParent: scratch}).Run(context.Background(), "syft", "app", "repository", snapshot)
+	os.WriteFile(docker, []byte("#!/bin/sh\nprintf '%s\\n' \"$@\" >> \"$AEGIS_TEST_ARGV_LOG\"\ncase \"$3\" in\n info) echo 'linux arm64 synthetic-engine';;\n run) echo '{\"specVersion\":\"1.7\",\"components\":[]}' ;;\n *) exit 1;;\nesac\n"), 0700)
+
+	return Config{Docker: docker, GuardDir: guard, LockPath: lock, ScratchParent: scratch}, snapshot
+}
+
+func TestUnconfirmedContainerCleanupPreservesPrivateWorkspace(t *testing.T) {
+	cfg, snapshot := syntheticExecutorFixture(t)
+	result, e := cfg.Run(context.Background(), "syft", "app", "repository", snapshot)
 	if e == nil || result.Cleanup != "unconfirmed" || result.Status != "tool_error" || result.Container == "" {
 		t.Fatalf("uncertain cleanup became success: %+v %v", result, e)
 	}
-	entries, e := os.ReadDir(scratch)
+	entries, e := os.ReadDir(cfg.ScratchParent)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -103,5 +113,47 @@ func TestUnconfirmedContainerCleanupPreservesPrivateWorkspace(t *testing.T) {
 	}
 	if !preserved {
 		t.Fatal("guard evidence deleted before container absence confirmed")
+	}
+}
+
+func TestExpiredAbsoluteDeadlineRefusesBeforeAnyDockerOperation(t *testing.T) {
+	for _, deadline := range []time.Time{time.Now().Add(-time.Second), time.Now().Add(16 * time.Minute)} {
+		r, e := (Config{Deadline: deadline, Docker: "must-not-be-executed", LockPath: "must-not-be-read"}).Run(context.Background(), "bandit", "app_demo", "repository", source.Snapshot{})
+		if e == nil || r.Container != "" || r.Schema != "" {
+			t.Fatal("invalid deadline reached source or Docker", r, e)
+		}
+	}
+}
+
+func TestDeadlineExpiresDuringAuthorizationBeforeDockerRun(t *testing.T) {
+	cfg, snapshot := syntheticExecutorFixture(t)
+	cfg.Deadline = time.Now().Add(2 * time.Second)
+	called := false
+	cfg.BeforeLaunch = func(Execution, string, string) error {
+		called = true
+		time.Sleep(time.Until(cfg.Deadline) + time.Millisecond)
+		return nil
+	}
+	r, e := cfg.Run(context.Background(), "syft", "app", "repository", snapshot)
+	if !called || e == nil || r.Container != "" {
+		t.Fatal("expired authorization sent Docker run", r, e)
+	}
+	b, e := os.ReadFile(os.Getenv("AEGIS_TEST_ARGV_LOG"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	for _, arg := range strings.Split(string(b), "\n") {
+		if arg == "run" {
+			t.Fatal("Docker start attempted after expiry")
+		}
+	}
+	entries, e := os.ReadDir(cfg.ScratchParent)
+	if e != nil {
+		t.Fatal(e)
+	}
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), "aegis-guard-") {
+			t.Fatal("unlaunched guard workspace retained")
+		}
 	}
 }
