@@ -58,8 +58,8 @@ func (c *ResearchClient) request(ctx context.Context, method, path, key string, 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return fmt.Errorf("Aegis API rejected request with HTTP %d", resp.StatusCode)
 	}
-	b, e := io.ReadAll(io.LimitReader(resp.Body, 65537))
-	if e != nil || len(b) > 65536 {
+	b, e := io.ReadAll(io.LimitReader(resp.Body, 131073))
+	if e != nil || len(b) > 131072 {
 		return fmt.Errorf("response exceeds bounded size")
 	}
 	dec := json.NewDecoder(bytes.NewReader(b))
@@ -74,6 +74,31 @@ func (c *ResearchClient) request(ctx context.Context, method, path, key string, 
 	return nil
 }
 
+func (c *ResearchClient) CreateScan(ctx context.Context, body ScannerJobInputV1, idempotencyKey string) (ScannerJobV1, error) {
+	var out ScannerJobV1
+	e := c.request(ctx, "POST", "/scans", idempotencyKey, body, &out)
+	return out, e
+}
+func (c *ResearchClient) ListScans(ctx context.Context) (ScannerJobListV1, error) {
+	var out ScannerJobListV1
+	e := c.request(ctx, "GET", "/scans", "", nil, &out)
+	return out, e
+}
+func (c *ResearchClient) GetScan(ctx context.Context, id string) (ScannerJobStatusV1, error) {
+	var out ScannerJobStatusV1
+	e := c.request(ctx, "GET", "/scans/"+url.PathEscape(id)+"", "", nil, &out)
+	return out, e
+}
+func (c *ResearchClient) CancelScan(ctx context.Context, id string, body EmptyObjectV1) (ScannerJobStatusV1, error) {
+	var out ScannerJobStatusV1
+	e := c.request(ctx, "POST", "/scans/"+url.PathEscape(id)+"/cancel", "", body, &out)
+	return out, e
+}
+func (c *ResearchClient) GetScanResult(ctx context.Context, id string) (ScannerSuiteResultV1, error) {
+	var out ScannerSuiteResultV1
+	e := c.request(ctx, "GET", "/scans/"+url.PathEscape(id)+"/result", "", nil, &out)
+	return out, e
+}
 func (c *ResearchClient) ConnectRepository(ctx context.Context, body RepositoryConnectionRequestV1) (RepositoryV1, error) {
 	var out RepositoryV1
 	e := c.request(ctx, "POST", "/repos", "", body, &out)

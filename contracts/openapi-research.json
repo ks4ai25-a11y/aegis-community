@@ -3,7 +3,7 @@
   "info": {
     "title": "Aegis scoped research API",
     "version": "0.1.0-alpha.1",
-    "description": "Implemented provisioned read-only repositories and bundled test_lab surface only. This is not the complete v4 API catalogue."
+    "description": "Implemented provisioned read-only repositories, offline scanner jobs/results and bundled test_lab surface only. This is not the complete v4 API catalogue."
   },
   "servers": [
     {
@@ -11,6 +11,245 @@
     }
   ],
   "paths": {
+    "/scans": {
+      "post": {
+        "operationId": "createScan",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerJobV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScannerJobInputV1"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listScans",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerJobListV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scans/{id}": {
+      "get": {
+        "operationId": "getScan",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerJobStatusV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          }
+        ]
+      }
+    },
+    "/scans/{id}/cancel": {
+      "post": {
+        "operationId": "cancelScan",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerJobStatusV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyObjectV1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scans/{id}/result": {
+      "get": {
+        "operationId": "getScanResult",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerSuiteResultV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          }
+        ]
+      }
+    },
     "/repos": {
       "post": {
         "operationId": "connectRepository",
@@ -745,6 +984,18 @@
       },
       "ScannerGuardSetV1": {
         "$ref": "schemas/ScannerGuardSetV1.json"
+      },
+      "ScannerJobInputV1": {
+        "$ref": "schemas/ScannerJobInputV1.json"
+      },
+      "ScannerJobListV1": {
+        "$ref": "schemas/ScannerJobListV1.json"
+      },
+      "ScannerJobStatusV1": {
+        "$ref": "schemas/ScannerJobStatusV1.json"
+      },
+      "ScannerJobV1": {
+        "$ref": "schemas/ScannerJobV1.json"
       },
       "ScannerLaunchPlanV1": {
         "$ref": "schemas/ScannerLaunchPlanV1.json"

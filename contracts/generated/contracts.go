@@ -392,6 +392,91 @@ type ScannerExecutionV1ResultSbomComponentsItem struct {
 	Version string `json:"version"`
 	Purl    string `json:"purl"`
 }
+type ScannerJobInputV1 struct {
+	SchemaVersion      string   `json:"schema_version"`
+	AppId              string   `json:"app_id"`
+	RepositoryId       string   `json:"repository_id"`
+	MapDigest          string   `json:"map_digest"`
+	Mode               string   `json:"mode"`
+	ToolIds            []string `json:"tool_ids"`
+	ToolTimeoutSeconds int64    `json:"tool_timeout_seconds"`
+}
+type ScannerJobV1 struct {
+	SchemaVersion   string                     `json:"schema_version"`
+	JobId           string                     `json:"job_id"`
+	OwnerId         string                     `json:"owner_id"`
+	Input           ScannerJobStatusV1JobInput `json:"input"`
+	ToolLockDigest  string                     `json:"tool_lock_digest"`
+	RequestDigest   string                     `json:"request_digest"`
+	State           string                     `json:"state"`
+	CancelRequested bool                       `json:"cancel_requested"`
+	CreatedAt       string                     `json:"created_at"`
+	ExpiresAt       string                     `json:"expires_at"`
+	FinishedAt      string                     `json:"finished_at,omitempty"`
+	ErrorCode       string                     `json:"error_code,omitempty"`
+}
+type ScannerJobV1Input struct {
+	SchemaVersion      string   `json:"schema_version"`
+	AppId              string   `json:"app_id"`
+	RepositoryId       string   `json:"repository_id"`
+	MapDigest          string   `json:"map_digest"`
+	Mode               string   `json:"mode"`
+	ToolIds            []string `json:"tool_ids"`
+	ToolTimeoutSeconds int64    `json:"tool_timeout_seconds"`
+}
+type ScannerJobListV1 struct {
+	Items []ScannerJobStatusV1Job `json:"items"`
+}
+type ScannerJobListV1ItemsItem struct {
+	SchemaVersion   string                     `json:"schema_version"`
+	JobId           string                     `json:"job_id"`
+	OwnerId         string                     `json:"owner_id"`
+	Input           ScannerJobStatusV1JobInput `json:"input"`
+	ToolLockDigest  string                     `json:"tool_lock_digest"`
+	RequestDigest   string                     `json:"request_digest"`
+	State           string                     `json:"state"`
+	CancelRequested bool                       `json:"cancel_requested"`
+	CreatedAt       string                     `json:"created_at"`
+	ExpiresAt       string                     `json:"expires_at"`
+	FinishedAt      string                     `json:"finished_at,omitempty"`
+	ErrorCode       string                     `json:"error_code,omitempty"`
+}
+type ScannerJobListV1ItemsItemInput struct {
+	SchemaVersion      string   `json:"schema_version"`
+	AppId              string   `json:"app_id"`
+	RepositoryId       string   `json:"repository_id"`
+	MapDigest          string   `json:"map_digest"`
+	Mode               string   `json:"mode"`
+	ToolIds            []string `json:"tool_ids"`
+	ToolTimeoutSeconds int64    `json:"tool_timeout_seconds"`
+}
+type ScannerJobStatusV1 struct {
+	Job                ScannerJobStatusV1Job `json:"job"`
+	ExecutionAdmission string                `json:"execution_admission"`
+}
+type ScannerJobStatusV1Job struct {
+	SchemaVersion   string                     `json:"schema_version"`
+	JobId           string                     `json:"job_id"`
+	OwnerId         string                     `json:"owner_id"`
+	Input           ScannerJobStatusV1JobInput `json:"input"`
+	ToolLockDigest  string                     `json:"tool_lock_digest"`
+	RequestDigest   string                     `json:"request_digest"`
+	State           string                     `json:"state"`
+	CancelRequested bool                       `json:"cancel_requested"`
+	CreatedAt       string                     `json:"created_at"`
+	ExpiresAt       string                     `json:"expires_at"`
+	FinishedAt      string                     `json:"finished_at,omitempty"`
+	ErrorCode       string                     `json:"error_code,omitempty"`
+}
+type ScannerJobStatusV1JobInput struct {
+	SchemaVersion      string   `json:"schema_version"`
+	AppId              string   `json:"app_id"`
+	RepositoryId       string   `json:"repository_id"`
+	MapDigest          string   `json:"map_digest"`
+	Mode               string   `json:"mode"`
+	ToolIds            []string `json:"tool_ids"`
+	ToolTimeoutSeconds int64    `json:"tool_timeout_seconds"`
+}
 type ScannerSuiteV1 struct {
 	SchemaVersion    string                                  `json:"schema_version"`
 	OwnerId          string                                  `json:"owner_id"`

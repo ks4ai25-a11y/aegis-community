@@ -390,6 +390,91 @@ export interface ScannerExecutionV1ResultSbomComponentsItem {
   version: string;
   purl: string;
 }
+export interface ScannerJobInputV1 {
+  schema_version: "1.0";
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  mode: "repo_offline";
+  tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
+  tool_timeout_seconds: number;
+}
+export interface ScannerJobV1 {
+  schema_version: "1.0";
+  job_id: string;
+  owner_id: string;
+  input: ScannerJobStatusV1JobInput;
+  tool_lock_digest: string;
+  request_digest: string;
+  state: "queued" | "running" | "cancelled" | "timeout" | "failed" | "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  cancel_requested: boolean;
+  created_at: string;
+  expires_at: string;
+  finished_at?: string;
+  error_code?: string;
+}
+export interface ScannerJobV1Input {
+  schema_version: "1.0";
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  mode: "repo_offline";
+  tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
+  tool_timeout_seconds: number;
+}
+export interface ScannerJobListV1 {
+  items: Array<ScannerJobStatusV1Job>;
+}
+export interface ScannerJobListV1ItemsItem {
+  schema_version: "1.0";
+  job_id: string;
+  owner_id: string;
+  input: ScannerJobStatusV1JobInput;
+  tool_lock_digest: string;
+  request_digest: string;
+  state: "queued" | "running" | "cancelled" | "timeout" | "failed" | "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  cancel_requested: boolean;
+  created_at: string;
+  expires_at: string;
+  finished_at?: string;
+  error_code?: string;
+}
+export interface ScannerJobListV1ItemsItemInput {
+  schema_version: "1.0";
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  mode: "repo_offline";
+  tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
+  tool_timeout_seconds: number;
+}
+export interface ScannerJobStatusV1 {
+  job: ScannerJobStatusV1Job;
+  execution_admission: "not_claimed" | "unconfirmed" | "active" | "cleanup_required";
+}
+export interface ScannerJobStatusV1Job {
+  schema_version: "1.0";
+  job_id: string;
+  owner_id: string;
+  input: ScannerJobStatusV1JobInput;
+  tool_lock_digest: string;
+  request_digest: string;
+  state: "queued" | "running" | "cancelled" | "timeout" | "failed" | "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  cancel_requested: boolean;
+  created_at: string;
+  expires_at: string;
+  finished_at?: string;
+  error_code?: string;
+}
+export interface ScannerJobStatusV1JobInput {
+  schema_version: "1.0";
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  mode: "repo_offline";
+  tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
+  tool_timeout_seconds: number;
+}
 export interface ScannerSuiteV1 {
   schema_version: "1.0";
   owner_id: string;

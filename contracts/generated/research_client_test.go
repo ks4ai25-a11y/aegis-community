@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -54,5 +55,32 @@ func TestGeneratedClientDoesNotFollowRedirect(t *testing.T) {
 	}
 	if _, e = c.ListVerifications(context.Background()); e == nil || targetHit {
 		t.Fatal("redirect followed or accepted")
+	}
+}
+
+func TestGeneratedScannerListKeepsBoundedHundredJobs(t *testing.T) {
+	jobs := make([]ScannerJobStatusV1Job, 100)
+	for i := range jobs {
+		jobs[i] = ScannerJobStatusV1Job{OwnerId: strings.Repeat("o", 128), RequestDigest: "sha256:" + strings.Repeat("d", 64), ToolLockDigest: "sha256:" + strings.Repeat("e", 64), Input: ScannerJobStatusV1JobInput{RepositoryId: strings.Repeat("r", 128), MapDigest: "sha256:" + strings.Repeat("f", 64), ToolIds: []string{"bandit", "gitleaks", "osv_v2", "semgrep_ce", "syft", "trivy"}}}
+	}
+	payload, e := json.Marshal(ScannerJobListV1{Items: jobs})
+	if e != nil || len(payload) <= 65536 || len(payload) > 131072 {
+		t.Fatal("fixture did not exercise bounded larger list", len(payload), e)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/scans" || r.Method != "GET" {
+			t.Error("generated scanner list route differs")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(payload)
+	}))
+	defer srv.Close()
+	c, e := NewResearchClient(srv.URL+"/api/v1", "session-fixture", "csrf-fixture")
+	if e != nil {
+		t.Fatal(e)
+	}
+	got, e := c.ListScans(context.Background())
+	if e != nil || len(got.Items) != 100 {
+		t.Fatal("bounded scanner list lost jobs", e)
 	}
 }

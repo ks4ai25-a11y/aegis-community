@@ -19,12 +19,22 @@ class ResearchClient:
         req = urllib.request.Request(self.base_url+path, data=None if body is None else json.dumps(body).encode(), headers=headers, method=method)
         try:
             with self._http.open(req, timeout=15) as response:
-                raw=response.read(65537)
-                if len(raw)>65536: raise ValueError("Response exceeds bounded size")
+                raw=response.read(131073)
+                if len(raw)>131072: raise ValueError("Response exceeds bounded size")
                 return json.loads(raw)
         except urllib.error.HTTPError as e:
             raise RuntimeError("Aegis API rejected request with HTTP "+str(e.code)) from None
 
+    def createScan(self, body: ScannerJobInputV1, idempotency_key: str) -> ScannerJobV1:
+        return self._request("POST", "/scans", body, idempotency_key)
+    def listScans(self) -> ScannerJobListV1:
+        return self._request("GET", "/scans", None)
+    def getScan(self, id: str) -> ScannerJobStatusV1:
+        return self._request("GET", "/scans/"+urllib.parse.quote(id,safe="")+"", None)
+    def cancelScan(self, id: str, body: EmptyObjectV1) -> ScannerJobStatusV1:
+        return self._request("POST", "/scans/"+urllib.parse.quote(id,safe="")+"/cancel", body)
+    def getScanResult(self, id: str) -> ScannerSuiteResultV1:
+        return self._request("GET", "/scans/"+urllib.parse.quote(id,safe="")+"/result", None)
     def connectRepository(self, body: RepositoryConnectionRequestV1) -> RepositoryV1:
         return self._request("POST", "/repos", body)
     def listRepositories(self) -> RepositoryListV1:

@@ -205,6 +205,7 @@ func logWorkerResult(t *testing.T, r worker.Report) {
 
 func assertRecordedLaunches(t *testing.T, f fixture, job string) {
 	t.Helper()
+	assertOwnerHTTPResult(t, f, job)
 	launches, e := f.q.Launches("owner-a", job)
 	if e != nil || len(launches) != len(f.in.Tools) {
 		t.Fatal("actual attempted launches not recorded", e)

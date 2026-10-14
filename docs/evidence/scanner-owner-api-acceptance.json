@@ -1,0 +1,385 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-10-14T03:45:58.691586+00:00",
+  "status": "PASS",
+  "scope": "Owner session offline scan enqueue/list/status/cancel and immutable suite reads; no cleanup release or background-worker deployment claim.",
+  "source_tree_sha256": "sha256:f9d503bdeb751a16381d2bcfb8413a0610c395111de0d34155f2bda82820c32a",
+  "controller_tests": {
+    "passed_groups": 59,
+    "log_sha256": "sha256:2dfac43815f7211374973350ee31f8fbed3ed21b1365bf3f9c373167ac81a704"
+  },
+  "six_adapter_result_http_checks": {
+    "passed_groups": 1,
+    "log_sha256": "sha256:5779c7af706d90ac876dc7871b50e37c1636973c2c4551c28af1a53fba10c179"
+  },
+  "actual_scanner_result_http_checks": {
+    "passed_groups": 3,
+    "log_sha256": "sha256:52e4200e4ff4699c681e09fc49224cd639d0c16b0f79dd873c17d579c21b76bb"
+  },
+  "actual_http_results": [
+    {
+      "result_digest": "sha256:4cf9a4d10917f7aad2def50fceb4b0edf322f63dc19100a40618fbe6595d9a26",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a135d8-20f3-7065-a1cc-75fd471a0f5a",
+        "request_digest": "sha256:10ebb9835875065098d2f6b9262c06f8aaf3255ea8a394ce2644e13d7a7e47ab",
+        "app_id": "app_demo",
+        "repository_id": "01a135d8-20e4-747c-bb7c-27290d1f93ae",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+        "status": "completed_stale_db",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:f21dbb5a8d7493cc8fdf2a4f51dc47b57d2c5c9a9a58c813df0867dd7aea3acb",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "gitleaks",
+            "receipt_digest": "sha256:6d0fcc9cdd19d4f64ca2d64cf4b134e6e7775082e7bf283a30e819ccc8fd47ee",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "osv_v2",
+            "receipt_digest": "sha256:a4f517b4814105fd6dfd70447b1f48d94bf9159ebd42a514494a2f3d1ef1c363",
+            "status": "completed_stale_db",
+            "finding_claims": 1,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "semgrep_ce",
+            "receipt_digest": "sha256:3097092ce07d04fc1ea3235b25e11e1c0cc5b3a437a977f241fdb28c63989588",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "syft",
+            "receipt_digest": "sha256:616de7d3285beea683d3f38b1a50e32213143d5175391358acaf1e12524d14d7",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": true
+          },
+          {
+            "tool_id": "trivy",
+            "receipt_digest": "sha256:0439da078add5603711ea1308783e0962bf784d782e2d4b3e1a08da56fcb70bd",
+            "status": "completed_stale_db",
+            "finding_claims": 1,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 5,
+        "has_partial": false,
+        "has_stale_database": true,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-13T15:18:39.578496Z"
+      }
+    },
+    {
+      "result_digest": "sha256:19c821b0128c127a90229403752bb0cf9d14a354501c61663138511409e958d5",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a1387e-7fa9-705d-95d7-bce715600686",
+        "request_digest": "sha256:e115ebef9518bd6c036c8a477ce577952bd165c6078b3cdc31ac4ef3fca07908",
+        "app_id": "app_demo",
+        "repository_id": "01a1387e-7f56-70b3-b57f-88de08a7ed78",
+        "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614",
+        "status": "completed",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:b0db4cdadf9e8c1539cbcd24ee12d476ddd67ebaa1780e06b512ecdf12720c4a",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 1,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-14T03:39:39.993691Z"
+      }
+    },
+    {
+      "result_digest": "sha256:d6c598d3984008191068472a761a635dc0ee355e8799f69da99d9d00d3d862a3",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a1387e-8df1-71ff-b9b9-8256165c9a66",
+        "request_digest": "sha256:79dc8aba79a690577608dd2e0b05daffb47fffbd0be504f8ce8805b75481cc9a",
+        "app_id": "app_demo",
+        "repository_id": "01a1387e-8d94-74a3-aed4-36c4831b78b5",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+        "status": "completed",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:2fb4c7d955f69071a540ca921c142688465c774924a6237db3afd69aef7d4cd6",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "gitleaks",
+            "receipt_digest": "sha256:39c54d0a633b46876b23908b816734ae5516e7ed7dadaa9cf9fb3a8cd50bb38e",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 0,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-14T03:39:43.376013Z"
+      }
+    },
+    {
+      "result_digest": "sha256:ec6dcfb37173eb35830f7a2fcc8247b5acd3e4c1e56b6556b5712d7906d1b0b2",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a1387e-9b10-7130-8d6c-80bca5cde33c",
+        "request_digest": "sha256:1e7d69f3fee34ef28127c232ee4b005b35e524a7a4cc40276c0c59ee2e2ab540",
+        "app_id": "app_demo",
+        "repository_id": "01a1387e-9abd-7059-8a65-91bc842da3e6",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+        "status": "tool_error",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:f29e06043d9285c2d762e117faf72b9af501cedc3c6f0693525ddd030f6efd42",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "osv_v2",
+            "receipt_digest": "sha256:ab1d84eae5dac12cc39e9e8089014c2351cd4016cf3469e4ad01cd6fa6401948",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "trivy",
+            "receipt_digest": "sha256:0b934a3e902856324c5dc14d3aaed3fe154c6b8ed8488de0c5869d863c894c96",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 0,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": true,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-14T03:39:47.571406Z"
+      }
+    }
+  ],
+  "actual_http_statuses": [
+    {
+      "job": {
+        "schema_version": "1.0",
+        "job_id": "01a135d8-20f3-7065-a1cc-75fd471a0f5a",
+        "owner_id": "owner-a",
+        "input": {
+          "schema_version": "1.0",
+          "app_id": "app_demo",
+          "repository_id": "01a135d8-20e4-747c-bb7c-27290d1f93ae",
+          "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+          "mode": "repo_offline",
+          "tool_ids": [
+            "bandit",
+            "gitleaks",
+            "osv_v2",
+            "semgrep_ce",
+            "syft",
+            "trivy"
+          ],
+          "tool_timeout_seconds": 120
+        },
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "request_digest": "sha256:10ebb9835875065098d2f6b9262c06f8aaf3255ea8a394ce2644e13d7a7e47ab",
+        "state": "completed_stale_db",
+        "cancel_requested": false,
+        "created_at": "2026-10-13T15:18:39.091022Z",
+        "expires_at": "2026-10-13T15:33:39Z",
+        "finished_at": "2026-10-13T15:18:39.578496Z"
+      },
+      "execution_admission": "cleanup_required"
+    },
+    {
+      "job": {
+        "schema_version": "1.0",
+        "job_id": "01a1387e-7fa9-705d-95d7-bce715600686",
+        "owner_id": "owner-a",
+        "input": {
+          "schema_version": "1.0",
+          "app_id": "app_demo",
+          "repository_id": "01a1387e-7f56-70b3-b57f-88de08a7ed78",
+          "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+          "mode": "repo_offline",
+          "tool_ids": [
+            "bandit"
+          ],
+          "tool_timeout_seconds": 120
+        },
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "request_digest": "sha256:e115ebef9518bd6c036c8a477ce577952bd165c6078b3cdc31ac4ef3fca07908",
+        "state": "completed",
+        "cancel_requested": false,
+        "created_at": "2026-10-14T03:39:36.745017Z",
+        "expires_at": "2026-10-14T03:54:36Z",
+        "finished_at": "2026-10-14T03:39:39.993691Z"
+      },
+      "execution_admission": "cleanup_required"
+    },
+    {
+      "job": {
+        "schema_version": "1.0",
+        "job_id": "01a1387e-8df1-71ff-b9b9-8256165c9a66",
+        "owner_id": "owner-a",
+        "input": {
+          "schema_version": "1.0",
+          "app_id": "app_demo",
+          "repository_id": "01a1387e-8d94-74a3-aed4-36c4831b78b5",
+          "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+          "mode": "repo_offline",
+          "tool_ids": [
+            "bandit",
+            "gitleaks"
+          ],
+          "tool_timeout_seconds": 120
+        },
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "request_digest": "sha256:79dc8aba79a690577608dd2e0b05daffb47fffbd0be504f8ce8805b75481cc9a",
+        "state": "completed",
+        "cancel_requested": false,
+        "created_at": "2026-10-14T03:39:40.401117Z",
+        "expires_at": "2026-10-14T03:54:40Z",
+        "finished_at": "2026-10-14T03:39:43.376013Z"
+      },
+      "execution_admission": "cleanup_required"
+    },
+    {
+      "job": {
+        "schema_version": "1.0",
+        "job_id": "01a1387e-9b10-7130-8d6c-80bca5cde33c",
+        "owner_id": "owner-a",
+        "input": {
+          "schema_version": "1.0",
+          "app_id": "app_demo",
+          "repository_id": "01a1387e-9abd-7059-8a65-91bc842da3e6",
+          "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+          "mode": "repo_offline",
+          "tool_ids": [
+            "bandit",
+            "osv_v2",
+            "trivy"
+          ],
+          "tool_timeout_seconds": 120
+        },
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "request_digest": "sha256:1e7d69f3fee34ef28127c232ee4b005b35e524a7a4cc40276c0c59ee2e2ab540",
+        "state": "tool_error",
+        "cancel_requested": false,
+        "created_at": "2026-10-14T03:39:43.760062Z",
+        "expires_at": "2026-10-14T03:54:43Z",
+        "finished_at": "2026-10-14T03:39:47.571406Z",
+        "error_code": "SCANNER_EXECUTION_FAILED"
+      },
+      "execution_admission": "cleanup_required"
+    }
+  ],
+  "schema_validation": {
+    "status": "PASS",
+    "validator": "jsonschema Draft 2020-12 with date-time checks",
+    "validated_payloads": 12
+  },
+  "live_acceptance": {
+    "scanner-owner-api-live-acceptance": {
+      "status": "PASS",
+      "passed_checks": 7,
+      "report": "docs/evidence/scanner-owner-api-live-acceptance.json",
+      "log_sha256": "sha256:45f4dd9723571ee692b42c0b631597def0b599a41be3b86fcce16ea9f8327c84"
+    },
+    "demo-acceptance": {
+      "status": "PASS",
+      "passed_checks": 10,
+      "report": "docs/evidence/demo-acceptance.json",
+      "log_sha256": "sha256:6ddeab59bc795c3eeaeed44a1de3917a041e0128652d0f0ff131d5aed4231c5b"
+    },
+    "scoped-jobs-acceptance": {
+      "status": "PASS",
+      "passed_checks": 7,
+      "report": "docs/evidence/scoped-jobs-acceptance.json",
+      "log_sha256": "sha256:7619102c9dc7a0b6594b4ce82bfee49d115f1c2e30381726410a35dc144553cc"
+    },
+    "repository-acceptance": {
+      "status": "PASS",
+      "passed_checks": 8,
+      "report": "docs/evidence/repository-acceptance.json",
+      "log_sha256": "sha256:3a582a608099bc0f60f509e0b6a30ff291dfb1798411342a20c77e275234679b"
+    }
+  },
+  "validation": {
+    "make_test": "PASS; race suites, generated contracts/clients and console build",
+    "make_test_log_sha256": "sha256:19d99abf99ceef7365320c8c863c9a6803fe72b9a4fb8f663494234cc00e3433",
+    "research_build": "PASS",
+    "research_build_log_sha256": "sha256:9b19c126f0fe7fcdf068589ee1b50d2c794c60f3b368d80e9573211de5ce1cb6",
+    "go_vet": "PASS; controller and scanner-channel integration"
+  },
+  "retained_earlier_scanner_failure": {
+    "log_sha256": "sha256:45c206bb0dde444189fc12d9818d5e68b59e8328404975e0072a66ca67afdebd",
+    "failed_test": "TestRealBanditWorkerFinalizesBoundResultWithoutReleasingCleanup",
+    "observation": "The first seeded Bandit attempt returned a preflight tool_error with no container, zero run duration and no guard digest. Its error evidence and cleanup hold were preserved. Cause was not established.",
+    "follow_up": "All three explicit real scanner worker fixtures passed in the verified run, including owner HTTP reads."
+  },
+  "rollout": {
+    "schema_version": 11,
+    "shared_controller_image": "sha256:8bcd75ac922a25cb01e40e840f636f323d8cef302a2f759be2a91b24179ab13f",
+    "aligned_services": [
+      "init",
+      "controller",
+      "deployer",
+      "verifier"
+    ],
+    "sqlite": "ok",
+    "audit": "internally consistent; host-admin trust applies",
+    "mode": "observe"
+  },
+  "prior_commit_hosted_ci": {
+    "commit": "53721cb841a07d492eea63b790ca98f509c3fab9",
+    "status": "success",
+    "run_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38419722271"
+  },
+  "limitations": [
+    "The deployed acceptance queues/cancels a job; actual scanner/result fixtures run at native operator UID, not the Compose UID 10001 worker pairing.",
+    "The six-adapter fixture uses real parsers on synthetic adapter output; separate real worker fixtures execute six pinned static scanner attempts across three suites.",
+    "Suite finding_claims count tool claims, not deduplicated vulnerabilities or proven exploitability. All result evidence remains T0.",
+    "Cancellation and terminal results never prove container/workspace absence or release admission.",
+    "Findings detail API/UI, independent cleanup verification/release, background worker pairing, offline databases, VM execution, AI/MCP/desktop integrations and independent H7 release gates remain unfinished."
+  ]
+}

@@ -8,6 +8,7 @@ import (
 	"aegis.local/controller/internal/policy"
 	"aegis.local/controller/internal/repository"
 	"aegis.local/controller/internal/research"
+	"aegis.local/controller/internal/scanqueue"
 	"aegis.local/controller/internal/store"
 	"aegis.local/controller/internal/verify"
 	"context"
@@ -31,6 +32,7 @@ type Server struct {
 	V         verify.Client
 	Q         *research.Queue
 	R         *repository.Registry
+	Scans     *scanqueue.Queue
 	Assets    string
 	mutations sync.Mutex
 	streams   chan struct{}
@@ -138,6 +140,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		defer s.mutations.Unlock()
 	}
 	switch {
+	case path == "/scans" || strings.HasPrefix(path, "/scans/"):
+		s.scanOperation(w, r, actor, path)
 	case path == "/repos" || strings.HasPrefix(path, "/repos/"):
 		s.repositoryOperation(w, r, actor, path)
 	case path == "/auth/session" && r.Method == "GET":

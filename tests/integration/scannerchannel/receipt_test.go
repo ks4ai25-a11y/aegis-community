@@ -140,6 +140,7 @@ func TestActualParserReceiptsShareControllerDataContract(t *testing.T) {
 	if e != nil || stored.Digest != finished.Digest {
 		t.Fatal("owner-bound index lost accepted receipts", e)
 	}
+	assertOwnerHTTPResult(t, f, l.Job.ID)
 	assertCleanupHeld(t, f)
 	if e = f.s.VerifyAudit(); e != nil {
 		t.Fatal(e)

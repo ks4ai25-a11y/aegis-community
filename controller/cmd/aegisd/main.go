@@ -81,6 +81,7 @@ func main() {
 	if repos.Root != nil {
 		defer repos.Root.Close()
 	}
+	var sq *scanqueue.Queue
 	if socket := os.Getenv("AEGIS_SCANNER_SOCKET"); socket != "" {
 		digest, pins, e := scantransport.LoadPins(env("AEGIS_SCANNER_LOCK", "/opt/aegis/scanners.lock.json"))
 		if e != nil {
@@ -94,7 +95,7 @@ func main() {
 		if e != nil {
 			panic(e)
 		}
-		sq := &scanqueue.Queue{S: s, LockDigest: digest, Pins: pins, Guards: guards}
+		sq = &scanqueue.Queue{S: s, LockDigest: digest, Pins: pins, Guards: guards}
 		go func() {
 			ticker := time.NewTicker(time.Second)
 			defer ticker.Stop()
@@ -125,7 +126,7 @@ func main() {
 			}
 		}()
 	}
-	app := &api.Server{S: s, A: a, P: m, I: i, V: v, Q: q, R: repos, Assets: env("AEGIS_ASSETS", "/opt/aegis/console")}
+	app := &api.Server{S: s, A: a, P: m, I: i, V: v, Q: q, R: repos, Scans: sq, Assets: env("AEGIS_ASSETS", "/opt/aegis/console")}
 	server := &http.Server{Addr: env("AEGIS_LISTEN", "127.0.0.1:7410"), Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32768}
 	go func() {
 		<-ctx.Done()

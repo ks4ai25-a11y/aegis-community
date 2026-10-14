@@ -55,6 +55,7 @@ jobs:
       - run: python3 tests/integration/demo_acceptance.py
       - run: python3 tests/integration/scoped_jobs_acceptance.py
       - run: python3 tests/integration/repository_acceptance.py
+      - run: python3 tests/integration/scanner_owner_api_acceptance.py
       - name: Stop only this disposable CI demo
         if: always()
         run: docker compose -f deploy/compose.demo.yaml down

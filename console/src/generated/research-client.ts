@@ -1,6 +1,11 @@
 // Generated from contracts/openapi-research.json; do not edit.
 import {api} from "../client";
-import type {ApplicationMapV1, EmptyObjectV1, RepositoryAssetListV1, RepositoryConnectionRequestV1, RepositoryListV1, RepositoryV1, ResearchJobListV1, ResearchJobV1, ScopeGrantApprovalRequestV1, ScopeGrantDraftRequestV1, ScopeGrantListV1, ScopeGrantRecordV1, ScopeRevocationReceiptV1, VerificationJobInputV1, VerificationReportV1} from "./contracts";
+import type {ApplicationMapV1, EmptyObjectV1, RepositoryAssetListV1, RepositoryConnectionRequestV1, RepositoryListV1, RepositoryV1, ResearchJobListV1, ResearchJobV1, ScannerJobInputV1, ScannerJobListV1, ScannerJobStatusV1, ScannerJobV1, ScannerSuiteResultV1, ScopeGrantApprovalRequestV1, ScopeGrantDraftRequestV1, ScopeGrantListV1, ScopeGrantRecordV1, ScopeRevocationReceiptV1, VerificationJobInputV1, VerificationReportV1} from "./contracts";
+export function createScan(body: ScannerJobInputV1, idempotencyKey: string): Promise<ScannerJobV1> { return api<ScannerJobV1>(`/scans`, body, {"Idempotency-Key":idempotencyKey}); }
+export function listScans(): Promise<ScannerJobListV1> { return api<ScannerJobListV1>(`/scans`); }
+export function getScan(id: string): Promise<ScannerJobStatusV1> { return api<ScannerJobStatusV1>(`/scans/${encodeURIComponent(id)}`); }
+export function cancelScan(id: string, body: EmptyObjectV1): Promise<ScannerJobStatusV1> { return api<ScannerJobStatusV1>(`/scans/${encodeURIComponent(id)}/cancel`, body); }
+export function getScanResult(id: string): Promise<ScannerSuiteResultV1> { return api<ScannerSuiteResultV1>(`/scans/${encodeURIComponent(id)}/result`); }
 export function connectRepository(body: RepositoryConnectionRequestV1): Promise<RepositoryV1> { return api<RepositoryV1>(`/repos`, body); }
 export function listRepositories(): Promise<RepositoryListV1> { return api<RepositoryListV1>(`/repos`); }
 export function listRepositoryAssets(): Promise<RepositoryAssetListV1> { return api<RepositoryAssetListV1>(`/repos/assets`); }

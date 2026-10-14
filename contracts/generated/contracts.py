@@ -348,6 +348,82 @@ class ScannerExecutionV1ResultSbomComponentsItem(TypedDict):
     name: str
     version: str
     purl: str
+class ScannerJobInputV1(TypedDict):
+    schema_version: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    mode: str
+    tool_ids: list[str]
+    tool_timeout_seconds: int
+class ScannerJobV1(TypedDict):
+    schema_version: str
+    job_id: str
+    owner_id: str
+    input: ScannerJobStatusV1JobInput
+    tool_lock_digest: str
+    request_digest: str
+    state: str
+    cancel_requested: bool
+    created_at: str
+    expires_at: str
+    finished_at: NotRequired[str]
+    error_code: NotRequired[str]
+class ScannerJobV1Input(TypedDict):
+    schema_version: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    mode: str
+    tool_ids: list[str]
+    tool_timeout_seconds: int
+class ScannerJobListV1(TypedDict):
+    items: list[ScannerJobStatusV1Job]
+class ScannerJobListV1ItemsItem(TypedDict):
+    schema_version: str
+    job_id: str
+    owner_id: str
+    input: ScannerJobStatusV1JobInput
+    tool_lock_digest: str
+    request_digest: str
+    state: str
+    cancel_requested: bool
+    created_at: str
+    expires_at: str
+    finished_at: NotRequired[str]
+    error_code: NotRequired[str]
+class ScannerJobListV1ItemsItemInput(TypedDict):
+    schema_version: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    mode: str
+    tool_ids: list[str]
+    tool_timeout_seconds: int
+class ScannerJobStatusV1(TypedDict):
+    job: ScannerJobStatusV1Job
+    execution_admission: str
+class ScannerJobStatusV1Job(TypedDict):
+    schema_version: str
+    job_id: str
+    owner_id: str
+    input: ScannerJobStatusV1JobInput
+    tool_lock_digest: str
+    request_digest: str
+    state: str
+    cancel_requested: bool
+    created_at: str
+    expires_at: str
+    finished_at: NotRequired[str]
+    error_code: NotRequired[str]
+class ScannerJobStatusV1JobInput(TypedDict):
+    schema_version: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    mode: str
+    tool_ids: list[str]
+    tool_timeout_seconds: int
 class ScannerSuiteV1(TypedDict):
     schema_version: str
     owner_id: str

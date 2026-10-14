@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "app_id": "app_demo",
+  "repository_id": "01a135db-0487-7798-86c6-a80adc0d7baf",
+  "map_digest": "sha256:b0a4934892797cc648c1c503970ec54885d5dea2f9bac4c01fb5ddec84b2a431",
+  "mode": "repo_offline",
+  "tool_ids": [
+    "bandit"
+  ],
+  "tool_timeout_seconds": 30
+}

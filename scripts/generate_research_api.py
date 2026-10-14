@@ -5,6 +5,11 @@ root=pathlib.Path(__file__).resolve().parents[1]
 def schema(name):return {'$ref':'#/components/schemas/'+name}
 # name, method, path, request, response, success status, idempotency requirement
 ops=[
+ ('createScan','post','/scans','ScannerJobInputV1','ScannerJobV1',202,True),
+ ('listScans','get','/scans',None,'ScannerJobListV1',200,False),
+ ('getScan','get','/scans/{id}',None,'ScannerJobStatusV1',200,False),
+ ('cancelScan','post','/scans/{id}/cancel','EmptyObjectV1','ScannerJobStatusV1',200,False),
+ ('getScanResult','get','/scans/{id}/result',None,'ScannerSuiteResultV1',200,False),
  ('connectRepository','post','/repos','RepositoryConnectionRequestV1','RepositoryV1',201,False),
  ('listRepositories','get','/repos',None,'RepositoryListV1',200,False),
  ('listRepositoryAssets','get','/repos/assets',None,'RepositoryAssetListV1',200,False),
@@ -31,7 +36,7 @@ for name,method,path,body,result,status,key in ops:
  if params:operation['parameters']=params
  if body:operation['requestBody']={'required':True,'content':{'application/json':{'schema':schema(body)}}}
  paths.setdefault(path,{})[method]=operation
-spec={'openapi':'3.1.0','info':{'title':'Aegis scoped research API','version':'0.1.0-alpha.1','description':'Implemented provisioned read-only repositories and bundled test_lab surface only. This is not the complete v4 API catalogue.'},'servers':[{'url':'http://127.0.0.1:7410/api/v1'}],'paths':paths,'components':{'securitySchemes':{'ownerSession':{'type':'apiKey','in':'cookie','name':'aegis_session'}},'schemas':{p.stem:{'$ref':'schemas/'+p.name} for p in sorted((root/'contracts/schemas').glob('*.json'))}}}
+spec={'openapi':'3.1.0','info':{'title':'Aegis scoped research API','version':'0.1.0-alpha.1','description':'Implemented provisioned read-only repositories, offline scanner jobs/results and bundled test_lab surface only. This is not the complete v4 API catalogue.'},'servers':[{'url':'http://127.0.0.1:7410/api/v1'}],'paths':paths,'components':{'securitySchemes':{'ownerSession':{'type':'apiKey','in':'cookie','name':'aegis_session'}},'schemas':{p.stem:{'$ref':'schemas/'+p.name} for p in sorted((root/'contracts/schemas').glob('*.json'))}}}
 (root/'contracts/openapi-research.json').write_text(json.dumps(spec,indent=2)+'\n')
 # Clients are generated from the written OpenAPI operations, not separately maintained methods.
 spec=json.loads((root/'contracts/openapi-research.json').read_text())
@@ -62,8 +67,8 @@ class ResearchClient:
         req = urllib.request.Request(self.base_url+path, data=None if body is None else json.dumps(body).encode(), headers=headers, method=method)
         try:
             with self._http.open(req, timeout=15) as response:
-                raw=response.read(65537)
-                if len(raw)>65536: raise ValueError("Response exceeds bounded size")
+                raw=response.read(131073)
+                if len(raw)>131072: raise ValueError("Response exceeds bounded size")
                 return json.loads(raw)
         except urllib.error.HTTPError as e:
             raise RuntimeError("Aegis API rejected request with HTTP "+str(e.code)) from None
@@ -82,7 +87,7 @@ func(c *ResearchClient)request(ctx context.Context,method,path,key string,body,o
  req.Header.Set("Content-Type","application/json");req.Header.Set("Cookie","aegis_session="+c.cookie);req.Header.Set("X-CSRF-Token",c.csrf);if key!=""{req.Header.Set("Idempotency-Key",key)}
  resp,e:=c.http.Do(req);if e!=nil{return fmt.Errorf("Aegis API unavailable")};defer resp.Body.Close()
  if resp.StatusCode<200||resp.StatusCode>=300{return fmt.Errorf("Aegis API rejected request with HTTP %d",resp.StatusCode)}
- b,e:=io.ReadAll(io.LimitReader(resp.Body,65537));if e!=nil||len(b)>65536{return fmt.Errorf("response exceeds bounded size")}
+ b,e:=io.ReadAll(io.LimitReader(resp.Body,131073));if e!=nil||len(b)>131072{return fmt.Errorf("response exceeds bounded size")}
  dec:=json.NewDecoder(bytes.NewReader(b));dec.DisallowUnknownFields();if e=dec.Decode(out);e!=nil{return e};var extra any;if dec.Decode(&extra)!=io.EOF{return fmt.Errorf("trailing response data")};return nil
 }
 ''']

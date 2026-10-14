@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerJobV1.json",
+  "title": "ScannerJobV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "owner_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "app_id": {
+          "type": "string",
+          "const": "app_demo"
+        },
+        "repository_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "map_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "mode": {
+          "type": "string",
+          "const": "repo_offline"
+        },
+        "tool_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "semgrep_ce",
+              "osv_v2",
+              "trivy",
+              "syft",
+              "gitleaks",
+              "bandit"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 6,
+          "uniqueItems": true
+        },
+        "tool_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        }
+      },
+      "required": [
+        "schema_version",
+        "app_id",
+        "repository_id",
+        "map_digest",
+        "mode",
+        "tool_ids",
+        "tool_timeout_seconds"
+      ]
+    },
+    "tool_lock_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "request_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "cancelled",
+        "timeout",
+        "failed",
+        "completed",
+        "completed_partial",
+        "completed_stale_db",
+        "tool_error"
+      ]
+    },
+    "cancel_requested": {
+      "type": "boolean"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error_code": {
+      "type": "string",
+      "maxLength": 64
+    }
+  },
+  "required": [
+    "schema_version",
+    "job_id",
+    "owner_id",
+    "input",
+    "tool_lock_digest",
+    "request_digest",
+    "state",
+    "cancel_requested",
+    "created_at",
+    "expires_at"
+  ]
+}
