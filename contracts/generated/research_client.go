@@ -31,6 +31,16 @@ func NewResearchClient(base, session, csrf string) (*ResearchClient, error) {
 	}
 	return &ResearchClient{strings.TrimRight(base, "/"), session, csrf, &http.Client{Timeout: 15 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
 }
+func researchQuery(query any) string {
+	b, _ := json.Marshal(query)
+	values := map[string]any{}
+	_ = json.Unmarshal(b, &values)
+	out := url.Values{}
+	for key, value := range values {
+		out.Set(key, fmt.Sprint(value))
+	}
+	return out.Encode()
+}
 func (c *ResearchClient) request(ctx context.Context, method, path, key string, body, out any) error {
 	var raw []byte
 	var e error
@@ -74,6 +84,11 @@ func (c *ResearchClient) request(ctx context.Context, method, path, key string, 
 	return nil
 }
 
+func (c *ResearchClient) ListFindings(ctx context.Context, query FindingQueryV1) (FindingPageV1, error) {
+	var out FindingPageV1
+	e := c.request(ctx, "GET", "/findings"+"?"+researchQuery(query), "", nil, &out)
+	return out, e
+}
 func (c *ResearchClient) CreateScan(ctx context.Context, body ScannerJobInputV1, idempotencyKey string) (ScannerJobV1, error) {
 	var out ScannerJobV1
 	e := c.request(ctx, "POST", "/scans", idempotencyKey, body, &out)

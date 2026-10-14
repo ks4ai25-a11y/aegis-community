@@ -11,6 +11,97 @@
     }
   ],
   "paths": {
+    "/findings": {
+      "get": {
+        "operationId": "listFindings",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingPageV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "x-query-schema": "FindingQueryV1",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "static_pattern",
+                "secret_candidate",
+                "known_vulnerable_dependency"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "informational",
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 512
+            }
+          }
+        ]
+      }
+    },
     "/scans": {
       "post": {
         "operationId": "createScan",
@@ -954,6 +1045,15 @@
       },
       "ErrorEnvelopeV1": {
         "$ref": "schemas/ErrorEnvelopeV1.json"
+      },
+      "FindingEntryV1": {
+        "$ref": "schemas/FindingEntryV1.json"
+      },
+      "FindingPageV1": {
+        "$ref": "schemas/FindingPageV1.json"
+      },
+      "FindingQueryV1": {
+        "$ref": "schemas/FindingQueryV1.json"
       },
       "FindingV1": {
         "$ref": "schemas/FindingV1.json"

@@ -1,6 +1,7 @@
 // Generated from contracts/openapi-research.json; do not edit.
 import {api} from "../client";
-import type {ApplicationMapV1, EmptyObjectV1, RepositoryAssetListV1, RepositoryConnectionRequestV1, RepositoryListV1, RepositoryV1, ResearchJobListV1, ResearchJobV1, ScannerJobInputV1, ScannerJobListV1, ScannerJobStatusV1, ScannerJobV1, ScannerSuiteResultV1, ScopeGrantApprovalRequestV1, ScopeGrantDraftRequestV1, ScopeGrantListV1, ScopeGrantRecordV1, ScopeRevocationReceiptV1, VerificationJobInputV1, VerificationReportV1} from "./contracts";
+import type {ApplicationMapV1, EmptyObjectV1, FindingPageV1, FindingQueryV1, RepositoryAssetListV1, RepositoryConnectionRequestV1, RepositoryListV1, RepositoryV1, ResearchJobListV1, ResearchJobV1, ScannerJobInputV1, ScannerJobListV1, ScannerJobStatusV1, ScannerJobV1, ScannerSuiteResultV1, ScopeGrantApprovalRequestV1, ScopeGrantDraftRequestV1, ScopeGrantListV1, ScopeGrantRecordV1, ScopeRevocationReceiptV1, VerificationJobInputV1, VerificationReportV1} from "./contracts";
+export function listFindings(query: FindingQueryV1): Promise<FindingPageV1> { return api<FindingPageV1>(`/findings` + "?" + new URLSearchParams(Object.entries(query).filter(([,v])=>v!==undefined).map(([k,v])=>[k,String(v)]))); }
 export function createScan(body: ScannerJobInputV1, idempotencyKey: string): Promise<ScannerJobV1> { return api<ScannerJobV1>(`/scans`, body, {"Idempotency-Key":idempotencyKey}); }
 export function listScans(): Promise<ScannerJobListV1> { return api<ScannerJobListV1>(`/scans`); }
 export function getScan(id: string): Promise<ScannerJobStatusV1> { return api<ScannerJobStatusV1>(`/scans/${encodeURIComponent(id)}`); }

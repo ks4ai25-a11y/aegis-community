@@ -84,3 +84,26 @@ func TestGeneratedScannerListKeepsBoundedHundredJobs(t *testing.T) {
 		t.Fatal("bounded scanner list lost jobs", e)
 	}
 }
+
+func TestGeneratedFindingsQueryKeepsFiltersAndCursorInURL(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query()
+		if r.Method != "GET" || r.URL.Path != "/api/v1/findings" || q.Get("job_id") != "job fixture" || q.Get("category") != "static_pattern" || q.Get("limit") != "2" || q.Get("cursor") != "a+b/c=" {
+			t.Error("query changed", r.URL)
+		}
+		if r.ContentLength > 0 {
+			t.Error("GET query sent as body")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"schema_version":"1.0","owner_id":"fixture","job_id":"fixture","request_digest":"fixture","result_digest":"fixture","snapshot_digest":"fixture","status":"completed","has_partial":false,"has_stale_database":false,"has_tool_error":false,"tool_claims":0,"distinct_static_claims":0,"matching_static_claims":0,"items":[],"next_cursor":""}`))
+	}))
+	defer srv.Close()
+	c, e := NewResearchClient(srv.URL+"/api/v1", "session-fixture", "csrf-fixture")
+	if e != nil {
+		t.Fatal(e)
+	}
+	_, e = c.ListFindings(context.Background(), FindingQueryV1{JobId: "job fixture", Category: "static_pattern", Limit: 2, Cursor: "a+b/c="})
+	if e != nil {
+		t.Fatal(e)
+	}
+}

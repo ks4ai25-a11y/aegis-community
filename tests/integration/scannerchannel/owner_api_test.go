@@ -7,11 +7,14 @@ import (
 	"aegis.local/controller/internal/api"
 	"aegis.local/controller/internal/auth"
 	"aegis.local/controller/internal/domain"
+	"aegis.local/controller/internal/scanqueue"
 	"aegis.local/source"
 	"aegis.local/source/scanevidence"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -31,7 +34,11 @@ func assertOwnerHTTPResult(t *testing.T, f fixture, job string) {
 	h := app.Handler()
 	call := func(path string, code int) *httptest.ResponseRecorder {
 		t.Helper()
-		req := httptest.NewRequest("GET", "http://localhost/api/v1/scans/"+job+path, nil)
+		target := "/scans/" + job + path
+		if strings.HasPrefix(path, "/findings") {
+			target = path
+		}
+		req := httptest.NewRequest("GET", "http://localhost/api/v1"+target, nil)
 		req.AddCookie(&http.Cookie{Name: "aegis_session", Value: token})
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, req)
@@ -64,11 +71,44 @@ func assertOwnerHTTPResult(t *testing.T, f fixture, job string) {
 		t.Fatal("terminal HTTP response lost cleanup hold", e)
 	}
 	t.Logf("OWNER_HTTP_SCAN_STATUS %s", w.Body.String())
+	cursor := ""
+	seen := map[string]bool{}
+	count := 0
+	for {
+		w = call("/findings?job_id="+job+"&limit=2&cursor="+url.QueryEscape(cursor), 200)
+		var page scanqueue.FindingPage
+		if e = json.Unmarshal(w.Body.Bytes(), &page); e != nil || page.Result != expected.Digest || page.Status != expected.Document.Status || page.ToolClaims != expected.Document.FindingClaims {
+			t.Fatal("findings lost result identity", e)
+		}
+		if len(w.Body.Bytes()) > 96<<10 {
+			t.Fatal("finding response exceeded client budget")
+		}
+		for _, entry := range page.Items {
+			if seen[entry.ID] || entry.Finding.Tier != "T0" || entry.Finding.Status != "suspected" || len(entry.Receipts) == 0 {
+				t.Fatal("finding proof/receipt mismatch")
+			}
+			seen[entry.ID] = true
+			count++
+		}
+		t.Logf("OWNER_HTTP_FINDINGS_PAGE %s", w.Body.String())
+		if page.Next == "" {
+			if count != page.Distinct {
+				t.Fatal("pagination omitted findings", count, page.Distinct)
+			}
+			break
+		}
+		cursor = page.Next
+	}
+	call("/findings?job_id="+job+"&limit=21", 400)
+	call("/findings?job_id="+job+"&job_id=other", 400)
+	call("/findings?job_id="+job+"&owner_id=other", 400)
+
 	if _, e = f.s.DB.Exec("UPDATE sessions SET owner='owner-b' WHERE hash=?", domain.Hash([]byte(token))); e != nil {
 		t.Fatal(e)
 	}
 	call("", 404)
 	call("/result", 404)
+	call("/findings?job_id="+job, 404)
 	if e = f.s.VerifyAudit(); e != nil {
 		t.Fatal(e)
 	}

@@ -138,6 +138,94 @@ class VerificationReportV1ChecksItem(TypedDict):
     candidate_http_status: int
     rule_ids: list[str]
     baseline_rule_ids: NotRequired[list[str]]
+class FindingQueryV1(TypedDict):
+    job_id: str
+    category: NotRequired[str]
+    severity: NotRequired[str]
+    limit: NotRequired[int]
+    cursor: NotRequired[str]
+class FindingEntryV1(TypedDict):
+    record_id: str
+    finding: ScannerExecutionV1ResultFindingsItem
+    receipt_digests: list[str]
+class FindingEntryV1Finding(TypedDict):
+    schema_version: str
+    id: str
+    app_id: str
+    repository_id: str
+    category: str
+    summary: str
+    status: str
+    severity: str
+    confidence: str
+    evidence_tier: str
+    path: NotRequired[str]
+    line: NotRequired[int]
+    package_name: NotRequired[str]
+    package_url: NotRequired[str]
+    installed_version: NotRequired[str]
+    advisories: NotRequired[list[str]]
+    secret_fingerprint: NotRequired[str]
+    provenance: list[ScannerExecutionV1ResultFindingsItemProvenanceItem]
+    coverage_note: str
+    created_at: str
+class FindingEntryV1FindingProvenanceItem(TypedDict):
+    tool_id: str
+    tool_version: str
+    tool_image_digest: str
+    parser_version: str
+    input_digest: str
+    rule_id: NotRequired[str]
+    severity_claimed: NotRequired[str]
+class FindingPageV1(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    result_digest: str
+    snapshot_digest: str
+    status: str
+    has_partial: bool
+    has_stale_database: bool
+    has_tool_error: bool
+    tool_claims: int
+    distinct_static_claims: int
+    matching_static_claims: int
+    items: list[FindingPageV1ItemsItem]
+    next_cursor: str
+class FindingPageV1ItemsItem(TypedDict):
+    record_id: str
+    finding: ScannerExecutionV1ResultFindingsItem
+    receipt_digests: list[str]
+class FindingPageV1ItemsItemFinding(TypedDict):
+    schema_version: str
+    id: str
+    app_id: str
+    repository_id: str
+    category: str
+    summary: str
+    status: str
+    severity: str
+    confidence: str
+    evidence_tier: str
+    path: NotRequired[str]
+    line: NotRequired[int]
+    package_name: NotRequired[str]
+    package_url: NotRequired[str]
+    installed_version: NotRequired[str]
+    advisories: NotRequired[list[str]]
+    secret_fingerprint: NotRequired[str]
+    provenance: list[ScannerExecutionV1ResultFindingsItemProvenanceItem]
+    coverage_note: str
+    created_at: str
+class FindingPageV1ItemsItemFindingProvenanceItem(TypedDict):
+    tool_id: str
+    tool_version: str
+    tool_image_digest: str
+    parser_version: str
+    input_digest: str
+    rule_id: NotRequired[str]
+    severity_claimed: NotRequired[str]
 class ScopeGrantDraftRequestV1(TypedDict):
     app_id: str
     mode: str

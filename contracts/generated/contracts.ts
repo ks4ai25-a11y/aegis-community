@@ -149,6 +149,102 @@ export interface VerificationReportV1ChecksItem {
   rule_ids: Array<string>;
   baseline_rule_ids?: Array<string>;
 }
+export interface FindingQueryV1 {
+  job_id: string;
+  category?: "static_pattern" | "secret_candidate" | "known_vulnerable_dependency";
+  severity?: "informational" | "low" | "medium" | "high" | "critical";
+  limit?: number;
+  cursor?: string;
+}
+export interface FindingEntryV1 {
+  record_id: string;
+  finding: ScannerExecutionV1ResultFindingsItem;
+  receipt_digests: Array<string>;
+}
+export interface FindingEntryV1Finding {
+  schema_version: "1.0";
+  id: string;
+  app_id: string;
+  repository_id: string;
+  category: "static_pattern" | "secret_candidate" | "known_vulnerable_dependency" | "configuration_claim";
+  summary: string;
+  status: "suspected" | "corroborated" | "reproduced" | "remediating" | "fixed_or_mitigated" | "monitored";
+  severity: "informational" | "low" | "medium" | "high" | "critical";
+  confidence: "low" | "medium" | "high";
+  evidence_tier: "T0" | "T1" | "T2" | "T3" | "T4" | "T5";
+  path?: string;
+  line?: number;
+  package_name?: string;
+  package_url?: string;
+  installed_version?: string;
+  advisories?: Array<string>;
+  secret_fingerprint?: string;
+  provenance: Array<ScannerExecutionV1ResultFindingsItemProvenanceItem>;
+  coverage_note: string;
+  created_at: string;
+}
+export interface FindingEntryV1FindingProvenanceItem {
+  tool_id: string;
+  tool_version: string;
+  tool_image_digest: string;
+  parser_version: "1.0" | "1.1" | "1.2";
+  input_digest: string;
+  rule_id?: string;
+  severity_claimed?: "informational" | "low" | "medium" | "high" | "critical";
+}
+export interface FindingPageV1 {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  result_digest: string;
+  snapshot_digest: string;
+  status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  has_partial: boolean;
+  has_stale_database: boolean;
+  has_tool_error: boolean;
+  tool_claims: number;
+  distinct_static_claims: number;
+  matching_static_claims: number;
+  items: Array<FindingPageV1ItemsItem>;
+  next_cursor: string;
+}
+export interface FindingPageV1ItemsItem {
+  record_id: string;
+  finding: ScannerExecutionV1ResultFindingsItem;
+  receipt_digests: Array<string>;
+}
+export interface FindingPageV1ItemsItemFinding {
+  schema_version: "1.0";
+  id: string;
+  app_id: string;
+  repository_id: string;
+  category: "static_pattern" | "secret_candidate" | "known_vulnerable_dependency" | "configuration_claim";
+  summary: string;
+  status: "suspected" | "corroborated" | "reproduced" | "remediating" | "fixed_or_mitigated" | "monitored";
+  severity: "informational" | "low" | "medium" | "high" | "critical";
+  confidence: "low" | "medium" | "high";
+  evidence_tier: "T0" | "T1" | "T2" | "T3" | "T4" | "T5";
+  path?: string;
+  line?: number;
+  package_name?: string;
+  package_url?: string;
+  installed_version?: string;
+  advisories?: Array<string>;
+  secret_fingerprint?: string;
+  provenance: Array<ScannerExecutionV1ResultFindingsItemProvenanceItem>;
+  coverage_note: string;
+  created_at: string;
+}
+export interface FindingPageV1ItemsItemFindingProvenanceItem {
+  tool_id: string;
+  tool_version: string;
+  tool_image_digest: string;
+  parser_version: "1.0" | "1.1" | "1.2";
+  input_digest: string;
+  rule_id?: string;
+  severity_claimed?: "informational" | "low" | "medium" | "high" | "critical";
+}
 export interface ScopeGrantDraftRequestV1 {
   app_id: "app_demo";
   mode: "test_lab";

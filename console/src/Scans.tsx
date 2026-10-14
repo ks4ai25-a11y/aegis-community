@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {FileSearch,RefreshCw,Square} from 'lucide-react';
 import {key,short} from './client';
+import {Findings} from './Findings';
 import {createScan,listScans,getScan,cancelScan,getScanResult,listRepositories} from './generated/research-client';
 import type {RepositoryV1,ScannerJobV1,ScannerJobStatusV1,ScannerSuiteResultV1} from './generated/contracts';
 
@@ -115,7 +116,7 @@ export function Scans({action,busy}:Props){
    {active&&!status.job.cancel_requested&&<button className="button light" disabled={busy} onClick={()=>action(async()=>{await cancelScan(status.job.job_id,{});await reload();await inspect(status.job.job_id)},'Cancellation requested. Cleanup is not confirmed.')}><Square size={15}/>Cancel selected scan</button>}
    {!result&&!reading&&<p>No immutable scanner result is displayed. {terminalResults.has(status.job.state)?'Refresh to retry the result read.':'Queued, cancelled, failed and timed-out jobs do not become zero-findings results.'}</p>}
   </section>}
-  {result&&<ScanResult result={result}/>}
+  {result&&<><ScanResult result={result}/><Findings key={result.result_digest} result={result}/></>}
  </>;
 }
 

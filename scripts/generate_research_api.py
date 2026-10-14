@@ -5,6 +5,7 @@ root=pathlib.Path(__file__).resolve().parents[1]
 def schema(name):return {'$ref':'#/components/schemas/'+name}
 # name, method, path, request, response, success status, idempotency requirement
 ops=[
+ ('listFindings','get','/findings',None,'FindingPageV1',200,False),
  ('createScan','post','/scans','ScannerJobInputV1','ScannerJobV1',202,True),
  ('listScans','get','/scans',None,'ScannerJobListV1',200,False),
  ('getScan','get','/scans/{id}',None,'ScannerJobStatusV1',200,False),
@@ -30,6 +31,10 @@ paths={}
 for name,method,path,body,result,status,key in ops:
  operation={'operationId':name,'security':[{'ownerSession':[]}],'responses':{str(status):{'description':'Successful owner-scoped operation','content':{'application/json':{'schema':schema(result)}}},'default':{'description':'Typed failure; never a success or clean-scan conclusion','content':{'application/json':{'schema':schema('ErrorEnvelopeV1')}}}}}
  params=[]
+ if name=='listFindings':
+  operation['x-query-schema']='FindingQueryV1'
+  query=json.loads((root/'contracts/schemas/FindingQueryV1.json').read_text())
+  params.extend({'name':field,'in':'query','required':field in query['required'],'schema':value} for field,value in query['properties'].items())
  if '{id}' in path:params.append({'name':'id','in':'path','required':True,'schema':{'type':'string','maxLength':80}})
  if method=='post':params.append({'name':'X-CSRF-Token','in':'header','required':True,'schema':{'type':'string'}})
  if key:params.append({'name':'Idempotency-Key','in':'header','required':True,'schema':{'type':'string','minLength':8,'maxLength':128}})
@@ -47,7 +52,8 @@ for path,methods in spec['paths'].items():
   response=next(v for k,v in op['responses'].items() if k.isdigit())['content']['application/json']['schema']['$ref'].split('/')[-1]
   operations.append((op['operationId'],method,path,body,response,any(p['name']=='Idempotency-Key' for p in op.get('parameters',[]))))
 # TypeScript uses the console's authenticated, CSRF-aware, same-origin transport.
-names=sorted({t for _,_,_,body,result,_ in operations for t in [body,result] if t})
+queries={op['operationId']:op.get('x-query-schema') for methods in spec['paths'].values() for op in methods.values()}
+names=sorted({t for name,_,_,body,result,_ in operations for t in [body,result,queries.get(name)] if t})
 ts=['// Generated from contracts/openapi-research.json; do not edit.','import {api} from "../client";','import type {'+', '.join(names)+'} from "./contracts";']
 py=['# Generated from contracts/openapi-research.json; do not edit.','from __future__ import annotations','import json, urllib.request, urllib.error, urllib.parse','from .contracts import *',
 '''class _NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -81,6 +87,10 @@ func NewResearchClient(base,session,csrf string)(*ResearchClient,error){
  host:=u.Hostname();if (u.Scheme!="http"&&u.Scheme!="https") || (host!="127.0.0.1"&&host!="localhost"&&host!="::1") || strings.TrimRight(u.Path,"/")!="/api/v1" || u.RawQuery!="" || u.Fragment!="" || u.User!=nil{return nil,fmt.Errorf("only explicit loopback administration URLs supported")}
  return &ResearchClient{strings.TrimRight(base,"/"),session,csrf,&http.Client{Timeout:15*time.Second,CheckRedirect:func(*http.Request,[]*http.Request)error{return http.ErrUseLastResponse}}},nil
 }
+func researchQuery(query any) string {
+ b,_:=json.Marshal(query);values:=map[string]any{};_ =json.Unmarshal(b,&values)
+ out:=url.Values{};for key,value:=range values{out.Set(key,fmt.Sprint(value))};return out.Encode()
+}
 func(c *ResearchClient)request(ctx context.Context,method,path,key string,body,out any)error {
  var raw []byte;var e error;if body!=nil{raw,e=json.Marshal(body);if e!=nil{return e}}
  req,e:=http.NewRequestWithContext(ctx,method,c.base+path,bytes.NewReader(raw));if e!=nil{return e}
@@ -93,14 +103,19 @@ func(c *ResearchClient)request(ctx context.Context,method,path,key string,body,o
 ''']
 for name,method,path,body,result,key in operations:
  params=[];gop=[];pyp=[]
+ query=queries.get(name)
+ if query:params.append('query: '+query);gop.append('query '+query);pyp.append('query: '+query)
  if '{id}' in path:params.append('id: string');gop.append('id string');pyp.append('id: str')
  if body:params.append('body: '+body);gop.append('body '+body);pyp.append('body: '+body)
  if key:params.append('idempotencyKey: string');gop.append('idempotencyKey string');pyp.append('idempotency_key: str')
  tspath='`'+path.replace('{id}','${encodeURIComponent(id)}')+'`'
+ if query:tspath+=' + "?" + new URLSearchParams(Object.entries(query).filter(([,v])=>v!==undefined).map(([k,v])=>[k,String(v)]))'
  ts.append('export function '+name+'('+', '.join(params)+'): Promise<'+result+'> { return api<'+result+'>('+tspath+(', body' if body else '')+(', {"Idempotency-Key":idempotencyKey}' if key else '')+'); }')
  gopath='"'+path+'"' if '{id}' not in path else '"'+path.replace('{id}','"+url.PathEscape(id)+"')+'"'
+ if query:gopath+=' + "?" + researchQuery(query)'
  go.append('func(c *ResearchClient)'+name[0].upper()+name[1:]+'(ctx context.Context'+(', '+', '.join(gop) if gop else '')+')('+result+',error){var out '+result+';e:=c.request(ctx,"'+method.upper()+'",'+gopath+','+('idempotencyKey' if key else '""')+','+('body' if body else 'nil')+',&out);return out,e}')
  pypath='"'+path+'"' if '{id}' not in path else '"'+path.replace('{id}','"+urllib.parse.quote(id,safe="")+"')+'"'
+ if query:pypath+=' + "?" + urllib.parse.urlencode(query)'
  py.append('    def '+name+'(self'+(', '+', '.join(pyp) if pyp else '')+') -> '+result+':\n        return self._request("'+method.upper()+'", '+pypath+(', body' if body else ', None')+(', idempotency_key' if key else '')+')')
 (root/'console/src/generated/research-client.ts').write_text('\n'.join(ts)+'\n')
 (root/'contracts/generated/research_client.py').write_text('\n'.join(py)+'\n')

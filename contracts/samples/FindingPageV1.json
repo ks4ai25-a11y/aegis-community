@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0",
+  "owner_id": "owner-a",
+  "job_id": "01a138ab-02ee-70cb-bef4-464a2bbdeaca",
+  "request_digest": "sha256:4ca6c9a8926a7923a5f1afb67caa20528ce632616fd28b3e41813d6bdefbc5bb",
+  "result_digest": "sha256:e7a130eb726b65b34104290fb7a58a57df3d40f73d3a4f45ece95aa50305c434",
+  "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+  "status": "completed_stale_db",
+  "has_partial": false,
+  "has_stale_database": true,
+  "has_tool_error": false,
+  "tool_claims": 5,
+  "distinct_static_claims": 4,
+  "matching_static_claims": 4,
+  "items": [
+    {
+      "record_id": "sha256:3a1a8ba3e69b7236412a08c2d90bb363b7f6f32ddfd7de9f937b9664c893ff00",
+      "finding": {
+        "schema_version": "1.0",
+        "id": "sha256:110c833f2d3c58021aa9f17f6367c0859a6899b1fdfa8b61899281dc77c4bc2b",
+        "app_id": "app_demo",
+        "repository_id": "01a138ab-02da-70ab-861f-e8ae16358103",
+        "category": "known_vulnerable_dependency",
+        "summary": "Unverified static scanner claim.",
+        "status": "suspected",
+        "severity": "high",
+        "confidence": "low",
+        "evidence_tier": "T0",
+        "path": "query.py",
+        "package_url": "pkg:npm/fixture-package@1.0",
+        "package_name": "fixture-package",
+        "installed_version": "1.0",
+        "advisories": [
+          "CVE-2026-99999"
+        ],
+        "provenance": [
+          {
+            "tool_id": "osv_v2",
+            "tool_version": "2.7.0",
+            "tool_image_digest": "sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0",
+            "parser_version": "1.2",
+            "input_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+            "rule_id": "CVE-2026-99999",
+            "severity_claimed": "informational"
+          },
+          {
+            "tool_id": "trivy",
+            "tool_version": "0.75.0",
+            "tool_image_digest": "sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa",
+            "parser_version": "1.2",
+            "input_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+            "rule_id": "CVE-2026-99999",
+            "severity_claimed": "high"
+          }
+        ],
+        "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+        "created_at": "2026-10-14T04:28:14.024537Z"
+      },
+      "receipt_digests": [
+        "sha256:ba384b508313baa2a784ddcc8918ee2e5bfd2c54c631c801d36a87b3e777c3bc",
+        "sha256:e54ef2d9767b151b18688ab6fff27659b6512391d979f0918f185c7829f33ae3"
+      ]
+    },
+    {
+      "record_id": "sha256:817bf2fe19c8298234ad6085cb52c182ab57d3f28e9b0fd31d188709c53b533f",
+      "finding": {
+        "schema_version": "1.0",
+        "id": "sha256:421c0d3a7b92ba92d079b88f54c65ccc40a5ef5e418d6667313d72137fe2e09b",
+        "app_id": "app_demo",
+        "repository_id": "01a138ab-02da-70ab-861f-e8ae16358103",
+        "category": "secret_candidate",
+        "summary": "Possible exposed credential; rotate after owner review. Matched value omitted.",
+        "status": "suspected",
+        "severity": "high",
+        "confidence": "low",
+        "evidence_tier": "T0",
+        "path": "query.py",
+        "line": 1,
+        "secret_fingerprint": "sha256:8bc71570dd8fc00edf54e03edd7438dc6a880b243183256af50fe2aec622319b",
+        "provenance": [
+          {
+            "tool_id": "gitleaks",
+            "tool_version": "8.30.1",
+            "tool_image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
+            "parser_version": "1.2",
+            "input_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+            "rule_id": "fixture-secret",
+            "severity_claimed": "high"
+          }
+        ],
+        "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+        "created_at": "2026-10-14T04:28:13.948863Z"
+      },
+      "receipt_digests": [
+        "sha256:fdc6a03a00dd895b0276c8053caf283028894bfcbfd917dacaab0efa96145cd0"
+      ]
+    }
+  ],
+  "next_cursor": "eyJzY2hlbWFfdmVyc2lvbiI6IjEuMCIsInJlc3VsdF9kaWdlc3QiOiJzaGEyNTY6ZTdhMTMwZWI3MjZiNjViMzQxMDQyOTBmYjdhNThhNTdkZjNkNDBmNzNkM2E0ZjQ1ZWNlOTVhYTUwMzA1YzQzNCIsInF1ZXJ5X2RpZ2VzdCI6InNoYTI1NjplZDMwNTZkNzY5OWRmMDVhY2I2MmVjYmZkMWE1M2ZjMjJjNGU3YmUwMTQzZGIwZDAxNmU3NzFhNzEzYzVjNDdlIiwib2Zmc2V0IjoyfQ"
+}

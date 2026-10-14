@@ -25,6 +25,8 @@ class ResearchClient:
         except urllib.error.HTTPError as e:
             raise RuntimeError("Aegis API rejected request with HTTP "+str(e.code)) from None
 
+    def listFindings(self, query: FindingQueryV1) -> FindingPageV1:
+        return self._request("GET", "/findings" + "?" + urllib.parse.urlencode(query), None)
     def createScan(self, body: ScannerJobInputV1, idempotency_key: str) -> ScannerJobV1:
         return self._request("POST", "/scans", body, idempotency_key)
     def listScans(self) -> ScannerJobListV1:

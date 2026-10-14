@@ -30,6 +30,15 @@ try:
  except RuntimeError as e:assert 'HTTP 409' in str(e)
  else:raise AssertionError('Pending job returned success result')
  check('pending_result_is_explicitly_unavailable')
+ try:client.listFindings({'job_id':first['job_id'],'limit':2})
+ except RuntimeError as e:assert 'HTTP 409' in str(e)
+ else:raise AssertionError('Pending job returned empty findings')
+ check('pending_findings_do_not_become_zero_claims')
+ try:client.listFindings({'job_id':first['job_id'],'limit':21})
+ except RuntimeError as e:assert 'HTTP 400' in str(e)
+ else:raise AssertionError('Unbounded findings page accepted')
+ check('generated_finding_query_is_bounded')
+
  cancelled=client.cancelScan(first['job_id'],{});assert cancelled['job']['state']=='cancelled' and cancelled['job']['cancel_requested']
  assert cancelled['execution_admission']=='unconfirmed'
  assert client.cancelScan(first['job_id'],{})==cancelled

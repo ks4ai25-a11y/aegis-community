@@ -12,6 +12,10 @@ async function shell(page:Page,scans:(route:Route)=>Promise<void>){
   const path=new URL(route.request().url()).pathname;
   const body=path==='/api/v1/auth/session'?{csrf_token:'synthetic-ui-csrf'}:path==='/api/v1/system/status'?{version:'UI contract fixture',mode:'observe',gateway_healthy:true,requests_retained:0,open_incidents:0,events_dropped_total:0,database_bytes:1024}:path==='/api/v1/repos'?{items:[repo]}:path==='/api/v1/sites/site_demo/events'?{items:[]}:undefined;
   if(body!==undefined){await route.fulfill({json:body});return}
+  if(path==='/api/v1/findings'){
+   const d=evidence.document;
+   await route.fulfill({json:{schema_version:'1.0',owner_id:d.owner_id,job_id:d.job_id,request_digest:d.request_digest,result_digest:evidence.result_digest,snapshot_digest:d.snapshot_digest,status:d.status,has_partial:d.has_partial,has_stale_database:d.has_stale_database,has_tool_error:d.has_tool_error,tool_claims:d.finding_claims,distinct_static_claims:0,matching_static_claims:0,items:[],next_cursor:''}});return;
+  }
   if(path.startsWith('/api/v1/scans')){await scans(route);return}
   await route.fulfill({status:404,json:{error:{message:'Not available in UI fixture'}}});
  });
@@ -64,11 +68,11 @@ test('polling displays terminal tool-error evidence without losing cleanup hold'
  await expect(page.getByText('Admission is held for independent cleanup verification.',{exact:false})).toBeVisible();
  await expect(page.getByText('T0 · Tool claims')).toBeVisible();
  await expect(page.locator('section').filter({has:page.getByRole('heading',{name:'Owned scan jobs'})}).getByText('tool error',{exact:true})).toBeVisible();
- await page.screenshot({path:'../docs/evidence/scanner-console-desktop.png',fullPage:true});
+ await page.screenshot({path:'../docs/evidence/finding-phase-scanner-console-desktop.png',fullPage:true});
  await page.setViewportSize({width:390,height:844});
  await expect(page.getByRole('heading',{name:'Static scan evidence'})).toBeVisible();
- const overflow=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,elements:[...document.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(e=>({tag:e.tagName,cls:e.className,right:e.getBoundingClientRect().right,width:e.getBoundingClientRect().width}))}));await page.screenshot({path:'../docs/evidence/scanner-console-mobile.png',fullPage:true});expect(overflow.scroll,JSON.stringify(overflow)).toBeLessThanOrEqual(overflow.width);
- await page.screenshot({path:'../docs/evidence/scanner-console-mobile.png',fullPage:true});
+ const overflow=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,elements:[...document.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(e=>({tag:e.tagName,cls:e.className,right:e.getBoundingClientRect().right,width:e.getBoundingClientRect().width}))}));await page.screenshot({path:'../docs/evidence/finding-phase-scanner-console-mobile.png',fullPage:true});expect(overflow.scroll,JSON.stringify(overflow)).toBeLessThanOrEqual(overflow.width);
+ await page.screenshot({path:'../docs/evidence/finding-phase-scanner-console-mobile.png',fullPage:true});
 });
 
 test('late response from a previously selected job cannot replace newer evidence',async({page})=>{

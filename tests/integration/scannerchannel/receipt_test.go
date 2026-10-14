@@ -6,6 +6,7 @@ package scannerchannelacceptance
 import (
 	"aegis.local/alpha/scanners"
 	"aegis.local/alpha/workerchannel"
+	"aegis.local/controller/internal/scanqueue"
 	"aegis.local/source"
 	"aegis.local/source/scanevidence"
 	"context"
@@ -48,7 +49,7 @@ func TestActualParserReceiptsShareControllerDataContract(t *testing.T) {
 		"semgrep_ce": `{"results":[{"check_id":"python.eval","path":"/src/query.py","start":{"line":1},"extra":{"severity":"ERROR","message":"private arbitrary tool text"}}],"errors":[]}`,
 		"bandit":     `{"results":[{"test_id":"B307","filename":"/src/query.py","line_number":1,"issue_severity":"MEDIUM","issue_text":"private arbitrary tool text"}],"errors":[]}`,
 		"gitleaks":   `[{"RuleID":"fixture-secret","File":"query.py","StartLine":1,"Secret":"synthetic-only-fixture-value","Match":"synthetic-only-fixture-value"}]`,
-		"osv_v2":     `{"results":[{"source":{"path":"/src/query.py"},"packages":[{"package":{"name":"fixture-package","version":"1.0","ecosystem":"npm"},"vulnerabilities":[{"id":"GHSA-fixture-claim"}]}]}]}`,
+		"osv_v2":     `{"results":[{"source":{"path":"/src/query.py"},"packages":[{"package":{"name":"fixture-package","version":"1.0","ecosystem":"npm"},"vulnerabilities":[{"id":"CVE-2026-99999"}]}]}]}`,
 		"trivy":      `{"SchemaVersion":2,"Results":[{"Target":"/src/query.py","Vulnerabilities":[{"VulnerabilityID":"CVE-2026-99999","PkgName":"fixture-package","InstalledVersion":"1.0","Severity":"HIGH","PkgIdentifier":{"PURL":"pkg:npm/fixture-package@1.0"}}]}]}`,
 		"syft":       `{"bomFormat":"CycloneDX","specVersion":"1.6","components":[{"name":"fixture-package","version":"1.0","purl":"pkg:npm/fixture-package@1.0"}]}`,
 	}
@@ -139,6 +140,23 @@ func TestActualParserReceiptsShareControllerDataContract(t *testing.T) {
 	stored, e := f.q.Result(l.Job.Owner, l.Job.ID)
 	if e != nil || stored.Digest != finished.Digest {
 		t.Fatal("owner-bound index lost accepted receipts", e)
+	}
+
+	page, e := f.q.Findings(context.Background(), l.Job.Owner, l.Job.ID, scanqueue.FindingQuery{})
+	if e != nil || page.ToolClaims != 5 || page.Distinct != 4 || !page.Stale {
+		t.Fatal("cross-tool dependency aggregation failed", page, e)
+	}
+	merged := false
+	for _, entry := range page.Items {
+		if entry.Finding.Category == "known_vulnerable_dependency" {
+			merged = true
+			if len(entry.Finding.Provenance) != 2 || len(entry.Receipts) != 2 || entry.Finding.Severity != "high" || entry.Finding.Confidence != "low" || entry.Finding.Tier != "T0" {
+				t.Fatal("dependency disagreement/proof lost", entry)
+			}
+		}
+	}
+	if !merged {
+		t.Fatal("equivalent dependency sources not merged")
 	}
 	assertOwnerHTTPResult(t, f, l.Job.ID)
 	assertCleanupHeld(t, f)

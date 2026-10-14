@@ -151,6 +151,102 @@ type VerificationReportV1ChecksItem struct {
 	RuleIds             []string `json:"rule_ids"`
 	BaselineRuleIds     []string `json:"baseline_rule_ids,omitempty"`
 }
+type FindingQueryV1 struct {
+	JobId    string `json:"job_id"`
+	Category string `json:"category,omitempty"`
+	Severity string `json:"severity,omitempty"`
+	Limit    int64  `json:"limit,omitempty"`
+	Cursor   string `json:"cursor,omitempty"`
+}
+type FindingEntryV1 struct {
+	RecordId       string                               `json:"record_id"`
+	Finding        ScannerExecutionV1ResultFindingsItem `json:"finding"`
+	ReceiptDigests []string                             `json:"receipt_digests"`
+}
+type FindingEntryV1Finding struct {
+	SchemaVersion     string                                               `json:"schema_version"`
+	Id                string                                               `json:"id"`
+	AppId             string                                               `json:"app_id"`
+	RepositoryId      string                                               `json:"repository_id"`
+	Category          string                                               `json:"category"`
+	Summary           string                                               `json:"summary"`
+	Status            string                                               `json:"status"`
+	Severity          string                                               `json:"severity"`
+	Confidence        string                                               `json:"confidence"`
+	EvidenceTier      string                                               `json:"evidence_tier"`
+	Path              string                                               `json:"path,omitempty"`
+	Line              int64                                                `json:"line,omitempty"`
+	PackageName       string                                               `json:"package_name,omitempty"`
+	PackageUrl        string                                               `json:"package_url,omitempty"`
+	InstalledVersion  string                                               `json:"installed_version,omitempty"`
+	Advisories        []string                                             `json:"advisories,omitempty"`
+	SecretFingerprint string                                               `json:"secret_fingerprint,omitempty"`
+	Provenance        []ScannerExecutionV1ResultFindingsItemProvenanceItem `json:"provenance"`
+	CoverageNote      string                                               `json:"coverage_note"`
+	CreatedAt         string                                               `json:"created_at"`
+}
+type FindingEntryV1FindingProvenanceItem struct {
+	ToolId          string `json:"tool_id"`
+	ToolVersion     string `json:"tool_version"`
+	ToolImageDigest string `json:"tool_image_digest"`
+	ParserVersion   string `json:"parser_version"`
+	InputDigest     string `json:"input_digest"`
+	RuleId          string `json:"rule_id,omitempty"`
+	SeverityClaimed string `json:"severity_claimed,omitempty"`
+}
+type FindingPageV1 struct {
+	SchemaVersion        string                   `json:"schema_version"`
+	OwnerId              string                   `json:"owner_id"`
+	JobId                string                   `json:"job_id"`
+	RequestDigest        string                   `json:"request_digest"`
+	ResultDigest         string                   `json:"result_digest"`
+	SnapshotDigest       string                   `json:"snapshot_digest"`
+	Status               string                   `json:"status"`
+	HasPartial           bool                     `json:"has_partial"`
+	HasStaleDatabase     bool                     `json:"has_stale_database"`
+	HasToolError         bool                     `json:"has_tool_error"`
+	ToolClaims           int64                    `json:"tool_claims"`
+	DistinctStaticClaims int64                    `json:"distinct_static_claims"`
+	MatchingStaticClaims int64                    `json:"matching_static_claims"`
+	Items                []FindingPageV1ItemsItem `json:"items"`
+	NextCursor           string                   `json:"next_cursor"`
+}
+type FindingPageV1ItemsItem struct {
+	RecordId       string                               `json:"record_id"`
+	Finding        ScannerExecutionV1ResultFindingsItem `json:"finding"`
+	ReceiptDigests []string                             `json:"receipt_digests"`
+}
+type FindingPageV1ItemsItemFinding struct {
+	SchemaVersion     string                                               `json:"schema_version"`
+	Id                string                                               `json:"id"`
+	AppId             string                                               `json:"app_id"`
+	RepositoryId      string                                               `json:"repository_id"`
+	Category          string                                               `json:"category"`
+	Summary           string                                               `json:"summary"`
+	Status            string                                               `json:"status"`
+	Severity          string                                               `json:"severity"`
+	Confidence        string                                               `json:"confidence"`
+	EvidenceTier      string                                               `json:"evidence_tier"`
+	Path              string                                               `json:"path,omitempty"`
+	Line              int64                                                `json:"line,omitempty"`
+	PackageName       string                                               `json:"package_name,omitempty"`
+	PackageUrl        string                                               `json:"package_url,omitempty"`
+	InstalledVersion  string                                               `json:"installed_version,omitempty"`
+	Advisories        []string                                             `json:"advisories,omitempty"`
+	SecretFingerprint string                                               `json:"secret_fingerprint,omitempty"`
+	Provenance        []ScannerExecutionV1ResultFindingsItemProvenanceItem `json:"provenance"`
+	CoverageNote      string                                               `json:"coverage_note"`
+	CreatedAt         string                                               `json:"created_at"`
+}
+type FindingPageV1ItemsItemFindingProvenanceItem struct {
+	ToolId          string `json:"tool_id"`
+	ToolVersion     string `json:"tool_version"`
+	ToolImageDigest string `json:"tool_image_digest"`
+	ParserVersion   string `json:"parser_version"`
+	InputDigest     string `json:"input_digest"`
+	RuleId          string `json:"rule_id,omitempty"`
+	SeverityClaimed string `json:"severity_claimed,omitempty"`
+}
 type ScopeGrantDraftRequestV1 struct {
 	AppId           string `json:"app_id"`
 	Mode            string `json:"mode"`

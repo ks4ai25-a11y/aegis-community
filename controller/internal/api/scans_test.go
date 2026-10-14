@@ -103,6 +103,9 @@ func TestOwnerScannerHTTPAuthorityAndAdmission(t *testing.T) {
 		t.Fatal(status)
 	}
 	call("GET", "/scans/"+id+"/result", "", 409, nil)
+	call("GET", "/findings?job_id="+id, "", 409, nil)
+	call("GET", "/findings?job_id="+id+"&limit=21", "", 400, nil)
+	call("GET", "/findings?job_id="+id+"&job_id=other", "", 400, nil)
 	list := call("GET", "/scans", "", 200, nil)
 	if len(list["items"].([]any)) != 1 {
 		t.Fatal(list)
@@ -147,6 +150,7 @@ func TestOwnerScannerHTTPAuthorityAndAdmission(t *testing.T) {
 		}
 		call(method, "/scans/"+id+suffix, body, 404, nil)
 	}
+	call("GET", "/findings?job_id="+id, "", 404, nil)
 	call("POST", "/scans", body, 404, key)
 	list = call("GET", "/scans", "", 200, nil)
 	if len(list["items"].([]any)) != 0 {
