@@ -820,3 +820,25 @@ type ScannerLaunchRecordV2DocumentPlan struct {
 	GuardBinaryDigest string `json:"guard_binary_digest"`
 	GuardArchitecture string `json:"guard_architecture"`
 }
+type ScannerSandboxObservationV1 struct {
+	SchemaVersion                 string   `json:"schema_version"`
+	ObservedAt                    string   `json:"observed_at"`
+	LaunchDigest                  string   `json:"launch_digest"`
+	EngineDigest                  string   `json:"engine_digest"`
+	ContainerName                 string   `json:"container_name"`
+	ContainerId                   string   `json:"container_id,omitempty"`
+	ToolId                        string   `json:"tool_id,omitempty"`
+	RulesSnapshotRequired         bool     `json:"rules_snapshot_required"`
+	ContainerState                string   `json:"container_state"`
+	ObservationCode               string   `json:"observation_code"`
+	OriginalEngineMatched         bool     `json:"original_engine_matched"`
+	ContainerMetadataMatched      bool     `json:"container_metadata_matched"`
+	ReportedGuardFileMatched      bool     `json:"reported_guard_file_matched"`
+	ReportedSourceSnapshotMatched bool     `json:"reported_source_snapshot_matched"`
+	ReportedRulesSnapshotMatched  bool     `json:"reported_rules_snapshot_matched"`
+	ControllerAuthorityVerified   bool     `json:"controller_authority_verified"`
+	ActiveWorkspaceLeaseExcluded  bool     `json:"active_workspace_lease_excluded"`
+	LateStartExcluded             bool     `json:"late_start_excluded"`
+	CleanupConfirmed              bool     `json:"cleanup_confirmed"`
+	Limitations                   []string `json:"limitations"`
+}

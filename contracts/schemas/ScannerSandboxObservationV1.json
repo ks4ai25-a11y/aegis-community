@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerSandboxObservationV1.json",
+  "title": "ScannerSandboxObservationV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "launch_digest": {
+      "type": "string",
+      "pattern": "^(|sha256:[0-9a-f]{64})$"
+    },
+    "engine_digest": {
+      "type": "string",
+      "pattern": "^(|sha256:[0-9a-f]{64})$"
+    },
+    "container_name": {
+      "type": "string",
+      "pattern": "^(|aegis-scan-[0-9a-f]{32})$"
+    },
+    "container_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "tool_id": {
+      "type": "string",
+      "enum": [
+        "semgrep_ce",
+        "osv_v2",
+        "trivy",
+        "syft",
+        "gitleaks",
+        "bandit"
+      ]
+    },
+    "rules_snapshot_required": {
+      "type": "boolean"
+    },
+    "container_state": {
+      "type": "string",
+      "enum": [
+        "unobserved",
+        "absent",
+        "created",
+        "running",
+        "exited",
+        "dead"
+      ]
+    },
+    "observation_code": {
+      "type": "string",
+      "pattern": "^[A-Z_]{1,64}$"
+    },
+    "original_engine_matched": {
+      "type": "boolean"
+    },
+    "container_metadata_matched": {
+      "type": "boolean"
+    },
+    "reported_guard_file_matched": {
+      "type": "boolean"
+    },
+    "reported_source_snapshot_matched": {
+      "type": "boolean"
+    },
+    "reported_rules_snapshot_matched": {
+      "type": "boolean"
+    },
+    "controller_authority_verified": {
+      "type": "boolean",
+      "const": false
+    },
+    "active_workspace_lease_excluded": {
+      "type": "boolean",
+      "const": false
+    },
+    "late_start_excluded": {
+      "type": "boolean",
+      "const": false
+    },
+    "cleanup_confirmed": {
+      "type": "boolean",
+      "const": false
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 512
+      },
+      "minItems": 4,
+      "maxItems": 8
+    }
+  },
+  "required": [
+    "schema_version",
+    "observed_at",
+    "launch_digest",
+    "engine_digest",
+    "container_name",
+    "rules_snapshot_required",
+    "container_state",
+    "observation_code",
+    "original_engine_matched",
+    "container_metadata_matched",
+    "reported_guard_file_matched",
+    "reported_source_snapshot_matched",
+    "reported_rules_snapshot_matched",
+    "controller_authority_verified",
+    "active_workspace_lease_excluded",
+    "late_start_excluded",
+    "cleanup_confirmed",
+    "limitations"
+  ]
+}

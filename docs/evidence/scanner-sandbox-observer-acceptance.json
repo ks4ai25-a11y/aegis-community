@@ -1,0 +1,454 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Read-only operator observation of selected original-engine metadata and reported host files; no cleanup or admission-release authority.",
+  "recorded_at": "2026-10-14T10:42:56.401877+00:00",
+  "checks": {
+    "full_source_race_tests_and_console_build": "PASS",
+    "alpha_go_vet": "PASS",
+    "controller_go_vet": "PASS",
+    "executor_race_tests": {
+      "pass": 48,
+      "skip": 2
+    },
+    "controller_queue_race_tests": {
+      "pass": 132
+    },
+    "real_observer_test": {
+      "pass": 1
+    },
+    "real_worker_tests": {
+      "pass": 3
+    },
+    "real_scanner_attempts": 6,
+    "observation_schema_validations": 5,
+    "forged_true_authority_flags_rejected": 4,
+    "missing_generated_schema_detection": "PASS",
+    "generated_reproducibility": "PASS",
+    "private_export_owner_digest_permissions_no_overwrite_admission_unchanged": "PASS",
+    "named_demo_image_build_and_rollout": "PASS",
+    "named_service_image_alignment_hardening_doctor_and_audit": "PASS"
+  },
+  "observations": [
+    {
+      "kind": "OBSERVATION",
+      "observation": {
+        "tool_id": "bandit",
+        "rules_snapshot_required": false,
+        "schema_version": "1.0",
+        "observed_at": "2026-10-14T05:50:05.088468Z",
+        "launch_digest": "sha256:30c66f4b75a56ef1c784fab4c79c55e765bf2b2135ad7cddba062da08ae7470a",
+        "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+        "container_name": "aegis-scan-d3f4871ba636b0fd50156a8885ac8253",
+        "container_id": "6d9bcb8d5ab24264e5762d8030b82e9cff8cbc294b75dd08b7d6a0c883216db3",
+        "container_state": "created",
+        "observation_code": "MATCHED_AT_OBSERVATION",
+        "original_engine_matched": true,
+        "container_metadata_matched": true,
+        "reported_guard_file_matched": true,
+        "reported_source_snapshot_matched": true,
+        "reported_rules_snapshot_matched": false,
+        "controller_authority_verified": false,
+        "active_workspace_lease_excluded": false,
+        "late_start_excluded": false,
+        "cleanup_confirmed": false,
+        "limitations": [
+          "Point-in-time engine metadata and reported host files only; not runtime-memory or mount-inode attestation.",
+          "Caller-supplied launch context is not independently authenticated controller authority.",
+          "Active workspace leases, incomplete allocations and queued late starts are not excluded.",
+          "Container absence or matching metadata never confirms cleanup or releases controller admission."
+        ]
+      }
+    },
+    {
+      "kind": "CLI_OBSERVATION",
+      "observation": {
+        "tool_id": "bandit",
+        "rules_snapshot_required": false,
+        "schema_version": "1.0",
+        "observed_at": "2026-10-14T05:50:06.391854Z",
+        "launch_digest": "sha256:30c66f4b75a56ef1c784fab4c79c55e765bf2b2135ad7cddba062da08ae7470a",
+        "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+        "container_name": "aegis-scan-d3f4871ba636b0fd50156a8885ac8253",
+        "container_id": "6d9bcb8d5ab24264e5762d8030b82e9cff8cbc294b75dd08b7d6a0c883216db3",
+        "container_state": "created",
+        "observation_code": "MATCHED_AT_OBSERVATION",
+        "original_engine_matched": true,
+        "container_metadata_matched": true,
+        "reported_guard_file_matched": true,
+        "reported_source_snapshot_matched": true,
+        "reported_rules_snapshot_matched": false,
+        "controller_authority_verified": false,
+        "active_workspace_lease_excluded": false,
+        "late_start_excluded": false,
+        "cleanup_confirmed": false,
+        "limitations": [
+          "Point-in-time engine metadata and reported host files only; not runtime-memory or mount-inode attestation.",
+          "Caller-supplied launch context is not independently authenticated controller authority.",
+          "Active workspace leases, incomplete allocations and queued late starts are not excluded.",
+          "Container absence or matching metadata never confirms cleanup or releases controller admission."
+        ]
+      }
+    },
+    {
+      "kind": "REFUSAL",
+      "observation": {
+        "tool_id": "bandit",
+        "rules_snapshot_required": false,
+        "schema_version": "1.0",
+        "observed_at": "2026-10-14T05:50:07.067341Z",
+        "launch_digest": "sha256:30c66f4b75a56ef1c784fab4c79c55e765bf2b2135ad7cddba062da08ae7470a",
+        "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+        "container_name": "aegis-scan-d3f4871ba636b0fd50156a8885ac8253",
+        "container_state": "unobserved",
+        "observation_code": "GUARD_FILE_MISMATCH",
+        "original_engine_matched": true,
+        "container_metadata_matched": false,
+        "reported_guard_file_matched": false,
+        "reported_source_snapshot_matched": false,
+        "reported_rules_snapshot_matched": false,
+        "controller_authority_verified": false,
+        "active_workspace_lease_excluded": false,
+        "late_start_excluded": false,
+        "cleanup_confirmed": false,
+        "limitations": [
+          "Point-in-time engine metadata and reported host files only; not runtime-memory or mount-inode attestation.",
+          "Caller-supplied launch context is not independently authenticated controller authority.",
+          "Active workspace leases, incomplete allocations and queued late starts are not excluded.",
+          "Container absence or matching metadata never confirms cleanup or releases controller admission."
+        ]
+      }
+    },
+    {
+      "kind": "ABSENCE",
+      "observation": {
+        "tool_id": "bandit",
+        "rules_snapshot_required": false,
+        "schema_version": "1.0",
+        "observed_at": "2026-10-14T05:50:08.014617Z",
+        "launch_digest": "sha256:30c66f4b75a56ef1c784fab4c79c55e765bf2b2135ad7cddba062da08ae7470a",
+        "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+        "container_name": "aegis-scan-d3f4871ba636b0fd50156a8885ac8253",
+        "container_state": "absent",
+        "observation_code": "ABSENT_AT_OBSERVATION",
+        "original_engine_matched": true,
+        "container_metadata_matched": false,
+        "reported_guard_file_matched": false,
+        "reported_source_snapshot_matched": false,
+        "reported_rules_snapshot_matched": false,
+        "controller_authority_verified": false,
+        "active_workspace_lease_excluded": false,
+        "late_start_excluded": false,
+        "cleanup_confirmed": false,
+        "limitations": [
+          "Point-in-time engine metadata and reported host files only; not runtime-memory or mount-inode attestation.",
+          "Caller-supplied launch context is not independently authenticated controller authority.",
+          "Active workspace leases, incomplete allocations and queued late starts are not excluded.",
+          "Container absence or matching metadata never confirms cleanup or releases controller admission."
+        ]
+      }
+    },
+    {
+      "kind": "REFUSAL",
+      "observation": {
+        "tool_id": "bandit",
+        "rules_snapshot_required": false,
+        "schema_version": "1.0",
+        "observed_at": "2026-10-14T05:50:08.562604Z",
+        "launch_digest": "sha256:30c66f4b75a56ef1c784fab4c79c55e765bf2b2135ad7cddba062da08ae7470a",
+        "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+        "container_name": "aegis-scan-d3f4871ba636b0fd50156a8885ac8253",
+        "container_state": "unobserved",
+        "observation_code": "SANDBOX_METADATA_MISMATCH",
+        "original_engine_matched": true,
+        "container_metadata_matched": false,
+        "reported_guard_file_matched": false,
+        "reported_source_snapshot_matched": false,
+        "reported_rules_snapshot_matched": false,
+        "controller_authority_verified": false,
+        "active_workspace_lease_excluded": false,
+        "late_start_excluded": false,
+        "cleanup_confirmed": false,
+        "limitations": [
+          "Point-in-time engine metadata and reported host files only; not runtime-memory or mount-inode attestation.",
+          "Caller-supplied launch context is not independently authenticated controller authority.",
+          "Active workspace leases, incomplete allocations and queued late starts are not excluded.",
+          "Container absence or matching metadata never confirms cleanup or releases controller admission."
+        ]
+      }
+    }
+  ],
+  "worker_suite_results": [
+    {
+      "result_digest": "sha256:4aa64acf737f8fd08e17929eb42c0ef64f8a0158697b447fcb6d4ac38e49a412",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a138f5-e6bb-7d6d-9bdf-97deefd0e393",
+        "request_digest": "sha256:df020fd35f1c7c45409141e42e84c8baeba628fca799bdd70b58ed417eb00691",
+        "app_id": "app_demo",
+        "repository_id": "01a138f5-e681-744d-b301-2a91ab6de601",
+        "map_digest": "sha256:fe7e099c047826bcc3c96f390fb5c11f98672a33fae21f10d0f4ccb910aa8c4e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:34e74d69275010168ad7a4d250896bcb5fa2a5d3bf40f2ed0ba734d911f92614",
+        "status": "completed",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:ddd308484e0e1523c6350cce67830e7bb3813bc39f4aed641d4952c1924e105a",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 1,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-14T05:50:06.845508Z"
+      }
+    },
+    {
+      "result_digest": "sha256:39addaeec6a0a43674ac540a3218ccfbf07f4192abb06e78336ba27514b451ef",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a138f5-fbe6-7f17-bb72-cd7711ae17e4",
+        "request_digest": "sha256:849611b0d90b74c4b9bf19ba7e238aa6beee6f19b21c930f5cf5731aef72e332",
+        "app_id": "app_demo",
+        "repository_id": "01a138f5-fb45-7e82-87cb-76d6436e82cc",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+        "status": "completed",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:4cbc9da3524774967ebb31f76b7572bf57584907db813ed5326e7f0b8f77387b",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "gitleaks",
+            "receipt_digest": "sha256:5c463c2f19c0517574765300388c1abeae5a1a094ba95cfe437f80ccc58ea513",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 0,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-14T05:50:10.49621Z"
+      }
+    },
+    {
+      "result_digest": "sha256:efd6c857a17961cdd0493454594aa62b0abc2c3f7433cb1066eef81b335c5eb5",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "owner-a",
+        "job_id": "01a138f6-09af-719a-988c-218c1d61bc17",
+        "request_digest": "sha256:c828cf2aed68b66167927b2a11342061ff10ad6f941d3e3273a9d59233b23ed5",
+        "app_id": "app_demo",
+        "repository_id": "01a138f6-0965-7762-b442-41e184b7f596",
+        "map_digest": "sha256:17e0a1447b2c5235e0063bc7f153fa03edce37abb2ba7506bbbaee92f558c897",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:ed2782899d5ac29dfcda62ff4cc0b762822cedbc05935f3ddec22e371cacd4f0",
+        "status": "tool_error",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:9cf482765c939f0b0a6c86feca76b8ec372f67057d00121c8e85be888ab3fbbc",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "osv_v2",
+            "receipt_digest": "sha256:d586166557d44cb71a305f8dd0069b722468536d9891dfcc94ad1a000fcad52a",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "trivy",
+            "receipt_digest": "sha256:7b3ca34eae24aada40b4417cf9910fd25de94cb87857b769a0623da4a42a46c0",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 0,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": true,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-14T05:50:15.461166Z"
+      }
+    }
+  ],
+  "live_acceptance_reports": [
+    {
+      "report": "docs/evidence/demo-acceptance.json",
+      "sha256": "sha256:8324fd5b9a0a79513501be2c972921c2b17399f0a2b89a7f731b90ece2fec824",
+      "checks_passed": 10
+    },
+    {
+      "report": "docs/evidence/scoped-jobs-acceptance.json",
+      "sha256": "sha256:42a59caffd73d875d8b45c5a9292b3ce606699c16de508a319a8057f440668e3",
+      "checks_passed": 7
+    },
+    {
+      "report": "docs/evidence/repository-acceptance.json",
+      "sha256": "sha256:47fc2e40bb8b5e06239afb80a5ec8b5c1ccfac6df3173b926a11b67a07405688",
+      "checks_passed": 8
+    },
+    {
+      "report": "docs/evidence/scanner-owner-api-live-acceptance.json",
+      "sha256": "sha256:0753bf411502a3836e34403ecef8c395a18134ea0da1d098b8f25a375dc89136",
+      "checks_passed": 9
+    },
+    {
+      "report": "docs/evidence/scanner-worker-enrollment-acceptance.json",
+      "sha256": "sha256:067e2203c8b240a97748dea5227572361c5e7ce60a9d304a16d5fa6203102acf",
+      "checks_passed": 9
+    }
+  ],
+  "live_checks_passed": 43,
+  "log_identities": [
+    {
+      "local_log_name": "aegis-sandbox-observer-final-source-checks.log",
+      "sha256": "sha256:bd86c8c9ba4f22cf578b1b99d6933489e5ff70b809e4b726862577c03efafe86"
+    },
+    {
+      "local_log_name": "aegis-sandbox-observer-alpha-results.jsonl",
+      "sha256": "sha256:9bc2d7e88116a14f27e8b81a993a61247fd79a61f96667071c91cff330cd1256"
+    },
+    {
+      "local_log_name": "aegis-sandbox-observer-controller-results.jsonl",
+      "sha256": "sha256:e0291f38759b581b76f39be8e3d2d6d904e0ba7ab209aa5d0e6a4680cb06847e"
+    },
+    {
+      "local_log_name": "aegis-sandbox-observer-native-verified-final.jsonl",
+      "sha256": "sha256:7ab8fd396432cf89342a038a752525fdf71098154203d56522530ffd0bcb290f"
+    },
+    {
+      "local_log_name": "aegis-sandbox-observer-worker-regression-verified.jsonl",
+      "sha256": "sha256:210d43bf57240adc78ec958a494552438fa4b888ebfb71d017d29acf1a093dcb"
+    },
+    {
+      "local_log_name": "aegis-sandbox-observer-image.log",
+      "sha256": "sha256:89cb2d484fb366990cf9ba79688cc39a5b0595cabb46b688345f868bb97e2e24"
+    },
+    {
+      "local_log_name": "aegis-sandbox-observer-init.log",
+      "sha256": "sha256:f184af6180906af69826e2079866fba913bf065d82932d646ba31ec296ef017c"
+    },
+    {
+      "local_log_name": "aegis-sandbox-observer-rollout.log",
+      "sha256": "sha256:4754851174cf568e4f2a70ff18e70ceef4a03a5c2ec7d3c0f5c91f410f328641"
+    },
+    {
+      "local_log_name": "aegis-sandbox-observer-init-alignment.log",
+      "sha256": "sha256:d504fab03ef1f087362173db1a8a04f1699106f1467d990b9be8fbd36e3ed9e4"
+    },
+    {
+      "local_log_name": "aegis-sandbox-observer-service-health.log",
+      "sha256": "sha256:6b6b4a73d38360236982c25bb8889e09ece65a8580253d449cd4ee0190605bbb"
+    }
+  ],
+  "retained_initial_failures": [
+    {
+      "local_log_name": "aegis-sandbox-observer-real-initial-results.jsonl",
+      "sha256": "sha256:3e353a06a0ed7372463c1956c40873c6b75f84f02b1f1baec7902497d4a65f20",
+      "resolution": "Docker template nil-list/separator compatibility corrected and parser-tested."
+    },
+    {
+      "local_log_name": "aegis-sandbox-observer-real-results.jsonl",
+      "sha256": "sha256:0c1601e50206f96f4f4914d2b6c1c5db205432b85ee7f9d4021b1d8f45a7d7b7",
+      "resolution": "Docker template nil-list/separator compatibility corrected and parser-tested."
+    },
+    {
+      "local_log_name": "aegis-sandbox-observer-worker-regression.jsonl",
+      "sha256": "sha256:0f6e88682f6cfc0c43103a3ecaf16f35b54e75d379d6de9233755a6930b04dfb",
+      "resolution": "Sandbox denied isolated Unix socket binding; authorized rerun passed."
+    }
+  ],
+  "publication": {
+    "state": "prepared_for_commit",
+    "previous_published_commit": "7226bec3b0e77e65106a32a3270b855af329d6e0",
+    "hosted_ci": "pending for this increment"
+  },
+  "limitations": [
+    "Native observer fixture creates but never starts two uniquely owned stopped containers; it is not evidence of arbitrary application execution isolation.",
+    "Selected engine metadata and reported host file hashes do not attest loaded process memory or mount inode identity.",
+    "Caller-supplied launch metadata has no independently authenticated verifier role.",
+    "Active workspace leases, incomplete allocations and queued late starts remain unexcluded; all cleanup/release authority flags remain false.",
+    "Six scanner attempts cover Bandit, a fixed suite and missing offline databases; they do not establish deployed UID-10001 background worker availability.",
+    "The complete v4 implementation and independent H7 gates remain unfinished."
+  ],
+  "runtime_health": {
+    "services": [
+      {
+        "name": "/aegis-community-init-1",
+        "image": "sha256:9fa77412b17ed718cc2bfbd8648dcc7c7639ed2847fdf4387920fc2df574306f",
+        "uid_gid": "10001:10001",
+        "read_only": true,
+        "cap_drop": [
+          "ALL"
+        ],
+        "security_opt": [
+          "no-new-privileges:true"
+        ]
+      },
+      {
+        "name": "/aegis-community-controller-1",
+        "image": "sha256:9fa77412b17ed718cc2bfbd8648dcc7c7639ed2847fdf4387920fc2df574306f",
+        "uid_gid": "10001:10001",
+        "read_only": true,
+        "cap_drop": [
+          "ALL"
+        ],
+        "security_opt": [
+          "no-new-privileges:true"
+        ]
+      },
+      {
+        "name": "/aegis-community-deployer-1",
+        "image": "sha256:9fa77412b17ed718cc2bfbd8648dcc7c7639ed2847fdf4387920fc2df574306f",
+        "uid_gid": "10001:10001",
+        "read_only": true,
+        "cap_drop": [
+          "ALL"
+        ],
+        "security_opt": [
+          "no-new-privileges:true"
+        ]
+      },
+      {
+        "name": "/aegis-community-verifier-1",
+        "image": "sha256:9fa77412b17ed718cc2bfbd8648dcc7c7639ed2847fdf4387920fc2df574306f",
+        "uid_gid": "10001:10001",
+        "read_only": true,
+        "cap_drop": [
+          "ALL"
+        ],
+        "security_opt": [
+          "no-new-privileges:true"
+        ]
+      }
+    ],
+    "sqlite": "ok",
+    "mode": "observe",
+    "audit": "internally consistent under local-host trust assumptions",
+    "init_alignment": "named init container refreshed after old image was detected"
+  },
+  "resolved_environment_blocker": "Automatic approval review previously could not complete due to usage limit. Ordinary usage was subsequently confirmed available; deferred health checks then ran successfully."
+}

@@ -47,12 +47,7 @@ var scannerName = regexp.MustCompile(`^aegis-scan-[0-9a-f]{32}$`)
 var pinnedImage = regexp.MustCompile(`^[a-z0-9][a-z0-9./_-]+@sha256:[0-9a-f]{64}$`)
 
 func resolve(path, id string) (Tool, string, error) {
-	f, e := os.Open(path)
-	if e != nil {
-		return Tool{}, "", fmt.Errorf("bounded scanner lock unavailable")
-	}
-	defer f.Close()
-	b, e := io.ReadAll(io.LimitReader(f, 65537))
+	b, e := readPinnedLockFile(path)
 	if e != nil || len(b) > 65536 {
 		return Tool{}, "", fmt.Errorf("bounded scanner lock unavailable")
 	}
@@ -177,7 +172,7 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 		return out, e
 	}
 	engineCtx, engineCancel := context.WithTimeout(ctx, 5*time.Second)
-	engine, e := engineCommand(engineCtx, docker, endpoint, "info", "--format", "{{.OSType}} {{.Architecture}} {{.ID}}").Output()
+	engine, e := inspectOutput(engineCtx, docker, endpoint, 512, "info", "--format", "{{.OSType}} {{.Architecture}} {{.ID}}")
 	engineCancel()
 	if e != nil || len(engine) > 512 {
 		return out, fmt.Errorf("local scanner engine unavailable")
@@ -308,8 +303,7 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 	remove.Stdout = nil
 	remove.Stderr = nil
 	_ = remove.Run()
-	check := engineCommand(cleanupCtx, docker, endpoint, "ps", "--all", "--filter", "label=io.aegis.scan="+name, "--format", "{{.ID}}")
-	remaining, e := check.Output()
+	remaining, e := inspectOutput(cleanupCtx, docker, endpoint, 512, "ps", "--all", "--filter", "label=io.aegis.scan="+name, "--format", "{{.ID}}")
 	if e != nil || len(bytes.TrimSpace(remaining)) != 0 {
 		return out, fmt.Errorf("scanner container cleanup unconfirmed")
 	}

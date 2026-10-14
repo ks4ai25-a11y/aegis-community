@@ -97,6 +97,14 @@ Rebuild the native CLI and both Linux guards with `make research-build`. The fix
 
 This improves late-start control but does not release cleanup admission or attest historical guard provenance. Independent verification must still account for queued requests, containers and trusted workspaces. See ADR 034.
 
+## Read-only sandbox observation
+
+`aegisctl scanner-launch export JOB_ID TOOL_ID ABSOLUTE_PRIVATE_FILE` exports one owner-checked immutable launch context to a new mode-0600 file in an operator-owned mode-0700 directory. Copy that metadata into an equally private host directory, then run `aegis-research observe-sandbox PRIVATE_LAUNCH_FILE CANONICAL_REGISTRY CANONICAL_AEGIS_SOURCE_ROOT`.
+
+For Semgrep, supply the independently approved original rules-snapshot digest as the final argument. The source root provides the tool lock; the registry must be the original provisioned namespace for the original operator UID, not a browser/scanner-supplied path. Only Linux/macOS positive-UID operator use against a local Unix Docker endpoint is supported. Private host paths and credentials are not printed.
+
+`MATCHED_AT_OBSERVATION` means selected engine metadata and reported guard/source files matched at that point. `ABSENT_AT_OBSERVATION` means only that exact name was absent then. Neither confirms cleanup. The JSON explicitly retains false authority, active-lease, late-start and cleanup flags. The command starts/stops/removes no container, acquires no cleanup lease, and releases no admission. Runtime/mount-inode attestation, authenticated verifier-role pairing and queued late-start exclusion remain unfinished. See ADR 039.
+
 ## Provisioned guard build sets
 
 The controller's private scanner channel now loads the two fixed packaged guard files from `/opt/aegis/guards` (or an explicit canonical operator configuration) and binds their actual hashes to fresh dispatches. Rebuild native guards with `make research-build`; both native and Docker guard builds disable VCS metadata to support identical hashes. A worker guard outside the acknowledged set, a changed set during a lease or a receipt naming another guard is refused.

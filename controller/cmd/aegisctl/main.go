@@ -5,6 +5,7 @@ import (
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/policy"
 	"aegis.local/controller/internal/scannerauth"
+	"aegis.local/controller/internal/scanqueue"
 	"aegis.local/controller/internal/scantransport"
 	"aegis.local/controller/internal/store"
 	"context"
@@ -18,7 +19,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		die("usage: aegisctl --version | init | doctor | policy validate FILE | audit verify | backup FILE | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE")
+		die("usage: aegisctl --version | init | doctor | policy validate FILE | audit verify | backup FILE | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE | scanner-launch export JOB TOOL ABSOLUTE_PRIVATE_FILE")
 	}
 	args := os.Args[1:]
 	root := os.Getenv("AEGIS_DATA")
@@ -26,6 +27,24 @@ func main() {
 		root = "/var/lib/aegis"
 	}
 	switch args[0] {
+	case "scanner-launch":
+		if len(args) != 5 || args[1] != "export" {
+			die("usage: scanner-launch export JOB_ID TOOL_ID ABSOLUTE_PRIVATE_FILE")
+		}
+		s, e := store.Open(filepath.Join(root, "aegis.db"))
+		if e != nil {
+			die("Scanner state unavailable")
+		}
+		defer s.DB.Close()
+		owner, e := s.Get("repository_mount_owner")
+		if e != nil {
+			die("Owned repository mount is not provisioned")
+		}
+		digest, e := (&scanqueue.Queue{S: s}).ExportLaunchFile(owner, args[2], args[3], args[4])
+		if e != nil {
+			die("Launch context export refused")
+		}
+		fmt.Printf("Private launch context exported: %s; this is not cleanup authority\n", digest)
 	case "--version":
 		fmt.Println(domain.Version)
 	case "init":

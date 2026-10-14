@@ -46,9 +46,7 @@ func (c Config) engine(ctx context.Context) (string, string, error) {
 		bounded, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
 		if name == "" {
-			cmd := exec.CommandContext(bounded, docker, "context", "show")
-			cmd.Env = dockerEnv()
-			b, e := cmd.Output()
+			b, e := inspectOutput(bounded, docker, "", 256, "context", "show")
 			if e != nil || len(b) > 256 {
 				return "", "", fmt.Errorf("Docker context unavailable")
 			}
@@ -57,9 +55,7 @@ func (c Config) engine(ctx context.Context) (string, string, error) {
 		if name == "" || len(name) > 256 || strings.ContainsAny(name, "\x00\r\n") {
 			return "", "", fmt.Errorf("invalid Docker context")
 		}
-		cmd := exec.CommandContext(bounded, docker, "context", "inspect", name, "--format", "{{.Endpoints.docker.Host}}")
-		cmd.Env = dockerEnv()
-		b, e := cmd.Output()
+		b, e := inspectOutput(bounded, docker, "", 4096, "context", "inspect", name, "--format", "{{.Endpoints.docker.Host}}")
 		if e != nil || len(b) > 4096 {
 			return "", "", fmt.Errorf("Docker endpoint unavailable")
 		}
@@ -86,12 +82,11 @@ func (c Config) ContainerAbsent(ctx context.Context, name, expectedEngine string
 	}
 	bounded, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	identity, e := engineCommand(bounded, docker, endpoint, "info", "--format", "{{.ID}}").Output()
+	identity, e := inspectOutput(bounded, docker, endpoint, 256, "info", "--format", "{{.ID}}")
 	if e != nil || len(identity) > 256 || strings.TrimSpace(string(identity)) == "" || source.Hash([]byte(endpoint+"\n"+strings.TrimSpace(string(identity)))) != expectedEngine {
 		return false, fmt.Errorf("journalled scanner engine identity unconfirmed")
 	}
-	cmd := engineCommand(bounded, docker, endpoint, "ps", "--all", "--filter", "name=^/"+name+"$", "--format", "{{.Names}}")
-	b, e := cmd.Output()
+	b, e := inspectOutput(bounded, docker, endpoint, 512, "ps", "--all", "--filter", "name=^/"+name+"$", "--format", "{{.Names}}")
 	if e != nil || len(b) > 512 {
 		return false, fmt.Errorf("container absence unconfirmed")
 	}

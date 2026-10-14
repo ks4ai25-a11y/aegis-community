@@ -1115,6 +1115,9 @@
       "ScannerLaunchV2": {
         "$ref": "schemas/ScannerLaunchV2.json"
       },
+      "ScannerSandboxObservationV1": {
+        "$ref": "schemas/ScannerSandboxObservationV1.json"
+      },
       "ScannerSuiteResultV1": {
         "$ref": "schemas/ScannerSuiteResultV1.json"
       },

@@ -735,3 +735,24 @@ class ScannerLaunchRecordV2DocumentPlan(TypedDict):
     snapshot_digest: str
     guard_binary_digest: str
     guard_architecture: str
+class ScannerSandboxObservationV1(TypedDict):
+    schema_version: str
+    observed_at: str
+    launch_digest: str
+    engine_digest: str
+    container_name: str
+    container_id: NotRequired[str]
+    tool_id: NotRequired[str]
+    rules_snapshot_required: bool
+    container_state: str
+    observation_code: str
+    original_engine_matched: bool
+    container_metadata_matched: bool
+    reported_guard_file_matched: bool
+    reported_source_snapshot_matched: bool
+    reported_rules_snapshot_matched: bool
+    controller_authority_verified: bool
+    active_workspace_lease_excluded: bool
+    late_start_excluded: bool
+    cleanup_confirmed: bool
+    limitations: list[str]

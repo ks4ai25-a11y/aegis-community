@@ -1,0 +1,27 @@
+{
+  "tool_id": "bandit",
+  "rules_snapshot_required": false,
+  "schema_version": "1.0",
+  "observed_at": "2026-10-14T05:50:05.088468Z",
+  "launch_digest": "sha256:30c66f4b75a56ef1c784fab4c79c55e765bf2b2135ad7cddba062da08ae7470a",
+  "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+  "container_name": "aegis-scan-d3f4871ba636b0fd50156a8885ac8253",
+  "container_id": "6d9bcb8d5ab24264e5762d8030b82e9cff8cbc294b75dd08b7d6a0c883216db3",
+  "container_state": "created",
+  "observation_code": "MATCHED_AT_OBSERVATION",
+  "original_engine_matched": true,
+  "container_metadata_matched": true,
+  "reported_guard_file_matched": true,
+  "reported_source_snapshot_matched": true,
+  "reported_rules_snapshot_matched": false,
+  "controller_authority_verified": false,
+  "active_workspace_lease_excluded": false,
+  "late_start_excluded": false,
+  "cleanup_confirmed": false,
+  "limitations": [
+    "Point-in-time engine metadata and reported host files only; not runtime-memory or mount-inode attestation.",
+    "Caller-supplied launch context is not independently authenticated controller authority.",
+    "Active workspace leases, incomplete allocations and queued late starts are not excluded.",
+    "Container absence or matching metadata never confirms cleanup or releases controller admission."
+  ]
+}

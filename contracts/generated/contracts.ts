@@ -818,3 +818,25 @@ export interface ScannerLaunchRecordV2DocumentPlan {
   guard_binary_digest: string;
   guard_architecture: "amd64" | "arm64";
 }
+export interface ScannerSandboxObservationV1 {
+  schema_version: "1.0";
+  observed_at: string;
+  launch_digest: string;
+  engine_digest: string;
+  container_name: string;
+  container_id?: string;
+  tool_id?: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  rules_snapshot_required: boolean;
+  container_state: "unobserved" | "absent" | "created" | "running" | "exited" | "dead";
+  observation_code: string;
+  original_engine_matched: boolean;
+  container_metadata_matched: boolean;
+  reported_guard_file_matched: boolean;
+  reported_source_snapshot_matched: boolean;
+  reported_rules_snapshot_matched: boolean;
+  controller_authority_verified: false;
+  active_workspace_lease_excluded: false;
+  late_start_excluded: false;
+  cleanup_confirmed: false;
+  limitations: Array<string>;
+}

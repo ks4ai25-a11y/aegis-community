@@ -26,6 +26,25 @@ func main() {
 		usage()
 	}
 	switch os.Args[1] {
+	case "observe-sandbox":
+		if len(os.Args) != 5 && len(os.Args) != 6 {
+			die(fmt.Errorf("usage: aegis-research observe-sandbox PRIVATE_LAUNCH_FILE CANONICAL_REGISTRY CANONICAL_AEGIS_SOURCE_ROOT [APPROVED_RULES_DIGEST]"))
+		}
+		launch, e := executor.LoadObservationLaunch(os.Args[2])
+		if e != nil {
+			die(fmt.Errorf("private launch context unavailable"))
+		}
+		expected := executor.SandboxExpectation{Launch: launch, Registry: os.Args[3]}
+		if len(os.Args) == 6 {
+			expected.RulesDigest = os.Args[5]
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+		out, e := (executor.Config{LockPath: filepath.Join(os.Args[4], "tools/scanners.lock.json")}).InspectSandbox(ctx, expected)
+		json.NewEncoder(os.Stdout).Encode(out)
+		if e != nil {
+			die(e)
+		}
 	case "worker-once":
 		if len(os.Args) != 7 {
 			die(fmt.Errorf("usage: aegis-research worker-once SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT"))
@@ -118,7 +137,7 @@ func main() {
 			os.Exit(1)
 		}
 	case "--help":
-		fmt.Println("aegis-research worker-once SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT | recover-workspaces | scan-offline SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT | inventory CANONICAL_REPO | invocation SCANNER | parse SCANNER VERSION IMAGE_DIGEST INPUT_DIGEST | tenant-verify VARIANT")
+		fmt.Println("aegis-research observe-sandbox PRIVATE_LAUNCH_FILE CANONICAL_REGISTRY CANONICAL_AEGIS_SOURCE_ROOT [APPROVED_RULES_DIGEST] | worker-once SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT | recover-workspaces | scan-offline SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT | inventory CANONICAL_REPO | invocation SCANNER | parse SCANNER VERSION IMAGE_DIGEST INPUT_DIGEST | tenant-verify VARIANT")
 		return
 	case "tenant-verify":
 		if len(os.Args) != 3 {
@@ -169,7 +188,7 @@ func main() {
 	}
 }
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: aegis-research inventory CANONICAL_REPO | invocation SCANNER\nInventory never executes source. Invocation prints an unexecuted adapter blueprint; pinned compatibility validation is required.")
+	fmt.Fprintln(os.Stderr, "usage: aegis-research observe-sandbox PRIVATE_LAUNCH_FILE CANONICAL_REGISTRY CANONICAL_AEGIS_SOURCE_ROOT [APPROVED_RULES_DIGEST] | inventory CANONICAL_REPO | invocation SCANNER\nInventory never executes source. Invocation prints an unexecuted adapter blueprint; pinned compatibility validation is required.")
 	os.Exit(2)
 }
 func die(e error) { fmt.Fprintln(os.Stderr, e); os.Exit(1) }
