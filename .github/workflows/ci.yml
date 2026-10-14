@@ -28,6 +28,12 @@ jobs:
           cache: npm
           cache-dependency-path: console/package-lock.json
       - run: make test
+      - name: Install pinned test browser
+        working-directory: console
+        run: npx playwright install --with-deps chromium
+      - name: Verify scanner console in browser
+        working-directory: console
+        run: npm run test:browser
       - run: make research-build
       - run: python3 scripts/source_manifest.py
   trusted-demo:

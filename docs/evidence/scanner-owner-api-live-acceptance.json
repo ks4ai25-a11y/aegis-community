@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "scope": "local-owner-offline-scanner-api",
-  "started_at": "2026-10-14T03:45:03Z",
+  "started_at": "2026-10-14T04:03:16Z",
   "checks": [
     {
       "id": "generated_client_enqueue_replay_is_exact",
@@ -33,7 +33,7 @@
     }
   ],
   "overall": "PASS",
-  "completed_at": "2026-10-14T03:45:03Z",
+  "completed_at": "2026-10-14T04:03:16Z",
   "limitations": [
     "Named local demo and native component tests only; no independent installation claim.",
     "This live check queues and cancels a static job; actual execution/result reads are checked separately with native operator-UID fixtures.",

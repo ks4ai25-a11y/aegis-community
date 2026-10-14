@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-10-14T04:08:24.363160+00:00",
+  "status": "PASS",
+  "scope": "Initial owner offline request/status/cancellation/immutable T0 suite console; isolated contract browser challenges and a real named local queue/cancel flow. Not independent install, scanner execution or cleanup release.",
+  "source_tree_sha256": "sha256:0e44397a4ae7140747f906e8c906f7b86251216a60c4a814665ec9b00995ff4e",
+  "source_files": [
+    {
+      "path": "console/src/Scans.tsx",
+      "sha256": "sha256:1b08dbc7cddf9075d9da3a842f0d04e161f1ce6ea5036b86529665210ee32dad"
+    },
+    {
+      "path": "console/src/main.tsx",
+      "sha256": "sha256:361fcb327959e271c719a1e632ada250e23ecb321f8c0e9305f5a24784a7f6a3"
+    },
+    {
+      "path": "console/src/style.css",
+      "sha256": "sha256:9801fd882ec7fcbe0f3b8672c4e218f3344fea5dc8d1a0ad3cd8939473b63ee4"
+    },
+    {
+      "path": "console/playwright.config.ts",
+      "sha256": "sha256:eef8acb3026108577d2a53320e54bfc2882b7eaf30e8d4a4882f87f16b6c4110"
+    },
+    {
+      "path": "console/tests/scans.spec.ts",
+      "sha256": "sha256:474adb1e8de31b5896a7fd9cc05ea01dd3b4f73ba2e0314d9af7f67ea8ae6b84"
+    },
+    {
+      "path": "console/tests/scans-live.spec.ts",
+      "sha256": "sha256:c29533e4845493c560ba45399d808e24ce0de3f69e6393133cf4df2b102cb8f7"
+    },
+    {
+      "path": "console/package.json",
+      "sha256": "sha256:33bbd9d7ba76b5cf6e7efcf490129a1bb5d6ee44c742bacaae740845a1dbb388"
+    },
+    {
+      "path": "console/package-lock.json",
+      "sha256": "sha256:b4572622c27ea35581cd2f7e528cbf5d708570b76d5775722440c6ed3c875b53"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "sha256:df49ce38fee3cfb1d07c2063390af8e3428a632e784cc9779373706860b0e0a5"
+    }
+  ],
+  "browser_contract_tests": {
+    "status": "PASS",
+    "passed_tests": 5,
+    "skipped_tests": 1,
+    "report_sha256": "sha256:a42ee916fae075523bad35e2ccf4a4c0fff3e51548c1bbb35d7e5ec77bc40f21",
+    "duration_ms": 14510.947
+  },
+  "explicit_local_browser_tests": {
+    "status": "PASS",
+    "passed_tests": 6,
+    "skipped_tests": 0,
+    "report_sha256": "sha256:89eedbffdc0742d703c8a4297a4b528aceb4e45ee005afef859fa008f6247344",
+    "duration_ms": 18548.498
+  },
+  "browser_tool": "@playwright/test 1.64.0; local isolated headless installed Chrome; no user profile",
+  "live_credentials": "Read only protected local test credential at runtime; no contents printed/exported. Live tracing explicitly disabled; owner signed out.",
+  "live_acceptance": {
+    "scanner-owner-api-live-acceptance": {
+      "status": "PASS",
+      "passed_checks": 7,
+      "report": "docs/evidence/scanner-owner-api-live-acceptance.json",
+      "log_sha256": "sha256:45f4dd9723571ee692b42c0b631597def0b599a41be3b86fcce16ea9f8327c84"
+    },
+    "demo-acceptance": {
+      "status": "PASS",
+      "passed_checks": 10,
+      "report": "docs/evidence/demo-acceptance.json",
+      "log_sha256": "sha256:6ddeab59bc795c3eeaeed44a1de3917a041e0128652d0f0ff131d5aed4231c5b"
+    },
+    "scoped-jobs-acceptance": {
+      "status": "PASS",
+      "passed_checks": 7,
+      "report": "docs/evidence/scoped-jobs-acceptance.json",
+      "log_sha256": "sha256:7619102c9dc7a0b6594b4ce82bfee49d115f1c2e30381726410a35dc144553cc"
+    },
+    "repository-acceptance": {
+      "status": "PASS",
+      "passed_checks": 8,
+      "report": "docs/evidence/repository-acceptance.json",
+      "log_sha256": "sha256:3a582a608099bc0f60f509e0b6a30ff291dfb1798411342a20c77e275234679b"
+    }
+  },
+  "screenshots": [
+    {
+      "path": "docs/evidence/scanner-console-desktop.png",
+      "sha256": "sha256:7f51d8f977e80a50f0ab367aebc5acf15fa51799e68996b028b882e7f7439777",
+      "scope": "Isolated synthetic contract fixture; 1440px viewport"
+    },
+    {
+      "path": "docs/evidence/scanner-console-mobile.png",
+      "sha256": "sha256:16a392b489712a5b8c5732d43a2cd0daf8be520388c33ec6e585694448671f04",
+      "scope": "Isolated synthetic contract fixture; 390px viewport, no page-width overflow"
+    },
+    {
+      "path": "docs/evidence/scanner-console-live-queued.png",
+      "sha256": "sha256:aa1fd2e7cf816779591febbcaf029093fba89a09c332f2242807611d4b96fb0a",
+      "scope": "Named local demo, real queued safe-repository job; no scanner executed"
+    },
+    {
+      "path": "docs/evidence/scanner-console-live-cancelled.png",
+      "sha256": "sha256:504d3f8cc719d6b57fcb5428897acde3cbcab5a09553f53ab66c68b3fde18e6b",
+      "scope": "Named local demo, real cancelled job; cleanup remained unconfirmed"
+    }
+  ],
+  "validation": {
+    "make_test": "PASS; generated consistency, module race suites and console production build",
+    "make_test_log_sha256": "sha256:0a63aae018523184b82b8484dd65ca7a3d2567bbb720833f4bec2493d05e8b88",
+    "npm_audit": "No advisories reported at check time; not independent security or licence certification",
+    "npm_audit_log_sha256": "sha256:b85ed0c6a332e23ad6dc8a82e715f6bad2d4fefc9d647ff13d651520e1f71ef3",
+    "production_asset": "console/dist/assets/index-DKeUGYhw.js",
+    "production_asset_sha256": "sha256:7e15e9fd034bf3110f5852a32e38857094470524002ec88902ffeeb914670a6f",
+    "native_and_deployed_asset_agreement": "PASS; deployed sha256sum matched native asset bytes"
+  },
+  "rollout": {
+    "schema_version": 11,
+    "shared_controller_image": "sha256:c37321cbf3d1b6097d5daafb232be80f438fed7ef29712cfc3c861619992c507",
+    "aligned_services": [
+      "init",
+      "controller",
+      "deployer",
+      "verifier"
+    ],
+    "sqlite": "ok",
+    "audit": "internally consistent; local host-admin trust applies",
+    "final_mode": "observe"
+  },
+  "retained_failures": [
+    {
+      "log_sha256": "sha256:c33eed11e06d82522b1cccf06082027bea8d5d1d003938465e1c1df29448369b",
+      "cause": "Initial fixture selected a completed suite while the test intended tool-error evidence. Fixed fixture selection without relaxing error expectations."
+    },
+    {
+      "log_sha256": "sha256:08a1e37ade3bed16e3aedf56515e21830f5faad3a48aa46163d44a62b2fe1e9c",
+      "measured_failure_log_sha256": "sha256:aab56b607552a462677cbe4dc82fe98d0638be3f992229d2384e079fb59abdd1",
+      "cause": "Request map digest caused mobile page width 476px at a 390px viewport. Scoped digest wrapping fixed the actual overflow; final challenge passed.",
+      "retained_trace_sha256": "sha256:b3df643aec13b01b62cd3423d845aae38a96ed4ff112ef8a6e402014f5f060df"
+    }
+  ],
+  "prior_commit_hosted_ci": {
+    "commit": "65de2d6c577cfd79821159c36dbc8f7e1bc5b138",
+    "status": "success",
+    "run_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38507943173"
+  },
+  "limitations": [
+    "Fixture screenshots use synthetic contract responses drawn from stored native API evidence, not fresh scanner execution.",
+    "The live browser check queues/cancels one real safe-repository request; it does not execute repository code or establish background worker availability.",
+    "T0 tool-claim totals are not deduplicated vulnerabilities or confirmed exploits.",
+    "No owner/UI action proves resource cleanup or releases admission.",
+    "Individual findings detail/deduplication, independent cleanup verifier/release, deployed worker/socket pairing, offline databases, disposable VM execution, AI/MCP/desktop integrations, signatures/supply-chain/legal/security review and independent H7 release gates remain unfinished."
+  ]
+}

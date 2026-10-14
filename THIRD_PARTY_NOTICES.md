@@ -9,6 +9,7 @@ Aegis-authored source is Apache-2.0. This file is an inventory under review, not
 | Coraza / OWASP CRS | gateway/go.sum, v3.8.1 / v4.25.0 | Engine / embedded rules | Notice extraction pending |
 | modernc SQLite, crypto and UUID | controller/go.mod and go.sum | Controller binary | Notices pending |
 | React, Vite, TypeScript, Lucide | console/package-lock.json | Browser assets / build tools | Notices pending |
+| Playwright Test 1.64.0 and its pinned test browser | console/package-lock.json; console/playwright.config.ts | Development/CI browser tests; not an Aegis runtime worker | Full browser/transitive licence and notice extraction pending |
 | Semgrep CE | tools/scanners.lock.json | Optional standalone scanner image | CLI/engine licence separation requires review |
 | OSV Scanner V2, Trivy, Syft, Gitleaks | tools/scanners.lock.json | Optional standalone scanner images | Licences, notices and publisher signature review pending |
 | Bandit 1.9.4 | tools/scanners.lock.json; https://github.com/PyCQA/bandit/blob/1.9.4/LICENSE | Optional standalone upstream scanner image | Bandit source Apache-2.0; full container/transitive notices and publisher signature verification pending |

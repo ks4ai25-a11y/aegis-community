@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:f9d503bdeb751a16381d2bcfb8413a0610c395111de0d34155f2bda82820c32a",
+  "source_tree_sha256": "sha256:0e44397a4ae7140747f906e8c906f7b86251216a60c4a814665ec9b00995ff4e",
   "files": [
     {
       "path": ".dockerignore",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "f801168bf837bf2ff8fb2c2501e9cb4f0ca85fdaf5a66ee14529f3912d0fd7aa"
+      "sha256": "df49ce38fee3cfb1d07c2063390af8e3428a632e784cc9779373706860b0e0a5"
     },
     {
       "path": ".gitignore",
@@ -32,7 +32,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "683b58f685bfc0649141a99a739afb765a3ba3e04891007e172d3c5220b1399f"
+      "sha256": "f5ea58b4380559709670dc108cb1bf16e4696f2bca421c59da52fcd796e034a9"
     },
     {
       "path": "SECURITY.md",
@@ -40,7 +40,7 @@
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
-      "sha256": "4f0edfaf059c4cb2b721779d59c4e2136edc8d865304f5f8c1dbaf78f6dea6fa"
+      "sha256": "1650a8e9ba7c163005fdbd0c0fa80cc31426f7246d356a6664d3a05fb48dcb15"
     },
     {
       "path": "alpha/cmd/aegis-research/main.go",
@@ -244,11 +244,15 @@
     },
     {
       "path": "console/package-lock.json",
-      "sha256": "55e9cdef8edca32e8a603181266f3e30d067a1e7698d2ad462fe62e062a38bc1"
+      "sha256": "b4572622c27ea35581cd2f7e528cbf5d708570b76d5775722440c6ed3c875b53"
     },
     {
       "path": "console/package.json",
-      "sha256": "906be31034e486c318976cf6b0ba31b70af5ebe3ce4b61332a1cb1e966898ff1"
+      "sha256": "33bbd9d7ba76b5cf6e7efcf490129a1bb5d6ee44c742bacaae740845a1dbb388"
+    },
+    {
+      "path": "console/playwright.config.ts",
+      "sha256": "eef8acb3026108577d2a53320e54bfc2882b7eaf30e8d4a4882f87f16b6c4110"
     },
     {
       "path": "console/src/Report.tsx",
@@ -257,6 +261,10 @@
     {
       "path": "console/src/Repositories.tsx",
       "sha256": "e4947046f88ea401220e69fdc0a81c1ddeec762552e25e47e26f0687eaabde26"
+    },
+    {
+      "path": "console/src/Scans.tsx",
+      "sha256": "1b08dbc7cddf9075d9da3a842f0d04e161f1ce6ea5036b86529665210ee32dad"
     },
     {
       "path": "console/src/Verification.tsx",
@@ -276,11 +284,19 @@
     },
     {
       "path": "console/src/main.tsx",
-      "sha256": "ff5ab2a11bcc40c71338613f7f51274548076468cfc68d17cb8a4313b25ef495"
+      "sha256": "361fcb327959e271c719a1e632ada250e23ecb321f8c0e9305f5a24784a7f6a3"
     },
     {
       "path": "console/src/style.css",
-      "sha256": "9b7068961c00dd873dd1e4fe3ce3d5e3b001dedb0a22073ed8bd37b6fb74c20d"
+      "sha256": "9801fd882ec7fcbe0f3b8672c4e218f3344fea5dc8d1a0ad3cd8939473b63ee4"
+    },
+    {
+      "path": "console/tests/scans-live.spec.ts",
+      "sha256": "c29533e4845493c560ba45399d808e24ce0de3f69e6393133cf4df2b102cb8f7"
+    },
+    {
+      "path": "console/tests/scans.spec.ts",
+      "sha256": "474adb1e8de31b5896a7fd9cc05ea01dd3b4f73ba2e0314d9af7f67ea8ae6b84"
     },
     {
       "path": "console/tsconfig.json",
@@ -356,15 +372,15 @@
     },
     {
       "path": "contracts/samples/ScannerJobListV1.json",
-      "sha256": "7a6db2b6cd75db1d1308cdee7824be71874e3a89f961de5ab88c37289201bfea"
+      "sha256": "3de5df655f06020d8c91934c8f64ceebca150fac4f4d9d04a447763eaac936cc"
     },
     {
       "path": "contracts/samples/ScannerJobStatusV1.json",
-      "sha256": "5b3b0a1076b631fdfcf039617d4afe1718c5a8ab57b8ecde756190bbfe5f0fc5"
+      "sha256": "29f976932edd7896a52aa9af655ceab701444ec3c288abb3827f392c29adadcc"
     },
     {
       "path": "contracts/samples/ScannerJobV1.json",
-      "sha256": "e42ceb21fd05d48b8d59a6919096fac8328947cb6cec09f9d294bd02b95e7d5e"
+      "sha256": "f616df3a48497b318e97076bb500134cdaf282cefc09805d112586aab1ca2023"
     },
     {
       "path": "contracts/samples/ScannerLaunchPlanV1.json",
@@ -872,11 +888,11 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "a914573e7599e367435769517cdac5f41ce75ec15813e35fbfe8280d1d0581cb"
+      "sha256": "14d4a711fd180ed628ebc912517dcc611e85b07c89f7bc2d2080f115527bc1da"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
-      "sha256": "ba385ef5e181aea421225838d341b4ce7d6f747539f6444fb43448f14cc12e3b"
+      "sha256": "28a46a7a3453463b529e60379fde90d8eea6d2558f2ca3a6f14b854b7b8d29a2"
     },
     {
       "path": "docs/architecture/adr/011-v4-research-plane.md",
@@ -983,6 +999,10 @@
       "sha256": "d87f073cdd2aaacf8bdb6376438ec9abb2cfa7d5d4fd422d97a1ba3f90a44bfe"
     },
     {
+      "path": "docs/architecture/adr/037-owner-scanner-console.md",
+      "sha256": "a6efffdf41913789882dc1ad3f6a2c815408e0ddfe7db0f711bcae71758f2504"
+    },
+    {
       "path": "docs/operators/local-demo-upgrades.md",
       "sha256": "630e6af7f0e208d3d21877fc06af51ad18c09b88777fd5ec9d1945f87fdb4aad"
     },
@@ -996,7 +1016,7 @@
     },
     {
       "path": "docs/operators/scanner-workers.md",
-      "sha256": "6ba1c3b2f9e9d540d1c175899d6da1b3e969391d005f588d5fd34ebecb93e831"
+      "sha256": "ae5af1108a35ba4ca484cc3d21bff6a664a53fabef27ddc0d68a39c1d5fe6122"
     },
     {
       "path": "docs/release-gates.json",
