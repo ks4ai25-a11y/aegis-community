@@ -160,6 +160,7 @@ export interface FindingEntryV1 {
   record_id: string;
   finding: ScannerExecutionV1ResultFindingsItem;
   receipt_digests: Array<string>;
+  owner_review?: FindingPageV1ItemsItemOwnerReview;
 }
 export interface FindingEntryV1Finding {
   schema_version: "1.0";
@@ -192,6 +193,22 @@ export interface FindingEntryV1FindingProvenanceItem {
   rule_id?: string;
   severity_claimed?: "informational" | "low" | "medium" | "high" | "critical";
 }
+export interface FindingEntryV1OwnerReview {
+  triage_digest: string;
+  document: FindingTriageRecordV1Document;
+}
+export interface FindingEntryV1OwnerReviewDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  record_id: string;
+  result_digest: string;
+  revision: number;
+  state: "suspected" | "unverified" | "false_positive" | "accepted_risk";
+  rationale: string;
+  previous_digest: string;
+  updated_at: string;
+}
 export interface FindingPageV1 {
   schema_version: "1.0";
   owner_id: string;
@@ -213,6 +230,7 @@ export interface FindingPageV1ItemsItem {
   record_id: string;
   finding: ScannerExecutionV1ResultFindingsItem;
   receipt_digests: Array<string>;
+  owner_review?: FindingPageV1ItemsItemOwnerReview;
 }
 export interface FindingPageV1ItemsItemFinding {
   schema_version: "1.0";
@@ -244,6 +262,22 @@ export interface FindingPageV1ItemsItemFindingProvenanceItem {
   input_digest: string;
   rule_id?: string;
   severity_claimed?: "informational" | "low" | "medium" | "high" | "critical";
+}
+export interface FindingPageV1ItemsItemOwnerReview {
+  triage_digest: string;
+  document: FindingTriageRecordV1Document;
+}
+export interface FindingPageV1ItemsItemOwnerReviewDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  record_id: string;
+  result_digest: string;
+  revision: number;
+  state: "suspected" | "unverified" | "false_positive" | "accepted_risk";
+  rationale: string;
+  previous_digest: string;
+  updated_at: string;
 }
 export interface ScopeGrantDraftRequestV1 {
   app_id: "app_demo";
@@ -839,4 +873,43 @@ export interface ScannerSandboxObservationV1 {
   late_start_excluded: false;
   cleanup_confirmed: false;
   limitations: Array<string>;
+}
+export interface FindingTriageInputV1 {
+  schema_version: "1.0";
+  record_id: string;
+  result_digest: string;
+  expected_revision: number;
+  state: "suspected" | "unverified" | "false_positive" | "accepted_risk";
+  rationale: string;
+}
+export interface FindingTriageQueryV1 {
+  record_id: string;
+}
+export interface FindingTriageV1 {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  record_id: string;
+  result_digest: string;
+  revision: number;
+  state: "suspected" | "unverified" | "false_positive" | "accepted_risk";
+  rationale: string;
+  previous_digest: string;
+  updated_at: string;
+}
+export interface FindingTriageRecordV1 {
+  triage_digest: string;
+  document: FindingTriageRecordV1Document;
+}
+export interface FindingTriageRecordV1Document {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  record_id: string;
+  result_digest: string;
+  revision: number;
+  state: "suspected" | "unverified" | "false_positive" | "accepted_risk";
+  rationale: string;
+  previous_digest: string;
+  updated_at: string;
 }

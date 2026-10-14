@@ -39,6 +39,17 @@ try:
  else:raise AssertionError('Unbounded findings page accepted')
  check('generated_finding_query_is_bounded')
 
+ record='sha256:'+'a'*64
+ try:client.getFindingTriage({'record_id':record},first['job_id'])
+ except RuntimeError as e:assert 'HTTP 409' in str(e)
+ else:raise AssertionError('Pending evidence became an unreviewed finding')
+ check('pending_evidence_has_no_invented_review_state')
+ review={'schema_version':'1.0','record_id':record,'result_digest':'sha256:'+'b'*64,'expected_revision':0,'state':'unverified','rationale':'Pending evidence is not yet available'}
+ try:client.setFindingTriage(first['job_id'],review,'triage-pending-'+secrets.token_hex(16))
+ except RuntimeError as e:assert 'HTTP 409' in str(e)
+ else:raise AssertionError('Review accepted without immutable source evidence')
+ check('triage_mutation_requires_immutable_source_evidence')
+
  cancelled=client.cancelScan(first['job_id'],{});assert cancelled['job']['state']=='cancelled' and cancelled['job']['cancel_requested']
  assert cancelled['execution_admission']=='unconfirmed'
  assert client.cancelScan(first['job_id'],{})==cancelled
@@ -54,5 +65,5 @@ except Exception as e:
  report['overall']='FAIL';report['error']=str(e)[:1000];raise
 finally:
  report['completed_at']=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())
- report['limitations']=['Named local demo and native component tests only; no independent installation claim.','This live check queues and cancels a static job; actual execution/result reads are checked separately with native operator-UID fixtures.','Cancellation does not confirm resource cleanup or release held admission.','Findings detail API/UI, background worker pairing, independent cleanup verification, offline databases and remaining v4 release gates are unfinished.']
+ report['limitations']=['Named local demo and native component tests only; no independent installation claim.','This live check queues and cancels a static job; actual execution/result reads are checked separately with native operator-UID fixtures.','Cancellation does not confirm resource cleanup or release held admission.','Selected-job findings and owner review are implemented; cross-job catalogue/history, background worker pairing, independent cleanup verification, offline databases and remaining v4 release gates are unfinished.']
  (ROOT/'docs/evidence/scanner-owner-api-live-acceptance.json').write_text(json.dumps(report,indent=2)+'\n')

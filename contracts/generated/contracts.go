@@ -162,6 +162,7 @@ type FindingEntryV1 struct {
 	RecordId       string                               `json:"record_id"`
 	Finding        ScannerExecutionV1ResultFindingsItem `json:"finding"`
 	ReceiptDigests []string                             `json:"receipt_digests"`
+	OwnerReview    FindingPageV1ItemsItemOwnerReview    `json:"owner_review,omitempty"`
 }
 type FindingEntryV1Finding struct {
 	SchemaVersion     string                                               `json:"schema_version"`
@@ -194,6 +195,22 @@ type FindingEntryV1FindingProvenanceItem struct {
 	RuleId          string `json:"rule_id,omitempty"`
 	SeverityClaimed string `json:"severity_claimed,omitempty"`
 }
+type FindingEntryV1OwnerReview struct {
+	TriageDigest string                        `json:"triage_digest"`
+	Document     FindingTriageRecordV1Document `json:"document"`
+}
+type FindingEntryV1OwnerReviewDocument struct {
+	SchemaVersion  string `json:"schema_version"`
+	OwnerId        string `json:"owner_id"`
+	JobId          string `json:"job_id"`
+	RecordId       string `json:"record_id"`
+	ResultDigest   string `json:"result_digest"`
+	Revision       int64  `json:"revision"`
+	State          string `json:"state"`
+	Rationale      string `json:"rationale"`
+	PreviousDigest string `json:"previous_digest"`
+	UpdatedAt      string `json:"updated_at"`
+}
 type FindingPageV1 struct {
 	SchemaVersion        string                   `json:"schema_version"`
 	OwnerId              string                   `json:"owner_id"`
@@ -215,6 +232,7 @@ type FindingPageV1ItemsItem struct {
 	RecordId       string                               `json:"record_id"`
 	Finding        ScannerExecutionV1ResultFindingsItem `json:"finding"`
 	ReceiptDigests []string                             `json:"receipt_digests"`
+	OwnerReview    FindingPageV1ItemsItemOwnerReview    `json:"owner_review,omitempty"`
 }
 type FindingPageV1ItemsItemFinding struct {
 	SchemaVersion     string                                               `json:"schema_version"`
@@ -246,6 +264,22 @@ type FindingPageV1ItemsItemFindingProvenanceItem struct {
 	InputDigest     string `json:"input_digest"`
 	RuleId          string `json:"rule_id,omitempty"`
 	SeverityClaimed string `json:"severity_claimed,omitempty"`
+}
+type FindingPageV1ItemsItemOwnerReview struct {
+	TriageDigest string                        `json:"triage_digest"`
+	Document     FindingTriageRecordV1Document `json:"document"`
+}
+type FindingPageV1ItemsItemOwnerReviewDocument struct {
+	SchemaVersion  string `json:"schema_version"`
+	OwnerId        string `json:"owner_id"`
+	JobId          string `json:"job_id"`
+	RecordId       string `json:"record_id"`
+	ResultDigest   string `json:"result_digest"`
+	Revision       int64  `json:"revision"`
+	State          string `json:"state"`
+	Rationale      string `json:"rationale"`
+	PreviousDigest string `json:"previous_digest"`
+	UpdatedAt      string `json:"updated_at"`
 }
 type ScopeGrantDraftRequestV1 struct {
 	AppId           string `json:"app_id"`
@@ -841,4 +875,43 @@ type ScannerSandboxObservationV1 struct {
 	LateStartExcluded             bool     `json:"late_start_excluded"`
 	CleanupConfirmed              bool     `json:"cleanup_confirmed"`
 	Limitations                   []string `json:"limitations"`
+}
+type FindingTriageInputV1 struct {
+	SchemaVersion    string `json:"schema_version"`
+	RecordId         string `json:"record_id"`
+	ResultDigest     string `json:"result_digest"`
+	ExpectedRevision int64  `json:"expected_revision"`
+	State            string `json:"state"`
+	Rationale        string `json:"rationale"`
+}
+type FindingTriageQueryV1 struct {
+	RecordId string `json:"record_id"`
+}
+type FindingTriageV1 struct {
+	SchemaVersion  string `json:"schema_version"`
+	OwnerId        string `json:"owner_id"`
+	JobId          string `json:"job_id"`
+	RecordId       string `json:"record_id"`
+	ResultDigest   string `json:"result_digest"`
+	Revision       int64  `json:"revision"`
+	State          string `json:"state"`
+	Rationale      string `json:"rationale"`
+	PreviousDigest string `json:"previous_digest"`
+	UpdatedAt      string `json:"updated_at"`
+}
+type FindingTriageRecordV1 struct {
+	TriageDigest string                        `json:"triage_digest"`
+	Document     FindingTriageRecordV1Document `json:"document"`
+}
+type FindingTriageRecordV1Document struct {
+	SchemaVersion  string `json:"schema_version"`
+	OwnerId        string `json:"owner_id"`
+	JobId          string `json:"job_id"`
+	RecordId       string `json:"record_id"`
+	ResultDigest   string `json:"result_digest"`
+	Revision       int64  `json:"revision"`
+	State          string `json:"state"`
+	Rationale      string `json:"rationale"`
+	PreviousDigest string `json:"previous_digest"`
+	UpdatedAt      string `json:"updated_at"`
 }

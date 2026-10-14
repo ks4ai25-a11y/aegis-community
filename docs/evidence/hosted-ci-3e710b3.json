@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "commit": "3e710b365f240d21778eb9890e9f82a8b4609add",
+  "run_id": 38551649866,
+  "run_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38551649866",
+  "verified_at": "2026-10-14T11:03:13.871018+00:00",
+  "scope": "Hosted source and trusted-demo workflow on the exact sandbox-observer commit",
+  "limitations": [
+    "Hosted workflow success does not establish the entire v4 product or independent H7 release sign-off.",
+    "The subsequent owner-triage increment requires its own exact-commit hosted verification."
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:c705cc56aa9c8d20e52ad7066a7fca2031a901b4c68ce60ceccba50784a25dc0",
+  "source_tree_sha256": "sha256:d70de13e2512949f62f6f38f092649109189f772b2f21d08c22344b58309b681",
   "files": [
     {
       "path": ".dockerignore",
@@ -32,7 +32,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "3a746402ea42f4c7fd1e6b69894c499cca6caf0afc0c09b21fae3cd45444b3c2"
+      "sha256": "86fba95cb950c3da4276c917a11b390e2b4473e82e19e3fb4c92acdef2094318"
     },
     {
       "path": "SECURITY.md",
@@ -279,8 +279,12 @@
       "sha256": "eef8acb3026108577d2a53320e54bfc2882b7eaf30e8d4a4882f87f16b6c4110"
     },
     {
+      "path": "console/src/FindingTriage.tsx",
+      "sha256": "0bb2b9794ef23699e9efe1d59d63e0491a556e33e620042442e08de3ea46bc8a"
+    },
+    {
       "path": "console/src/Findings.tsx",
-      "sha256": "5db0078d0c1864df6711d216083ca7813a19653630e99ff903843c46df09f0c0"
+      "sha256": "85c846946f32060a75593f8fe62dc5cadca088b362c16ea79e29d4fb2bbc1d13"
     },
     {
       "path": "console/src/Report.tsx",
@@ -304,11 +308,11 @@
     },
     {
       "path": "console/src/generated/contracts.ts",
-      "sha256": "1dc7b89177905f0f86ec86fa6fa5f9fe70f4aa92861987d8cb4a16672ee19f9a"
+      "sha256": "d7acef9028718ba8d09c26597df5baa9ddc872c8e2f3cd6f6d2a35c55fbbebfa"
     },
     {
       "path": "console/src/generated/research-client.ts",
-      "sha256": "58ea0f9cff8c8888c5025b3b2eb053b4488f4b864c41dd73a7f0f7e69d888895"
+      "sha256": "3478a2eb22a1c13f5faf42a0a23df883102b2264eeab414f983809be8b6d67d1"
     },
     {
       "path": "console/src/main.tsx",
@@ -316,19 +320,23 @@
     },
     {
       "path": "console/src/style.css",
-      "sha256": "b170be43f7ff4bdfe7f226d5cb004c7f1046dee85c1155c5ba62e1c6efd15076"
+      "sha256": "dc246c660a14488a0204ccd4575be3ce088ca93279c649a9e7e4e1a9b7b00ade"
     },
     {
       "path": "console/tests/findings.spec.ts",
-      "sha256": "a377700297bb2ab0a89c6df58169c79d7a3298dfa08edd4c27359dcb91011190"
+      "sha256": "4beaa34178571a00dbb3a4d3a49fc9c6fb7a2b6ecb0bf5f0777e9b8fe99504ca"
     },
     {
       "path": "console/tests/scans-live.spec.ts",
-      "sha256": "1f85aab6d621b1c367bb0c9d6172b1a743d9081cc365c28651a1073cf52807ca"
+      "sha256": "4beb45331f04a79c5c2e8bd5521702da8bce317881833b55053d351820ce00c2"
     },
     {
       "path": "console/tests/scans.spec.ts",
-      "sha256": "e72c98fcbe57222c9ec080b4a5fe41439da7d55df8283af8e50ca1e160c6131b"
+      "sha256": "1290eb0e3caac26c1ae53c7801a263d3053e5386fecb09cf0ab0f25a37f0e6de"
+    },
+    {
+      "path": "console/tests/triage.spec.ts",
+      "sha256": "27a35c56808c4e246c9a6b6208d82277278211a4fd80a7f52199ba71bf4c388a"
     },
     {
       "path": "console/tsconfig.json",
@@ -340,7 +348,7 @@
     },
     {
       "path": "contracts/README.md",
-      "sha256": "bac0830fa4c565b52bee5ff6589c94ff76968b933c58301c9ae267509aaf9ddd"
+      "sha256": "1fcf01f4ba2355f724cc9b2983065291eed74886090fba5da38c66193e49d24e"
     },
     {
       "path": "contracts/generated/__init__.py",
@@ -348,27 +356,27 @@
     },
     {
       "path": "contracts/generated/contracts.go",
-      "sha256": "90d0d28ab3177dbbc84a12980c5bfb8a356346d15a01104b924367a90091b273"
+      "sha256": "b9187f6a0f893c17f4febfa1da9c29371a58bea1462a4ee197b4a540db8a94ce"
     },
     {
       "path": "contracts/generated/contracts.py",
-      "sha256": "128152971a0ed5706fc386a5eea7af87f9808b8cb40edd40c4e9f161542299f4"
+      "sha256": "f512b87b56c78acb2e04fe2174c1f7fc09945c073c7c46517a91efc59e0e6883"
     },
     {
       "path": "contracts/generated/contracts.ts",
-      "sha256": "1dc7b89177905f0f86ec86fa6fa5f9fe70f4aa92861987d8cb4a16672ee19f9a"
+      "sha256": "d7acef9028718ba8d09c26597df5baa9ddc872c8e2f3cd6f6d2a35c55fbbebfa"
     },
     {
       "path": "contracts/generated/research_client.go",
-      "sha256": "2dbff70d18189506f3c1b6bdc8e3e3b17d353504e9e82e6b7802eeb4e56f2c2b"
+      "sha256": "506d6a30a494ad27d7a2c2b97062db937fc650378648f63973ead83a925d572f"
     },
     {
       "path": "contracts/generated/research_client.py",
-      "sha256": "b52e1d6fa14e629096c468b1af5cc894413138b0601fc4665b23f2d014e4a863"
+      "sha256": "de3d71816a75b39420a2a1cdfb79e92b12e75ed6aae685c58478c4147c2c4cb9"
     },
     {
       "path": "contracts/generated/research_client_test.go",
-      "sha256": "028d21190b50304783a1a6fad2bbc96e0830de1eb00551f04e3f0fd889f797d1"
+      "sha256": "188100a6359418fcbc81119b165d50b3c6b4803aba7ad05ec6b6b68df00e18bb"
     },
     {
       "path": "contracts/go.mod",
@@ -376,7 +384,7 @@
     },
     {
       "path": "contracts/openapi-research.json",
-      "sha256": "4f65bcac65e0d872f9d941f4c88cfc7a44ac4fddc31e0a6390b931baf0e5631f"
+      "sha256": "3846db41352763438bdbdcd496c222f05fa3f35760a07e8188644e87fb2fa39e"
     },
     {
       "path": "contracts/samples/ApplicationMapV1.json",
@@ -393,6 +401,10 @@
     {
       "path": "contracts/samples/FindingQueryV1.json",
       "sha256": "8abdb194b914f885254986c9bb087deaf3d32c789d711274e8c0f68c6b1a75a2"
+    },
+    {
+      "path": "contracts/samples/FindingTriageRecordV1.json",
+      "sha256": "4e71f1e6e5d3ba3c5d07e3ec5dd45f264f6f73d6565e2069f7940316432632fd"
     },
     {
       "path": "contracts/samples/RepositoryV1.json",
@@ -416,15 +428,15 @@
     },
     {
       "path": "contracts/samples/ScannerJobListV1.json",
-      "sha256": "bdcbe0acc6b2ba3f1b3c4b7b40461a0401a77f0726a75233d9a10a1351d42a91"
+      "sha256": "6efdb0d6ddbe201e8bffbcc3621b08a2a9160ba2ad7c08c2125956f2cb99c160"
     },
     {
       "path": "contracts/samples/ScannerJobStatusV1.json",
-      "sha256": "b6e1018202bdcc91b6c397b85de73e7e0a9204595a013edaa7d0cf7246a17dad"
+      "sha256": "d9bfce393a91d1a3851785156fa93dbf9e267c0638c11521d030fb1ea4484763"
     },
     {
       "path": "contracts/samples/ScannerJobV1.json",
-      "sha256": "a1ca538ed733c8da35ad2bd450798f690db6d528dd503c38b7ab2551a8a2da21"
+      "sha256": "2c240250b8e2a264367a0c1d7152c31153418f9773b2962da852a65d27fce158"
     },
     {
       "path": "contracts/samples/ScannerLaunchPlanV1.json",
@@ -500,15 +512,31 @@
     },
     {
       "path": "contracts/schemas/FindingEntryV1.json",
-      "sha256": "213a2dc06683c02d5690d7084836207b306fef96061d695c446af732029f32fe"
+      "sha256": "5b6174f41b02aeac6df683d13b719ad823e8b79659c9fb75d72b7e0c91c1c177"
     },
     {
       "path": "contracts/schemas/FindingPageV1.json",
-      "sha256": "33e32be3beb401261505febd2b56d0bb93ffa217fb4aa0b23a57000c88c8095c"
+      "sha256": "0daae1727826a5e8f9ada67ca2018c4e561d1196f486b995f4ae03723905f3ff"
     },
     {
       "path": "contracts/schemas/FindingQueryV1.json",
       "sha256": "3a7ab41db7dbb08ba10be8a9164f421a7dc01c8675036f6e0c670d8a34d6786f"
+    },
+    {
+      "path": "contracts/schemas/FindingTriageInputV1.json",
+      "sha256": "aed1d4b293206e3f6bd6f9752d92fa61a8612919b72b0db03ad3d22607fff0ec"
+    },
+    {
+      "path": "contracts/schemas/FindingTriageQueryV1.json",
+      "sha256": "6b2b4c93092a897c180040fc663521af4ca7709da42718a78a55130cc8473525"
+    },
+    {
+      "path": "contracts/schemas/FindingTriageRecordV1.json",
+      "sha256": "4fbb6f3a3e060816f42e92b73a411d96ae2952f2d455d3bf0068dca1fee7a459"
+    },
+    {
+      "path": "contracts/schemas/FindingTriageV1.json",
+      "sha256": "81852622a9ef78ea5dbaf576b61007105c3b90dd4ab69a23aee80507d4afe192"
     },
     {
       "path": "contracts/schemas/FindingV1.json",
@@ -708,11 +736,15 @@
     },
     {
       "path": "controller/internal/api/scans.go",
-      "sha256": "9885492d8e2e8552e1ee644ea8b89b32f77608408aadf6fa5f3938659f3a9031"
+      "sha256": "381e5abb29eb1dcd29cd5f3275fbc6ff8f1d565dcf9783bc80e1c621dd8dec2f"
     },
     {
       "path": "controller/internal/api/scans_test.go",
       "sha256": "410e258b36d893899b6eaaba4b0c611887ab2bb8ed5b6c1ab5811cdab252c0b4"
+    },
+    {
+      "path": "controller/internal/api/triage.go",
+      "sha256": "683a9f0a257154b1ecf0a2cc45edb9d42d240f0c28ad658288af2c20b6506acc"
     },
     {
       "path": "controller/internal/auth/auth.go",
@@ -800,7 +832,7 @@
     },
     {
       "path": "controller/internal/scanqueue/findings.go",
-      "sha256": "c46da8ca3d5e6c315f42757fdb8b0cbbda6f16c5ec46c2436f9fb318f599e11a"
+      "sha256": "ba8250eed2b2b770b73b15bfbcd92918d8e9a36d37e5b283a378561e346c1042"
     },
     {
       "path": "controller/internal/scanqueue/findings_test.go",
@@ -849,6 +881,14 @@
     {
       "path": "controller/internal/scanqueue/status_test.go",
       "sha256": "87fe027dcc8671ce6e933ea77a02faf79ba18a71bcba3499ffa29503881e283e"
+    },
+    {
+      "path": "controller/internal/scanqueue/triage.go",
+      "sha256": "4a814fd2d01f515704501325e6bdde95211a655dc4dc5614a30dd3cd074295b8"
+    },
+    {
+      "path": "controller/internal/scanqueue/triage_test.go",
+      "sha256": "a7e26aa7361e141a4e7e5fa0d0ed5610a05f1086525a884e229881da959ea634"
     },
     {
       "path": "controller/internal/scanqueue/worker_auth_test.go",
@@ -940,7 +980,7 @@
     },
     {
       "path": "controller/internal/store/migrations.go",
-      "sha256": "e7155037f9777b6f7acb427cf8b6a4b2ced580d0a24ac056cda9ac296cb2b349"
+      "sha256": "27ef892144fd32831ca73c65900e0046785e4c457e2fdc4bc368c2a04208aa81"
     },
     {
       "path": "controller/internal/store/reports.go",
@@ -952,7 +992,7 @@
     },
     {
       "path": "controller/internal/store/store_test.go",
-      "sha256": "2afd82476d370c1a7b34b19b745ad60c34b3b15a6dd696f4cb6d362af872b97f"
+      "sha256": "a31238d4f92a0710f503f86e4fa20679fe8c177194cfc613fa2df23e8c679f70"
     },
     {
       "path": "controller/internal/verify/verify.go",
@@ -980,11 +1020,11 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "f10d8790959480d85372870de755d5e692e8e5abfb010683f0c2ef8de4fd1717"
+      "sha256": "f02bcbe4bbf46573b46160f64d24f1db9cb3c2127b0789149acc82eb10d01b79"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
-      "sha256": "e74f7cbdd25ee2803de25b393277081a07533bf53754ef5f6e10963e8efa09bc"
+      "sha256": "33cb82848d29db7d29ed065e35f2c172c123235ff12ee8769ac027dffb71c12b"
     },
     {
       "path": "docs/architecture/adr/011-v4-research-plane.md",
@@ -1103,6 +1143,14 @@
       "sha256": "f9897e505672b46efee7b05c362b9445a8650fe9f0b80ca34bf404a6e5795192"
     },
     {
+      "path": "docs/architecture/adr/040-owner-finding-triage.md",
+      "sha256": "2d38810b54140b3992d5adb082d7b7bebc9a98802ddcd9f8887279cfda2ab1a9"
+    },
+    {
+      "path": "docs/operators/finding-reviews.md",
+      "sha256": "1c865778437fe545b101bff89f733b59ca14ff9a7d2222533a93bd4ed20cda19"
+    },
+    {
       "path": "docs/operators/local-demo-upgrades.md",
       "sha256": "630e6af7f0e208d3d21877fc06af51ad18c09b88777fd5ec9d1945f87fdb4aad"
     },
@@ -1152,11 +1200,11 @@
     },
     {
       "path": "scripts/generate_contracts.py",
-      "sha256": "1a2d786dbc2008607b2db48e285eee81b9e43f04d02be2af2feda7b83035babd"
+      "sha256": "d9cbbb487c359a2120365cebf8459b04e279e9f52c7301f4c8b4ac816143445b"
     },
     {
       "path": "scripts/generate_research_api.py",
-      "sha256": "878bc68901c519fdb036c2173a9bc60ace9d794077e5c4eff7c3ea2082a8ef3c"
+      "sha256": "116a5a743da090395fce6881c8cc23b3c12620707edd3d75c70ecfae9b534a82"
     },
     {
       "path": "scripts/source_manifest.py",
@@ -1296,7 +1344,7 @@
     },
     {
       "path": "tests/integration/scanner_owner_api_acceptance.py",
-      "sha256": "ebc676f5dd74c7cae01fc9e969a5d030c49692d932196c8dc89c98de90b3f932"
+      "sha256": "debe1d73f3f83786e89501d81d85b471c08c2e1b5548a336f3d91c0e40c1f610"
     },
     {
       "path": "tests/integration/scanner_worker_enrollment_acceptance.py",
@@ -1324,7 +1372,11 @@
     },
     {
       "path": "tests/integration/scannerchannel/receipt_test.go",
-      "sha256": "d45400553f441bbec838b1311d9827688f0ba64ee4536ec102443bf81f50c7be"
+      "sha256": "f4bd4fef7e959eb0c46abe32900e35917f55f9a8e83f51c735f51816addbf77f"
+    },
+    {
+      "path": "tests/integration/scannerchannel/triage_test.go",
+      "sha256": "501b40b35bad4c18cdd715d9be172a2cec9f67ce6c719a143bb665c36153e421"
     },
     {
       "path": "tests/integration/scannerchannel/worker_test.go",

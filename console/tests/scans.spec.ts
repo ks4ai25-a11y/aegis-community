@@ -68,11 +68,11 @@ test('polling displays terminal tool-error evidence without losing cleanup hold'
  await expect(page.getByText('Admission is held for independent cleanup verification.',{exact:false})).toBeVisible();
  await expect(page.getByText('T0 · Tool claims')).toBeVisible();
  await expect(page.locator('section').filter({has:page.getByRole('heading',{name:'Owned scan jobs'})}).getByText('tool error',{exact:true})).toBeVisible();
- await page.screenshot({path:'../docs/evidence/finding-phase-scanner-console-desktop.png',fullPage:true});
+ await page.screenshot({path:'../docs/evidence/triage-phase-scanner-console-desktop.png',fullPage:true});
  await page.setViewportSize({width:390,height:844});
  await expect(page.getByRole('heading',{name:'Static scan evidence'})).toBeVisible();
- const overflow=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,elements:[...document.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(e=>({tag:e.tagName,cls:e.className,right:e.getBoundingClientRect().right,width:e.getBoundingClientRect().width}))}));await page.screenshot({path:'../docs/evidence/finding-phase-scanner-console-mobile.png',fullPage:true});expect(overflow.scroll,JSON.stringify(overflow)).toBeLessThanOrEqual(overflow.width);
- await page.screenshot({path:'../docs/evidence/finding-phase-scanner-console-mobile.png',fullPage:true});
+ const overflow=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,elements:[...document.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(e=>({tag:e.tagName,cls:e.className,right:e.getBoundingClientRect().right,width:e.getBoundingClientRect().width}))}));await page.screenshot({path:'../docs/evidence/triage-phase-scanner-console-mobile.png',fullPage:true});expect(overflow.scroll,JSON.stringify(overflow)).toBeLessThanOrEqual(overflow.width);
+ await page.screenshot({path:'../docs/evidence/triage-phase-scanner-console-mobile.png',fullPage:true});
 });
 
 test('late response from a previously selected job cannot replace newer evidence',async({page})=>{

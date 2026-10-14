@@ -79,6 +79,9 @@ func (s *Server) scanOperation(w http.ResponseWriter, r *http.Request, owner, pa
 	}
 	if len(parts) == 2 {
 		switch {
+		case parts[1] == "finding-triage":
+			s.findingTriage(w, r, owner, id)
+			return
 		case parts[1] == "cancel" && r.Method == "POST":
 			var body *struct{}
 			if auth.Decode(r, &body) != nil || body == nil {

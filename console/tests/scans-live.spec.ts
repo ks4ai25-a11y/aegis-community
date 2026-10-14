@@ -18,12 +18,12 @@ test('deployed owner console queues and cancels a real offline request',async({p
  await page.getByRole('button',{name:'Queue scan',exact:true}).click();
  await expect(page.locator('.scan-detail')).toContainText('This job has not acquired execution admission.');
  await expect(page.getByRole('heading',{name:'Static scan evidence'})).toHaveCount(0);
- await page.screenshot({path:'../docs/evidence/finding-phase-scanner-console-live-queued.png',fullPage:true});
+ await page.screenshot({path:'../docs/evidence/triage-phase-scanner-console-live-queued.png',fullPage:true});
  await page.getByRole('button',{name:'Cancel selected scan'}).click();
  await expect(page.locator('.scan-detail')).toContainText('Resource cleanup is unconfirmed.');
  await expect(page.locator('.scan-detail')).toContainText('cancelled');
  await expect(page.getByRole('heading',{name:'Static scan evidence'})).toHaveCount(0);
- await page.screenshot({path:'../docs/evidence/finding-phase-scanner-console-live-cancelled.png',fullPage:true});
+ await page.screenshot({path:'../docs/evidence/triage-phase-scanner-console-live-cancelled.png',fullPage:true});
  await page.getByRole('button',{name:'Sign out'}).click();
  await expect(page.getByRole('heading',{name:'Welcome back.'})).toBeVisible();
 });

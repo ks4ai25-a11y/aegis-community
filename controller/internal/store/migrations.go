@@ -73,8 +73,15 @@ const scannerGuardSchema = `
 ALTER TABLE scanner_dispatch ADD COLUMN guard_set_digest TEXT NOT NULL DEFAULT '';
 `
 
+const findingTriageSchema = `
+CREATE TABLE finding_triage(job TEXT NOT NULL REFERENCES scanner_jobs(id),record TEXT NOT NULL,owner TEXT NOT NULL REFERENCES owners(id),result_digest TEXT NOT NULL,revision INTEGER NOT NULL CHECK(revision BETWEEN 1 AND 50),idempotency_key TEXT NOT NULL,request_digest TEXT NOT NULL,digest TEXT UNIQUE NOT NULL,document TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(job,record,revision),UNIQUE(owner,idempotency_key));
+CREATE INDEX finding_triage_owner ON finding_triage(owner,job,record,revision DESC);
+CREATE TRIGGER finding_triage_no_update BEFORE UPDATE ON finding_triage BEGIN SELECT RAISE(ABORT,'finding triage is immutable'); END;
+CREATE TRIGGER finding_triage_no_delete BEFORE DELETE ON finding_triage BEGIN SELECT RAISE(ABORT,'finding triage is immutable'); END;
+`
+
 func migrate(db *sql.DB) error {
-	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema}
+	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema}
 	var exists int
 	if e := db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='migrations'").Scan(&exists); e != nil {
 		return e

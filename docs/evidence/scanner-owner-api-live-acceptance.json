@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "scope": "local-owner-offline-scanner-api",
-  "started_at": "2026-10-14T05:51:55Z",
+  "started_at": "2026-10-14T11:02:52Z",
   "checks": [
     {
       "id": "generated_client_enqueue_replay_is_exact",
@@ -32,6 +32,14 @@
       "result": "PASS"
     },
     {
+      "id": "pending_evidence_has_no_invented_review_state",
+      "result": "PASS"
+    },
+    {
+      "id": "triage_mutation_requires_immutable_source_evidence",
+      "result": "PASS"
+    },
+    {
       "id": "cancel_is_idempotent_and_does_not_assert_cleanup",
       "result": "PASS"
     },
@@ -41,11 +49,11 @@
     }
   ],
   "overall": "PASS",
-  "completed_at": "2026-10-14T05:51:56Z",
+  "completed_at": "2026-10-14T11:02:52Z",
   "limitations": [
     "Named local demo and native component tests only; no independent installation claim.",
     "This live check queues and cancels a static job; actual execution/result reads are checked separately with native operator-UID fixtures.",
     "Cancellation does not confirm resource cleanup or release held admission.",
-    "Findings detail API/UI, background worker pairing, independent cleanup verification, offline databases and remaining v4 release gates are unfinished."
+    "Selected-job findings and owner review are implemented; cross-job catalogue/history, background worker pairing, independent cleanup verification, offline databases and remaining v4 release gates are unfinished."
   ]
 }

@@ -11,6 +11,128 @@
     }
   ],
   "paths": {
+    "/scans/{id}/finding-triage": {
+      "get": {
+        "operationId": "getFindingTriage",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingTriageRecordV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "x-query-schema": "FindingTriageQueryV1",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "setFindingTriage",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingTriageRecordV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindingTriageInputV1"
+              }
+            }
+          }
+        }
+      }
+    },
     "/findings": {
       "get": {
         "operationId": "listFindings",
@@ -1054,6 +1176,18 @@
       },
       "FindingQueryV1": {
         "$ref": "schemas/FindingQueryV1.json"
+      },
+      "FindingTriageInputV1": {
+        "$ref": "schemas/FindingTriageInputV1.json"
+      },
+      "FindingTriageQueryV1": {
+        "$ref": "schemas/FindingTriageQueryV1.json"
+      },
+      "FindingTriageRecordV1": {
+        "$ref": "schemas/FindingTriageRecordV1.json"
+      },
+      "FindingTriageV1": {
+        "$ref": "schemas/FindingTriageV1.json"
       },
       "FindingV1": {
         "$ref": "schemas/FindingV1.json"

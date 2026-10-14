@@ -107,3 +107,42 @@ func TestGeneratedFindingsQueryKeepsFiltersAndCursorInURL(t *testing.T) {
 		t.Fatal(e)
 	}
 }
+
+func TestGeneratedFindingTriagePreservesQueryRevisionAndRetryKey(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		if r.URL.Path != "/api/v1/scans/job fixture/finding-triage" || r.Header.Get("X-CSRF-Token") != "csrf-fixture" {
+			t.Error("triage route or CSRF changed")
+		}
+		if calls == 1 {
+			if r.Method != "GET" || r.URL.Query().Get("record_id") != "sha256:fixture+record" || len(r.URL.Query()) != 1 {
+				t.Error("triage query changed")
+			}
+		} else {
+			if r.Method != "POST" || r.URL.RawQuery != "" || r.Header.Get("Idempotency-Key") != "triage-retry-key" {
+				t.Error("triage mutation identity changed")
+			}
+			var body FindingTriageInputV1
+			if json.NewDecoder(r.Body).Decode(&body) != nil || body.RecordId != "sha256:fixture+record" || body.ExpectedRevision != 2 || body.State != "unverified" || body.Rationale != "Needs application context" {
+				t.Error("triage body changed")
+			}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(FindingTriageRecordV1{})
+	}))
+	defer srv.Close()
+	c, e := NewResearchClient(srv.URL+"/api/v1", "session-fixture", "csrf-fixture")
+	if e != nil {
+		t.Fatal(e)
+	}
+	if _, e = c.GetFindingTriage(context.Background(), FindingTriageQueryV1{RecordId: "sha256:fixture+record"}, "job fixture"); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = c.SetFindingTriage(context.Background(), "job fixture", FindingTriageInputV1{SchemaVersion: "1.0", RecordId: "sha256:fixture+record", ResultDigest: "sha256:result", ExpectedRevision: 2, State: "unverified", Rationale: "Needs application context"}, "triage-retry-key"); e != nil {
+		t.Fatal(e)
+	}
+	if calls != 2 {
+		t.Fatal(calls)
+	}
+}

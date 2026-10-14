@@ -6,6 +6,7 @@ import (
 	"aegis.local/source/scanevidence"
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -26,6 +27,7 @@ type FindingEntry struct {
 	ID       string               `json:"record_id"`
 	Finding  scanevidence.Finding `json:"finding"`
 	Receipts []string             `json:"receipt_digests"`
+	Review   *FindingTriageRecord `json:"owner_review,omitempty"`
 }
 type FindingPage struct {
 	Schema     string         `json:"schema_version"`
@@ -107,6 +109,11 @@ func (q *Queue) Findings(ctx context.Context, owner, id string, in FindingQuery)
 		return FindingPage{}, e
 	}
 	defer tx.Rollback()
+	return q.findingsTx(ctx, tx, owner, id, in, "")
+}
+
+// target is an internal exact-record selector; it does not change public query semantics.
+func (q *Queue) findingsTx(ctx context.Context, tx *sql.Tx, owner, id string, in FindingQuery, target string) (FindingPage, error) {
 	j, e := read(tx.QueryRowContext(ctx, "SELECT "+columns+" FROM scanner_jobs WHERE id=? AND owner=?", id, owner))
 	if e != nil {
 		return FindingPage{}, e
@@ -167,7 +174,7 @@ func (q *Queue) Findings(ctx context.Context, owner, id string, in FindingQuery)
 	page.Distinct = len(merged)
 	filtered := []scanevidence.Finding{}
 	for _, f := range merged {
-		if (in.Category == "" || f.Category == in.Category) && (in.Severity == "" || f.Severity == in.Severity) {
+		if (target == "" || findingRecordID(owner, f) == target) && (in.Category == "" || f.Category == in.Category) && (in.Severity == "" || f.Severity == in.Severity) {
 			filtered = append(filtered, f)
 		}
 	}
@@ -200,6 +207,11 @@ func (q *Queue) Findings(ctx context.Context, owner, id string, in FindingQuery)
 			entry.Receipts = append(entry.Receipts, ref)
 		}
 		sort.Strings(entry.Receipts)
+		review, e := triageHistory(ctx, tx, owner, id, entry.ID, result.Digest)
+		if e != nil {
+			return FindingPage{}, e
+		}
+		entry.Review = &review
 		page.Items = append(page.Items, entry)
 		b, e := json.Marshal(page)
 		if e != nil {

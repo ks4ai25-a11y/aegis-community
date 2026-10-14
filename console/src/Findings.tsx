@@ -3,6 +3,7 @@ import {ArrowRight,RefreshCw} from 'lucide-react';
 import {listFindings} from './generated/research-client';
 import type {FindingPageV1,FindingQueryV1,ScannerSuiteResultV1} from './generated/contracts';
 import {short} from './client';
+import {FindingTriage,validateFindingReview} from './FindingTriage';
 
 type Category=NonNullable<FindingQueryV1['category']>|'';
 type Severity=NonNullable<FindingQueryV1['severity']>|'';
@@ -23,8 +24,10 @@ export function Findings({result}:{result:ScannerSuiteResultV1}){
     const f=entry.finding;
     const receipts=[...new Set(f.provenance.map(p=>refs.get(p.tool_id)))].sort();
     if(!/^sha256:[0-9a-f]{64}$/.test(entry.record_id)||ids.has(entry.record_id)||f.app_id!==d.app_id||f.repository_id!==d.repository_id||f.evidence_tier!=='T0'||f.status!=='suspected'||f.confidence!=='low'||category&&f.category!==category||severity&&f.severity!==severity||f.provenance.length===0||f.provenance.some(p=>p.input_digest!==d.snapshot_digest)||receipts.includes(undefined)||JSON.stringify(receipts)!==JSON.stringify([...entry.receipt_digests].sort()))throw new Error('Finding provenance, filters or proof classification could not be confirmed');
+    if(entry.owner_review)await validateFindingReview(entry.owner_review,d.owner_id,d.job_id,result.result_digest,entry.record_id);
     ids.add(entry.record_id);
    }
+   if(!mounted.current||request!==generation.current)return;
    setPage(next);setNumber(nextNumber);
   }catch(e){if(mounted.current&&request===generation.current){setPage(undefined);setError((e as Error).message)}}
   finally{if(mounted.current&&request===generation.current)setLoading(false)}
@@ -39,16 +42,17 @@ export function Findings({result}:{result:ScannerSuiteResultV1}){
   {page&&<>
    <p className="small muted">{page.tool_claims} tool claims · {page.distinct_static_claims} distinct static records · {page.matching_static_claims} match the filters. These are not confirmed vulnerabilities.</p>
    {page.items.length===0&&<p>No static records match these filters. The scan's coverage, database and tool-error flags still apply.</p>}
-   {page.items.map(({record_id,finding:f,receipt_digests})=><article className="finding-record" key={record_id}>
+   {page.items.map(({record_id,finding:f,receipt_digests,owner_review})=><article className="finding-record" key={record_id}>
     <div className="card-heading"><h3>{label(f.category)}</h3><span className="badge">Claimed severity: {f.severity}</span></div>
     <p>{f.summary}</p>
-    <p className="small">Evidence: {f.evidence_tier} · Triage: {f.status} · Confidence: {f.confidence}</p>
+    <p className="small">Evidence: {f.evidence_tier} · Tool claim: {f.status} · Confidence: {f.confidence}</p>
     <p className="mono">{f.path||'Source location unavailable'}{f.line?':'+f.line:''}</p>
     {f.package_url&&<p className="mono">Package: {f.package_url}</p>}
     {f.installed_version&&<p>Installed version claim: {f.installed_version}</p>}
     {f.advisories?.length&&<p>Advisories: {f.advisories.join(', ')}</p>}
     <p className="small muted">{f.coverage_note}</p>
     <div className="table-wrap"><table><thead><tr><th>Original tool</th><th>Version / parser</th><th>Rule / advisory</th><th>Claimed severity</th></tr></thead><tbody>{f.provenance.map((p,i)=><tr key={i}><td>{p.tool_id}</td><td>{p.tool_version} / {p.parser_version}</td><td>{p.rule_id||'Unspecified'}</td><td>{p.severity_claimed||'Unspecified'}</td></tr>)}</tbody></table></div>
+    <FindingTriage key={result.result_digest+record_id} owner={d.owner_id} job={d.job_id} result={result.result_digest} record={record_id} review={owner_review} onRecorded={next=>setPage(previous=>previous?{...previous,items:previous.items.map(entry=>entry.record_id===record_id&&(!entry.owner_review||entry.owner_review.document.revision<=next.document.revision)?{...entry,owner_review:next}:entry)}:previous)}/>
     <details><summary>Source and receipt identities</summary><p className="mono">Record: {record_id}</p><p className="mono">Finding: {f.id}</p>{f.provenance.map((p,i)=><div key={i}><p className="mono">{p.tool_id} image: {p.tool_image_digest}</p><p className="mono">Input: {p.input_digest}</p></div>)}{receipt_digests.map(ref=><p className="mono" key={ref}>Receipt: {ref}</p>)}</details>
    </article>)}
    <div className="finding-pagination"><span>Page {number} · {page.items.length} records on this page</span><button className="button light" disabled={loading||number===1} onClick={()=>load()}><RefreshCw size={14}/>Back to first page</button><button className="button light" disabled={loading||!page.next_cursor} onClick={()=>load(page.next_cursor,number+1)}>Next findings<ArrowRight size={14}/></button></div>

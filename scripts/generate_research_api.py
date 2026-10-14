@@ -5,6 +5,8 @@ root=pathlib.Path(__file__).resolve().parents[1]
 def schema(name):return {'$ref':'#/components/schemas/'+name}
 # name, method, path, request, response, success status, idempotency requirement
 ops=[
+ ('getFindingTriage','get','/scans/{id}/finding-triage',None,'FindingTriageRecordV1',200,False),
+ ('setFindingTriage','post','/scans/{id}/finding-triage','FindingTriageInputV1','FindingTriageRecordV1',200,True),
  ('listFindings','get','/findings',None,'FindingPageV1',200,False),
  ('createScan','post','/scans','ScannerJobInputV1','ScannerJobV1',202,True),
  ('listScans','get','/scans',None,'ScannerJobListV1',200,False),
@@ -31,9 +33,10 @@ paths={}
 for name,method,path,body,result,status,key in ops:
  operation={'operationId':name,'security':[{'ownerSession':[]}],'responses':{str(status):{'description':'Successful owner-scoped operation','content':{'application/json':{'schema':schema(result)}}},'default':{'description':'Typed failure; never a success or clean-scan conclusion','content':{'application/json':{'schema':schema('ErrorEnvelopeV1')}}}}}
  params=[]
- if name=='listFindings':
-  operation['x-query-schema']='FindingQueryV1'
-  query=json.loads((root/'contracts/schemas/FindingQueryV1.json').read_text())
+ if name in ('listFindings','getFindingTriage'):
+  query_name='FindingQueryV1' if name=='listFindings' else 'FindingTriageQueryV1'
+  operation['x-query-schema']=query_name
+  query=json.loads((root/'contracts/schemas'/f'{query_name}.json').read_text())
   params.extend({'name':field,'in':'query','required':field in query['required'],'schema':value} for field,value in query['properties'].items())
  if '{id}' in path:params.append({'name':'id','in':'path','required':True,'schema':{'type':'string','maxLength':80}})
  if method=='post':params.append({'name':'X-CSRF-Token','in':'header','required':True,'schema':{'type':'string'}})

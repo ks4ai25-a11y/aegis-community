@@ -148,6 +148,7 @@ class FindingEntryV1(TypedDict):
     record_id: str
     finding: ScannerExecutionV1ResultFindingsItem
     receipt_digests: list[str]
+    owner_review: NotRequired[FindingPageV1ItemsItemOwnerReview]
 class FindingEntryV1Finding(TypedDict):
     schema_version: str
     id: str
@@ -177,6 +178,20 @@ class FindingEntryV1FindingProvenanceItem(TypedDict):
     input_digest: str
     rule_id: NotRequired[str]
     severity_claimed: NotRequired[str]
+class FindingEntryV1OwnerReview(TypedDict):
+    triage_digest: str
+    document: FindingTriageRecordV1Document
+class FindingEntryV1OwnerReviewDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    record_id: str
+    result_digest: str
+    revision: int
+    state: str
+    rationale: str
+    previous_digest: str
+    updated_at: str
 class FindingPageV1(TypedDict):
     schema_version: str
     owner_id: str
@@ -197,6 +212,7 @@ class FindingPageV1ItemsItem(TypedDict):
     record_id: str
     finding: ScannerExecutionV1ResultFindingsItem
     receipt_digests: list[str]
+    owner_review: NotRequired[FindingPageV1ItemsItemOwnerReview]
 class FindingPageV1ItemsItemFinding(TypedDict):
     schema_version: str
     id: str
@@ -226,6 +242,20 @@ class FindingPageV1ItemsItemFindingProvenanceItem(TypedDict):
     input_digest: str
     rule_id: NotRequired[str]
     severity_claimed: NotRequired[str]
+class FindingPageV1ItemsItemOwnerReview(TypedDict):
+    triage_digest: str
+    document: FindingTriageRecordV1Document
+class FindingPageV1ItemsItemOwnerReviewDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    record_id: str
+    result_digest: str
+    revision: int
+    state: str
+    rationale: str
+    previous_digest: str
+    updated_at: str
 class ScopeGrantDraftRequestV1(TypedDict):
     app_id: str
     mode: str
@@ -756,3 +786,37 @@ class ScannerSandboxObservationV1(TypedDict):
     late_start_excluded: bool
     cleanup_confirmed: bool
     limitations: list[str]
+class FindingTriageInputV1(TypedDict):
+    schema_version: str
+    record_id: str
+    result_digest: str
+    expected_revision: int
+    state: str
+    rationale: str
+class FindingTriageQueryV1(TypedDict):
+    record_id: str
+class FindingTriageV1(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    record_id: str
+    result_digest: str
+    revision: int
+    state: str
+    rationale: str
+    previous_digest: str
+    updated_at: str
+class FindingTriageRecordV1(TypedDict):
+    triage_digest: str
+    document: FindingTriageRecordV1Document
+class FindingTriageRecordV1Document(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    record_id: str
+    result_digest: str
+    revision: int
+    state: str
+    rationale: str
+    previous_digest: str
+    updated_at: str

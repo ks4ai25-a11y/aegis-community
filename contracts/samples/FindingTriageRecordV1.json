@@ -1,0 +1,15 @@
+{
+  "triage_digest": "sha256:032cdb483c8078fded6ca75c3cf6e87542251b9eb4a224af7c276278217cf349",
+  "document": {
+    "schema_version": "1.0",
+    "owner_id": "owner-a",
+    "job_id": "01a13a10-49b6-7b65-914a-5173c4e7b7ad",
+    "record_id": "sha256:aaf714a4e8998d69049b8b45f99f7c4cde23f23b9360af8e950e0cb07bccc5a4",
+    "result_digest": "sha256:677544b156177a9459d7ab354c19649d03e68a22f7d8766e2edfebe4e67ce571",
+    "revision": 1,
+    "state": "false_positive",
+    "rationale": "Reviewed <synthetic> fixture & static claim; no exploit proof",
+    "previous_digest": "",
+    "updated_at": "2026-10-14T10:58:29.119864Z"
+  }
+}
