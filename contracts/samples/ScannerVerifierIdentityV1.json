@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "role": "scanner-cleanup-observer",
+  "verifier_id": "verifier-test",
+  "owner_id": "owner-a",
+  "engine_digest": "sha256:fce51d366236f0da157455fff9a72d8ee5d891d555fc524f8f947bba33878ece",
+  "registry_digest": "sha256:c8dfb097d6e43276d6722462c5cfc3a1f685c9f395d3138a467c1892141225a8",
+  "state": "active",
+  "expires_at": "2026-10-14T11:45:54Z",
+  "created_at": "2026-10-14T11:40:54.098953Z"
+}

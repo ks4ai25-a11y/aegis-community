@@ -19,7 +19,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		die("usage: aegisctl --version | init | doctor | policy validate FILE | audit verify | backup FILE | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE | scanner-launch export JOB TOOL ABSOLUTE_PRIVATE_FILE")
+		die("usage: aegisctl --version | init | doctor | policy validate FILE | audit verify | backup FILE | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE | scanner-launch export JOB TOOL ABSOLUTE_PRIVATE_FILE | scanner-verifier enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST PRIVATE_FILE | scanner-verifier revoke ID | scanner-verifier probe PRIVATE_FILE")
 	}
 	args := os.Args[1:]
 	root := os.Getenv("AEGIS_DATA")
@@ -70,6 +70,56 @@ func main() {
 			die(e.Error())
 		}
 		fmt.Println("Initialized persisted policy configuration")
+	case "scanner-verifier":
+		if len(args) == 3 && args[1] == "probe" {
+			socket := os.Getenv("AEGIS_SCANNER_SOCKET")
+			if socket == "" {
+				die("Private scanner socket is not configured")
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			v, e := scantransport.ProbeVerifier(ctx, socket, args[2])
+			if e != nil {
+				die("Verifier probe refused")
+			}
+			fmt.Printf("Verifier %s authenticated for owner %s until %s; controller metadata only\n", v.ID, v.Owner, v.Expires)
+			break
+		}
+		if len(args) < 3 || (args[1] != "enroll" && args[1] != "revoke") {
+			die("usage: scanner-verifier enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST PRIVATE_FILE | scanner-verifier revoke ID | scanner-verifier probe PRIVATE_FILE")
+		}
+		s, e := store.Open(filepath.Join(root, "aegis.db"))
+		if e != nil {
+			die("Verifier state unavailable")
+		}
+		defer s.DB.Close()
+		owner, e := s.Get("repository_mount_owner")
+		if e != nil {
+			die("Connect an owned provisioned repository before verifier enrollment")
+		}
+		registry := &scannerauth.Registry{S: s}
+		if args[1] == "revoke" {
+			if len(args) != 3 {
+				die("usage: scanner-verifier revoke ID")
+			}
+			if e = registry.RevokeVerifier(owner, args[2]); e != nil {
+				die("Verifier revocation refused")
+			}
+			fmt.Println("Verifier revoked; cleanup admission remains held")
+			break
+		}
+		if len(args) != 7 {
+			die("usage: scanner-verifier enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST PRIVATE_FILE")
+		}
+		minutes, e := strconv.Atoi(args[3])
+		if e != nil {
+			die("Verifier lifetime must be 1–1440 minutes")
+		}
+		v, e := registry.EnrollVerifierFile(owner, args[2], minutes, args[4], args[5], args[6])
+		if e != nil {
+			die("Verifier enrollment refused")
+		}
+		fmt.Printf("Verifier %s enrolled for owner %s until %s; credential written privately; controller metadata only\n", v.ID, v.Owner, v.Expires)
 	case "scanner-worker":
 		if len(args) == 3 && args[1] == "probe" {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

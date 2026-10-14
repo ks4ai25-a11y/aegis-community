@@ -913,3 +913,190 @@ export interface FindingTriageRecordV1Document {
   previous_digest: string;
   updated_at: string;
 }
+export interface ScannerVerifierIdentityV1 {
+  schema_version: "1.0";
+  role: "scanner-cleanup-observer";
+  verifier_id: string;
+  owner_id: string;
+  engine_digest: string;
+  registry_digest: string;
+  state: "active";
+  expires_at: string;
+  created_at: string;
+}
+export interface ScannerCleanupContextV1 {
+  schema_version: "1.0";
+  verifier_id: string;
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  job_created_at: string;
+  worker_id: string;
+  job_state: "running" | "cancelled" | "timeout" | "failed" | "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  cancel_requested: boolean;
+  dispatch_state: "active" | "cleanup_required";
+  deadline: string;
+  lease_expires_at: string;
+  guard_set_digest: string;
+  engine_digest: string;
+  registry_digest: string;
+  tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
+  workspaces: Array<ScannerCleanupContextRecordV1DocumentWorkspacesItem>;
+  launches: Array<ScannerCleanupContextRecordV1DocumentLaunchesItem>;
+  observed_at: string;
+  controller_metadata_only: true;
+  cleanup_required: true;
+  cleanup_confirmed: false;
+  active_workspace_leases_excluded: false;
+  late_start_excluded: false;
+}
+export interface ScannerCleanupContextV1WorkspacesItem {
+  workspace_digest: string;
+  document: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocument;
+}
+export interface ScannerCleanupContextV1WorkspacesItemDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  plan: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+}
+export interface ScannerCleanupContextV1WorkspacesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}
+export interface ScannerCleanupContextV1LaunchesItem {
+  launch_digest: string;
+  document: ScannerCleanupContextRecordV1DocumentLaunchesItemDocument;
+}
+export interface ScannerCleanupContextV1LaunchesItemDocument {
+  schema_version: "1.1";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+  guard_set_digest: string;
+  guard_protocol: "absolute-deadline-v1";
+}
+export interface ScannerCleanupContextV1LaunchesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+}
+export interface ScannerCleanupContextRecordV1 {
+  context_digest: string;
+  document: ScannerCleanupContextRecordV1Document;
+}
+export interface ScannerCleanupContextRecordV1Document {
+  schema_version: "1.0";
+  verifier_id: string;
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  job_created_at: string;
+  worker_id: string;
+  job_state: "running" | "cancelled" | "timeout" | "failed" | "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  cancel_requested: boolean;
+  dispatch_state: "active" | "cleanup_required";
+  deadline: string;
+  lease_expires_at: string;
+  guard_set_digest: string;
+  engine_digest: string;
+  registry_digest: string;
+  tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
+  workspaces: Array<ScannerCleanupContextRecordV1DocumentWorkspacesItem>;
+  launches: Array<ScannerCleanupContextRecordV1DocumentLaunchesItem>;
+  observed_at: string;
+  controller_metadata_only: true;
+  cleanup_required: true;
+  cleanup_confirmed: false;
+  active_workspace_leases_excluded: false;
+  late_start_excluded: false;
+}
+export interface ScannerCleanupContextRecordV1DocumentWorkspacesItem {
+  workspace_digest: string;
+  document: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocument;
+}
+export interface ScannerCleanupContextRecordV1DocumentWorkspacesItemDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  plan: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+}
+export interface ScannerCleanupContextRecordV1DocumentWorkspacesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}
+export interface ScannerCleanupContextRecordV1DocumentLaunchesItem {
+  launch_digest: string;
+  document: ScannerCleanupContextRecordV1DocumentLaunchesItemDocument;
+}
+export interface ScannerCleanupContextRecordV1DocumentLaunchesItemDocument {
+  schema_version: "1.1";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+  guard_set_digest: string;
+  guard_protocol: "absolute-deadline-v1";
+}
+export interface ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+}

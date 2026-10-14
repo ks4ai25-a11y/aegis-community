@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "test_scope": "local-bundled-synthetic-demo",
-  "started_at": "2026-10-14T11:02:52Z",
+  "started_at": "2026-10-14T11:55:09Z",
   "checks": [
     {
       "id": "unauthenticated_admin_denied",
@@ -29,7 +29,7 @@
       "id": "independent_protect_fixture_pass",
       "result": "PASS",
       "detail": {
-        "report_digest": "sha256:947e01e340b60f0322910288072ec9f8c643a700b812db1b1f110efad4ce2fac"
+        "report_digest": "sha256:dc6d3d9d2f7885890c6e3598ca069cbfdefcc50abdac39790291a7e55ffbd9b1"
       }
     },
     {
@@ -59,7 +59,7 @@
     }
   ],
   "overall": "PASS",
-  "completed_at": "2026-10-14T11:03:00Z",
+  "completed_at": "2026-10-14T11:55:19Z",
   "limitations": [
     "Local ARM64 Docker Desktop run, not independent installation or production certification.",
     "Trusted bundled fixture only; no untrusted repository execution.",

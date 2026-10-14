@@ -63,6 +63,10 @@ func (s *Server) Handler() http.Handler {
 			failure(w, 401, "WORKER_AUTH_REQUIRED")
 			return
 		}
+		if strings.HasPrefix(r.URL.Path, "/internal/v1/scanner/verifier/") {
+			s.verifier(w, r, strings.TrimPrefix(headers[0], "Bearer "))
+			return
+		}
 		worker, e := s.Auth.Authenticate(strings.TrimPrefix(headers[0], "Bearer "))
 		if e != nil {
 			failure(w, 401, "WORKER_AUTH_REQUIRED")

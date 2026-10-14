@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "commit": "3390e3ad78575b5b0ec68d137e2ce03124435071",
+  "run_id": 38554351541,
+  "run_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38554351541",
+  "scope": "Exact-commit source and trusted-demo checks for owner finding triage",
+  "verified_in_prior_turn": true,
+  "limitations": [
+    "Workflow success is not a complete v4 implementation or independent H7 release sign-off.",
+    "The subsequent scoped verifier-context increment requires separate exact-commit verification."
+  ]
+}

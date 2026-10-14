@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "scope": "named-demo-local-cleanup-observer-identity-only",
+  "started_at": "2026-10-14T11:55:03Z",
+  "checks": [
+    {
+      "id": "local_operator_enrolls_observer_without_printing_credential",
+      "result": "PASS"
+    },
+    {
+      "id": "distinct_private_observer_identity_authenticates",
+      "result": "PASS"
+    },
+    {
+      "id": "observer_credential_is_private_regular_file",
+      "result": "PASS"
+    },
+    {
+      "id": "observer_credential_cannot_authenticate_as_worker",
+      "result": "PASS"
+    },
+    {
+      "id": "worker_credential_cannot_authenticate_as_observer",
+      "result": "PASS"
+    },
+    {
+      "id": "existing_credential_refuses_new_identity_without_overwrite",
+      "result": "PASS"
+    },
+    {
+      "id": "retained_identity_cannot_be_reenrolled",
+      "result": "PASS"
+    },
+    {
+      "id": "non_digest_scope_is_refused_without_credential_artifact",
+      "result": "PASS"
+    },
+    {
+      "id": "observer_protocol_is_not_exposed_on_dashboard_listener",
+      "result": "PASS"
+    },
+    {
+      "id": "observer_revocation_is_idempotent_and_denies_probe",
+      "result": "PASS"
+    },
+    {
+      "id": "observer_revocation_does_not_revoke_worker_identity",
+      "result": "PASS"
+    },
+    {
+      "id": "observer_mutations_preserve_local_audit_chain",
+      "result": "PASS"
+    },
+    {
+      "id": "revoked_fixture_credentials_removed",
+      "result": "PASS"
+    }
+  ],
+  "overall": "PASS",
+  "completed_at": "2026-10-14T11:55:08Z",
+  "limitations": [
+    "Credential bytes were not read or exported by this harness.",
+    "Engine and registry digests in this enrollment fixture are synthetic; live engine state is not inspected here.",
+    "Scope-bound job context is tested separately through native parser/real-scanner fixtures.",
+    "This identity cannot release dispatch admission or establish resource absence. Dedicated deployed/background worker pairing, pending-request exclusion and independent release gates remain unfinished."
+  ]
+}

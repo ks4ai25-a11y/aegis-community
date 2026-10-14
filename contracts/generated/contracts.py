@@ -820,3 +820,174 @@ class FindingTriageRecordV1Document(TypedDict):
     rationale: str
     previous_digest: str
     updated_at: str
+class ScannerVerifierIdentityV1(TypedDict):
+    schema_version: str
+    role: str
+    verifier_id: str
+    owner_id: str
+    engine_digest: str
+    registry_digest: str
+    state: str
+    expires_at: str
+    created_at: str
+class ScannerCleanupContextV1(TypedDict):
+    schema_version: str
+    verifier_id: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    job_created_at: str
+    worker_id: str
+    job_state: str
+    cancel_requested: bool
+    dispatch_state: str
+    deadline: str
+    lease_expires_at: str
+    guard_set_digest: str
+    engine_digest: str
+    registry_digest: str
+    tool_ids: list[str]
+    workspaces: list[ScannerCleanupContextRecordV1DocumentWorkspacesItem]
+    launches: list[ScannerCleanupContextRecordV1DocumentLaunchesItem]
+    observed_at: str
+    controller_metadata_only: bool
+    cleanup_required: bool
+    cleanup_confirmed: bool
+    active_workspace_leases_excluded: bool
+    late_start_excluded: bool
+class ScannerCleanupContextV1WorkspacesItem(TypedDict):
+    workspace_digest: str
+    document: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocument
+class ScannerCleanupContextV1WorkspacesItemDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    plan: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocumentPlan
+    created_at: str
+    deadline: str
+class ScannerCleanupContextV1WorkspacesItemDocumentPlan(TypedDict):
+    tool_id: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+class ScannerCleanupContextV1LaunchesItem(TypedDict):
+    launch_digest: str
+    document: ScannerCleanupContextRecordV1DocumentLaunchesItemDocument
+class ScannerCleanupContextV1LaunchesItemDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    tool_version: str
+    tool_image_digest: str
+    sandbox_profile: str
+    duration_limit_seconds: int
+    plan: ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan
+    created_at: str
+    deadline: str
+    guard_set_digest: str
+    guard_protocol: str
+class ScannerCleanupContextV1LaunchesItemDocumentPlan(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+    guard_binary_digest: str
+    guard_architecture: str
+class ScannerCleanupContextRecordV1(TypedDict):
+    context_digest: str
+    document: ScannerCleanupContextRecordV1Document
+class ScannerCleanupContextRecordV1Document(TypedDict):
+    schema_version: str
+    verifier_id: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    job_created_at: str
+    worker_id: str
+    job_state: str
+    cancel_requested: bool
+    dispatch_state: str
+    deadline: str
+    lease_expires_at: str
+    guard_set_digest: str
+    engine_digest: str
+    registry_digest: str
+    tool_ids: list[str]
+    workspaces: list[ScannerCleanupContextRecordV1DocumentWorkspacesItem]
+    launches: list[ScannerCleanupContextRecordV1DocumentLaunchesItem]
+    observed_at: str
+    controller_metadata_only: bool
+    cleanup_required: bool
+    cleanup_confirmed: bool
+    active_workspace_leases_excluded: bool
+    late_start_excluded: bool
+class ScannerCleanupContextRecordV1DocumentWorkspacesItem(TypedDict):
+    workspace_digest: str
+    document: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocument
+class ScannerCleanupContextRecordV1DocumentWorkspacesItemDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    plan: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocumentPlan
+    created_at: str
+    deadline: str
+class ScannerCleanupContextRecordV1DocumentWorkspacesItemDocumentPlan(TypedDict):
+    tool_id: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+class ScannerCleanupContextRecordV1DocumentLaunchesItem(TypedDict):
+    launch_digest: str
+    document: ScannerCleanupContextRecordV1DocumentLaunchesItemDocument
+class ScannerCleanupContextRecordV1DocumentLaunchesItemDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    tool_version: str
+    tool_image_digest: str
+    sandbox_profile: str
+    duration_limit_seconds: int
+    plan: ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan
+    created_at: str
+    deadline: str
+    guard_set_digest: str
+    guard_protocol: str
+class ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+    guard_binary_digest: str
+    guard_architecture: str

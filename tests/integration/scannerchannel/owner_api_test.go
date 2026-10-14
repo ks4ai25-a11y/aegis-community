@@ -109,6 +109,7 @@ func assertOwnerHTTPResult(t *testing.T, f fixture, job string) {
 	call("", 404)
 	call("/result", 404)
 	call("/findings?job_id="+job, 404)
+	assertScopedVerifierContext(t, f, job)
 	if e = f.s.VerifyAudit(); e != nil {
 		t.Fatal(e)
 	}

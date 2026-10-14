@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerVerifierIdentityV1.json",
+  "title": "ScannerVerifierIdentityV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "role": {
+      "type": "string",
+      "const": "scanner-cleanup-observer"
+    },
+    "verifier_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+    },
+    "owner_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "engine_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "registry_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "state": {
+      "type": "string",
+      "const": "active"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "schema_version",
+    "role",
+    "verifier_id",
+    "owner_id",
+    "engine_digest",
+    "registry_digest",
+    "state",
+    "expires_at",
+    "created_at"
+  ]
+}

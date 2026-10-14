@@ -80,8 +80,16 @@ CREATE TRIGGER finding_triage_no_update BEFORE UPDATE ON finding_triage BEGIN SE
 CREATE TRIGGER finding_triage_no_delete BEFORE DELETE ON finding_triage BEGIN SELECT RAISE(ABORT,'finding triage is immutable'); END;
 `
 
+const scannerVerifierSchema = `
+CREATE TABLE scanner_verifiers(id TEXT PRIMARY KEY,owner TEXT NOT NULL REFERENCES owners(id),token_hash TEXT UNIQUE NOT NULL,state TEXT NOT NULL CHECK(state IN ('active','revoked')),engine_digest TEXT NOT NULL,registry_digest TEXT NOT NULL,expires INTEGER NOT NULL,created_at TEXT NOT NULL);
+CREATE INDEX scanner_verifiers_owner ON scanner_verifiers(owner,state,expires);
+CREATE TRIGGER scanner_verifiers_scope_immutable BEFORE UPDATE OF id,owner,token_hash,engine_digest,registry_digest,expires,created_at ON scanner_verifiers BEGIN SELECT RAISE(ABORT,'scanner verifier scope is immutable'); END;
+CREATE TRIGGER scanner_verifiers_state_monotonic BEFORE UPDATE OF state ON scanner_verifiers WHEN OLD.state!='active' OR NEW.state!='revoked' BEGIN SELECT RAISE(ABORT,'scanner verifier cannot be reactivated'); END;
+CREATE TRIGGER scanner_verifiers_no_delete BEFORE DELETE ON scanner_verifiers BEGIN SELECT RAISE(ABORT,'scanner verifier enrollment is retained'); END;
+`
+
 func migrate(db *sql.DB) error {
-	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema}
+	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema}
 	var exists int
 	if e := db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='migrations'").Scan(&exists); e != nil {
 		return e

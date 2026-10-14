@@ -92,3 +92,10 @@ func (c Config) ContainerAbsent(ctx context.Context, name, expectedEngine string
 	}
 	return strings.TrimSpace(string(b)) == "", nil
 }
+
+// ConfiguredToolLockDigest identifies the bounded operator-provisioned lock;
+// it does not authenticate a publisher or accept repository-selected pins.
+func ConfiguredToolLockDigest(path string) (string, error) {
+	_, digest, e := resolve(path, "bandit")
+	return digest, e
+}

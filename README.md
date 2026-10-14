@@ -40,3 +40,5 @@ An operator-only `scan-offline` CLI captures exact private source snapshots and 
 A read-only operator observe-sandbox command can compare original-engine metadata and reported guard/source files with privately exported launch context. It does not authenticate cleanup authority, exclude active leases/late starts or release scanner admission. See [scanner operations](docs/operators/scanner-workers.md) and ADR 039.
 
 Owner review now records selected-job finding assessments beside immutable T0 scanner evidence. Decisions have exact result/record binding, revision conflicts, durable retry responses and atomic audit history. See [finding review operations](docs/operators/finding-reviews.md) and ADR 040; cross-job catalogue and verified remediation remain unfinished.
+
+A separate local scanner-verifier identity can now read scope-bound controller launch/workspace context over the private Unix channel. It cannot execute scans or release cleanup admission. See [scoped verifier operations](docs/operators/scanner-verifier-context.md) and ADR 041.
