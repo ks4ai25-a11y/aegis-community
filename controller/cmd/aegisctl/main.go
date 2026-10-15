@@ -216,8 +216,11 @@ func main() {
 		}
 		fmt.Println("Audit chain consistent under local-host trust assumptions")
 	case "backup":
+		if handleRecovery(args[1:], root) {
+			break
+		}
 		if len(args) == 2 && args[1] == "--help" {
-			fmt.Println("usage: aegisctl backup create ABSOLUTE_FILE [--json]\nCreates a private controller database snapshot in an existing directory owned by this operator. The directory must not permit group/other writes. Existing targets are refused. This snapshot does not include gateway configuration or tool manifests; restore verification remains pending. Legacy backup ABSOLUTE_FILE is also accepted.")
+			fmt.Println("usage: aegisctl backup create ABSOLUTE_FILE [--json] | " + recoveryUsage + "\nCreates a private controller database snapshot in an existing directory owned by this operator. The directory must not permit group/other writes. Existing targets are refused. This snapshot does not include gateway configuration or tool manifests; restore verification remains pending. Legacy backup ABSOLUTE_FILE is also accepted.")
 			break
 		}
 		path, jsonOutput, e := backupArguments(args[1:])

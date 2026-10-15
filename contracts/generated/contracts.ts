@@ -1111,3 +1111,67 @@ export interface DatabaseSnapshotReceiptV1 {
   tool_manifest_captured: false;
   restore_verified: false;
 }
+export interface RecoveryBundleManifestV1 {
+  schema_version: "1.0";
+  product_version: "0.1.0-alpha.1";
+  deployment_profile: "demo-http-v1";
+  created_at: string;
+  database_schema_version: number;
+  policy_digest: string;
+  database: RecoveryBundleEnvelopeV1DocumentDatabase;
+  gateway_configuration: RecoveryBundleEnvelopeV1DocumentGatewayConfiguration;
+  scanner_lock: RecoveryBundleEnvelopeV1DocumentScannerLock;
+}
+export interface RecoveryBundleManifestV1Database {
+  byte_count: number;
+  sha256: string;
+}
+export interface RecoveryBundleManifestV1GatewayConfiguration {
+  byte_count: number;
+  sha256: string;
+}
+export interface RecoveryBundleManifestV1ScannerLock {
+  byte_count: number;
+  sha256: string;
+}
+export interface RecoveryBundleEnvelopeV1 {
+  bundle_digest: string;
+  document: RecoveryBundleEnvelopeV1Document;
+}
+export interface RecoveryBundleEnvelopeV1Document {
+  schema_version: "1.0";
+  product_version: "0.1.0-alpha.1";
+  deployment_profile: "demo-http-v1";
+  created_at: string;
+  database_schema_version: number;
+  policy_digest: string;
+  database: RecoveryBundleEnvelopeV1DocumentDatabase;
+  gateway_configuration: RecoveryBundleEnvelopeV1DocumentGatewayConfiguration;
+  scanner_lock: RecoveryBundleEnvelopeV1DocumentScannerLock;
+}
+export interface RecoveryBundleEnvelopeV1DocumentDatabase {
+  byte_count: number;
+  sha256: string;
+}
+export interface RecoveryBundleEnvelopeV1DocumentGatewayConfiguration {
+  byte_count: number;
+  sha256: string;
+}
+export interface RecoveryBundleEnvelopeV1DocumentScannerLock {
+  byte_count: number;
+  sha256: string;
+}
+export interface RecoveryOperationReceiptV1 {
+  schema_version: "1.0";
+  status: "bundle_created" | "bundle_verified" | "restored_offline";
+  bundle_digest: string;
+  policy_digest: string;
+  tool_lock_digest: string;
+  integrity_verified: true;
+  restored_authorities_invalidated: boolean;
+  scanner_cleanup_holds_preserved: boolean;
+  live_activated: false;
+  application_restore_verified: false;
+  publisher_signature_verified: false;
+  restored_database_digest?: string;
+}

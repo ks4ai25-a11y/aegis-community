@@ -24,6 +24,9 @@ const maxBackupBytes int64 = 512 << 20
 // OpenSnapshotSource never creates or migrates source state. Recognized older
 // migration prefixes can be captured before an upgrade changes their bytes.
 func OpenSnapshotSource(ctx context.Context, path string) (*Store, error) {
+	if refusePendingRestore(path) != nil {
+		return nil, ErrBackup
+	}
 	absolute, e := filepath.Abs(path)
 	if e != nil {
 		return nil, ErrBackup

@@ -1113,3 +1113,67 @@ type DatabaseSnapshotReceiptV1 struct {
 	ToolManifestCaptured         bool   `json:"tool_manifest_captured"`
 	RestoreVerified              bool   `json:"restore_verified"`
 }
+type RecoveryBundleManifestV1 struct {
+	SchemaVersion         string                                               `json:"schema_version"`
+	ProductVersion        string                                               `json:"product_version"`
+	DeploymentProfile     string                                               `json:"deployment_profile"`
+	CreatedAt             string                                               `json:"created_at"`
+	DatabaseSchemaVersion int64                                                `json:"database_schema_version"`
+	PolicyDigest          string                                               `json:"policy_digest"`
+	Database              RecoveryBundleEnvelopeV1DocumentDatabase             `json:"database"`
+	GatewayConfiguration  RecoveryBundleEnvelopeV1DocumentGatewayConfiguration `json:"gateway_configuration"`
+	ScannerLock           RecoveryBundleEnvelopeV1DocumentScannerLock          `json:"scanner_lock"`
+}
+type RecoveryBundleManifestV1Database struct {
+	ByteCount int64  `json:"byte_count"`
+	Sha256    string `json:"sha256"`
+}
+type RecoveryBundleManifestV1GatewayConfiguration struct {
+	ByteCount int64  `json:"byte_count"`
+	Sha256    string `json:"sha256"`
+}
+type RecoveryBundleManifestV1ScannerLock struct {
+	ByteCount int64  `json:"byte_count"`
+	Sha256    string `json:"sha256"`
+}
+type RecoveryBundleEnvelopeV1 struct {
+	BundleDigest string                           `json:"bundle_digest"`
+	Document     RecoveryBundleEnvelopeV1Document `json:"document"`
+}
+type RecoveryBundleEnvelopeV1Document struct {
+	SchemaVersion         string                                               `json:"schema_version"`
+	ProductVersion        string                                               `json:"product_version"`
+	DeploymentProfile     string                                               `json:"deployment_profile"`
+	CreatedAt             string                                               `json:"created_at"`
+	DatabaseSchemaVersion int64                                                `json:"database_schema_version"`
+	PolicyDigest          string                                               `json:"policy_digest"`
+	Database              RecoveryBundleEnvelopeV1DocumentDatabase             `json:"database"`
+	GatewayConfiguration  RecoveryBundleEnvelopeV1DocumentGatewayConfiguration `json:"gateway_configuration"`
+	ScannerLock           RecoveryBundleEnvelopeV1DocumentScannerLock          `json:"scanner_lock"`
+}
+type RecoveryBundleEnvelopeV1DocumentDatabase struct {
+	ByteCount int64  `json:"byte_count"`
+	Sha256    string `json:"sha256"`
+}
+type RecoveryBundleEnvelopeV1DocumentGatewayConfiguration struct {
+	ByteCount int64  `json:"byte_count"`
+	Sha256    string `json:"sha256"`
+}
+type RecoveryBundleEnvelopeV1DocumentScannerLock struct {
+	ByteCount int64  `json:"byte_count"`
+	Sha256    string `json:"sha256"`
+}
+type RecoveryOperationReceiptV1 struct {
+	SchemaVersion                  string `json:"schema_version"`
+	Status                         string `json:"status"`
+	BundleDigest                   string `json:"bundle_digest"`
+	PolicyDigest                   string `json:"policy_digest"`
+	ToolLockDigest                 string `json:"tool_lock_digest"`
+	IntegrityVerified              bool   `json:"integrity_verified"`
+	RestoredAuthoritiesInvalidated bool   `json:"restored_authorities_invalidated"`
+	ScannerCleanupHoldsPreserved   bool   `json:"scanner_cleanup_holds_preserved"`
+	LiveActivated                  bool   `json:"live_activated"`
+	ApplicationRestoreVerified     bool   `json:"application_restore_verified"`
+	PublisherSignatureVerified     bool   `json:"publisher_signature_verified"`
+	RestoredDatabaseDigest         string `json:"restored_database_digest,omitempty"`
+}

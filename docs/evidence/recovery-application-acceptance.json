@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "isolated synthetic demo database-destruction and application recovery drill; no production or independent-install claim",
+  "recorded_at": "2026-10-15T10:52:46.244899+00:00",
+  "checks": [
+    {
+      "id": "fresh_isolated_demo_and_owner_session_created",
+      "result": "PASS"
+    },
+    {
+      "id": "bundle_captured_while_matching_gateway_continues_serving",
+      "result": "PASS"
+    },
+    {
+      "id": "only_disposable_database_fixture_destroyed_with_gateway_lkg_available",
+      "result": "PASS"
+    },
+    {
+      "id": "restored_controller_denies_prebackup_session_and_allows_fresh_owner_login",
+      "result": "PASS"
+    },
+    {
+      "id": "restored_inventory_links_and_gateway_revision_match_snapshot",
+      "result": "PASS"
+    },
+    {
+      "id": "original_bundle_remains_immutable_and_verifiable_after_application_recovery",
+      "result": "PASS"
+    }
+  ],
+  "receipts": [
+    {
+      "schema_version": "1.0",
+      "status": "bundle_created",
+      "bundle_digest": "sha256:9df07c3d616138bfff97f246c03abcdae60d733e552901f9ad2772e2daedfc0e",
+      "policy_digest": "sha256:adfda7328d043dae01f4c3b4269bd63be62df23b933c38afcb2ea3f5011de9c8",
+      "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+      "integrity_verified": true,
+      "restored_authorities_invalidated": false,
+      "scanner_cleanup_holds_preserved": false,
+      "live_activated": false,
+      "application_restore_verified": false,
+      "publisher_signature_verified": false
+    },
+    {
+      "schema_version": "1.0",
+      "status": "restored_offline",
+      "bundle_digest": "sha256:9df07c3d616138bfff97f246c03abcdae60d733e552901f9ad2772e2daedfc0e",
+      "policy_digest": "sha256:adfda7328d043dae01f4c3b4269bd63be62df23b933c38afcb2ea3f5011de9c8",
+      "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+      "integrity_verified": true,
+      "restored_authorities_invalidated": true,
+      "scanner_cleanup_holds_preserved": true,
+      "live_activated": false,
+      "application_restore_verified": false,
+      "publisher_signature_verified": false,
+      "restored_database_digest": "sha256:3977b020ce210e3b93b1c01308598d2bd482fce09e503e87ba37fc5c4a5ec081"
+    },
+    {
+      "schema_version": "1.0",
+      "status": "bundle_verified",
+      "bundle_digest": "sha256:9df07c3d616138bfff97f246c03abcdae60d733e552901f9ad2772e2daedfc0e",
+      "policy_digest": "sha256:adfda7328d043dae01f4c3b4269bd63be62df23b933c38afcb2ea3f5011de9c8",
+      "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+      "integrity_verified": true,
+      "restored_authorities_invalidated": false,
+      "scanner_cleanup_holds_preserved": false,
+      "live_activated": false,
+      "application_restore_verified": false,
+      "publisher_signature_verified": false
+    }
+  ],
+  "gateway_before": {
+    "policy_digest": "sha256:adfda7328d043dae01f4c3b4269bd63be62df23b933c38afcb2ea3f5011de9c8",
+    "mode": "observe"
+  },
+  "gateway_after": {
+    "policy_digest": "sha256:adfda7328d043dae01f4c3b4269bd63be62df23b933c38afcb2ea3f5011de9c8",
+    "mode": "observe"
+  },
+  "image_digest": "sha256:73911564f5cbd3c39a874a29ba89710ac6f3dbcb14f4751bc49a07fc897073b2",
+  "application_restore_observed": true
+}

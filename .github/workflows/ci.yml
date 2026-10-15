@@ -68,6 +68,10 @@ jobs:
         env:
           AEGIS_LIVE_SNAPSHOT_TEST: '1'
         run: python3 tests/integration/database_snapshot_packaged_acceptance.py
+      - name: Prove isolated application recovery after database loss
+        env:
+          AEGIS_RECOVERY_DRILL: '1'
+        run: python3 tests/integration/recovery_application_acceptance.py
       - name: Stop only this disposable CI demo
         if: always()
         run: docker compose -f deploy/compose.demo.yaml down

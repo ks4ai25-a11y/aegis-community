@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/RecoveryBundleEnvelopeV1.json",
+  "title": "RecoveryBundleEnvelopeV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "bundle_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "product_version": {
+          "type": "string",
+          "const": "0.1.0-alpha.1"
+        },
+        "deployment_profile": {
+          "type": "string",
+          "const": "demo-http-v1"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "database_schema_version": {
+          "type": "integer",
+          "minimum": 13,
+          "maximum": 13
+        },
+        "policy_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "database": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "byte_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 536870912
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "byte_count",
+            "sha256"
+          ]
+        },
+        "gateway_configuration": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "byte_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65536
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "byte_count",
+            "sha256"
+          ]
+        },
+        "scanner_lock": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "byte_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65536
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "byte_count",
+            "sha256"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "product_version",
+        "deployment_profile",
+        "created_at",
+        "database_schema_version",
+        "policy_digest",
+        "database",
+        "gateway_configuration",
+        "scanner_lock"
+      ]
+    }
+  },
+  "required": [
+    "bundle_digest",
+    "document"
+  ]
+}

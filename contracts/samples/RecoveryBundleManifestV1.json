@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "product_version": "0.1.0-alpha.1",
+  "deployment_profile": "demo-http-v1",
+  "created_at": "2026-10-15T10:52:37.343617Z",
+  "database_schema_version": 13,
+  "policy_digest": "sha256:adfda7328d043dae01f4c3b4269bd63be62df23b933c38afcb2ea3f5011de9c8",
+  "database": {
+    "byte_count": 413696,
+    "sha256": "sha256:14913bb8a1f59d5a17966c1b7f0432cc98e32a91e1fe4e62dc6188b4eb2b8eb4"
+  },
+  "gateway_configuration": {
+    "byte_count": 1891,
+    "sha256": "sha256:74ac91c84a8445ec24426f541da4dd69a0381ea638f7f0dd3feb307e60c44c1f"
+  },
+  "scanner_lock": {
+    "byte_count": 2018,
+    "sha256": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0"
+  }
+}

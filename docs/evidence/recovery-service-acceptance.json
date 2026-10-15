@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "named local synthetic demo service update and private bundle round trip; no live restore or release claim",
+  "private_pre_update_snapshot_observed": true,
+  "services": {
+    "init": {
+      "image": "sha256:73911564f5cbd3c39a874a29ba89710ac6f3dbcb14f4751bc49a07fc897073b2",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    },
+    "deployer": {
+      "image": "sha256:73911564f5cbd3c39a874a29ba89710ac6f3dbcb14f4751bc49a07fc897073b2",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    },
+    "verifier": {
+      "image": "sha256:73911564f5cbd3c39a874a29ba89710ac6f3dbcb14f4751bc49a07fc897073b2",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    },
+    "controller": {
+      "image": "sha256:73911564f5cbd3c39a874a29ba89710ac6f3dbcb14f4751bc49a07fc897073b2",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    }
+  },
+  "ready": true,
+  "gateway": {
+    "status": 200,
+    "policy_digest": "sha256:1f8c3442cf3b73d0f56844bbdfc130a6968f919d296fc67259944cc436171ab7",
+    "mode": "observe"
+  },
+  "receipts": [
+    {
+      "schema_version": "1.0",
+      "status": "bundle_created",
+      "bundle_digest": "sha256:e3873adf1f69641701a872df0fd25e98ddef75c3367080085c9e80f12610f6bc",
+      "policy_digest": "sha256:1f8c3442cf3b73d0f56844bbdfc130a6968f919d296fc67259944cc436171ab7",
+      "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+      "integrity_verified": true,
+      "restored_authorities_invalidated": false,
+      "scanner_cleanup_holds_preserved": false,
+      "live_activated": false,
+      "application_restore_verified": false,
+      "publisher_signature_verified": false
+    },
+    {
+      "schema_version": "1.0",
+      "status": "bundle_verified",
+      "bundle_digest": "sha256:e3873adf1f69641701a872df0fd25e98ddef75c3367080085c9e80f12610f6bc",
+      "policy_digest": "sha256:1f8c3442cf3b73d0f56844bbdfc130a6968f919d296fc67259944cc436171ab7",
+      "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+      "integrity_verified": true,
+      "restored_authorities_invalidated": false,
+      "scanner_cleanup_holds_preserved": false,
+      "live_activated": false,
+      "application_restore_verified": false,
+      "publisher_signature_verified": false
+    }
+  ],
+  "private_bundle_retained_in_controller_volume": true,
+  "web_controller_gateway_policy_mount": false,
+  "web_controller_engine_socket": false
+}

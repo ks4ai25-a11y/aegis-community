@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "recorded_at": "2026-10-15T10:55:01.946130+00:00",
+  "scope": "Current schema-13 demo-http-v1 private bundle, confirmed offline restore and same-engine isolated application drill; no second-host, release or independent security acceptance",
+  "checks": {
+    "make_test": "PASS",
+    "controller_go_vet": "PASS",
+    "final_recovery_race_repetitions": 3,
+    "final_recovery_race_pass_events": 72,
+    "native_cli_checks": 10,
+    "namespace_refusal_tests": 3,
+    "isolated_application_checks": 6,
+    "named_demo_service_update_and_private_bundle_verification": "PASS"
+  },
+  "contracts": {
+    "actual_payloads_validated": 8,
+    "malformed_or_overstated_variants_rejected": 10,
+    "date_time_format_checked": true
+  },
+  "evidence": {
+    "native": "recovery-native-cli-acceptance.json",
+    "application": "recovery-application-acceptance.json",
+    "service": "recovery-service-acceptance.json"
+  },
+  "initial_draft_isolation_fault": {
+    "resolved_compose_names_reused": true,
+    "database_destruction_reached": false,
+    "existing_gateway_http_continued": true,
+    "existing_demo_readiness_restored": true,
+    "corrected_preflight_requires_unique_resource_names": true
+  },
+  "scanner_cleanup_admission": "HELD",
+  "publisher_signature_verified": false,
+  "second_clean_machine_restore_verified": false,
+  "independent_security_signoff": false,
+  "gate_11": "INCOMPLETE",
+  "public_beta": "NO-GO"
+}

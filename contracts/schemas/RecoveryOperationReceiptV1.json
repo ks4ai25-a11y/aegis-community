@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/RecoveryOperationReceiptV1.json",
+  "title": "RecoveryOperationReceiptV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "bundle_created",
+        "bundle_verified",
+        "restored_offline"
+      ]
+    },
+    "bundle_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "policy_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "tool_lock_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "integrity_verified": {
+      "type": "boolean",
+      "const": true
+    },
+    "restored_authorities_invalidated": {
+      "type": "boolean"
+    },
+    "scanner_cleanup_holds_preserved": {
+      "type": "boolean"
+    },
+    "live_activated": {
+      "type": "boolean",
+      "const": false
+    },
+    "application_restore_verified": {
+      "type": "boolean",
+      "const": false
+    },
+    "publisher_signature_verified": {
+      "type": "boolean",
+      "const": false
+    },
+    "restored_database_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "bundle_digest",
+    "policy_digest",
+    "tool_lock_digest",
+    "integrity_verified",
+    "restored_authorities_invalidated",
+    "scanner_cleanup_holds_preserved",
+    "live_activated",
+    "application_restore_verified",
+    "publisher_signature_verified"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "restored_offline"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "restored_database_digest"
+        ],
+        "properties": {
+          "restored_authorities_invalidated": {
+            "const": true
+          },
+          "scanner_cleanup_holds_preserved": {
+            "const": true
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "restored_authorities_invalidated": {
+            "const": false
+          },
+          "scanner_cleanup_holds_preserved": {
+            "const": false
+          }
+        },
+        "not": {
+          "required": [
+            "restored_database_digest"
+          ]
+        }
+      }
+    }
+  ]
+}

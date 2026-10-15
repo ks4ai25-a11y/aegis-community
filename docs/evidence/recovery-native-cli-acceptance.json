@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "native synthetic bundle creation, verification and confirmed offline restore; no live application activation",
+  "recorded_at": "2026-10-15T10:52:38.268168+00:00",
+  "checks": [
+    {
+      "id": "bundle_creation_leaves_source_database_unchanged",
+      "result": "PASS"
+    },
+    {
+      "id": "private_bundle_binds_database_policy_gateway_and_tool_lock",
+      "result": "PASS"
+    },
+    {
+      "id": "verification_accepts_exact_trusted_profile",
+      "result": "PASS"
+    },
+    {
+      "id": "wrong_confirmation_never_allocates_restore_destination",
+      "result": "PASS"
+    },
+    {
+      "id": "offline_restore_invalidates_access_preserves_history_and_hashes_installed_state",
+      "result": "PASS"
+    },
+    {
+      "id": "offline_restore_preserves_matching_gateway_and_tool_bytes",
+      "result": "PASS"
+    },
+    {
+      "id": "existing_destination_is_never_overwritten",
+      "result": "PASS"
+    },
+    {
+      "id": "restore_never_modifies_original_bundle",
+      "result": "PASS"
+    },
+    {
+      "id": "a_different_trusted_tool_lock_refuses_recovery",
+      "result": "PASS"
+    },
+    {
+      "id": "changed_bundle_configuration_is_rejected",
+      "result": "PASS"
+    }
+  ],
+  "receipts": [
+    {
+      "schema_version": "1.0",
+      "status": "bundle_created",
+      "bundle_digest": "sha256:df3121b6b7802a8f67edba1703cfaaa174567e3fbc8f85345164196532862706",
+      "policy_digest": "sha256:adfda7328d043dae01f4c3b4269bd63be62df23b933c38afcb2ea3f5011de9c8",
+      "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+      "integrity_verified": true,
+      "restored_authorities_invalidated": false,
+      "scanner_cleanup_holds_preserved": false,
+      "live_activated": false,
+      "application_restore_verified": false,
+      "publisher_signature_verified": false
+    },
+    {
+      "schema_version": "1.0",
+      "status": "bundle_verified",
+      "bundle_digest": "sha256:df3121b6b7802a8f67edba1703cfaaa174567e3fbc8f85345164196532862706",
+      "policy_digest": "sha256:adfda7328d043dae01f4c3b4269bd63be62df23b933c38afcb2ea3f5011de9c8",
+      "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+      "integrity_verified": true,
+      "restored_authorities_invalidated": false,
+      "scanner_cleanup_holds_preserved": false,
+      "live_activated": false,
+      "application_restore_verified": false,
+      "publisher_signature_verified": false
+    },
+    {
+      "schema_version": "1.0",
+      "status": "restored_offline",
+      "bundle_digest": "sha256:df3121b6b7802a8f67edba1703cfaaa174567e3fbc8f85345164196532862706",
+      "policy_digest": "sha256:adfda7328d043dae01f4c3b4269bd63be62df23b933c38afcb2ea3f5011de9c8",
+      "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+      "integrity_verified": true,
+      "restored_authorities_invalidated": true,
+      "scanner_cleanup_holds_preserved": true,
+      "live_activated": false,
+      "application_restore_verified": false,
+      "publisher_signature_verified": false,
+      "restored_database_digest": "sha256:6d244491b74ff83721cbbcc6c61e5a05dfe901658fd6d7e16ac13c60e7a20651"
+    }
+  ],
+  "manifest": {
+    "bundle_digest": "sha256:df3121b6b7802a8f67edba1703cfaaa174567e3fbc8f85345164196532862706",
+    "document": {
+      "schema_version": "1.0",
+      "product_version": "0.1.0-alpha.1",
+      "deployment_profile": "demo-http-v1",
+      "created_at": "2026-10-15T10:52:37.343617Z",
+      "database_schema_version": 13,
+      "policy_digest": "sha256:adfda7328d043dae01f4c3b4269bd63be62df23b933c38afcb2ea3f5011de9c8",
+      "database": {
+        "byte_count": 413696,
+        "sha256": "sha256:14913bb8a1f59d5a17966c1b7f0432cc98e32a91e1fe4e62dc6188b4eb2b8eb4"
+      },
+      "gateway_configuration": {
+        "byte_count": 1891,
+        "sha256": "sha256:74ac91c84a8445ec24426f541da4dd69a0381ea638f7f0dd3feb307e60c44c1f"
+      },
+      "scanner_lock": {
+        "byte_count": 2018,
+        "sha256": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0"
+      }
+    }
+  },
+  "binary_digest": "sha256:c70b534fdeda2a74e4862206d6f91c464c509b6a8facdfed4bf38eba6b7a66cc"
+}

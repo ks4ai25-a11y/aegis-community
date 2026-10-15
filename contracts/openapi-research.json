@@ -1198,6 +1198,15 @@
       "PolicyRevisionV1": {
         "$ref": "schemas/PolicyRevisionV1.json"
       },
+      "RecoveryBundleEnvelopeV1": {
+        "$ref": "schemas/RecoveryBundleEnvelopeV1.json"
+      },
+      "RecoveryBundleManifestV1": {
+        "$ref": "schemas/RecoveryBundleManifestV1.json"
+      },
+      "RecoveryOperationReceiptV1": {
+        "$ref": "schemas/RecoveryOperationReceiptV1.json"
+      },
       "RepositoryAssetListV1": {
         "$ref": "schemas/RepositoryAssetListV1.json"
       },

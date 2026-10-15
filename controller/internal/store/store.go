@@ -3,6 +3,7 @@ package store
 
 import (
 	"aegis.local/controller/internal/domain"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -41,7 +42,19 @@ CREATE TABLE IF NOT EXISTS handoffs(id TEXT PRIMARY KEY,connection TEXT NOT NULL
 CREATE TABLE IF NOT EXISTS drafts(id TEXT PRIMARY KEY,connection TEXT NOT NULL,incident TEXT NOT NULL,state TEXT NOT NULL,document TEXT NOT NULL,hash TEXT NOT NULL,key TEXT NOT NULL,UNIQUE(connection,key));
 `
 
+const RestorePending = ".restore-pending"
+
+func refusePendingRestore(path string) error {
+	if _, e := os.Lstat(filepath.Join(filepath.Dir(path), RestorePending)); !os.IsNotExist(e) {
+		return fmt.Errorf("offline restore is incomplete; controller state remains quarantined")
+	}
+	return nil
+}
+
 func Open(path string) (*Store, error) {
+	if e := refusePendingRestore(path); e != nil {
+		return nil, e
+	}
 	if e := os.MkdirAll(filepath.Dir(path), 0700); e != nil {
 		return nil, e
 	}
@@ -140,7 +153,10 @@ func AuditTx(tx *sql.Tx, actor, action, object, result string, data any) error {
 	return e
 }
 func (s *Store) VerifyAudit() error {
-	rows, e := s.DB.Query("SELECT document,previous,hash FROM audit ORDER BY seq")
+	return s.VerifyAuditContext(context.Background())
+}
+func (s *Store) VerifyAuditContext(ctx context.Context) error {
+	rows, e := s.DB.QueryContext(ctx, "SELECT document,previous,hash FROM audit ORDER BY seq")
 	if e != nil {
 		return e
 	}

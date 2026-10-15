@@ -1001,3 +1001,57 @@ class DatabaseSnapshotReceiptV1(TypedDict):
     gateway_configuration_captured: bool
     tool_manifest_captured: bool
     restore_verified: bool
+class RecoveryBundleManifestV1(TypedDict):
+    schema_version: str
+    product_version: str
+    deployment_profile: str
+    created_at: str
+    database_schema_version: int
+    policy_digest: str
+    database: RecoveryBundleEnvelopeV1DocumentDatabase
+    gateway_configuration: RecoveryBundleEnvelopeV1DocumentGatewayConfiguration
+    scanner_lock: RecoveryBundleEnvelopeV1DocumentScannerLock
+class RecoveryBundleManifestV1Database(TypedDict):
+    byte_count: int
+    sha256: str
+class RecoveryBundleManifestV1GatewayConfiguration(TypedDict):
+    byte_count: int
+    sha256: str
+class RecoveryBundleManifestV1ScannerLock(TypedDict):
+    byte_count: int
+    sha256: str
+class RecoveryBundleEnvelopeV1(TypedDict):
+    bundle_digest: str
+    document: RecoveryBundleEnvelopeV1Document
+class RecoveryBundleEnvelopeV1Document(TypedDict):
+    schema_version: str
+    product_version: str
+    deployment_profile: str
+    created_at: str
+    database_schema_version: int
+    policy_digest: str
+    database: RecoveryBundleEnvelopeV1DocumentDatabase
+    gateway_configuration: RecoveryBundleEnvelopeV1DocumentGatewayConfiguration
+    scanner_lock: RecoveryBundleEnvelopeV1DocumentScannerLock
+class RecoveryBundleEnvelopeV1DocumentDatabase(TypedDict):
+    byte_count: int
+    sha256: str
+class RecoveryBundleEnvelopeV1DocumentGatewayConfiguration(TypedDict):
+    byte_count: int
+    sha256: str
+class RecoveryBundleEnvelopeV1DocumentScannerLock(TypedDict):
+    byte_count: int
+    sha256: str
+class RecoveryOperationReceiptV1(TypedDict):
+    schema_version: str
+    status: str
+    bundle_digest: str
+    policy_digest: str
+    tool_lock_digest: str
+    integrity_verified: bool
+    restored_authorities_invalidated: bool
+    scanner_cleanup_holds_preserved: bool
+    live_activated: bool
+    application_restore_verified: bool
+    publisher_signature_verified: bool
+    restored_database_digest: NotRequired[str]

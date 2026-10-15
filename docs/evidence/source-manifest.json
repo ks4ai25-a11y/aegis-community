@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:68e056cbd3070634e9103402da295642e3aafe1309cab9fa199fe99b50a65c9f",
+  "source_tree_sha256": "sha256:d9b7969b75293eff4c50b815089a21e4fad739c3b33d759e2ab808afd28828dc",
   "files": [
     {
       "path": ".dockerignore",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "c01aa4feaeda2cf711fd1690b85ec3153d2f6e8cc34ebad7f88fa294e330a8f1"
+      "sha256": "73ed002d057060394aad83b7cef7cec664839bf15409e99536fffa51d2302990"
     },
     {
       "path": ".gitignore",
@@ -28,11 +28,11 @@
     },
     {
       "path": "Makefile",
-      "sha256": "97e84d6b9578a0432de6bc8bf1b079c975f88456bb21bd6672fd3839401043b4"
+      "sha256": "489a7cf0e3c121fcfe6221582e90f0b55e6ffd4f8411700531b4ef12a96245d3"
     },
     {
       "path": "README.md",
-      "sha256": "e66613c1556c799bb8a6dca5da20c9ff1127f2bf5bbbc9a90ceb06324f9be35b"
+      "sha256": "3505209c45e1fc23696b4667981cb357631ece69e1ad758242dd90c2f36a34ab"
     },
     {
       "path": "SECURITY.md",
@@ -356,7 +356,7 @@
     },
     {
       "path": "console/src/generated/contracts.ts",
-      "sha256": "ecac5410fcd65c4dc557166260f18ddd777d7b3366458b6d64341981e39cd866"
+      "sha256": "53eb25b21ada371b8547ac2c9ff141b28e125a3bfa63545a3dd58ad968141a7d"
     },
     {
       "path": "console/src/generated/research-client.ts",
@@ -404,15 +404,15 @@
     },
     {
       "path": "contracts/generated/contracts.go",
-      "sha256": "103c097b7518eb0b5c38482af7cf62ec8a32657411b5e70a1493298845dc9f0b"
+      "sha256": "bebda80473d80577aa4ef1a6ddce68e521ec808d136b7e8ee1dcfb2ea535a43f"
     },
     {
       "path": "contracts/generated/contracts.py",
-      "sha256": "2133e3447203c4fb8f276fd5a5e33be945b01375643988e77d356c19f1739e00"
+      "sha256": "95b8f5431ffb5f052638abfae1d17bc4594bb6ca750482269e30a4293361a920"
     },
     {
       "path": "contracts/generated/contracts.ts",
-      "sha256": "ecac5410fcd65c4dc557166260f18ddd777d7b3366458b6d64341981e39cd866"
+      "sha256": "53eb25b21ada371b8547ac2c9ff141b28e125a3bfa63545a3dd58ad968141a7d"
     },
     {
       "path": "contracts/generated/research_client.go",
@@ -432,7 +432,7 @@
     },
     {
       "path": "contracts/openapi-research.json",
-      "sha256": "e8fd80e62f17f018b3a18c4a2186f34e9ca373a55d4b717acca39d709a2314fd"
+      "sha256": "15728f1c168f6691868b4c6e9ee8a3d05cffb0bc688a7d53d117cf4ae8f744c2"
     },
     {
       "path": "contracts/samples/ApplicationMapV1.json",
@@ -457,6 +457,18 @@
     {
       "path": "contracts/samples/FindingTriageRecordV1.json",
       "sha256": "4e71f1e6e5d3ba3c5d07e3ec5dd45f264f6f73d6565e2069f7940316432632fd"
+    },
+    {
+      "path": "contracts/samples/RecoveryBundleEnvelopeV1.json",
+      "sha256": "b70c4698d1571c0078ba22c8bbd72d75ed59ac318f3ae6368c3adc5682b914cb"
+    },
+    {
+      "path": "contracts/samples/RecoveryBundleManifestV1.json",
+      "sha256": "9bd1aa2d49ded60ccc71bbdf0f6912eae36a4c644f6d64f506352cbe189e90b8"
+    },
+    {
+      "path": "contracts/samples/RecoveryOperationReceiptV1.json",
+      "sha256": "16478a920db81495efaf206960a855b806589d7fa894e7f5fa138854979294be"
     },
     {
       "path": "contracts/samples/RepositoryV1.json",
@@ -611,6 +623,18 @@
       "sha256": "f27ba81086b5db812f0711eb48804865f0c0c16823aed308d30c57971497632e"
     },
     {
+      "path": "contracts/schemas/RecoveryBundleEnvelopeV1.json",
+      "sha256": "c9949d88af43e64c5ea457c9a8cb2e959b5eecb702f0861dfc1634ae287626e5"
+    },
+    {
+      "path": "contracts/schemas/RecoveryBundleManifestV1.json",
+      "sha256": "b1ca46e09cb3d65fd674161613512b5f98a44044c6b4b6a19e2f482b0f61ba88"
+    },
+    {
+      "path": "contracts/schemas/RecoveryOperationReceiptV1.json",
+      "sha256": "b87a4675e6cfb2dbcb60baa40fc9ba73c2fb0e9f390779ae68c2be358aec1b3a"
+    },
+    {
       "path": "contracts/schemas/RepositoryAssetListV1.json",
       "sha256": "c1071cd2b08bbada180cb3af3ba023833421f0bb002af5e45d562163b92b1e89"
     },
@@ -760,11 +784,15 @@
     },
     {
       "path": "controller/cmd/aegisctl/main.go",
-      "sha256": "0ff290536cdf6613bf135b2c05b62b37884a435c77af89da0b0276b9c6939af5"
+      "sha256": "f104e924b086f3db23354643024b9d2b799e3ab2177d981fa294c9721f46e751"
     },
     {
       "path": "controller/cmd/aegisctl/main_test.go",
       "sha256": "16652c9bea3898a9d0af01399c3a2221f80a107a30911b261640a0b4dd4039ea"
+    },
+    {
+      "path": "controller/cmd/aegisctl/recovery.go",
+      "sha256": "bdd3d535d2ac3834c38d78e6f41fc8f08cc3e7538703f0ee3062c45ff574ca09"
     },
     {
       "path": "controller/cmd/aegisd/main.go",
@@ -857,6 +885,26 @@
     {
       "path": "controller/internal/policy/policy_test.go",
       "sha256": "a37ed34bd9787a810824d07e560a9f9c6a878e53e6eb93dc50557b06d27d0f94"
+    },
+    {
+      "path": "controller/internal/recovery/bundle.go",
+      "sha256": "efcd46763f44329c12dbf92ed96e9f78648d72d0cf272a9f8b1601ba47fcd063"
+    },
+    {
+      "path": "controller/internal/recovery/bundle_test.go",
+      "sha256": "bf75d84485d919bc4456adb0511a8189ab686908b4a590f5c4bcd43fdde57cdb"
+    },
+    {
+      "path": "controller/internal/recovery/files_other.go",
+      "sha256": "588908279374639cffda7d2aa174d9e94a221f8300468e4a44de474bce41a8f9"
+    },
+    {
+      "path": "controller/internal/recovery/files_unix.go",
+      "sha256": "57a34b2cd9adc4d47a1535ec63f5c2b5dc76a5c2464cbb145bc5f47eae2c09fe"
+    },
+    {
+      "path": "controller/internal/recovery/restore.go",
+      "sha256": "d8e8248f866215b646dfee39aba7a10b19778a157c1eedf7f28b582a0c68bf62"
     },
     {
       "path": "controller/internal/repository/repository.go",
@@ -1100,7 +1148,7 @@
     },
     {
       "path": "controller/internal/store/backup.go",
-      "sha256": "4df6aec5ceb91aa3402a3931f7846b27e01f56c87f796e6f036a12d6de8c7440"
+      "sha256": "fb8eb1bc60cc6c4b29faaf097fc76e40eec1bd30eb040063d732afbf68bf2c6b"
     },
     {
       "path": "controller/internal/store/backup_other.go",
@@ -1124,7 +1172,7 @@
     },
     {
       "path": "controller/internal/store/store.go",
-      "sha256": "73c19a5fc0b05f6eba2553f5e4d90cdd273f6abf048e3f17cd1713e052641c1c"
+      "sha256": "c4b5fc58bd9f2fa498e3f78e1ed92fc34ecd4c260c45b956c4539b134dae8071"
     },
     {
       "path": "controller/internal/store/store_test.go",
@@ -1295,8 +1343,12 @@
       "sha256": "cb843bfe92971121a9f1166a92bbecedfe3f24c9c1a1cdc83629819f22576b85"
     },
     {
+      "path": "docs/architecture/adr/044-bound-recovery-bundles.md",
+      "sha256": "6eb2ea4ced2ce8aa48bd222cfa0bd879263a050177a2b8724f11627e97ee06cb"
+    },
+    {
       "path": "docs/operators/database-snapshots.md",
-      "sha256": "98df73743d27b6e741fec97624ec95c290478d3c0742f008c6208dab6b71df6b"
+      "sha256": "3c62f228aa2828f135f5293c85d3da33a1e25464022bcbe6bd9344de9e3c6e85"
     },
     {
       "path": "docs/operators/finding-reviews.md",
@@ -1313,6 +1365,10 @@
     {
       "path": "docs/operators/offline-scanners.md",
       "sha256": "ac9c6a45727a5f89cc6ae7e27a870d6f9c3ec08e5dcc63be1a4c103eba506a9f"
+    },
+    {
+      "path": "docs/operators/recovery-bundles.md",
+      "sha256": "7547af827ef0ccae60d47a4c3cfe40053621b73f4ba2a594c74d63e422db37fd"
     },
     {
       "path": "docs/operators/repositories.md",
@@ -1360,7 +1416,7 @@
     },
     {
       "path": "scripts/generate_contracts.py",
-      "sha256": "7c1eac34c455160b4e22e1bac9ec75006227ce7e988a89c09e26a17ce4d56bea"
+      "sha256": "85c5acc9df0874d90543d693dd1c7eb2823993c3d4384f46f3b186bbfa375fb1"
     },
     {
       "path": "scripts/generate_research_api.py",
@@ -1503,6 +1559,18 @@
       "sha256": "6073b1174ba1fe16936f0201d5231302f14f30d7ec853814439954272dff8372"
     },
     {
+      "path": "tests/integration/recovery_application_acceptance.py",
+      "sha256": "1a50e3511361a241f25df49308a04c2e584c89eb9ed59304c5bf4199fa672fdf"
+    },
+    {
+      "path": "tests/integration/recovery_bundle_acceptance.py",
+      "sha256": "28e7904664b60961219af662af477c2c867824ed73667d525b36576ffb4c0647"
+    },
+    {
+      "path": "tests/integration/recovery_isolation.py",
+      "sha256": "21da6c9498ee2c3d369a9e59bf3ef810d6e0ac6f3a1042b7b381b81bfbe2eada"
+    },
+    {
       "path": "tests/integration/repository_acceptance.py",
       "sha256": "a6b6aaf9babf0e94fe9c5e03334a090a6c49504c1cde9306a83f414ddf73a1bb"
     },
@@ -1573,6 +1641,10 @@
     {
       "path": "tests/integration/snapshot_scanner_acceptance.py",
       "sha256": "c2f500f340cef64c622fcc2e8b79ea8582d4826d95b9aafab1dfb41f89b5e901"
+    },
+    {
+      "path": "tests/integration/test_recovery_isolation.py",
+      "sha256": "3e534e9dac8eb2a71db4a1aa11468fe434aec84b2f8128fd1cbb87c980cf418b"
     },
     {
       "path": "tools/scanners.lock.json",

@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "status": "restored_offline",
+  "bundle_digest": "sha256:df3121b6b7802a8f67edba1703cfaaa174567e3fbc8f85345164196532862706",
+  "policy_digest": "sha256:adfda7328d043dae01f4c3b4269bd63be62df23b933c38afcb2ea3f5011de9c8",
+  "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+  "integrity_verified": true,
+  "restored_authorities_invalidated": true,
+  "scanner_cleanup_holds_preserved": true,
+  "live_activated": false,
+  "application_restore_verified": false,
+  "publisher_signature_verified": false,
+  "restored_database_digest": "sha256:6d244491b74ff83721cbbcc6c61e5a05dfe901658fd6d7e16ac13c60e7a20651"
+}
