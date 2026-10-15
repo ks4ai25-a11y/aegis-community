@@ -34,9 +34,9 @@ test('owner review remains separate from T0 evidence and safely renders rational
  await expect(page.locator('.finding-record')).toContainText('Evidence: T0 · Tool claim: suspected · Confidence: low');
  await expect(page.locator('.finding-triage img')).toHaveCount(0);
  await page.getByRole('button',{name:'Reload current review'}).click();await expect(page.getByLabel('Local review rationale')).toHaveValue(rationale);
- await page.locator('.finding-record').screenshot({path:'../docs/evidence/finding-triage-desktop.png'});
+ await page.locator('.finding-record').screenshot({path:test.info().outputPath('finding-triage-desktop.png')});
  await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
- await page.locator('.finding-record').screenshot({path:'../docs/evidence/finding-triage-mobile.png'});
+ await page.locator('.finding-record').screenshot({path:test.info().outputPath('finding-triage-mobile.png')});
 });
 test('lost mutation response retries with the same key and revision',async({page})=>{
  const posts:{body:string,key:string}[]=[];

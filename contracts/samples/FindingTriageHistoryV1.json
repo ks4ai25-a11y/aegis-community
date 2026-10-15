@@ -1,0 +1,47 @@
+{
+  "history_digest": "sha256:05052cd0bca64e74d2bc5678839caee49ef8ff1d64bcc01bdd5b8067d74c5f4c",
+  "document": {
+    "schema_version": "1.0",
+    "assessment_scope": "owner_review_only",
+    "owner_id": "owner-a",
+    "job_id": "01a13f43-9e1b-787f-96d5-c2ffb248522a",
+    "record_id": "sha256:4d4f7a1d8e13a3e920a2e246bc95b5cd32e9a99ca3aa7770203de4907b3fed77",
+    "result_digest": "sha256:b8adc522884bedb60d9f5be97e03c920d79b642e820f4a4162510a0a24465d15",
+    "baseline_digest": "sha256:91637f34b76880c0e82d9a3124fab2223eed5edd1698500052f5075f61d01a2d",
+    "head_digest": "sha256:254edeb5eb1d824382d9c42948e8d440eb2af1d21f4ca4c6c02b37b2c2e2aa5e",
+    "revision_count": 2,
+    "complete": true,
+    "items": [
+      {
+        "triage_digest": "sha256:7c6ab2ead149da5b3b9574c0606e5bfe4265183d5063c4a5eef76ac2c5e6de60",
+        "document": {
+          "schema_version": "1.0",
+          "owner_id": "owner-a",
+          "job_id": "01a13f43-9e1b-787f-96d5-c2ffb248522a",
+          "record_id": "sha256:4d4f7a1d8e13a3e920a2e246bc95b5cd32e9a99ca3aa7770203de4907b3fed77",
+          "result_digest": "sha256:b8adc522884bedb60d9f5be97e03c920d79b642e820f4a4162510a0a24465d15",
+          "revision": 1,
+          "state": "false_positive",
+          "rationale": "Reviewed <synthetic> fixture & static claim; no exploit proof",
+          "previous_digest": "",
+          "updated_at": "2026-10-15T11:12:40.232488Z"
+        }
+      },
+      {
+        "triage_digest": "sha256:254edeb5eb1d824382d9c42948e8d440eb2af1d21f4ca4c6c02b37b2c2e2aa5e",
+        "document": {
+          "schema_version": "1.0",
+          "owner_id": "owner-a",
+          "job_id": "01a13f43-9e1b-787f-96d5-c2ffb248522a",
+          "record_id": "sha256:4d4f7a1d8e13a3e920a2e246bc95b5cd32e9a99ca3aa7770203de4907b3fed77",
+          "result_digest": "sha256:b8adc522884bedb60d9f5be97e03c920d79b642e820f4a4162510a0a24465d15",
+          "revision": 2,
+          "state": "accepted_risk",
+          "rationale": "Owner accepts this synthetic static risk pending code review",
+          "previous_digest": "sha256:7c6ab2ead149da5b3b9574c0606e5bfe4265183d5063c4a5eef76ac2c5e6de60",
+          "updated_at": "2026-10-15T11:12:40.486915Z"
+        }
+      }
+    ]
+  }
+}

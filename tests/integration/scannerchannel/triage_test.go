@@ -50,6 +50,15 @@ func assertOwnerHTTPTriage(t *testing.T, f fixture, job string) {
 		return w
 	}
 	query := "?record_id=" + url.QueryEscape(record)
+	historyEndpoint := endpoint + "-history"
+	historyQuery := query + "&result_digest=" + url.QueryEscape(page.Result)
+	emptyHistory := call("GET", historyEndpoint+historyQuery, "", 200, nil)
+	t.Logf("OWNER_HTTP_TRIAGE_HISTORY_EMPTY %s", emptyHistory.Body.String())
+	for _, bad := range []string{"", query, historyQuery + "&record_id=other", historyQuery + "&unknown=1", "?record_id=%zz&result_digest=bad"} {
+		call("GET", historyEndpoint+bad, "", 400, nil)
+	}
+	call("POST", historyEndpoint+historyQuery, "{}", 405, nil)
+	call("GET", historyEndpoint+query+"&result_digest="+url.QueryEscape(domain.Hash([]byte("wrong result"))), "", 409, nil)
 	initial := call("GET", endpoint+query, "", 200, nil)
 	t.Logf("OWNER_HTTP_TRIAGE_INITIAL %s", initial.Body.String())
 	in := scanqueue.FindingTriageInput{Schema: "1.0", Record: record, Result: page.Result, State: "false_positive", Rationale: "Reviewed <synthetic> fixture & static claim; no exploit proof"}
@@ -78,6 +87,22 @@ func assertOwnerHTTPTriage(t *testing.T, f fixture, job string) {
 	t.Logf("OWNER_HTTP_TRIAGE_RECORDED %s", first.Body.String())
 	t.Logf("OWNER_HTTP_TRIAGE_RESULT %s", mustJSONResult(t, f, job))
 	t.Logf("OWNER_HTTP_TRIAGE_PAGE %s", mustJSONPage(t, f, job))
+	oneHistory := call("GET", historyEndpoint+historyQuery, "", 200, nil)
+	var one scanqueue.FindingTriageHistory
+	if json.Unmarshal(oneHistory.Body.Bytes(), &one) != nil || one.Document.Count != 1 || one.Document.Head != current.Digest || domain.Digest(one.Document) != one.Digest {
+		t.Fatal("history head mismatch")
+	}
+	in.Expected = 1
+	in.State = "accepted_risk"
+	in.Rationale = "Owner accepts this synthetic static risk pending code review"
+	secondBody, _ := json.Marshal(in)
+	call("POST", endpoint, string(secondBody), 200, map[string]string{"Idempotency-Key": "http-history-second"})
+	history := call("GET", historyEndpoint+historyQuery, "", 200, nil)
+	var complete scanqueue.FindingTriageHistory
+	if json.Unmarshal(history.Body.Bytes(), &complete) != nil || complete.Document.Count != 2 || len(complete.Document.Items) != 2 || complete.Document.Items[1].Document.Previous != current.Digest || domain.Digest(complete.Document) != complete.Digest {
+		t.Fatal("incomplete HTTP chain")
+	}
+	t.Logf("OWNER_HTTP_TRIAGE_HISTORY_COMPLETE %s", history.Body.String())
 	var raw string
 	f.s.DB.QueryRow("SELECT group_concat(document) FROM audit WHERE document LIKE '%finding.triage%'").Scan(&raw)
 	if strings.Contains(raw, "synthetic") || strings.Contains(raw, "static claim") {
@@ -87,6 +112,7 @@ func assertOwnerHTTPTriage(t *testing.T, f fixture, job string) {
 		t.Fatal(e)
 	}
 	call("GET", endpoint+query, "", 404, nil)
+	call("GET", historyEndpoint+historyQuery, "", 404, nil)
 	call("POST", endpoint, body, 404, nil)
 	assertCleanupHeld(t, f)
 	if e = f.s.VerifyAudit(); e != nil {

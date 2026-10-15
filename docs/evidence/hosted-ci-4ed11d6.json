@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Hosted source/browser/build and disposable demo including isolated recovery for the exact published recovery/status commit; no independent security sign-off",
+  "commit": "4ed11d68843532c0157282770f4410d7e5f952f8",
+  "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38724458637",
+  "created_at": "2026-10-15T11:02:05Z",
+  "updated_at": "2026-10-15T11:05:49Z",
+  "jobs": [
+    {
+      "name": "source",
+      "result": "success",
+      "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38724458637/job/116386865557"
+    },
+    {
+      "name": "trusted-demo",
+      "result": "success",
+      "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38724458637/job/116386865955"
+    }
+  ],
+  "independent_security_signoff": false,
+  "public_beta": "NO-GO"
+}

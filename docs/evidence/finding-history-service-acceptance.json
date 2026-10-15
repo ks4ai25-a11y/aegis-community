@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Named local demo image alignment, readiness and served console identity; no independent installation claim",
+  "pre_update_snapshot": {
+    "schema_version": "1.0",
+    "status": "created",
+    "scope": "controller_database_only",
+    "database_digest": "sha256:c96244978a3aa1de631831fe63c802638630246d9d2405de650acd03329927dd",
+    "byte_count": 1646592,
+    "created_at": "2026-10-15T11:19:43.103391046Z",
+    "gateway_configuration_captured": false,
+    "tool_manifest_captured": false,
+    "restore_verified": false
+  },
+  "services": {
+    "init": {
+      "image": "sha256:d9d15e825326c0d0de0b6ddd6667166046a08865375286e8f2b54d08e7a4f2bc",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    },
+    "controller": {
+      "image": "sha256:d9d15e825326c0d0de0b6ddd6667166046a08865375286e8f2b54d08e7a4f2bc",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    },
+    "deployer": {
+      "image": "sha256:d9d15e825326c0d0de0b6ddd6667166046a08865375286e8f2b54d08e7a4f2bc",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    },
+    "verifier": {
+      "image": "sha256:d9d15e825326c0d0de0b6ddd6667166046a08865375286e8f2b54d08e7a4f2bc",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    }
+  },
+  "gateway_before": {
+    "status": 200,
+    "policy_digest": "sha256:1f8c3442cf3b73d0f56844bbdfc130a6968f919d296fc67259944cc436171ab7",
+    "mode": "observe"
+  },
+  "gateway_after": {
+    "status": 200,
+    "policy_digest": "sha256:1f8c3442cf3b73d0f56844bbdfc130a6968f919d296fc67259944cc436171ab7",
+    "mode": "observe"
+  },
+  "console_asset": "/assets/index-CiYhO5Y2.js",
+  "console_digest": "sha256:010a340316b12098376e57180c25ee707788811b20a1acedc4d1ec655f64c6fc",
+  "web_controller_engine_socket": false,
+  "web_controller_gateway_policy_mount": false
+}

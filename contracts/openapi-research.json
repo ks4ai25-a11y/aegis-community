@@ -11,6 +11,68 @@
     }
   ],
   "paths": {
+    "/scans/{id}/finding-triage-history": {
+      "get": {
+        "operationId": "getFindingTriageHistory",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingTriageHistoryV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "x-query-schema": "FindingTriageHistoryQueryV1",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          {
+            "name": "result_digest",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          }
+        ]
+      }
+    },
     "/scans/{id}/finding-triage": {
       "get": {
         "operationId": "getFindingTriage",
@@ -1179,6 +1241,15 @@
       },
       "FindingQueryV1": {
         "$ref": "schemas/FindingQueryV1.json"
+      },
+      "FindingTriageHistoryDocumentV1": {
+        "$ref": "schemas/FindingTriageHistoryDocumentV1.json"
+      },
+      "FindingTriageHistoryQueryV1": {
+        "$ref": "schemas/FindingTriageHistoryQueryV1.json"
+      },
+      "FindingTriageHistoryV1": {
+        "$ref": "schemas/FindingTriageHistoryV1.json"
       },
       "FindingTriageInputV1": {
         "$ref": "schemas/FindingTriageInputV1.json"

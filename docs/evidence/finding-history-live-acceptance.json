@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Named local demo read-only owner history refusals; positive chain/export checked separately with native parser/HTTP and browser fixtures",
+  "recorded_at": "2026-10-15T11:20:48.606015+00:00",
+  "checks": [
+    {
+      "id": "generated_history_client_preserves_missing_source_evidence_as_unavailable",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_history_explicitly_refuses_missing_immutable_result",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_history_rejects_missing_repeated_unknown_and_malformed_scope",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_history_requires_owner_session",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_history_does_not_reveal_unowned_job_state",
+      "result": "PASS"
+    },
+    {
+      "id": "history_refusals_preserve_scan_and_admission_state",
+      "result": "PASS"
+    }
+  ],
+  "repository_code_executed": false,
+  "new_reviews_written": false,
+  "cleanup_admission_released": false
+}

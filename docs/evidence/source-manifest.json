@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:ecc527e1628495b6288f22ef8eaafeba78bbc5b5616b656a3c94ae2b3eca7ae0",
+  "source_tree_sha256": "sha256:18cfb235b8fd9bbf786183a349ca82c58045de92285a5b0974e52684e558ac81",
   "files": [
     {
       "path": ".dockerignore",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "73ed002d057060394aad83b7cef7cec664839bf15409e99536fffa51d2302990"
+      "sha256": "c6975872973b84ae4afc375a8b744e7979fd36a9ebb932bb297f8a530d45e5ad"
     },
     {
       "path": ".gitignore",
@@ -327,8 +327,12 @@
       "sha256": "eef8acb3026108577d2a53320e54bfc2882b7eaf30e8d4a4882f87f16b6c4110"
     },
     {
+      "path": "console/src/FindingReviewHistory.tsx",
+      "sha256": "7147ba0b8fd962ebebe55d4bff34cc8cd83d1cf962e5eac87a4cb8830cf0224d"
+    },
+    {
       "path": "console/src/FindingTriage.tsx",
-      "sha256": "0bb2b9794ef23699e9efe1d59d63e0491a556e33e620042442e08de3ea46bc8a"
+      "sha256": "ca5671ed6da6d6c6c6a69f7c03d9dfc2bde9c070a3393e88dfe9beb16f36cc76"
     },
     {
       "path": "console/src/Findings.tsx",
@@ -355,12 +359,16 @@
       "sha256": "e1f47298cdbf20ae0de2ff19ffb1fb3933214b486e3e473452e4e43e85378342"
     },
     {
+      "path": "console/src/findingReview.ts",
+      "sha256": "567dde3f2e59847d952c472d8fb81eaef4e27c924d433d19783b27666373f790"
+    },
+    {
       "path": "console/src/generated/contracts.ts",
-      "sha256": "53eb25b21ada371b8547ac2c9ff141b28e125a3bfa63545a3dd58ad968141a7d"
+      "sha256": "ce047deb97aa360dcc4f30776165beb71134330eb95815ca42cde3eade19260a"
     },
     {
       "path": "console/src/generated/research-client.ts",
-      "sha256": "3478a2eb22a1c13f5faf42a0a23df883102b2264eeab414f983809be8b6d67d1"
+      "sha256": "142e271c0978a423947019cfe348764d1b5af77892624125980d2ae2f24ed5aa"
     },
     {
       "path": "console/src/main.tsx",
@@ -368,23 +376,27 @@
     },
     {
       "path": "console/src/style.css",
-      "sha256": "dc246c660a14488a0204ccd4575be3ce088ca93279c649a9e7e4e1a9b7b00ade"
+      "sha256": "683a9e8a83337590b58f1eb4cb6cd5bb5c243f8b89bc4a3d6fb8270105b2599d"
     },
     {
       "path": "console/tests/findings.spec.ts",
-      "sha256": "4beaa34178571a00dbb3a4d3a49fc9c6fb7a2b6ecb0bf5f0777e9b8fe99504ca"
+      "sha256": "078f5d5902b80132b24ecf72385b213526ccb036b20c694f394200a0b0ad9254"
     },
     {
       "path": "console/tests/scans-live.spec.ts",
-      "sha256": "4beb45331f04a79c5c2e8bd5521702da8bce317881833b55053d351820ce00c2"
+      "sha256": "ece304b540daca175062b63cab732f0a57513ee3ea79e963ed7336859363f9dc"
     },
     {
       "path": "console/tests/scans.spec.ts",
-      "sha256": "1290eb0e3caac26c1ae53c7801a263d3053e5386fecb09cf0ab0f25a37f0e6de"
+      "sha256": "fc1facbc905539db639a309b097266c4d2dc8c7123d706dc1beacf63c225183c"
+    },
+    {
+      "path": "console/tests/triage-history.spec.ts",
+      "sha256": "c0c08d34b1df30995f38c2d15a4583f5fb71efc05dfdf7b50f1b8a6ad3e33de2"
     },
     {
       "path": "console/tests/triage.spec.ts",
-      "sha256": "27a35c56808c4e246c9a6b6208d82277278211a4fd80a7f52199ba71bf4c388a"
+      "sha256": "0d58b77a9532fcc0c9e49ac4a6006471da808d0cd99571736e7b6b1eb83640f5"
     },
     {
       "path": "console/tsconfig.json",
@@ -404,23 +416,23 @@
     },
     {
       "path": "contracts/generated/contracts.go",
-      "sha256": "bebda80473d80577aa4ef1a6ddce68e521ec808d136b7e8ee1dcfb2ea535a43f"
+      "sha256": "711676d5a5a8e11b43bdac93469206301c4444b15fd5eadb794cb932663b248a"
     },
     {
       "path": "contracts/generated/contracts.py",
-      "sha256": "95b8f5431ffb5f052638abfae1d17bc4594bb6ca750482269e30a4293361a920"
+      "sha256": "091428a5e094564f8fac48841ca34ae6e3cab68d7bbe24e2aad4f93e10c64f90"
     },
     {
       "path": "contracts/generated/contracts.ts",
-      "sha256": "53eb25b21ada371b8547ac2c9ff141b28e125a3bfa63545a3dd58ad968141a7d"
+      "sha256": "ce047deb97aa360dcc4f30776165beb71134330eb95815ca42cde3eade19260a"
     },
     {
       "path": "contracts/generated/research_client.go",
-      "sha256": "506d6a30a494ad27d7a2c2b97062db937fc650378648f63973ead83a925d572f"
+      "sha256": "c747d5941b18b6d376d67df7c9edb947b5c5f2f9f684a7b1f47cb5197a0f47a1"
     },
     {
       "path": "contracts/generated/research_client.py",
-      "sha256": "de3d71816a75b39420a2a1cdfb79e92b12e75ed6aae685c58478c4147c2c4cb9"
+      "sha256": "3ca6e56adf0cea3786e4fc0bce6c4533a60ea14df0742c5021a40294fa857d89"
     },
     {
       "path": "contracts/generated/research_client_test.go",
@@ -432,7 +444,7 @@
     },
     {
       "path": "contracts/openapi-research.json",
-      "sha256": "15728f1c168f6691868b4c6e9ee8a3d05cffb0bc688a7d53d117cf4ae8f744c2"
+      "sha256": "a4bb615cbef0ae2dc0c40045d994e91ef741e89868aa6511940678586aa4bd79"
     },
     {
       "path": "contracts/samples/ApplicationMapV1.json",
@@ -453,6 +465,10 @@
     {
       "path": "contracts/samples/FindingQueryV1.json",
       "sha256": "8abdb194b914f885254986c9bb087deaf3d32c789d711274e8c0f68c6b1a75a2"
+    },
+    {
+      "path": "contracts/samples/FindingTriageHistoryV1.json",
+      "sha256": "cd575e368b235410bca7034d8aed7ca1e43a845e6bd86a579ee138c8f85edb2c"
     },
     {
       "path": "contracts/samples/FindingTriageRecordV1.json",
@@ -597,6 +613,18 @@
     {
       "path": "contracts/schemas/FindingQueryV1.json",
       "sha256": "3a7ab41db7dbb08ba10be8a9164f421a7dc01c8675036f6e0c670d8a34d6786f"
+    },
+    {
+      "path": "contracts/schemas/FindingTriageHistoryDocumentV1.json",
+      "sha256": "53df11731f8d87607210e6e9d0a62735af8fddbbb933bf8256bb3fb7c0d80c0c"
+    },
+    {
+      "path": "contracts/schemas/FindingTriageHistoryQueryV1.json",
+      "sha256": "b99c860a457e51802882511c0fe2d7c3c7fb18338460894e8be16c0bc4f3c73a"
+    },
+    {
+      "path": "contracts/schemas/FindingTriageHistoryV1.json",
+      "sha256": "2c2fed6af1d589bdd1de59dba066283bf1e49f48271475c82dd44824bf05a4a5"
     },
     {
       "path": "contracts/schemas/FindingTriageInputV1.json",
@@ -844,7 +872,7 @@
     },
     {
       "path": "controller/internal/api/scans.go",
-      "sha256": "381e5abb29eb1dcd29cd5f3275fbc6ff8f1d565dcf9783bc80e1c621dd8dec2f"
+      "sha256": "e8beeab660aa0ecbe8e47df920a096e9c304a063081281476ee34b99bc112067"
     },
     {
       "path": "controller/internal/api/scans_test.go",
@@ -852,7 +880,7 @@
     },
     {
       "path": "controller/internal/api/triage.go",
-      "sha256": "683a9f0a257154b1ecf0a2cc45edb9d42d240f0c28ad658288af2c20b6506acc"
+      "sha256": "0bac34c80c61e796a5ee45d2c0d00b70142800b32f6f96650ef66c640ad1b818"
     },
     {
       "path": "controller/internal/auth/auth.go",
@@ -1036,7 +1064,15 @@
     },
     {
       "path": "controller/internal/scanqueue/triage.go",
-      "sha256": "4a814fd2d01f515704501325e6bdde95211a655dc4dc5614a30dd3cd074295b8"
+      "sha256": "b67454b869036ac74040ee717bedd51c5fae9fb5405b8ba2729272d57a4f7589"
+    },
+    {
+      "path": "controller/internal/scanqueue/triage_history.go",
+      "sha256": "c74cf5fe4c121708c32d95a9eed33b37db13efa075ee5bc7d1edf7f74f6b0ecd"
+    },
+    {
+      "path": "controller/internal/scanqueue/triage_history_test.go",
+      "sha256": "2363bde4ec25f607a50d9ff11bd88b40368d799c22e7192dec39ef6f1eb9bf78"
     },
     {
       "path": "controller/internal/scanqueue/triage_test.go",
@@ -1204,7 +1240,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "4a8a6ea730d3fda02e8306e94a4fef7fc3bf3405209d372bdaf596f4ad52bd57"
+      "sha256": "f1130b63c504ffe53016fb322460e834416f32db4d92858344924100a598c802"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -1347,12 +1383,16 @@
       "sha256": "6eb2ea4ced2ce8aa48bd222cfa0bd879263a050177a2b8724f11627e97ee06cb"
     },
     {
+      "path": "docs/architecture/adr/045-finding-review-history-and-local-export.md",
+      "sha256": "41776f21b3caf6ea98eeb76e4509b7a9b0005985787dd4080b1d3e469b2a5800"
+    },
+    {
       "path": "docs/operators/database-snapshots.md",
       "sha256": "3c62f228aa2828f135f5293c85d3da33a1e25464022bcbe6bd9344de9e3c6e85"
     },
     {
       "path": "docs/operators/finding-reviews.md",
-      "sha256": "1c865778437fe545b101bff89f733b59ca14ff9a7d2222533a93bd4ed20cda19"
+      "sha256": "ca5dd2c1fc3699adabf68929008066263406bf3ec77f3a5c85e0d0000e5ca81f"
     },
     {
       "path": "docs/operators/journaled-scanner-engine.md",
@@ -1416,11 +1456,11 @@
     },
     {
       "path": "scripts/generate_contracts.py",
-      "sha256": "85c5acc9df0874d90543d693dd1c7eb2823993c3d4384f46f3b186bbfa375fb1"
+      "sha256": "5ef7f86b4f1b93b2b40350acee4effcb4a153dad402afe86854e195bdd625161"
     },
     {
       "path": "scripts/generate_research_api.py",
-      "sha256": "116a5a743da090395fce6881c8cc23b3c12620707edd3d75c70ecfae9b534a82"
+      "sha256": "68b43dc1bb7cbf32b6497482c7ec7480eb3d62155a27c530e54654c2b98767dc"
     },
     {
       "path": "scripts/source_manifest.py",
@@ -1555,6 +1595,10 @@
       "sha256": "e2ce5465fa100c7c0018311095a89218de988b889c75de2e869701ef5c53345a"
     },
     {
+      "path": "tests/integration/finding_history_acceptance.py",
+      "sha256": "1991385b9529c81d3103102043c16b693b9f0a04952aaff02abd5652b15ce198"
+    },
+    {
       "path": "tests/integration/local_context.py",
       "sha256": "6073b1174ba1fe16936f0201d5231302f14f30d7ec853814439954272dff8372"
     },
@@ -1620,7 +1664,7 @@
     },
     {
       "path": "tests/integration/scannerchannel/triage_test.go",
-      "sha256": "501b40b35bad4c18cdd715d9be172a2cec9f67ce6c719a143bb665c36153e421"
+      "sha256": "88f7a83390316c8802d2a4eb6207450a3924899a66ee301d6158964dea7c0bbe"
     },
     {
       "path": "tests/integration/scannerchannel/verifier_test.go",

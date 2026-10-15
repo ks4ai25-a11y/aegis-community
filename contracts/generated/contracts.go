@@ -196,8 +196,8 @@ type FindingEntryV1FindingProvenanceItem struct {
 	SeverityClaimed string `json:"severity_claimed,omitempty"`
 }
 type FindingEntryV1OwnerReview struct {
-	TriageDigest string                        `json:"triage_digest"`
-	Document     FindingTriageRecordV1Document `json:"document"`
+	TriageDigest string                                          `json:"triage_digest"`
+	Document     FindingTriageHistoryV1DocumentItemsItemDocument `json:"document"`
 }
 type FindingEntryV1OwnerReviewDocument struct {
 	SchemaVersion  string `json:"schema_version"`
@@ -266,8 +266,8 @@ type FindingPageV1ItemsItemFindingProvenanceItem struct {
 	SeverityClaimed string `json:"severity_claimed,omitempty"`
 }
 type FindingPageV1ItemsItemOwnerReview struct {
-	TriageDigest string                        `json:"triage_digest"`
-	Document     FindingTriageRecordV1Document `json:"document"`
+	TriageDigest string                                          `json:"triage_digest"`
+	Document     FindingTriageHistoryV1DocumentItemsItemDocument `json:"document"`
 }
 type FindingPageV1ItemsItemOwnerReviewDocument struct {
 	SchemaVersion  string `json:"schema_version"`
@@ -900,10 +900,76 @@ type FindingTriageV1 struct {
 	UpdatedAt      string `json:"updated_at"`
 }
 type FindingTriageRecordV1 struct {
-	TriageDigest string                        `json:"triage_digest"`
-	Document     FindingTriageRecordV1Document `json:"document"`
+	TriageDigest string                                          `json:"triage_digest"`
+	Document     FindingTriageHistoryV1DocumentItemsItemDocument `json:"document"`
 }
 type FindingTriageRecordV1Document struct {
+	SchemaVersion  string `json:"schema_version"`
+	OwnerId        string `json:"owner_id"`
+	JobId          string `json:"job_id"`
+	RecordId       string `json:"record_id"`
+	ResultDigest   string `json:"result_digest"`
+	Revision       int64  `json:"revision"`
+	State          string `json:"state"`
+	Rationale      string `json:"rationale"`
+	PreviousDigest string `json:"previous_digest"`
+	UpdatedAt      string `json:"updated_at"`
+}
+type FindingTriageHistoryQueryV1 struct {
+	RecordId     string `json:"record_id"`
+	ResultDigest string `json:"result_digest"`
+}
+type FindingTriageHistoryDocumentV1 struct {
+	SchemaVersion   string                                    `json:"schema_version"`
+	AssessmentScope string                                    `json:"assessment_scope"`
+	OwnerId         string                                    `json:"owner_id"`
+	JobId           string                                    `json:"job_id"`
+	RecordId        string                                    `json:"record_id"`
+	ResultDigest    string                                    `json:"result_digest"`
+	BaselineDigest  string                                    `json:"baseline_digest"`
+	HeadDigest      string                                    `json:"head_digest"`
+	RevisionCount   int64                                     `json:"revision_count"`
+	Complete        bool                                      `json:"complete"`
+	Items           []FindingTriageHistoryV1DocumentItemsItem `json:"items"`
+}
+type FindingTriageHistoryDocumentV1ItemsItem struct {
+	TriageDigest string                                          `json:"triage_digest"`
+	Document     FindingTriageHistoryV1DocumentItemsItemDocument `json:"document"`
+}
+type FindingTriageHistoryDocumentV1ItemsItemDocument struct {
+	SchemaVersion  string `json:"schema_version"`
+	OwnerId        string `json:"owner_id"`
+	JobId          string `json:"job_id"`
+	RecordId       string `json:"record_id"`
+	ResultDigest   string `json:"result_digest"`
+	Revision       int64  `json:"revision"`
+	State          string `json:"state"`
+	Rationale      string `json:"rationale"`
+	PreviousDigest string `json:"previous_digest"`
+	UpdatedAt      string `json:"updated_at"`
+}
+type FindingTriageHistoryV1 struct {
+	HistoryDigest string                         `json:"history_digest"`
+	Document      FindingTriageHistoryV1Document `json:"document"`
+}
+type FindingTriageHistoryV1Document struct {
+	SchemaVersion   string                                    `json:"schema_version"`
+	AssessmentScope string                                    `json:"assessment_scope"`
+	OwnerId         string                                    `json:"owner_id"`
+	JobId           string                                    `json:"job_id"`
+	RecordId        string                                    `json:"record_id"`
+	ResultDigest    string                                    `json:"result_digest"`
+	BaselineDigest  string                                    `json:"baseline_digest"`
+	HeadDigest      string                                    `json:"head_digest"`
+	RevisionCount   int64                                     `json:"revision_count"`
+	Complete        bool                                      `json:"complete"`
+	Items           []FindingTriageHistoryV1DocumentItemsItem `json:"items"`
+}
+type FindingTriageHistoryV1DocumentItemsItem struct {
+	TriageDigest string                                          `json:"triage_digest"`
+	Document     FindingTriageHistoryV1DocumentItemsItemDocument `json:"document"`
+}
+type FindingTriageHistoryV1DocumentItemsItemDocument struct {
 	SchemaVersion  string `json:"schema_version"`
 	OwnerId        string `json:"owner_id"`
 	JobId          string `json:"job_id"`

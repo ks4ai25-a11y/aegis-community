@@ -52,3 +52,28 @@ func (s *Server) findingTriage(w http.ResponseWriter, r *http.Request, owner, jo
 		output(w, 200, out)
 	}
 }
+
+func (s *Server) findingTriageHistory(w http.ResponseWriter, r *http.Request, owner, job string) {
+	if r.Method != "GET" {
+		fail(w, 405, "VALIDATION_FAILED", "GET required")
+		return
+	}
+	values, e := url.ParseQuery(r.URL.RawQuery)
+	if e != nil || len(values) != 2 || len(values["record_id"]) != 1 || len(values["result_digest"]) != 1 {
+		fail(w, 400, "VALIDATION_FAILED", "Select one exact finding and immutable result")
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+	out, e := s.Scans.FindingHistory(ctx, owner, job, values.Get("record_id"), values.Get("result_digest"))
+	switch {
+	case errors.Is(e, scanqueue.ErrResultUnavailable):
+		fail(w, 409, "RESULT_NOT_READY", "No immutable finding evidence is available")
+	case errors.Is(e, scanqueue.ErrFindingBudget):
+		fail(w, 422, "RESOURCE_LIMIT", "Finding review history exceeds its export budget")
+	case e != nil:
+		scanError(w, e)
+	default:
+		output(w, 200, out)
+	}
+}

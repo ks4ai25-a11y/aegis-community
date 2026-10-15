@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/FindingTriageHistoryDocumentV1.json",
+  "title": "FindingTriageHistoryDocumentV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "assessment_scope": {
+      "type": "string",
+      "const": "owner_review_only"
+    },
+    "owner_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "record_id": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "result_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "baseline_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "head_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "revision_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 50
+    },
+    "complete": {
+      "type": "boolean",
+      "const": true
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "triage_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "document": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "schema_version": {
+                "type": "string",
+                "const": "1.0"
+              },
+              "owner_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "job_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "record_id": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "result_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 50
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "suspected",
+                  "unverified",
+                  "false_positive",
+                  "accepted_risk"
+                ]
+              },
+              "rationale": {
+                "type": "string",
+                "maxLength": 512
+              },
+              "previous_digest": {
+                "type": "string",
+                "pattern": "^(|sha256:[0-9a-f]{64})$"
+              },
+              "updated_at": {
+                "type": "string",
+                "maxLength": 64
+              }
+            },
+            "required": [
+              "schema_version",
+              "owner_id",
+              "job_id",
+              "record_id",
+              "result_digest",
+              "revision",
+              "state",
+              "rationale",
+              "previous_digest",
+              "updated_at"
+            ]
+          }
+        },
+        "required": [
+          "triage_digest",
+          "document"
+        ]
+      },
+      "maxItems": 50
+    }
+  },
+  "required": [
+    "schema_version",
+    "assessment_scope",
+    "owner_id",
+    "job_id",
+    "record_id",
+    "result_digest",
+    "baseline_digest",
+    "head_digest",
+    "revision_count",
+    "complete",
+    "items"
+  ]
+}

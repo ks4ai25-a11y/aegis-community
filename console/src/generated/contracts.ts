@@ -195,7 +195,7 @@ export interface FindingEntryV1FindingProvenanceItem {
 }
 export interface FindingEntryV1OwnerReview {
   triage_digest: string;
-  document: FindingTriageRecordV1Document;
+  document: FindingTriageHistoryV1DocumentItemsItemDocument;
 }
 export interface FindingEntryV1OwnerReviewDocument {
   schema_version: "1.0";
@@ -265,7 +265,7 @@ export interface FindingPageV1ItemsItemFindingProvenanceItem {
 }
 export interface FindingPageV1ItemsItemOwnerReview {
   triage_digest: string;
-  document: FindingTriageRecordV1Document;
+  document: FindingTriageHistoryV1DocumentItemsItemDocument;
 }
 export interface FindingPageV1ItemsItemOwnerReviewDocument {
   schema_version: "1.0";
@@ -899,9 +899,75 @@ export interface FindingTriageV1 {
 }
 export interface FindingTriageRecordV1 {
   triage_digest: string;
-  document: FindingTriageRecordV1Document;
+  document: FindingTriageHistoryV1DocumentItemsItemDocument;
 }
 export interface FindingTriageRecordV1Document {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  record_id: string;
+  result_digest: string;
+  revision: number;
+  state: "suspected" | "unverified" | "false_positive" | "accepted_risk";
+  rationale: string;
+  previous_digest: string;
+  updated_at: string;
+}
+export interface FindingTriageHistoryQueryV1 {
+  record_id: string;
+  result_digest: string;
+}
+export interface FindingTriageHistoryDocumentV1 {
+  schema_version: "1.0";
+  assessment_scope: "owner_review_only";
+  owner_id: string;
+  job_id: string;
+  record_id: string;
+  result_digest: string;
+  baseline_digest: string;
+  head_digest: string;
+  revision_count: number;
+  complete: true;
+  items: Array<FindingTriageHistoryV1DocumentItemsItem>;
+}
+export interface FindingTriageHistoryDocumentV1ItemsItem {
+  triage_digest: string;
+  document: FindingTriageHistoryV1DocumentItemsItemDocument;
+}
+export interface FindingTriageHistoryDocumentV1ItemsItemDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  record_id: string;
+  result_digest: string;
+  revision: number;
+  state: "suspected" | "unverified" | "false_positive" | "accepted_risk";
+  rationale: string;
+  previous_digest: string;
+  updated_at: string;
+}
+export interface FindingTriageHistoryV1 {
+  history_digest: string;
+  document: FindingTriageHistoryV1Document;
+}
+export interface FindingTriageHistoryV1Document {
+  schema_version: "1.0";
+  assessment_scope: "owner_review_only";
+  owner_id: string;
+  job_id: string;
+  record_id: string;
+  result_digest: string;
+  baseline_digest: string;
+  head_digest: string;
+  revision_count: number;
+  complete: true;
+  items: Array<FindingTriageHistoryV1DocumentItemsItem>;
+}
+export interface FindingTriageHistoryV1DocumentItemsItem {
+  triage_digest: string;
+  document: FindingTriageHistoryV1DocumentItemsItemDocument;
+}
+export interface FindingTriageHistoryV1DocumentItemsItemDocument {
   schema_version: "1.0";
   owner_id: string;
   job_id: string;

@@ -31,10 +31,10 @@ test('deduplicated dependency retains conflicting severity, exact versions and b
  const dep=entries.find((e:any)=>e.finding.category==='known_vulnerable_dependency');
  for(const ref of dep.receipt_digests)await expect(merged).toContainText(ref);
  await expect(page.locator('.finding-details')).toContainText('5 tool claims · 4 distinct static records');
- await page.locator('.finding-details').screenshot({path:'../docs/evidence/triage-phase-finding-details-desktop.png'});
+ await page.locator('.finding-details').screenshot({path:test.info().outputPath('triage-phase-finding-details-desktop.png')});
  await page.setViewportSize({width:390,height:844});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
- await page.locator('.finding-details').screenshot({path:'../docs/evidence/triage-phase-finding-details-mobile.png'});
+ await page.locator('.finding-details').screenshot({path:test.info().outputPath('triage-phase-finding-details-mobile.png')});
  await page.getByRole('button',{name:'Next findings'}).click();await expect(page.locator('.finding-pagination')).toContainText('Page 2');
  await expect(page.getByRole('button',{name:'Next findings'})).toBeDisabled();
  await page.getByRole('button',{name:'Back to first page'}).click();await expect(page.locator('.finding-pagination')).toContainText('Page 1');

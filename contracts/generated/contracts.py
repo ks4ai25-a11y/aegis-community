@@ -180,7 +180,7 @@ class FindingEntryV1FindingProvenanceItem(TypedDict):
     severity_claimed: NotRequired[str]
 class FindingEntryV1OwnerReview(TypedDict):
     triage_digest: str
-    document: FindingTriageRecordV1Document
+    document: FindingTriageHistoryV1DocumentItemsItemDocument
 class FindingEntryV1OwnerReviewDocument(TypedDict):
     schema_version: str
     owner_id: str
@@ -244,7 +244,7 @@ class FindingPageV1ItemsItemFindingProvenanceItem(TypedDict):
     severity_claimed: NotRequired[str]
 class FindingPageV1ItemsItemOwnerReview(TypedDict):
     triage_digest: str
-    document: FindingTriageRecordV1Document
+    document: FindingTriageHistoryV1DocumentItemsItemDocument
 class FindingPageV1ItemsItemOwnerReviewDocument(TypedDict):
     schema_version: str
     owner_id: str
@@ -808,8 +808,66 @@ class FindingTriageV1(TypedDict):
     updated_at: str
 class FindingTriageRecordV1(TypedDict):
     triage_digest: str
-    document: FindingTriageRecordV1Document
+    document: FindingTriageHistoryV1DocumentItemsItemDocument
 class FindingTriageRecordV1Document(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    record_id: str
+    result_digest: str
+    revision: int
+    state: str
+    rationale: str
+    previous_digest: str
+    updated_at: str
+class FindingTriageHistoryQueryV1(TypedDict):
+    record_id: str
+    result_digest: str
+class FindingTriageHistoryDocumentV1(TypedDict):
+    schema_version: str
+    assessment_scope: str
+    owner_id: str
+    job_id: str
+    record_id: str
+    result_digest: str
+    baseline_digest: str
+    head_digest: str
+    revision_count: int
+    complete: bool
+    items: list[FindingTriageHistoryV1DocumentItemsItem]
+class FindingTriageHistoryDocumentV1ItemsItem(TypedDict):
+    triage_digest: str
+    document: FindingTriageHistoryV1DocumentItemsItemDocument
+class FindingTriageHistoryDocumentV1ItemsItemDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    record_id: str
+    result_digest: str
+    revision: int
+    state: str
+    rationale: str
+    previous_digest: str
+    updated_at: str
+class FindingTriageHistoryV1(TypedDict):
+    history_digest: str
+    document: FindingTriageHistoryV1Document
+class FindingTriageHistoryV1Document(TypedDict):
+    schema_version: str
+    assessment_scope: str
+    owner_id: str
+    job_id: str
+    record_id: str
+    result_digest: str
+    baseline_digest: str
+    head_digest: str
+    revision_count: int
+    complete: bool
+    items: list[FindingTriageHistoryV1DocumentItemsItem]
+class FindingTriageHistoryV1DocumentItemsItem(TypedDict):
+    triage_digest: str
+    document: FindingTriageHistoryV1DocumentItemsItemDocument
+class FindingTriageHistoryV1DocumentItemsItemDocument(TypedDict):
     schema_version: str
     owner_id: str
     job_id: str

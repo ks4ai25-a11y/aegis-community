@@ -84,6 +84,11 @@ func (c *ResearchClient) request(ctx context.Context, method, path, key string, 
 	return nil
 }
 
+func (c *ResearchClient) GetFindingTriageHistory(ctx context.Context, query FindingTriageHistoryQueryV1, id string) (FindingTriageHistoryV1, error) {
+	var out FindingTriageHistoryV1
+	e := c.request(ctx, "GET", "/scans/"+url.PathEscape(id)+"/finding-triage-history"+"?"+researchQuery(query), "", nil, &out)
+	return out, e
+}
 func (c *ResearchClient) GetFindingTriage(ctx context.Context, query FindingTriageQueryV1, id string) (FindingTriageRecordV1, error) {
 	var out FindingTriageRecordV1
 	e := c.request(ctx, "GET", "/scans/"+url.PathEscape(id)+"/finding-triage"+"?"+researchQuery(query), "", nil, &out)

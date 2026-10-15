@@ -56,23 +56,24 @@ func validTriage(in FindingTriageInput) bool {
 func triageInput(d FindingTriage) FindingTriageInput {
 	return FindingTriageInput{Schema: "1.0", Record: d.Record, Result: d.Result, Expected: d.Revision - 1, State: d.State, Rationale: d.Rationale}
 }
-func triageHistory(ctx context.Context, tx *sql.Tx, owner, job, record, result string) (FindingTriageRecord, error) {
+func triageRecords(ctx context.Context, tx *sql.Tx, owner, job, record, result string) (FindingTriageRecord, []FindingTriageRecord, error) {
 	current := FindingTriageRecord{Document: FindingTriage{Schema: "1.0", Owner: owner, Job: job, Record: record, Result: result, State: "suspected"}}
 	current.Digest = domain.Digest(current.Document)
+	items := []FindingTriageRecord{}
 	rows, e := tx.QueryContext(ctx, "SELECT revision,digest,document,request_digest,created_at,idempotency_key,result_digest FROM finding_triage WHERE owner=? AND job=? AND record=? ORDER BY revision LIMIT 51", owner, job, record)
 	if e != nil {
-		return FindingTriageRecord{}, e
+		return FindingTriageRecord{}, nil, e
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var revision int
 		var digest, raw, request, created, key, boundResult string
 		if e = rows.Scan(&revision, &digest, &raw, &request, &created, &key, &boundResult); e != nil {
-			return FindingTriageRecord{}, e
+			return FindingTriageRecord{}, nil, e
 		}
 		var d FindingTriage
 		if len(raw) > 2048 || json.Unmarshal([]byte(raw), &d) != nil {
-			return FindingTriageRecord{}, ErrConflict
+			return FindingTriageRecord{}, nil, ErrConflict
 		}
 		canonical, e := json.Marshal(d)
 		previous := ""
@@ -81,12 +82,18 @@ func triageHistory(ctx context.Context, tx *sql.Tx, owner, job, record, result s
 		}
 		at, te := time.Parse(time.RFC3339Nano, d.Updated)
 		if e != nil || string(canonical) != raw || domain.Hash(canonical) != digest || revision != current.Document.Revision+1 || revision > 50 || d.Schema != "1.0" || d.Owner != owner || d.Job != job || d.Record != record || d.Result != result || boundResult != result || d.Revision != revision || d.Previous != previous || d.Updated != created || te != nil || at.IsZero() || !keyPattern.MatchString(key) || !validTriage(triageInput(d)) || domain.Digest(triageInput(d)) != request {
-			return FindingTriageRecord{}, ErrConflict
+			return FindingTriageRecord{}, nil, ErrConflict
 		}
 		current = FindingTriageRecord{Digest: digest, Document: d}
+		items = append(items, current)
 	}
-	return current, rows.Err()
+	return current, items, rows.Err()
 }
+func triageHistory(ctx context.Context, tx *sql.Tx, owner, job, record, result string) (FindingTriageRecord, error) {
+	current, _, e := triageRecords(ctx, tx, owner, job, record, result)
+	return current, e
+}
+
 func (q *Queue) ownedTriageFinding(ctx context.Context, tx *sql.Tx, owner, job, record string) (FindingPage, error) {
 	if !digestPattern.MatchString(record) {
 		return FindingPage{}, ErrInput

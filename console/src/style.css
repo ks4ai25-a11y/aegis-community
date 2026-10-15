@@ -4,3 +4,7 @@
 .finding-filters{display:grid;grid-template-columns:1fr 1fr;gap:18px}.finding-record{border-top:1px solid var(--border);padding:24px 0}.finding-record h3{margin:0}.finding-record .mono{overflow-wrap:anywhere}.finding-record details{margin-top:16px}.finding-record summary{cursor:pointer;color:var(--teal);font-size:12px}.finding-pagination{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12px}.finding-pagination span{margin-right:auto}@media(max-width:760px){.finding-filters{grid-template-columns:1fr}.finding-record .card-heading{align-items:flex-start;flex-direction:column}}
 
 .finding-triage{margin:1rem 0;padding:1rem;border:1px solid var(--border,#d9e1ec);border-radius:8px}.finding-triage label{display:block;margin:.7rem 0}.finding-triage textarea{display:block;width:100%;max-width:42rem;padding:.6rem;font:inherit;border:1px solid #a8b4c5;border-radius:6px}.finding-triage select{max-width:100%}.finding-triage .button{margin:.3rem .4rem .3rem 0}
+
+.review-history{margin:12px 0;padding:12px 0;border-top:1px solid var(--border)}
+.review-history ol{padding-left:24px}.review-history li{padding:10px 0;border-bottom:1px solid var(--border)}
+.review-history p{overflow-wrap:anywhere;min-width:0}.review-rationale{white-space:pre-wrap}

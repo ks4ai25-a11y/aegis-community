@@ -25,6 +25,8 @@ class ResearchClient:
         except urllib.error.HTTPError as e:
             raise RuntimeError("Aegis API rejected request with HTTP "+str(e.code)) from None
 
+    def getFindingTriageHistory(self, query: FindingTriageHistoryQueryV1, id: str) -> FindingTriageHistoryV1:
+        return self._request("GET", "/scans/"+urllib.parse.quote(id,safe="")+"/finding-triage-history" + "?" + urllib.parse.urlencode(query), None)
     def getFindingTriage(self, query: FindingTriageQueryV1, id: str) -> FindingTriageRecordV1:
         return self._request("GET", "/scans/"+urllib.parse.quote(id,safe="")+"/finding-triage" + "?" + urllib.parse.urlencode(query), None)
     def setFindingTriage(self, id: str, body: FindingTriageInputV1, idempotency_key: str) -> FindingTriageRecordV1:
