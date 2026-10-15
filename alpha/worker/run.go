@@ -27,6 +27,7 @@ var assetName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$`)
 // All paths are operator provisioned. The claim contains only a mounted asset
 // identifier; it cannot supply a filesystem path, command, URL or image.
 type Config struct {
+	EngineJournalRoot                    string
 	Socket, Credential, Owner            string
 	SourceRoot, AssetRoot, WorkspaceRoot string
 }
@@ -157,7 +158,7 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 				return ErrRun
 			}
 			failure = "SCANNER_EXECUTION_FAILED"
-			ex := executor.Config{LockPath: filepath.Join(cfg.SourceRoot, "tools/scanners.lock.json"), ExpectedLockDigest: l.Job.LockDigest, RulesPath: filepath.Join(cfg.SourceRoot, "alpha/rules"), GuardDir: filepath.Join(cfg.SourceRoot, "bin"), ScratchParent: session.Path, DurationSeconds: l.Job.Input.Duration, Deadline: l.Deadline, BeforeLaunch: func(prepared executor.Execution, name, engine string) error {
+			ex := executor.Config{EngineJournalRoot: cfg.EngineJournalRoot, LockPath: filepath.Join(cfg.SourceRoot, "tools/scanners.lock.json"), ExpectedLockDigest: l.Job.LockDigest, RulesPath: filepath.Join(cfg.SourceRoot, "alpha/rules"), GuardDir: filepath.Join(cfg.SourceRoot, "bin"), ScratchParent: session.Path, DurationSeconds: l.Job.Input.Duration, Deadline: l.Deadline, BeforeLaunch: func(prepared executor.Execution, name, engine string) error {
 				if client.Guard(run, l) != nil {
 					return ErrRun
 				}

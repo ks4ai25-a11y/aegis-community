@@ -4,6 +4,7 @@
 package scannerchannelacceptance
 
 import (
+	"aegis.local/alpha/enginejournal"
 	"aegis.local/alpha/worker"
 	"aegis.local/alpha/workspace"
 	"aegis.local/source"
@@ -241,4 +242,73 @@ func assertRecordedLaunches(t *testing.T, f fixture, job string) {
 		}
 		t.Logf("LAUNCH_RECORD %s", b)
 	}
+}
+
+func TestRealJournaledWorkerSuiteRetainsControllerCleanupAdmission(t *testing.T) {
+	if os.Getenv("AEGIS_REAL_SCANNER_TEST") != "1" {
+		t.Skip("explicit owned Docker scanner fixture acceptance only")
+	}
+	f := setupSourceWithManifest(t, []byte("def unsafe(code):\n    return eval(code)\n"), []byte(`{"name":"owned-journal-fixture","version":"1.0.0","lockfileVersion":3,"packages":{"":{"name":"owned-journal-fixture","version":"1.0.0","dependencies":{"lodash":"4.17.20"}},"node_modules/lodash":{"version":"4.17.20"}}}`))
+	f.in.Tools = []string{"bandit", "gitleaks", "osv_v2", "semgrep_ce", "syft", "trivy"}
+	job := enqueue(t, f)
+	cfg := workerConfig(t, f)
+	cfg.EngineJournalRoot = filepath.Join(filepath.Dir(cfg.WorkspaceRoot), "engine-journal")
+	report, e := cfg.RunOnce(context.Background())
+	if e == nil || report.State != "tool_error" || report.Result == nil || len(report.Receipts) != 6 {
+		launches, _ := f.q.Launches("owner-a", job.ID)
+		if len(launches) > 0 {
+			if j, je := enginejournal.Open(cfg.EngineJournalRoot, launches[0].Document.Plan.Engine); je == nil {
+				t.Logf("FAILED_JOURNAL_STATE %+v", j.Observe())
+				j.Close()
+			}
+			entries, _ := os.ReadDir(filepath.Join(cfg.EngineJournalRoot, launches[0].Document.Plan.Container))
+			for _, entry := range entries {
+				t.Logf("FAILED_JOURNAL_RECORD %s", entry.Name())
+			}
+		}
+		t.Fatal("offline database absence must remain explicit", report, e)
+	}
+	receipts, e := f.q.Receipts("owner-a", job.ID)
+	if e != nil || len(receipts) != 6 {
+		t.Fatal(e)
+	}
+	engine := ""
+	for _, receipt := range receipts {
+		ex := receipt.Document.Execution
+		if ex.Container == "" || ex.Cleanup != "complete" {
+			t.Fatal("unconfirmed journaled execution", ex.Tool, ex.Status, ex.Cleanup)
+		}
+		if ex.Tool == "osv_v2" || ex.Tool == "trivy" {
+			if ex.Status != "tool_error" && ex.Status != "completed_stale_db" {
+				t.Fatal("unproven offline database promoted", ex.Tool, ex.Status)
+			}
+		} else if ex.Status != "completed" {
+			t.Fatal("fixed scanner failed", ex.Tool, ex.Status, ex.Exit)
+		}
+		b, _ := json.Marshal(receipt)
+		t.Logf("JOURNALED_RECEIPT %s", b)
+	}
+	launches, e := f.q.Launches("owner-a", job.ID)
+	if e != nil || len(launches) != 6 {
+		t.Fatal(e)
+	}
+	engine = launches[0].Document.Plan.Engine
+	journal, e := enginejournal.Open(cfg.EngineJournalRoot, engine)
+	if e != nil {
+		t.Fatal(e)
+	}
+	state := journal.Observe()
+	journal.Close()
+	if state.Attempts != 6 || state.Unresolved != 0 || state.Unfinished != 0 || state.CleanupAuthorized || state.ControllerBound || state.ExclusiveOrigin {
+		t.Fatal("local journal changed authority", state)
+	}
+	b, _ := json.Marshal(state)
+	t.Logf("ENGINE_JOURNAL_OBSERVATION %s", b)
+	entries, e := os.ReadDir(cfg.WorkspaceRoot)
+	if e != nil || len(entries) != 1 || entries[0].Name() != ".registry-lock" {
+		t.Fatal("source workspace remained", e)
+	}
+	assertCleanupHeld(t, f)
+	assertRecordedLaunches(t, f, job.ID)
+	logWorkerResult(t, report)
 }

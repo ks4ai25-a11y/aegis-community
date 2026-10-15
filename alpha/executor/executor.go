@@ -29,6 +29,7 @@ type Tool struct {
 	Image   string `json:"image"`
 }
 type Config struct {
+	EngineJournalRoot  string
 	LockPath           string
 	ExpectedLockDigest string
 	RulesPath          string
@@ -286,28 +287,49 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 	defer cancel()
 	stdout := &cappedOutput{limit: invocation.MaxOutput, cancel: cancel}
 	stderr := &cappedOutput{limit: invocation.MaxOutput, cancel: cancel}
-	command := engineCommand(runCtx, docker, endpoint, args...)
-	command.Stdout = stdout
-	command.Stderr = stderr
-	started := time.Now()
-	runErr := command.Run()
-	out.Duration = time.Since(started).Milliseconds()
-	if command.ProcessState != nil {
-		out.Exit = command.ProcessState.ExitCode()
+	var runErr error
+	if c.EngineJournalRoot != "" {
+		rulesPath := ""
+		if rules != nil {
+			rulesPath = rules.Path
+		}
+		options := sdkCreateOptions(tool, name, snapshot.Path, rulesPath, guardRoot, seconds, deadline)
+		result := c.runEngineSDK(runCtx, endpoint, source.Hash([]byte(endpoint+"\n"+fields[2])), name, options, stdout, stderr, cancel)
+		runErr = result.err
+		out.Duration = result.duration
+		out.Exit = result.exit
+		if result.err != nil {
+			out.Exit = -1
+		}
+		if !result.cleanup {
+			return out, fmt.Errorf("tracked scanner engine cleanup unconfirmed")
+		}
+		out.Cleanup = "complete"
+	} else {
+		command := engineCommand(runCtx, docker, endpoint, args...)
+		command.Stdout = stdout
+		command.Stderr = stderr
+		started := time.Now()
+		runErr = command.Run()
+		out.Duration = time.Since(started).Milliseconds()
+		if command.ProcessState != nil {
+			out.Exit = command.ProcessState.ExitCode()
+		}
+		// Cancelling the Docker CLI alone does not kill a container. Always remove
+		// the exact randomly named cgroup and prove it is absent before returning.
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cleanupCancel()
+		remove := engineCommand(cleanupCtx, docker, endpoint, "rm", "--force", "--volumes", name)
+		remove.Stdout = nil
+		remove.Stderr = nil
+		_ = remove.Run()
+		remaining, e := inspectOutput(cleanupCtx, docker, endpoint, 512, "ps", "--all", "--filter", "label=io.aegis.scan="+name, "--format", "{{.ID}}")
+		if e != nil || len(bytes.TrimSpace(remaining)) != 0 {
+			return out, fmt.Errorf("scanner container cleanup unconfirmed")
+		}
+		out.Cleanup = "complete"
+
 	}
-	// Cancelling the Docker CLI alone does not kill a container. Always remove
-	// the exact randomly named cgroup and prove it is absent before returning.
-	cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cleanupCancel()
-	remove := engineCommand(cleanupCtx, docker, endpoint, "rm", "--force", "--volumes", name)
-	remove.Stdout = nil
-	remove.Stderr = nil
-	_ = remove.Run()
-	remaining, e := inspectOutput(cleanupCtx, docker, endpoint, 512, "ps", "--all", "--filter", "label=io.aegis.scan="+name, "--format", "{{.ID}}")
-	if e != nil || len(bytes.TrimSpace(remaining)) != 0 {
-		return out, fmt.Errorf("scanner container cleanup unconfirmed")
-	}
-	out.Cleanup = "complete"
 	raw, stdoutExceeded := stdout.Bytes()
 	_, stderrExceeded := stderr.Bytes()
 	if stdoutExceeded || stderrExceeded {

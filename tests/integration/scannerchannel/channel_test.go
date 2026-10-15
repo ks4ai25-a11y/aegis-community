@@ -41,6 +41,9 @@ func setup(t *testing.T) fixture {
 }
 
 func setupSource(t *testing.T, content []byte) fixture {
+	return setupSourceWithManifest(t, content, nil)
+}
+func setupSourceWithManifest(t *testing.T, content, manifest []byte) fixture {
 	t.Helper()
 	s, e := store.Open(filepath.Join(t.TempDir(), "controller.db"))
 	if e != nil {
@@ -62,6 +65,11 @@ func setupSource(t *testing.T, content []byte) fixture {
 	}
 	if e = os.WriteFile(filepath.Join(root, "fixture", "query.py"), content, 0600); e != nil {
 		t.Fatal(e)
+	}
+	if manifest != nil {
+		if e = os.WriteFile(filepath.Join(root, "fixture", "package-lock.json"), manifest, 0600); e != nil {
+			t.Fatal(e)
+		}
 	}
 	reg, e := repository.Open(s, root)
 	if e != nil {

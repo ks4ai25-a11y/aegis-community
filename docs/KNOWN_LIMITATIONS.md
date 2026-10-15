@@ -13,3 +13,5 @@ The tenant-isolation challenge uses only bundled trusted code and synthetic user
 AI is off by default and no provider is required for the demo. Desktop AI pairing, MCP permissions, provider adapters and real provider GUI tests remain unavailable. No raw secrets or repository content are uploaded automatically.
 
 Local tests and hashes are not independent sign-off or publisher signature validation. Public beta is NO-GO until every H7 gate has actual evidence, including independent installation and security/legal review. No production, volumetric DDoS, human-parity red team, exhaustive business-logic, or absolute protection claim is made.
+
+An opt-in journaled local scanner backend records create/start/remove uncertainty across restart; it has a read-only existing-journal status command. It is not an exclusive engine broker or an independently authorized cleanup verifier. Uncertain mutations quarantine that namespace with no trusted repair/reset yet. All controller cleanup admission remains held. See the journaled scanner operator guide and ADR 042.
