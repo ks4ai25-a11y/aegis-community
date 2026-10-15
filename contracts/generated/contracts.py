@@ -39,7 +39,7 @@ class FindingV1(TypedDict):
     installed_version: NotRequired[str]
     advisories: NotRequired[list[str]]
     secret_fingerprint: NotRequired[str]
-    provenance: list[ScannerExecutionV1ResultFindingsItemProvenanceItem]
+    provenance: list[FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem]
     coverage_note: str
     created_at: str
 class FindingV1ProvenanceItem(TypedDict):
@@ -146,9 +146,9 @@ class FindingQueryV1(TypedDict):
     cursor: NotRequired[str]
 class FindingEntryV1(TypedDict):
     record_id: str
-    finding: ScannerExecutionV1ResultFindingsItem
+    finding: FindingCataloguePageV1FindingsItemsItemFinding
     receipt_digests: list[str]
-    owner_review: NotRequired[FindingPageV1ItemsItemOwnerReview]
+    owner_review: NotRequired[FindingCataloguePageV1FindingsItemsItemOwnerReview]
 class FindingEntryV1Finding(TypedDict):
     schema_version: str
     id: str
@@ -167,7 +167,7 @@ class FindingEntryV1Finding(TypedDict):
     installed_version: NotRequired[str]
     advisories: NotRequired[list[str]]
     secret_fingerprint: NotRequired[str]
-    provenance: list[ScannerExecutionV1ResultFindingsItemProvenanceItem]
+    provenance: list[FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem]
     coverage_note: str
     created_at: str
 class FindingEntryV1FindingProvenanceItem(TypedDict):
@@ -206,13 +206,13 @@ class FindingPageV1(TypedDict):
     tool_claims: int
     distinct_static_claims: int
     matching_static_claims: int
-    items: list[FindingPageV1ItemsItem]
+    items: list[FindingCataloguePageV1FindingsItemsItem]
     next_cursor: str
 class FindingPageV1ItemsItem(TypedDict):
     record_id: str
-    finding: ScannerExecutionV1ResultFindingsItem
+    finding: FindingCataloguePageV1FindingsItemsItemFinding
     receipt_digests: list[str]
-    owner_review: NotRequired[FindingPageV1ItemsItemOwnerReview]
+    owner_review: NotRequired[FindingCataloguePageV1FindingsItemsItemOwnerReview]
 class FindingPageV1ItemsItemFinding(TypedDict):
     schema_version: str
     id: str
@@ -231,7 +231,7 @@ class FindingPageV1ItemsItemFinding(TypedDict):
     installed_version: NotRequired[str]
     advisories: NotRequired[list[str]]
     secret_fingerprint: NotRequired[str]
-    provenance: list[ScannerExecutionV1ResultFindingsItemProvenanceItem]
+    provenance: list[FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem]
     coverage_note: str
     created_at: str
 class FindingPageV1ItemsItemFindingProvenanceItem(TypedDict):
@@ -422,7 +422,7 @@ class ScannerExecutionV1SourceSnapshotFilesItem(TypedDict):
     size: int
 class ScannerExecutionV1Result(TypedDict):
     status: str
-    findings: list[ScannerExecutionV1ResultFindingsItem]
+    findings: list[FindingCataloguePageV1FindingsItemsItemFinding]
     diagnostics: list[ScannerExecutionV1ResultDiagnosticsItem]
     sbom: NotRequired[ScannerExecutionV1ResultSbom]
 class ScannerExecutionV1ResultFindingsItem(TypedDict):
@@ -443,7 +443,7 @@ class ScannerExecutionV1ResultFindingsItem(TypedDict):
     installed_version: NotRequired[str]
     advisories: NotRequired[list[str]]
     secret_fingerprint: NotRequired[str]
-    provenance: list[ScannerExecutionV1ResultFindingsItemProvenanceItem]
+    provenance: list[FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem]
     coverage_note: str
     created_at: str
 class ScannerExecutionV1ResultFindingsItemProvenanceItem(TypedDict):
@@ -553,7 +553,7 @@ class ScannerSuiteV1(TypedDict):
     tool_lock_digest: str
     snapshot_digest: str
     status: str
-    tools: list[ScannerSuiteResultV1DocumentToolsItem]
+    tools: list[FindingCataloguePageV1ResultDocumentToolsItem]
     finding_claims: int
     has_partial: bool
     has_stale_database: bool
@@ -569,7 +569,7 @@ class ScannerSuiteV1ToolsItem(TypedDict):
     has_sbom: bool
 class ScannerSuiteResultV1(TypedDict):
     result_digest: str
-    document: ScannerSuiteResultV1Document
+    document: FindingCataloguePageV1ResultDocument
 class ScannerSuiteResultV1Document(TypedDict):
     schema_version: str
     owner_id: str
@@ -581,7 +581,7 @@ class ScannerSuiteResultV1Document(TypedDict):
     tool_lock_digest: str
     snapshot_digest: str
     status: str
-    tools: list[ScannerSuiteResultV1DocumentToolsItem]
+    tools: list[FindingCataloguePageV1ResultDocumentToolsItem]
     finding_claims: int
     has_partial: bool
     has_stale_database: bool
@@ -595,6 +595,117 @@ class ScannerSuiteResultV1DocumentToolsItem(TypedDict):
     status: str
     finding_claims: int
     has_sbom: bool
+class FindingCatalogueQueryV1(TypedDict):
+    since: NotRequired[str]
+    until: NotRequired[str]
+    repository_id: NotRequired[str]
+    category: NotRequired[str]
+    severity: NotRequired[str]
+    limit: NotRequired[int]
+    cursor: NotRequired[str]
+class FindingCataloguePageV1(TypedDict):
+    schema_version: str
+    owner_id: str
+    scope: str
+    result_set_digest: str
+    retained_result_count: int
+    jobs_without_result: int
+    result_index: int
+    result: NotRequired[FindingCataloguePageV1Result]
+    findings: NotRequired[FindingCataloguePageV1Findings]
+    next_cursor: str
+class FindingCataloguePageV1Result(TypedDict):
+    result_digest: str
+    document: FindingCataloguePageV1ResultDocument
+class FindingCataloguePageV1ResultDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    snapshot_digest: str
+    status: str
+    tools: list[FindingCataloguePageV1ResultDocumentToolsItem]
+    finding_claims: int
+    has_partial: bool
+    has_stale_database: bool
+    has_tool_error: bool
+    evidence_tier: str
+    cleanup_required: bool
+    created_at: str
+class FindingCataloguePageV1ResultDocumentToolsItem(TypedDict):
+    tool_id: str
+    receipt_digest: str
+    status: str
+    finding_claims: int
+    has_sbom: bool
+class FindingCataloguePageV1Findings(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    result_digest: str
+    snapshot_digest: str
+    status: str
+    has_partial: bool
+    has_stale_database: bool
+    has_tool_error: bool
+    tool_claims: int
+    distinct_static_claims: int
+    matching_static_claims: int
+    items: list[FindingCataloguePageV1FindingsItemsItem]
+    next_cursor: str
+class FindingCataloguePageV1FindingsItemsItem(TypedDict):
+    record_id: str
+    finding: FindingCataloguePageV1FindingsItemsItemFinding
+    receipt_digests: list[str]
+    owner_review: NotRequired[FindingCataloguePageV1FindingsItemsItemOwnerReview]
+class FindingCataloguePageV1FindingsItemsItemFinding(TypedDict):
+    schema_version: str
+    id: str
+    app_id: str
+    repository_id: str
+    category: str
+    summary: str
+    status: str
+    severity: str
+    confidence: str
+    evidence_tier: str
+    path: NotRequired[str]
+    line: NotRequired[int]
+    package_name: NotRequired[str]
+    package_url: NotRequired[str]
+    installed_version: NotRequired[str]
+    advisories: NotRequired[list[str]]
+    secret_fingerprint: NotRequired[str]
+    provenance: list[FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem]
+    coverage_note: str
+    created_at: str
+class FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem(TypedDict):
+    tool_id: str
+    tool_version: str
+    tool_image_digest: str
+    parser_version: str
+    input_digest: str
+    rule_id: NotRequired[str]
+    severity_claimed: NotRequired[str]
+class FindingCataloguePageV1FindingsItemsItemOwnerReview(TypedDict):
+    triage_digest: str
+    document: FindingTriageHistoryV1DocumentItemsItemDocument
+class FindingCataloguePageV1FindingsItemsItemOwnerReviewDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    record_id: str
+    result_digest: str
+    revision: int
+    state: str
+    rationale: str
+    previous_digest: str
+    updated_at: str
 class ScannerLaunchPlanV1(TypedDict):
     tool_id: str
     container_id: str

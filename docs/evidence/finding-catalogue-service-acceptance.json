@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Named local demo image alignment/readiness and served catalogue console identity; no independent installation claim",
+  "pre_update_snapshot": {
+    "schema_version": "1.0",
+    "status": "created",
+    "scope": "controller_database_only",
+    "database_digest": "sha256:90a2e8264bd793ce32166757272b78a30dea03716ea7921323039de79145aa3c",
+    "byte_count": 1650688,
+    "created_at": "2026-10-15T13:50:37.043997135Z",
+    "gateway_configuration_captured": false,
+    "tool_manifest_captured": false,
+    "restore_verified": false
+  },
+  "services": {
+    "init": {
+      "image": "sha256:1dd51e8c8407172542f44e7cecbfd00a0cb2740508ff5af7ea0da9ddf8f1d8ea",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    },
+    "controller": {
+      "image": "sha256:1dd51e8c8407172542f44e7cecbfd00a0cb2740508ff5af7ea0da9ddf8f1d8ea",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    },
+    "deployer": {
+      "image": "sha256:1dd51e8c8407172542f44e7cecbfd00a0cb2740508ff5af7ea0da9ddf8f1d8ea",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    },
+    "verifier": {
+      "image": "sha256:1dd51e8c8407172542f44e7cecbfd00a0cb2740508ff5af7ea0da9ddf8f1d8ea",
+      "uid_10001": true,
+      "read_only": true,
+      "cap_drop_all": true,
+      "privileged": false
+    }
+  },
+  "gateway_before": {
+    "status": 200,
+    "policy_digest": "sha256:1f8c3442cf3b73d0f56844bbdfc130a6968f919d296fc67259944cc436171ab7",
+    "mode": "observe"
+  },
+  "gateway_after": {
+    "status": 200,
+    "policy_digest": "sha256:1f8c3442cf3b73d0f56844bbdfc130a6968f919d296fc67259944cc436171ab7",
+    "mode": "observe"
+  },
+  "console_asset": "/assets/index-CwbYexvv.js",
+  "console_digest": "sha256:0efd42eda4035a5867a4e46ae7b62de12cc732b4e4fb5ceac5323a1145ee7ff9",
+  "web_controller_engine_socket": false,
+  "web_controller_gateway_policy_mount": false
+}

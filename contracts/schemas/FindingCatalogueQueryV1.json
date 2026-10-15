@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/FindingCatalogueQueryV1.json",
+  "title": "FindingCatalogueQueryV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "since": {
+      "type": "string",
+      "format": "date-time",
+      "maxLength": 64
+    },
+    "until": {
+      "type": "string",
+      "format": "date-time",
+      "maxLength": 64
+    },
+    "repository_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "static_pattern",
+        "secret_candidate",
+        "known_vulnerable_dependency"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "informational",
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20
+    },
+    "cursor": {
+      "type": "string",
+      "maxLength": 2048
+    }
+  },
+  "required": []
+}

@@ -84,25 +84,34 @@ func decodeFindingCursor(raw string, expected findingCursor, total int) (int, er
 	return c.Offset, nil
 }
 
-// Findings derives a bounded view from an owned immutable result and the same
-// transaction's revalidated receipts. It neither writes evidence nor promotes
-// static tool claims, and never treats unavailable results as an empty scan.
-func (q *Queue) Findings(ctx context.Context, owner, id string, in FindingQuery) (FindingPage, error) {
+func normalizeFindingQuery(in FindingQuery) (FindingQuery, error) {
 	if in.Limit == 0 {
 		in.Limit = 20
 	}
 	if in.Limit < 1 || in.Limit > 20 || len(in.Cursor) > 512 {
-		return FindingPage{}, ErrInput
+		return in, ErrInput
 	}
 	switch in.Category {
 	case "", "static_pattern", "secret_candidate", "known_vulnerable_dependency":
 	default:
-		return FindingPage{}, ErrInput
+		return in, ErrInput
 	}
 	switch in.Severity {
 	case "", "informational", "low", "medium", "high", "critical":
 	default:
-		return FindingPage{}, ErrInput
+		return in, ErrInput
+	}
+	return in, nil
+}
+
+// Findings derives a bounded view from an owned immutable result and the same
+// transaction's revalidated receipts. It neither writes evidence nor promotes
+// static tool claims, and never treats unavailable results as an empty scan.
+func (q *Queue) Findings(ctx context.Context, owner, id string, in FindingQuery) (FindingPage, error) {
+	var e error
+	in, e = normalizeFindingQuery(in)
+	if e != nil {
+		return FindingPage{}, e
 	}
 	tx, e := q.S.DB.BeginTx(ctx, nil)
 	if e != nil {
@@ -114,30 +123,35 @@ func (q *Queue) Findings(ctx context.Context, owner, id string, in FindingQuery)
 
 // target is an internal exact-record selector; it does not change public query semantics.
 func (q *Queue) findingsTx(ctx context.Context, tx *sql.Tx, owner, id string, in FindingQuery, target string) (FindingPage, error) {
+	page, _, e := q.findingsWithResultTx(ctx, tx, owner, id, in, target)
+	return page, e
+}
+
+func (q *Queue) findingsWithResultTx(ctx context.Context, tx *sql.Tx, owner, id string, in FindingQuery, target string) (FindingPage, SuiteResult, error) {
 	j, e := read(tx.QueryRowContext(ctx, "SELECT "+columns+" FROM scanner_jobs WHERE id=? AND owner=?", id, owner))
 	if e != nil {
-		return FindingPage{}, e
+		return FindingPage{}, SuiteResult{}, e
 	}
 	result, e := resultTx(tx, j)
 	if e != nil {
 		if errors.Is(e, ErrConflict) {
-			return FindingPage{}, e
+			return FindingPage{}, SuiteResult{}, e
 		}
 		// Distinguish a missing result from a missing owned job, checked above.
 		var n int
 		if probe := tx.QueryRowContext(ctx, "SELECT count(*) FROM scanner_results WHERE job=?", id).Scan(&n); probe != nil {
-			return FindingPage{}, probe
+			return FindingPage{}, SuiteResult{}, probe
 		}
 		if n == 0 {
-			return FindingPage{}, ErrResultUnavailable
+			return FindingPage{}, SuiteResult{}, ErrResultUnavailable
 		}
-		return FindingPage{}, e
+		return FindingPage{}, SuiteResult{}, e
 	}
 	d := result.Document
 	page := FindingPage{Schema: "1.0", Owner: owner, Job: id, Request: j.RequestDigest, Result: result.Digest, Snapshot: d.Snapshot, Status: d.Status, Partial: d.Partial, Stale: d.Stale, ToolError: d.ToolError, ToolClaims: d.FindingClaims, Items: []FindingEntry{}}
 	rows, e := tx.QueryContext(ctx, "SELECT document,digest,created_at,tool FROM scanner_receipts WHERE job=? AND owner=? ORDER BY tool", id, owner)
 	if e != nil {
-		return FindingPage{}, e
+		return FindingPage{}, SuiteResult{}, e
 	}
 	claims := []scanevidence.Finding{}
 	refs := map[string]string{}
@@ -145,16 +159,16 @@ func (q *Queue) findingsTx(ctx context.Context, tx *sql.Tx, owner, id string, in
 		var doc, hash, created, tool string
 		if e = rows.Scan(&doc, &hash, &created, &tool); e != nil {
 			rows.Close()
-			return FindingPage{}, e
+			return FindingPage{}, SuiteResult{}, e
 		}
 		r, e := decodeReceipt(doc, hash, owner, id, j.RequestDigest, tool, created)
 		if e != nil {
 			rows.Close()
-			return FindingPage{}, e
+			return FindingPage{}, SuiteResult{}, e
 		}
 		if len(claims)+len(r.Document.Execution.Result.Findings) > 60000 {
 			rows.Close()
-			return FindingPage{}, ErrFindingBudget
+			return FindingPage{}, SuiteResult{}, ErrFindingBudget
 		}
 		claims = append(claims, r.Document.Execution.Result.Findings...)
 		refs[tool] = hash
@@ -162,14 +176,14 @@ func (q *Queue) findingsTx(ctx context.Context, tx *sql.Tx, owner, id string, in
 	e = rows.Err()
 	rows.Close()
 	if e != nil {
-		return FindingPage{}, e
+		return FindingPage{}, SuiteResult{}, e
 	}
 	if e = ctx.Err(); e != nil {
-		return FindingPage{}, e
+		return FindingPage{}, SuiteResult{}, e
 	}
 	merged, e := scanevidence.Dedupe(claims)
 	if e != nil {
-		return FindingPage{}, ErrFindingBudget
+		return FindingPage{}, SuiteResult{}, ErrFindingBudget
 	}
 	page.Distinct = len(merged)
 	filtered := []scanevidence.Finding{}
@@ -185,20 +199,20 @@ func (q *Queue) findingsTx(ctx context.Context, tx *sql.Tx, owner, id string, in
 	}{owner, id, in})}
 	offset, e := decodeFindingCursor(in.Cursor, binding, len(filtered))
 	if e != nil {
-		return FindingPage{}, e
+		return FindingPage{}, SuiteResult{}, e
 	}
 	// Cursor is a canonical seek coordinate, not an authorization token. Every
 	// page independently checks owner/result/filter identity and source evidence.
 	for i := offset; i < len(filtered) && len(page.Items) < in.Limit; i++ {
 		if e = ctx.Err(); e != nil {
-			return FindingPage{}, e
+			return FindingPage{}, SuiteResult{}, e
 		}
 		f := filtered[i]
 		receiptSet := map[string]bool{}
 		for _, p := range f.Provenance {
 			ref := refs[p.Tool]
 			if ref == "" {
-				return FindingPage{}, ErrConflict
+				return FindingPage{}, SuiteResult{}, ErrConflict
 			}
 			receiptSet[ref] = true
 		}
@@ -209,19 +223,19 @@ func (q *Queue) findingsTx(ctx context.Context, tx *sql.Tx, owner, id string, in
 		sort.Strings(entry.Receipts)
 		review, e := triageHistory(ctx, tx, owner, id, entry.ID, result.Digest)
 		if e != nil {
-			return FindingPage{}, e
+			return FindingPage{}, SuiteResult{}, e
 		}
 		entry.Review = &review
 		page.Items = append(page.Items, entry)
 		b, e := json.Marshal(page)
 		if e != nil {
-			return FindingPage{}, e
+			return FindingPage{}, SuiteResult{}, e
 		}
 		// Reserve cursor/envelope overhead inside the standalone clients' 128 KiB.
 		if len(b) > 95<<10 {
 			page.Items = page.Items[:len(page.Items)-1]
 			if len(page.Items) == 0 {
-				return FindingPage{}, ErrFindingBudget
+				return FindingPage{}, SuiteResult{}, ErrFindingBudget
 			}
 			break
 		}
@@ -231,7 +245,7 @@ func (q *Queue) findingsTx(ctx context.Context, tx *sql.Tx, owner, id string, in
 		binding.Offset = next
 		page.Next = encodeFindingCursor(binding)
 	}
-	return page, nil
+	return page, result, nil
 }
 
 // Some incomplete dependency coordinates have equal parser IDs but lack the

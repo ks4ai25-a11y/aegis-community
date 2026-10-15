@@ -64,6 +64,10 @@ jobs:
       - run: python3 tests/integration/repository_acceptance.py
       - run: python3 tests/integration/scanner_owner_api_acceptance.py
       - run: python3 tests/integration/scanner_verifier_enrollment_acceptance.py
+      - name: Verify owner retained finding catalogue
+        env:
+          AEGIS_LIVE_CATALOGUE_TEST: '1'
+        run: python3 tests/integration/finding_catalogue_acceptance.py
       - name: Verify owner finding history refusal boundaries
         env:
           AEGIS_LIVE_FINDING_HISTORY_TEST: '1'

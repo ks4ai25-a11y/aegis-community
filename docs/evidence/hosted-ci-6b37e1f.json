@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Hosted source/browser/build and disposable demo for the exact published owner review-history commit; no independent security sign-off",
+  "commit": "6b37e1f8355eaf076a916288743f3497dbfeb35d",
+  "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38726911239",
+  "created_at": "2026-10-15T11:22:50Z",
+  "updated_at": "2026-10-15T11:27:25Z",
+  "jobs": [
+    {
+      "name": "source",
+      "result": "success",
+      "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38726911239/job/116395472901"
+    },
+    {
+      "name": "trusted-demo",
+      "result": "success",
+      "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38726911239/job/116395473381"
+    }
+  ],
+  "independent_security_signoff": false,
+  "public_beta": "NO-GO"
+}

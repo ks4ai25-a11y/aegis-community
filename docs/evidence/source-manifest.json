@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:d8bfc0c82450da71470d8195ef6b66ba1039822eafd39def39d4fc7314bd302b",
+  "source_tree_sha256": "sha256:ef067a99d33250e2d66d63961f9b9dd9b77e084bbe761474c7b0003517f9e345",
   "files": [
     {
       "path": ".dockerignore",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "c6975872973b84ae4afc375a8b744e7979fd36a9ebb932bb297f8a530d45e5ad"
+      "sha256": "150fa7cfb4856622a3261d90b2c6061d230ccea79845d06c4fab28e78e082e89"
     },
     {
       "path": ".gitignore",
@@ -32,7 +32,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "3505209c45e1fc23696b4667981cb357631ece69e1ad758242dd90c2f36a34ab"
+      "sha256": "5ceda81ca9d95a68b10a0824cc6539ce41ba2f8690ebec619d9a7cc07eca6a2e"
     },
     {
       "path": "SECURITY.md",
@@ -327,6 +327,10 @@
       "sha256": "eef8acb3026108577d2a53320e54bfc2882b7eaf30e8d4a4882f87f16b6c4110"
     },
     {
+      "path": "console/src/Catalogue.tsx",
+      "sha256": "3f7a27f1235c3145ad18d1bbcd13d2e19780534fa7e9da97bca84b6284e23a92"
+    },
+    {
       "path": "console/src/FindingReviewHistory.tsx",
       "sha256": "7147ba0b8fd962ebebe55d4bff34cc8cd83d1cf962e5eac87a4cb8830cf0224d"
     },
@@ -336,7 +340,7 @@
     },
     {
       "path": "console/src/Findings.tsx",
-      "sha256": "85c846946f32060a75593f8fe62dc5cadca088b362c16ea79e29d4fb2bbc1d13"
+      "sha256": "7cc1f20f8a9c856722569aa82770ef8a074c9adaca193e04ea91c13015cbfdb2"
     },
     {
       "path": "console/src/Report.tsx",
@@ -348,7 +352,7 @@
     },
     {
       "path": "console/src/Scans.tsx",
-      "sha256": "8c4f3de61450376dc43917bc1dc3540764b3880da5aab82211933c910896f399"
+      "sha256": "70210baeff78ecafc7bef5afe18c92427a0363a6c72d415a9cb641d97f78eb5e"
     },
     {
       "path": "console/src/Verification.tsx",
@@ -364,19 +368,27 @@
     },
     {
       "path": "console/src/generated/contracts.ts",
-      "sha256": "ce047deb97aa360dcc4f30776165beb71134330eb95815ca42cde3eade19260a"
+      "sha256": "4f71d651f311e536146b56d029ba7ce8962ab3d7535e18ccdaa0051a1c43e97f"
     },
     {
       "path": "console/src/generated/research-client.ts",
-      "sha256": "142e271c0978a423947019cfe348764d1b5af77892624125980d2ae2f24ed5aa"
+      "sha256": "312f8ca977765bfbcfec03b835c55f2ca2626034ebf72b9a2429548d8b715e0b"
     },
     {
       "path": "console/src/main.tsx",
-      "sha256": "361fcb327959e271c719a1e632ada250e23ecb321f8c0e9305f5a24784a7f6a3"
+      "sha256": "3ef8dbad5e7fcbdd4d9dde4ccba1e832d595e6370e2188427d4a5457da94fb84"
     },
     {
       "path": "console/src/style.css",
-      "sha256": "683a9e8a83337590b58f1eb4cb6cd5bb5c243f8b89bc4a3d6fb8270105b2599d"
+      "sha256": "1a76d87ab49d3a1383bccaa3d736a0d7eecf0de75d3a35e30f1111e6ec54c468"
+    },
+    {
+      "path": "console/tests/catalogue-live.spec.ts",
+      "sha256": "74e22890fbf89a825c7bdd300e93d618094f938284556b3383232763be7b4ba6"
+    },
+    {
+      "path": "console/tests/catalogue.spec.ts",
+      "sha256": "74220e794e893988ede00cac8661a797349de0aaa38485e4d8163bc484af3844"
     },
     {
       "path": "console/tests/findings.spec.ts",
@@ -416,23 +428,23 @@
     },
     {
       "path": "contracts/generated/contracts.go",
-      "sha256": "711676d5a5a8e11b43bdac93469206301c4444b15fd5eadb794cb932663b248a"
+      "sha256": "cb3a8a45cdc31bfa44b89e1baec5f390d05f8c47ce7d896cb902f99d6e784ea1"
     },
     {
       "path": "contracts/generated/contracts.py",
-      "sha256": "091428a5e094564f8fac48841ca34ae6e3cab68d7bbe24e2aad4f93e10c64f90"
+      "sha256": "a4dd8d4d507c3b3e679964e32ef6d41d6d71e489153f5a4671836b4ca2447522"
     },
     {
       "path": "contracts/generated/contracts.ts",
-      "sha256": "ce047deb97aa360dcc4f30776165beb71134330eb95815ca42cde3eade19260a"
+      "sha256": "4f71d651f311e536146b56d029ba7ce8962ab3d7535e18ccdaa0051a1c43e97f"
     },
     {
       "path": "contracts/generated/research_client.go",
-      "sha256": "c747d5941b18b6d376d67df7c9edb947b5c5f2f9f684a7b1f47cb5197a0f47a1"
+      "sha256": "9f02673dd0772c7f3be3b7e95bc01f3e90922525a04a987c39ae5ff9c7d25e39"
     },
     {
       "path": "contracts/generated/research_client.py",
-      "sha256": "3ca6e56adf0cea3786e4fc0bce6c4533a60ea14df0742c5021a40294fa857d89"
+      "sha256": "015b2a1cf5fb0a7fcec47056b0e2e4d354d674e494b625bf2a5d2b124b113925"
     },
     {
       "path": "contracts/generated/research_client_test.go",
@@ -444,7 +456,7 @@
     },
     {
       "path": "contracts/openapi-research.json",
-      "sha256": "a4bb615cbef0ae2dc0c40045d994e91ef741e89868aa6511940678586aa4bd79"
+      "sha256": "14f1276cad53d148cad2bf654d72d2872b9ff12b5f5bee24a4b67c94a934dd7e"
     },
     {
       "path": "contracts/samples/ApplicationMapV1.json",
@@ -453,6 +465,10 @@
     {
       "path": "contracts/samples/DatabaseSnapshotReceiptV1.json",
       "sha256": "cbbf3459acb6adbf5f2e35e0a2d82290f1707344449c4cb732fbef7edc2a9777"
+    },
+    {
+      "path": "contracts/samples/FindingCataloguePageV1.json",
+      "sha256": "56f4d8708796e1327c3421b45d46a30d641e697e6624f56b2f42525b24f7102b"
     },
     {
       "path": "contracts/samples/FindingEntryV1.json",
@@ -601,6 +617,14 @@
     {
       "path": "contracts/schemas/ErrorEnvelopeV1.json",
       "sha256": "bc57c31269a2cab0b1c9fa559f6f969abdb9b0429782200132e199f11e6630b6"
+    },
+    {
+      "path": "contracts/schemas/FindingCataloguePageV1.json",
+      "sha256": "91857e8a09f279622982b992ecbca22c6f23c7fde46b00965a9945a05a424af2"
+    },
+    {
+      "path": "contracts/schemas/FindingCatalogueQueryV1.json",
+      "sha256": "8213027731d81b586d2ad04f7ff3fabc424d9fb908619a4b04d00a52800a4ff5"
     },
     {
       "path": "contracts/schemas/FindingEntryV1.json",
@@ -848,7 +872,11 @@
     },
     {
       "path": "controller/internal/api/api.go",
-      "sha256": "07720e1dc57e80532af5b85092460b6c847c30241fce2e38dd4b7bf6f7a88360"
+      "sha256": "bcd33d3fb7d5a8c6fba5e87f4892edb498079c38ebdf5fe0fc472034f9c0aa20"
+    },
+    {
+      "path": "controller/internal/api/catalogue.go",
+      "sha256": "1a0a6bac6346a62fde6c225a083eb5058125f6b90b84d3f4e9e5e2191c6659e1"
     },
     {
       "path": "controller/internal/api/findings.go",
@@ -979,6 +1007,14 @@
       "sha256": "f9dd697fa037e1efbaac17eda5c933bf7c3b5980af81b2fddd9ab9cae46f4da2"
     },
     {
+      "path": "controller/internal/scanqueue/catalogue.go",
+      "sha256": "6b7d16b62ce3fd237b65f6c487657dd3f76efd4fd71b94ccb5084ad2f6d435e6"
+    },
+    {
+      "path": "controller/internal/scanqueue/catalogue_test.go",
+      "sha256": "4f74f4ad472672203aa0308eb02bb12d967443542eff4be41b5d40258595afa5"
+    },
+    {
       "path": "controller/internal/scanqueue/cleanup_context.go",
       "sha256": "2a213abf87ef32962817c7eb0bae74d9e324a95231dd01b6005301db99a4deca"
     },
@@ -1012,7 +1048,7 @@
     },
     {
       "path": "controller/internal/scanqueue/findings.go",
-      "sha256": "ba8250eed2b2b770b73b15bfbcd92918d8e9a36d37e5b283a378561e346c1042"
+      "sha256": "60b3b2b6973e8aac15b47c69b5e1f6137c5a288f5b42eb2b100a536d196f287b"
     },
     {
       "path": "controller/internal/scanqueue/findings_test.go",
@@ -1240,7 +1276,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "f1130b63c504ffe53016fb322460e834416f32db4d92858344924100a598c802"
+      "sha256": "20d930e39bacbc335ace4440c64c5b56b505d12004d1d2500bd26bae53cca203"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -1387,8 +1423,16 @@
       "sha256": "41776f21b3caf6ea98eeb76e4509b7a9b0005985787dd4080b1d3e469b2a5800"
     },
     {
+      "path": "docs/architecture/adr/046-owned-retained-finding-catalogue.md",
+      "sha256": "6673dbefd555aef4b95da58e81a6ee0682f69f350963f54f3bce5548351a6edd"
+    },
+    {
       "path": "docs/operators/database-snapshots.md",
       "sha256": "3c62f228aa2828f135f5293c85d3da33a1e25464022bcbe6bd9344de9e3c6e85"
+    },
+    {
+      "path": "docs/operators/finding-catalogue.md",
+      "sha256": "ddd407712a1ba786738d3fb8984dc563f82e67efdd13cca400f2ca1bdb4d15ec"
     },
     {
       "path": "docs/operators/finding-reviews.md",
@@ -1456,11 +1500,11 @@
     },
     {
       "path": "scripts/generate_contracts.py",
-      "sha256": "5ef7f86b4f1b93b2b40350acee4effcb4a153dad402afe86854e195bdd625161"
+      "sha256": "a925ff078d3058e121f704026c25410f6da94a37ee3f975d12d56b1588e3093c"
     },
     {
       "path": "scripts/generate_research_api.py",
-      "sha256": "68b43dc1bb7cbf32b6497482c7ec7480eb3d62155a27c530e54654c2b98767dc"
+      "sha256": "7aaf3c16d2fc5f226c8769095c109b0df9f3e761423060e07f991ae368bc1ece"
     },
     {
       "path": "scripts/source_manifest.py",
@@ -1595,6 +1639,10 @@
       "sha256": "e2ce5465fa100c7c0018311095a89218de988b889c75de2e869701ef5c53345a"
     },
     {
+      "path": "tests/integration/finding_catalogue_acceptance.py",
+      "sha256": "e471fc085298e88d7ea6d0fc3b90537898291a36b304cd155a6e2ba7379cccfd"
+    },
+    {
       "path": "tests/integration/finding_history_acceptance.py",
       "sha256": "1991385b9529c81d3103102043c16b693b9f0a04952aaff02abd5652b15ce198"
     },
@@ -1664,7 +1712,7 @@
     },
     {
       "path": "tests/integration/scannerchannel/triage_test.go",
-      "sha256": "88f7a83390316c8802d2a4eb6207450a3924899a66ee301d6158964dea7c0bbe"
+      "sha256": "4fca014047bc172354abc08596fe0f40c75c0a19884d6713fa0a617016028fad"
     },
     {
       "path": "tests/integration/scannerchannel/verifier_test.go",

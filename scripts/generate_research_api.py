@@ -5,6 +5,7 @@ root=pathlib.Path(__file__).resolve().parents[1]
 def schema(name):return {'$ref':'#/components/schemas/'+name}
 # name, method, path, request, response, success status, idempotency requirement
 ops=[
+ ('listFindingCatalogue','get','/findings/catalogue',None,'FindingCataloguePageV1',200,False),
  ('getFindingTriageHistory','get','/scans/{id}/finding-triage-history',None,'FindingTriageHistoryV1',200,False),
  ('getFindingTriage','get','/scans/{id}/finding-triage',None,'FindingTriageRecordV1',200,False),
  ('setFindingTriage','post','/scans/{id}/finding-triage','FindingTriageInputV1','FindingTriageRecordV1',200,True),
@@ -34,8 +35,8 @@ paths={}
 for name,method,path,body,result,status,key in ops:
  operation={'operationId':name,'security':[{'ownerSession':[]}],'responses':{str(status):{'description':'Successful owner-scoped operation','content':{'application/json':{'schema':schema(result)}}},'default':{'description':'Typed failure; never a success or clean-scan conclusion','content':{'application/json':{'schema':schema('ErrorEnvelopeV1')}}}}}
  params=[]
- if name in ('listFindings','getFindingTriage','getFindingTriageHistory'):
-  query_name={'listFindings':'FindingQueryV1','getFindingTriage':'FindingTriageQueryV1','getFindingTriageHistory':'FindingTriageHistoryQueryV1'}[name]
+ if name in ('listFindings','getFindingTriage','getFindingTriageHistory','listFindingCatalogue'):
+  query_name={'listFindingCatalogue':'FindingCatalogueQueryV1','listFindings':'FindingQueryV1','getFindingTriage':'FindingTriageQueryV1','getFindingTriageHistory':'FindingTriageHistoryQueryV1'}[name]
   operation['x-query-schema']=query_name
   query=json.loads((root/'contracts/schemas'/f'{query_name}.json').read_text())
   params.extend({'name':field,'in':'query','required':field in query['required'],'schema':value} for field,value in query['properties'].items())

@@ -140,6 +140,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		defer s.mutations.Unlock()
 	}
 	switch {
+	case path == "/findings/catalogue" && r.Method == "GET":
+		s.findingCatalogue(w, r, actor)
 	case path == "/findings" && r.Method == "GET":
 		s.findings(w, r, actor)
 	case path == "/scans" || strings.HasPrefix(path, "/scans/"):

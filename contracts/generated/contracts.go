@@ -26,26 +26,26 @@ type PolicyRevisionV1Metadata struct {
 	RequestedBy string `json:"requested_by"`
 }
 type FindingV1 struct {
-	SchemaVersion     string                                               `json:"schema_version"`
-	Id                string                                               `json:"id"`
-	AppId             string                                               `json:"app_id"`
-	RepositoryId      string                                               `json:"repository_id"`
-	Category          string                                               `json:"category"`
-	Summary           string                                               `json:"summary"`
-	Status            string                                               `json:"status"`
-	Severity          string                                               `json:"severity"`
-	Confidence        string                                               `json:"confidence"`
-	EvidenceTier      string                                               `json:"evidence_tier"`
-	Path              string                                               `json:"path,omitempty"`
-	Line              int64                                                `json:"line,omitempty"`
-	PackageName       string                                               `json:"package_name,omitempty"`
-	PackageUrl        string                                               `json:"package_url,omitempty"`
-	InstalledVersion  string                                               `json:"installed_version,omitempty"`
-	Advisories        []string                                             `json:"advisories,omitempty"`
-	SecretFingerprint string                                               `json:"secret_fingerprint,omitempty"`
-	Provenance        []ScannerExecutionV1ResultFindingsItemProvenanceItem `json:"provenance"`
-	CoverageNote      string                                               `json:"coverage_note"`
-	CreatedAt         string                                               `json:"created_at"`
+	SchemaVersion     string                                                         `json:"schema_version"`
+	Id                string                                                         `json:"id"`
+	AppId             string                                                         `json:"app_id"`
+	RepositoryId      string                                                         `json:"repository_id"`
+	Category          string                                                         `json:"category"`
+	Summary           string                                                         `json:"summary"`
+	Status            string                                                         `json:"status"`
+	Severity          string                                                         `json:"severity"`
+	Confidence        string                                                         `json:"confidence"`
+	EvidenceTier      string                                                         `json:"evidence_tier"`
+	Path              string                                                         `json:"path,omitempty"`
+	Line              int64                                                          `json:"line,omitempty"`
+	PackageName       string                                                         `json:"package_name,omitempty"`
+	PackageUrl        string                                                         `json:"package_url,omitempty"`
+	InstalledVersion  string                                                         `json:"installed_version,omitempty"`
+	Advisories        []string                                                       `json:"advisories,omitempty"`
+	SecretFingerprint string                                                         `json:"secret_fingerprint,omitempty"`
+	Provenance        []FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem `json:"provenance"`
+	CoverageNote      string                                                         `json:"coverage_note"`
+	CreatedAt         string                                                         `json:"created_at"`
 }
 type FindingV1ProvenanceItem struct {
 	ToolId          string `json:"tool_id"`
@@ -159,32 +159,32 @@ type FindingQueryV1 struct {
 	Cursor   string `json:"cursor,omitempty"`
 }
 type FindingEntryV1 struct {
-	RecordId       string                               `json:"record_id"`
-	Finding        ScannerExecutionV1ResultFindingsItem `json:"finding"`
-	ReceiptDigests []string                             `json:"receipt_digests"`
-	OwnerReview    FindingPageV1ItemsItemOwnerReview    `json:"owner_review,omitempty"`
+	RecordId       string                                             `json:"record_id"`
+	Finding        FindingCataloguePageV1FindingsItemsItemFinding     `json:"finding"`
+	ReceiptDigests []string                                           `json:"receipt_digests"`
+	OwnerReview    FindingCataloguePageV1FindingsItemsItemOwnerReview `json:"owner_review,omitempty"`
 }
 type FindingEntryV1Finding struct {
-	SchemaVersion     string                                               `json:"schema_version"`
-	Id                string                                               `json:"id"`
-	AppId             string                                               `json:"app_id"`
-	RepositoryId      string                                               `json:"repository_id"`
-	Category          string                                               `json:"category"`
-	Summary           string                                               `json:"summary"`
-	Status            string                                               `json:"status"`
-	Severity          string                                               `json:"severity"`
-	Confidence        string                                               `json:"confidence"`
-	EvidenceTier      string                                               `json:"evidence_tier"`
-	Path              string                                               `json:"path,omitempty"`
-	Line              int64                                                `json:"line,omitempty"`
-	PackageName       string                                               `json:"package_name,omitempty"`
-	PackageUrl        string                                               `json:"package_url,omitempty"`
-	InstalledVersion  string                                               `json:"installed_version,omitempty"`
-	Advisories        []string                                             `json:"advisories,omitempty"`
-	SecretFingerprint string                                               `json:"secret_fingerprint,omitempty"`
-	Provenance        []ScannerExecutionV1ResultFindingsItemProvenanceItem `json:"provenance"`
-	CoverageNote      string                                               `json:"coverage_note"`
-	CreatedAt         string                                               `json:"created_at"`
+	SchemaVersion     string                                                         `json:"schema_version"`
+	Id                string                                                         `json:"id"`
+	AppId             string                                                         `json:"app_id"`
+	RepositoryId      string                                                         `json:"repository_id"`
+	Category          string                                                         `json:"category"`
+	Summary           string                                                         `json:"summary"`
+	Status            string                                                         `json:"status"`
+	Severity          string                                                         `json:"severity"`
+	Confidence        string                                                         `json:"confidence"`
+	EvidenceTier      string                                                         `json:"evidence_tier"`
+	Path              string                                                         `json:"path,omitempty"`
+	Line              int64                                                          `json:"line,omitempty"`
+	PackageName       string                                                         `json:"package_name,omitempty"`
+	PackageUrl        string                                                         `json:"package_url,omitempty"`
+	InstalledVersion  string                                                         `json:"installed_version,omitempty"`
+	Advisories        []string                                                       `json:"advisories,omitempty"`
+	SecretFingerprint string                                                         `json:"secret_fingerprint,omitempty"`
+	Provenance        []FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem `json:"provenance"`
+	CoverageNote      string                                                         `json:"coverage_note"`
+	CreatedAt         string                                                         `json:"created_at"`
 }
 type FindingEntryV1FindingProvenanceItem struct {
 	ToolId          string `json:"tool_id"`
@@ -212,49 +212,49 @@ type FindingEntryV1OwnerReviewDocument struct {
 	UpdatedAt      string `json:"updated_at"`
 }
 type FindingPageV1 struct {
-	SchemaVersion        string                   `json:"schema_version"`
-	OwnerId              string                   `json:"owner_id"`
-	JobId                string                   `json:"job_id"`
-	RequestDigest        string                   `json:"request_digest"`
-	ResultDigest         string                   `json:"result_digest"`
-	SnapshotDigest       string                   `json:"snapshot_digest"`
-	Status               string                   `json:"status"`
-	HasPartial           bool                     `json:"has_partial"`
-	HasStaleDatabase     bool                     `json:"has_stale_database"`
-	HasToolError         bool                     `json:"has_tool_error"`
-	ToolClaims           int64                    `json:"tool_claims"`
-	DistinctStaticClaims int64                    `json:"distinct_static_claims"`
-	MatchingStaticClaims int64                    `json:"matching_static_claims"`
-	Items                []FindingPageV1ItemsItem `json:"items"`
-	NextCursor           string                   `json:"next_cursor"`
+	SchemaVersion        string                                    `json:"schema_version"`
+	OwnerId              string                                    `json:"owner_id"`
+	JobId                string                                    `json:"job_id"`
+	RequestDigest        string                                    `json:"request_digest"`
+	ResultDigest         string                                    `json:"result_digest"`
+	SnapshotDigest       string                                    `json:"snapshot_digest"`
+	Status               string                                    `json:"status"`
+	HasPartial           bool                                      `json:"has_partial"`
+	HasStaleDatabase     bool                                      `json:"has_stale_database"`
+	HasToolError         bool                                      `json:"has_tool_error"`
+	ToolClaims           int64                                     `json:"tool_claims"`
+	DistinctStaticClaims int64                                     `json:"distinct_static_claims"`
+	MatchingStaticClaims int64                                     `json:"matching_static_claims"`
+	Items                []FindingCataloguePageV1FindingsItemsItem `json:"items"`
+	NextCursor           string                                    `json:"next_cursor"`
 }
 type FindingPageV1ItemsItem struct {
-	RecordId       string                               `json:"record_id"`
-	Finding        ScannerExecutionV1ResultFindingsItem `json:"finding"`
-	ReceiptDigests []string                             `json:"receipt_digests"`
-	OwnerReview    FindingPageV1ItemsItemOwnerReview    `json:"owner_review,omitempty"`
+	RecordId       string                                             `json:"record_id"`
+	Finding        FindingCataloguePageV1FindingsItemsItemFinding     `json:"finding"`
+	ReceiptDigests []string                                           `json:"receipt_digests"`
+	OwnerReview    FindingCataloguePageV1FindingsItemsItemOwnerReview `json:"owner_review,omitempty"`
 }
 type FindingPageV1ItemsItemFinding struct {
-	SchemaVersion     string                                               `json:"schema_version"`
-	Id                string                                               `json:"id"`
-	AppId             string                                               `json:"app_id"`
-	RepositoryId      string                                               `json:"repository_id"`
-	Category          string                                               `json:"category"`
-	Summary           string                                               `json:"summary"`
-	Status            string                                               `json:"status"`
-	Severity          string                                               `json:"severity"`
-	Confidence        string                                               `json:"confidence"`
-	EvidenceTier      string                                               `json:"evidence_tier"`
-	Path              string                                               `json:"path,omitempty"`
-	Line              int64                                                `json:"line,omitempty"`
-	PackageName       string                                               `json:"package_name,omitempty"`
-	PackageUrl        string                                               `json:"package_url,omitempty"`
-	InstalledVersion  string                                               `json:"installed_version,omitempty"`
-	Advisories        []string                                             `json:"advisories,omitempty"`
-	SecretFingerprint string                                               `json:"secret_fingerprint,omitempty"`
-	Provenance        []ScannerExecutionV1ResultFindingsItemProvenanceItem `json:"provenance"`
-	CoverageNote      string                                               `json:"coverage_note"`
-	CreatedAt         string                                               `json:"created_at"`
+	SchemaVersion     string                                                         `json:"schema_version"`
+	Id                string                                                         `json:"id"`
+	AppId             string                                                         `json:"app_id"`
+	RepositoryId      string                                                         `json:"repository_id"`
+	Category          string                                                         `json:"category"`
+	Summary           string                                                         `json:"summary"`
+	Status            string                                                         `json:"status"`
+	Severity          string                                                         `json:"severity"`
+	Confidence        string                                                         `json:"confidence"`
+	EvidenceTier      string                                                         `json:"evidence_tier"`
+	Path              string                                                         `json:"path,omitempty"`
+	Line              int64                                                          `json:"line,omitempty"`
+	PackageName       string                                                         `json:"package_name,omitempty"`
+	PackageUrl        string                                                         `json:"package_url,omitempty"`
+	InstalledVersion  string                                                         `json:"installed_version,omitempty"`
+	Advisories        []string                                                       `json:"advisories,omitempty"`
+	SecretFingerprint string                                                         `json:"secret_fingerprint,omitempty"`
+	Provenance        []FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem `json:"provenance"`
+	CoverageNote      string                                                         `json:"coverage_note"`
+	CreatedAt         string                                                         `json:"created_at"`
 }
 type FindingPageV1ItemsItemFindingProvenanceItem struct {
 	ToolId          string `json:"tool_id"`
@@ -471,32 +471,32 @@ type ScannerExecutionV1SourceSnapshotFilesItem struct {
 	Size   int64  `json:"size"`
 }
 type ScannerExecutionV1Result struct {
-	Status      string                                    `json:"status"`
-	Findings    []ScannerExecutionV1ResultFindingsItem    `json:"findings"`
-	Diagnostics []ScannerExecutionV1ResultDiagnosticsItem `json:"diagnostics"`
-	Sbom        ScannerExecutionV1ResultSbom              `json:"sbom,omitempty"`
+	Status      string                                           `json:"status"`
+	Findings    []FindingCataloguePageV1FindingsItemsItemFinding `json:"findings"`
+	Diagnostics []ScannerExecutionV1ResultDiagnosticsItem        `json:"diagnostics"`
+	Sbom        ScannerExecutionV1ResultSbom                     `json:"sbom,omitempty"`
 }
 type ScannerExecutionV1ResultFindingsItem struct {
-	SchemaVersion     string                                               `json:"schema_version"`
-	Id                string                                               `json:"id"`
-	AppId             string                                               `json:"app_id"`
-	RepositoryId      string                                               `json:"repository_id"`
-	Category          string                                               `json:"category"`
-	Summary           string                                               `json:"summary"`
-	Status            string                                               `json:"status"`
-	Severity          string                                               `json:"severity"`
-	Confidence        string                                               `json:"confidence"`
-	EvidenceTier      string                                               `json:"evidence_tier"`
-	Path              string                                               `json:"path,omitempty"`
-	Line              int64                                                `json:"line,omitempty"`
-	PackageName       string                                               `json:"package_name,omitempty"`
-	PackageUrl        string                                               `json:"package_url,omitempty"`
-	InstalledVersion  string                                               `json:"installed_version,omitempty"`
-	Advisories        []string                                             `json:"advisories,omitempty"`
-	SecretFingerprint string                                               `json:"secret_fingerprint,omitempty"`
-	Provenance        []ScannerExecutionV1ResultFindingsItemProvenanceItem `json:"provenance"`
-	CoverageNote      string                                               `json:"coverage_note"`
-	CreatedAt         string                                               `json:"created_at"`
+	SchemaVersion     string                                                         `json:"schema_version"`
+	Id                string                                                         `json:"id"`
+	AppId             string                                                         `json:"app_id"`
+	RepositoryId      string                                                         `json:"repository_id"`
+	Category          string                                                         `json:"category"`
+	Summary           string                                                         `json:"summary"`
+	Status            string                                                         `json:"status"`
+	Severity          string                                                         `json:"severity"`
+	Confidence        string                                                         `json:"confidence"`
+	EvidenceTier      string                                                         `json:"evidence_tier"`
+	Path              string                                                         `json:"path,omitempty"`
+	Line              int64                                                          `json:"line,omitempty"`
+	PackageName       string                                                         `json:"package_name,omitempty"`
+	PackageUrl        string                                                         `json:"package_url,omitempty"`
+	InstalledVersion  string                                                         `json:"installed_version,omitempty"`
+	Advisories        []string                                                       `json:"advisories,omitempty"`
+	SecretFingerprint string                                                         `json:"secret_fingerprint,omitempty"`
+	Provenance        []FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem `json:"provenance"`
+	CoverageNote      string                                                         `json:"coverage_note"`
+	CreatedAt         string                                                         `json:"created_at"`
 }
 type ScannerExecutionV1ResultFindingsItemProvenanceItem struct {
 	ToolId          string `json:"tool_id"`
@@ -608,24 +608,24 @@ type ScannerJobStatusV1JobInput struct {
 	ToolTimeoutSeconds int64    `json:"tool_timeout_seconds"`
 }
 type ScannerSuiteV1 struct {
-	SchemaVersion    string                                  `json:"schema_version"`
-	OwnerId          string                                  `json:"owner_id"`
-	JobId            string                                  `json:"job_id"`
-	RequestDigest    string                                  `json:"request_digest"`
-	AppId            string                                  `json:"app_id"`
-	RepositoryId     string                                  `json:"repository_id"`
-	MapDigest        string                                  `json:"map_digest"`
-	ToolLockDigest   string                                  `json:"tool_lock_digest"`
-	SnapshotDigest   string                                  `json:"snapshot_digest"`
-	Status           string                                  `json:"status"`
-	Tools            []ScannerSuiteResultV1DocumentToolsItem `json:"tools"`
-	FindingClaims    int64                                   `json:"finding_claims"`
-	HasPartial       bool                                    `json:"has_partial"`
-	HasStaleDatabase bool                                    `json:"has_stale_database"`
-	HasToolError     bool                                    `json:"has_tool_error"`
-	EvidenceTier     string                                  `json:"evidence_tier"`
-	CleanupRequired  bool                                    `json:"cleanup_required"`
-	CreatedAt        string                                  `json:"created_at"`
+	SchemaVersion    string                                          `json:"schema_version"`
+	OwnerId          string                                          `json:"owner_id"`
+	JobId            string                                          `json:"job_id"`
+	RequestDigest    string                                          `json:"request_digest"`
+	AppId            string                                          `json:"app_id"`
+	RepositoryId     string                                          `json:"repository_id"`
+	MapDigest        string                                          `json:"map_digest"`
+	ToolLockDigest   string                                          `json:"tool_lock_digest"`
+	SnapshotDigest   string                                          `json:"snapshot_digest"`
+	Status           string                                          `json:"status"`
+	Tools            []FindingCataloguePageV1ResultDocumentToolsItem `json:"tools"`
+	FindingClaims    int64                                           `json:"finding_claims"`
+	HasPartial       bool                                            `json:"has_partial"`
+	HasStaleDatabase bool                                            `json:"has_stale_database"`
+	HasToolError     bool                                            `json:"has_tool_error"`
+	EvidenceTier     string                                          `json:"evidence_tier"`
+	CleanupRequired  bool                                            `json:"cleanup_required"`
+	CreatedAt        string                                          `json:"created_at"`
 }
 type ScannerSuiteV1ToolsItem struct {
 	ToolId        string `json:"tool_id"`
@@ -635,28 +635,28 @@ type ScannerSuiteV1ToolsItem struct {
 	HasSbom       bool   `json:"has_sbom"`
 }
 type ScannerSuiteResultV1 struct {
-	ResultDigest string                       `json:"result_digest"`
-	Document     ScannerSuiteResultV1Document `json:"document"`
+	ResultDigest string                               `json:"result_digest"`
+	Document     FindingCataloguePageV1ResultDocument `json:"document"`
 }
 type ScannerSuiteResultV1Document struct {
-	SchemaVersion    string                                  `json:"schema_version"`
-	OwnerId          string                                  `json:"owner_id"`
-	JobId            string                                  `json:"job_id"`
-	RequestDigest    string                                  `json:"request_digest"`
-	AppId            string                                  `json:"app_id"`
-	RepositoryId     string                                  `json:"repository_id"`
-	MapDigest        string                                  `json:"map_digest"`
-	ToolLockDigest   string                                  `json:"tool_lock_digest"`
-	SnapshotDigest   string                                  `json:"snapshot_digest"`
-	Status           string                                  `json:"status"`
-	Tools            []ScannerSuiteResultV1DocumentToolsItem `json:"tools"`
-	FindingClaims    int64                                   `json:"finding_claims"`
-	HasPartial       bool                                    `json:"has_partial"`
-	HasStaleDatabase bool                                    `json:"has_stale_database"`
-	HasToolError     bool                                    `json:"has_tool_error"`
-	EvidenceTier     string                                  `json:"evidence_tier"`
-	CleanupRequired  bool                                    `json:"cleanup_required"`
-	CreatedAt        string                                  `json:"created_at"`
+	SchemaVersion    string                                          `json:"schema_version"`
+	OwnerId          string                                          `json:"owner_id"`
+	JobId            string                                          `json:"job_id"`
+	RequestDigest    string                                          `json:"request_digest"`
+	AppId            string                                          `json:"app_id"`
+	RepositoryId     string                                          `json:"repository_id"`
+	MapDigest        string                                          `json:"map_digest"`
+	ToolLockDigest   string                                          `json:"tool_lock_digest"`
+	SnapshotDigest   string                                          `json:"snapshot_digest"`
+	Status           string                                          `json:"status"`
+	Tools            []FindingCataloguePageV1ResultDocumentToolsItem `json:"tools"`
+	FindingClaims    int64                                           `json:"finding_claims"`
+	HasPartial       bool                                            `json:"has_partial"`
+	HasStaleDatabase bool                                            `json:"has_stale_database"`
+	HasToolError     bool                                            `json:"has_tool_error"`
+	EvidenceTier     string                                          `json:"evidence_tier"`
+	CleanupRequired  bool                                            `json:"cleanup_required"`
+	CreatedAt        string                                          `json:"created_at"`
 }
 type ScannerSuiteResultV1DocumentToolsItem struct {
 	ToolId        string `json:"tool_id"`
@@ -664,6 +664,128 @@ type ScannerSuiteResultV1DocumentToolsItem struct {
 	Status        string `json:"status"`
 	FindingClaims int64  `json:"finding_claims"`
 	HasSbom       bool   `json:"has_sbom"`
+}
+type FindingCatalogueQueryV1 struct {
+	Since        string `json:"since,omitempty"`
+	Until        string `json:"until,omitempty"`
+	RepositoryId string `json:"repository_id,omitempty"`
+	Category     string `json:"category,omitempty"`
+	Severity     string `json:"severity,omitempty"`
+	Limit        int64  `json:"limit,omitempty"`
+	Cursor       string `json:"cursor,omitempty"`
+}
+type FindingCataloguePageV1 struct {
+	SchemaVersion       string                         `json:"schema_version"`
+	OwnerId             string                         `json:"owner_id"`
+	Scope               string                         `json:"scope"`
+	ResultSetDigest     string                         `json:"result_set_digest"`
+	RetainedResultCount int64                          `json:"retained_result_count"`
+	JobsWithoutResult   int64                          `json:"jobs_without_result"`
+	ResultIndex         int64                          `json:"result_index"`
+	Result              FindingCataloguePageV1Result   `json:"result,omitempty"`
+	Findings            FindingCataloguePageV1Findings `json:"findings,omitempty"`
+	NextCursor          string                         `json:"next_cursor"`
+}
+type FindingCataloguePageV1Result struct {
+	ResultDigest string                               `json:"result_digest"`
+	Document     FindingCataloguePageV1ResultDocument `json:"document"`
+}
+type FindingCataloguePageV1ResultDocument struct {
+	SchemaVersion    string                                          `json:"schema_version"`
+	OwnerId          string                                          `json:"owner_id"`
+	JobId            string                                          `json:"job_id"`
+	RequestDigest    string                                          `json:"request_digest"`
+	AppId            string                                          `json:"app_id"`
+	RepositoryId     string                                          `json:"repository_id"`
+	MapDigest        string                                          `json:"map_digest"`
+	ToolLockDigest   string                                          `json:"tool_lock_digest"`
+	SnapshotDigest   string                                          `json:"snapshot_digest"`
+	Status           string                                          `json:"status"`
+	Tools            []FindingCataloguePageV1ResultDocumentToolsItem `json:"tools"`
+	FindingClaims    int64                                           `json:"finding_claims"`
+	HasPartial       bool                                            `json:"has_partial"`
+	HasStaleDatabase bool                                            `json:"has_stale_database"`
+	HasToolError     bool                                            `json:"has_tool_error"`
+	EvidenceTier     string                                          `json:"evidence_tier"`
+	CleanupRequired  bool                                            `json:"cleanup_required"`
+	CreatedAt        string                                          `json:"created_at"`
+}
+type FindingCataloguePageV1ResultDocumentToolsItem struct {
+	ToolId        string `json:"tool_id"`
+	ReceiptDigest string `json:"receipt_digest"`
+	Status        string `json:"status"`
+	FindingClaims int64  `json:"finding_claims"`
+	HasSbom       bool   `json:"has_sbom"`
+}
+type FindingCataloguePageV1Findings struct {
+	SchemaVersion        string                                    `json:"schema_version"`
+	OwnerId              string                                    `json:"owner_id"`
+	JobId                string                                    `json:"job_id"`
+	RequestDigest        string                                    `json:"request_digest"`
+	ResultDigest         string                                    `json:"result_digest"`
+	SnapshotDigest       string                                    `json:"snapshot_digest"`
+	Status               string                                    `json:"status"`
+	HasPartial           bool                                      `json:"has_partial"`
+	HasStaleDatabase     bool                                      `json:"has_stale_database"`
+	HasToolError         bool                                      `json:"has_tool_error"`
+	ToolClaims           int64                                     `json:"tool_claims"`
+	DistinctStaticClaims int64                                     `json:"distinct_static_claims"`
+	MatchingStaticClaims int64                                     `json:"matching_static_claims"`
+	Items                []FindingCataloguePageV1FindingsItemsItem `json:"items"`
+	NextCursor           string                                    `json:"next_cursor"`
+}
+type FindingCataloguePageV1FindingsItemsItem struct {
+	RecordId       string                                             `json:"record_id"`
+	Finding        FindingCataloguePageV1FindingsItemsItemFinding     `json:"finding"`
+	ReceiptDigests []string                                           `json:"receipt_digests"`
+	OwnerReview    FindingCataloguePageV1FindingsItemsItemOwnerReview `json:"owner_review,omitempty"`
+}
+type FindingCataloguePageV1FindingsItemsItemFinding struct {
+	SchemaVersion     string                                                         `json:"schema_version"`
+	Id                string                                                         `json:"id"`
+	AppId             string                                                         `json:"app_id"`
+	RepositoryId      string                                                         `json:"repository_id"`
+	Category          string                                                         `json:"category"`
+	Summary           string                                                         `json:"summary"`
+	Status            string                                                         `json:"status"`
+	Severity          string                                                         `json:"severity"`
+	Confidence        string                                                         `json:"confidence"`
+	EvidenceTier      string                                                         `json:"evidence_tier"`
+	Path              string                                                         `json:"path,omitempty"`
+	Line              int64                                                          `json:"line,omitempty"`
+	PackageName       string                                                         `json:"package_name,omitempty"`
+	PackageUrl        string                                                         `json:"package_url,omitempty"`
+	InstalledVersion  string                                                         `json:"installed_version,omitempty"`
+	Advisories        []string                                                       `json:"advisories,omitempty"`
+	SecretFingerprint string                                                         `json:"secret_fingerprint,omitempty"`
+	Provenance        []FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem `json:"provenance"`
+	CoverageNote      string                                                         `json:"coverage_note"`
+	CreatedAt         string                                                         `json:"created_at"`
+}
+type FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem struct {
+	ToolId          string `json:"tool_id"`
+	ToolVersion     string `json:"tool_version"`
+	ToolImageDigest string `json:"tool_image_digest"`
+	ParserVersion   string `json:"parser_version"`
+	InputDigest     string `json:"input_digest"`
+	RuleId          string `json:"rule_id,omitempty"`
+	SeverityClaimed string `json:"severity_claimed,omitempty"`
+}
+type FindingCataloguePageV1FindingsItemsItemOwnerReview struct {
+	TriageDigest string                                          `json:"triage_digest"`
+	Document     FindingTriageHistoryV1DocumentItemsItemDocument `json:"document"`
+}
+type FindingCataloguePageV1FindingsItemsItemOwnerReviewDocument struct {
+	SchemaVersion  string `json:"schema_version"`
+	OwnerId        string `json:"owner_id"`
+	JobId          string `json:"job_id"`
+	RecordId       string `json:"record_id"`
+	ResultDigest   string `json:"result_digest"`
+	Revision       int64  `json:"revision"`
+	State          string `json:"state"`
+	Rationale      string `json:"rationale"`
+	PreviousDigest string `json:"previous_digest"`
+	UpdatedAt      string `json:"updated_at"`
 }
 type ScannerLaunchPlanV1 struct {
 	ToolId         string `json:"tool_id"`

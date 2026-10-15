@@ -5,7 +5,7 @@ import {Findings} from './Findings';
 import {createScan,listScans,getScan,cancelScan,getScanResult,listRepositories} from './generated/research-client';
 import type {RepositoryV1,ScannerJobV1,ScannerJobStatusV1,ScannerSuiteResultV1} from './generated/contracts';
 
-type Props={action:(work:()=>Promise<unknown>,message?:string)=>Promise<unknown>;busy:boolean};
+type Props={action:(work:()=>Promise<unknown>,message?:string)=>Promise<unknown>;busy:boolean;initialJob?:string};
 const tools=[['bandit','Bandit','Python patterns'],['gitleaks','Gitleaks','Secret candidates'],['osv_v2','OSV Scanner','Dependency advisories · offline database required'],['semgrep_ce','Semgrep CE','Static patterns'],['syft','Syft','Software inventory'],['trivy','Trivy','Dependency advisories · offline database required']] as const;
 const terminalResults=new Set(['completed','completed_partial','completed_stale_db','tool_error']);
 const label=(value:string)=>value.replaceAll('_',' ');
@@ -18,7 +18,7 @@ function checkResult(value:ScannerSuiteResultV1,status:ScannerJobStatusV1){
 }
 
 
-export function Scans({action,busy}:Props){
+export function Scans({action,busy,initialJob}:Props){
  const [repos,setRepos]=useState<RepositoryV1[]>([]),[repository,setRepository]=useState(''),[selected,setSelected]=useState<string[]>(['bandit']),[seconds,setSeconds]=useState('120'),[ack,setAck]=useState(false),[jobs,setJobs]=useState<ScannerJobV1[]>([]),[jobID,setJobID]=useState(''),[status,setStatus]=useState<ScannerJobStatusV1>(),[result,setResult]=useState<ScannerSuiteResultV1>(),[error,setError]=useState(''),[loading,setLoading]=useState(true),[reading,setReading]=useState(false);
  const mounted=useRef(false),inspection=useRef(0),retry=useRef<{signature:string;key:string}|undefined>(undefined);
  const repo=repos.find(r=>r.repository_id===repository),duration=Number(seconds);
@@ -44,6 +44,7 @@ export function Scans({action,busy}:Props){
   }catch(e){if(mounted.current&&generation===inspection.current)setError((e as Error).message)}
   finally{if(mounted.current&&generation===inspection.current)setReading(false)}
  }
+ useEffect(()=>{if(initialJob)inspect(initialJob)},[initialJob]);
  useEffect(()=>{
   if(!jobID||!active)return;
   let live=true,inFlight=false;

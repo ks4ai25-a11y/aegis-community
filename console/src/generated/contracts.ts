@@ -41,7 +41,7 @@ export interface FindingV1 {
   installed_version?: string;
   advisories?: Array<string>;
   secret_fingerprint?: string;
-  provenance: Array<ScannerExecutionV1ResultFindingsItemProvenanceItem>;
+  provenance: Array<FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem>;
   coverage_note: string;
   created_at: string;
 }
@@ -158,9 +158,9 @@ export interface FindingQueryV1 {
 }
 export interface FindingEntryV1 {
   record_id: string;
-  finding: ScannerExecutionV1ResultFindingsItem;
+  finding: FindingCataloguePageV1FindingsItemsItemFinding;
   receipt_digests: Array<string>;
-  owner_review?: FindingPageV1ItemsItemOwnerReview;
+  owner_review?: FindingCataloguePageV1FindingsItemsItemOwnerReview;
 }
 export interface FindingEntryV1Finding {
   schema_version: "1.0";
@@ -180,7 +180,7 @@ export interface FindingEntryV1Finding {
   installed_version?: string;
   advisories?: Array<string>;
   secret_fingerprint?: string;
-  provenance: Array<ScannerExecutionV1ResultFindingsItemProvenanceItem>;
+  provenance: Array<FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem>;
   coverage_note: string;
   created_at: string;
 }
@@ -223,14 +223,14 @@ export interface FindingPageV1 {
   tool_claims: number;
   distinct_static_claims: number;
   matching_static_claims: number;
-  items: Array<FindingPageV1ItemsItem>;
+  items: Array<FindingCataloguePageV1FindingsItemsItem>;
   next_cursor: string;
 }
 export interface FindingPageV1ItemsItem {
   record_id: string;
-  finding: ScannerExecutionV1ResultFindingsItem;
+  finding: FindingCataloguePageV1FindingsItemsItemFinding;
   receipt_digests: Array<string>;
-  owner_review?: FindingPageV1ItemsItemOwnerReview;
+  owner_review?: FindingCataloguePageV1FindingsItemsItemOwnerReview;
 }
 export interface FindingPageV1ItemsItemFinding {
   schema_version: "1.0";
@@ -250,7 +250,7 @@ export interface FindingPageV1ItemsItemFinding {
   installed_version?: string;
   advisories?: Array<string>;
   secret_fingerprint?: string;
-  provenance: Array<ScannerExecutionV1ResultFindingsItemProvenanceItem>;
+  provenance: Array<FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem>;
   coverage_note: string;
   created_at: string;
 }
@@ -470,7 +470,7 @@ export interface ScannerExecutionV1SourceSnapshotFilesItem {
 }
 export interface ScannerExecutionV1Result {
   status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
-  findings: Array<ScannerExecutionV1ResultFindingsItem>;
+  findings: Array<FindingCataloguePageV1FindingsItemsItemFinding>;
   diagnostics: Array<ScannerExecutionV1ResultDiagnosticsItem>;
   sbom?: ScannerExecutionV1ResultSbom;
 }
@@ -492,7 +492,7 @@ export interface ScannerExecutionV1ResultFindingsItem {
   installed_version?: string;
   advisories?: Array<string>;
   secret_fingerprint?: string;
-  provenance: Array<ScannerExecutionV1ResultFindingsItemProvenanceItem>;
+  provenance: Array<FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem>;
   coverage_note: string;
   created_at: string;
 }
@@ -616,7 +616,7 @@ export interface ScannerSuiteV1 {
   tool_lock_digest: string;
   snapshot_digest: string;
   status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
-  tools: Array<ScannerSuiteResultV1DocumentToolsItem>;
+  tools: Array<FindingCataloguePageV1ResultDocumentToolsItem>;
   finding_claims: number;
   has_partial: boolean;
   has_stale_database: boolean;
@@ -634,7 +634,7 @@ export interface ScannerSuiteV1ToolsItem {
 }
 export interface ScannerSuiteResultV1 {
   result_digest: string;
-  document: ScannerSuiteResultV1Document;
+  document: FindingCataloguePageV1ResultDocument;
 }
 export interface ScannerSuiteResultV1Document {
   schema_version: "1.0";
@@ -647,7 +647,7 @@ export interface ScannerSuiteResultV1Document {
   tool_lock_digest: string;
   snapshot_digest: string;
   status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
-  tools: Array<ScannerSuiteResultV1DocumentToolsItem>;
+  tools: Array<FindingCataloguePageV1ResultDocumentToolsItem>;
   finding_claims: number;
   has_partial: boolean;
   has_stale_database: boolean;
@@ -662,6 +662,128 @@ export interface ScannerSuiteResultV1DocumentToolsItem {
   status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
   finding_claims: number;
   has_sbom: boolean;
+}
+export interface FindingCatalogueQueryV1 {
+  since?: string;
+  until?: string;
+  repository_id?: string;
+  category?: "static_pattern" | "secret_candidate" | "known_vulnerable_dependency";
+  severity?: "informational" | "low" | "medium" | "high" | "critical";
+  limit?: number;
+  cursor?: string;
+}
+export interface FindingCataloguePageV1 {
+  schema_version: "1.0";
+  owner_id: string;
+  scope: "retained_static_observations";
+  result_set_digest: string;
+  retained_result_count: number;
+  jobs_without_result: number;
+  result_index: number;
+  result?: FindingCataloguePageV1Result;
+  findings?: FindingCataloguePageV1Findings;
+  next_cursor: string;
+}
+export interface FindingCataloguePageV1Result {
+  result_digest: string;
+  document: FindingCataloguePageV1ResultDocument;
+}
+export interface FindingCataloguePageV1ResultDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  snapshot_digest: string;
+  status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  tools: Array<FindingCataloguePageV1ResultDocumentToolsItem>;
+  finding_claims: number;
+  has_partial: boolean;
+  has_stale_database: boolean;
+  has_tool_error: boolean;
+  evidence_tier: "T0";
+  cleanup_required: true;
+  created_at: string;
+}
+export interface FindingCataloguePageV1ResultDocumentToolsItem {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  receipt_digest: string;
+  status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  finding_claims: number;
+  has_sbom: boolean;
+}
+export interface FindingCataloguePageV1Findings {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  result_digest: string;
+  snapshot_digest: string;
+  status: "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  has_partial: boolean;
+  has_stale_database: boolean;
+  has_tool_error: boolean;
+  tool_claims: number;
+  distinct_static_claims: number;
+  matching_static_claims: number;
+  items: Array<FindingCataloguePageV1FindingsItemsItem>;
+  next_cursor: string;
+}
+export interface FindingCataloguePageV1FindingsItemsItem {
+  record_id: string;
+  finding: FindingCataloguePageV1FindingsItemsItemFinding;
+  receipt_digests: Array<string>;
+  owner_review?: FindingCataloguePageV1FindingsItemsItemOwnerReview;
+}
+export interface FindingCataloguePageV1FindingsItemsItemFinding {
+  schema_version: "1.0";
+  id: string;
+  app_id: string;
+  repository_id: string;
+  category: "static_pattern" | "secret_candidate" | "known_vulnerable_dependency" | "configuration_claim";
+  summary: string;
+  status: "suspected" | "corroborated" | "reproduced" | "remediating" | "fixed_or_mitigated" | "monitored";
+  severity: "informational" | "low" | "medium" | "high" | "critical";
+  confidence: "low" | "medium" | "high";
+  evidence_tier: "T0" | "T1" | "T2" | "T3" | "T4" | "T5";
+  path?: string;
+  line?: number;
+  package_name?: string;
+  package_url?: string;
+  installed_version?: string;
+  advisories?: Array<string>;
+  secret_fingerprint?: string;
+  provenance: Array<FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem>;
+  coverage_note: string;
+  created_at: string;
+}
+export interface FindingCataloguePageV1FindingsItemsItemFindingProvenanceItem {
+  tool_id: string;
+  tool_version: string;
+  tool_image_digest: string;
+  parser_version: "1.0" | "1.1" | "1.2";
+  input_digest: string;
+  rule_id?: string;
+  severity_claimed?: "informational" | "low" | "medium" | "high" | "critical";
+}
+export interface FindingCataloguePageV1FindingsItemsItemOwnerReview {
+  triage_digest: string;
+  document: FindingTriageHistoryV1DocumentItemsItemDocument;
+}
+export interface FindingCataloguePageV1FindingsItemsItemOwnerReviewDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  record_id: string;
+  result_digest: string;
+  revision: number;
+  state: "suspected" | "unverified" | "false_positive" | "accepted_risk";
+  rationale: string;
+  previous_digest: string;
+  updated_at: string;
 }
 export interface ScannerLaunchPlanV1 {
   tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";

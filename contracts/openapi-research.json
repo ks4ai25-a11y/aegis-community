@@ -11,6 +11,118 @@
     }
   ],
   "paths": {
+    "/findings/catalogue": {
+      "get": {
+        "operationId": "listFindingCatalogue",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful owner-scoped operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingCataloguePageV1"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; never a success or clean-scan conclusion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelopeV1"
+                }
+              }
+            }
+          }
+        },
+        "x-query-schema": "FindingCatalogueQueryV1",
+        "parameters": [
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "maxLength": 64
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "maxLength": 64
+            }
+          },
+          {
+            "name": "repository_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "static_pattern",
+                "secret_candidate",
+                "known_vulnerable_dependency"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "informational",
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            }
+          }
+        ]
+      }
+    },
     "/scans/{id}/finding-triage-history": {
       "get": {
         "operationId": "getFindingTriageHistory",
@@ -1232,6 +1344,12 @@
       },
       "ErrorEnvelopeV1": {
         "$ref": "schemas/ErrorEnvelopeV1.json"
+      },
+      "FindingCataloguePageV1": {
+        "$ref": "schemas/FindingCataloguePageV1.json"
+      },
+      "FindingCatalogueQueryV1": {
+        "$ref": "schemas/FindingCatalogueQueryV1.json"
       },
       "FindingEntryV1": {
         "$ref": "schemas/FindingEntryV1.json"

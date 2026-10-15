@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Named local demo generated-client/read-only catalogue boundaries; no new scanner executions or independent installation claim",
+  "recorded_at": "2026-10-15T13:55:03.834404+00:00",
+  "checks": [
+    {
+      "id": "generated_catalogue_client_retains_explicit_result_and_unavailable_job_scopes",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_catalogue_rejects_invalid_filters_time_ranges_and_cursors",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_catalogue_refuses_caller_selected_owners_and_repeated_filters",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_catalogue_requires_owner_session_and_owned_repository",
+      "result": "PASS"
+    },
+    {
+      "id": "result_time_selection_preserves_missing_execution_count",
+      "result": "PASS"
+    },
+    {
+      "id": "read_only_catalogue_preserves_immutable_roster_and_existing_state",
+      "result": "PASS"
+    }
+  ],
+  "actual_page": {
+    "schema_version": "1.0",
+    "owner_id": "01a130ab-a6b8-71ba-b6ef-36de8d41d989",
+    "scope": "retained_static_observations",
+    "result_set_digest": "sha256:79da6bb09c8c03bd79e9fb7415b93a42aaa349c5d93d356f06936cf36ea4719a",
+    "retained_result_count": 0,
+    "jobs_without_result": 15,
+    "result_index": 0,
+    "next_cursor": ""
+  },
+  "new_scanner_jobs": false,
+  "cleanup_admission_released": false
+}

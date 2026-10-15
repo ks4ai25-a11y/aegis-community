@@ -49,6 +49,25 @@ func assertOwnerHTTPTriage(t *testing.T, f fixture, job string) {
 		}
 		return w
 	}
+	defaultCatalogue := call("GET", "/api/v1/findings/catalogue?limit=20", "", 200, nil)
+	t.Logf("OWNER_HTTP_CATALOGUE_DEFAULT %s", defaultCatalogue.Body.String())
+	filteredCatalogue := call("GET", "/api/v1/findings/catalogue?limit=20&severity=critical", "", 200, nil)
+	t.Logf("OWNER_HTTP_CATALOGUE_FILTERED %s", filteredCatalogue.Body.String())
+	catalogue := call("GET", "/api/v1/findings/catalogue?limit=2", "", 200, nil)
+	var listing scanqueue.CataloguePage
+	if json.Unmarshal(catalogue.Body.Bytes(), &listing) != nil || listing.Results != 1 || listing.Owner != "owner-a" || listing.Result == nil || listing.Result.Digest != page.Result || listing.Findings == nil || len(listing.Findings.Items) != 2 || listing.Next == "" {
+		t.Fatal("catalogue does not retain actual parser identities")
+	}
+	nextCatalogue := call("GET", "/api/v1/findings/catalogue?limit=2&cursor="+url.QueryEscape(listing.Next), "", 200, nil)
+	var nextListing scanqueue.CataloguePage
+	if json.Unmarshal(nextCatalogue.Body.Bytes(), &nextListing) != nil || nextListing.Set != listing.Set || len(nextListing.Findings.Items) != 2 || nextListing.Next != "" {
+		t.Fatal("catalogue continuation does not retain actual parser evidence")
+	}
+	t.Logf("OWNER_HTTP_CATALOGUE_FIRST %s", catalogue.Body.String())
+	t.Logf("OWNER_HTTP_CATALOGUE_LAST %s", nextCatalogue.Body.String())
+	for _, bad := range []string{"limit=21", "limit=0", "category=exploit", "limit=2&limit=3", "owner_id=other", "cursor=bad", "since=tomorrow", "since=2026-01-02T00:00:00Z&until=2026-01-01T00:00:00Z"} {
+		call("GET", "/api/v1/findings/catalogue?"+bad, "", 400, nil)
+	}
 	query := "?record_id=" + url.QueryEscape(record)
 	historyEndpoint := endpoint + "-history"
 	historyQuery := query + "&result_digest=" + url.QueryEscape(page.Result)
@@ -111,6 +130,13 @@ func assertOwnerHTTPTriage(t *testing.T, f fixture, job string) {
 	if _, e = f.s.DB.Exec("UPDATE sessions SET owner='owner-b' WHERE hash=?", domain.Hash([]byte(token))); e != nil {
 		t.Fatal(e)
 	}
+	crossCatalogue := call("GET", "/api/v1/findings/catalogue", "", 200, nil)
+	var emptyCatalogue scanqueue.CataloguePage
+	if json.Unmarshal(crossCatalogue.Body.Bytes(), &emptyCatalogue) != nil || emptyCatalogue.Results != 0 || emptyCatalogue.Result != nil || emptyCatalogue.Unavailable != 0 {
+		t.Fatal("cross owner catalogue leaked evidence")
+	}
+	call("GET", "/api/v1/findings/catalogue?repository_id="+url.QueryEscape(page.Items[0].Finding.Repository), "", 404, nil)
+	t.Logf("OWNER_HTTP_CATALOGUE_EMPTY %s", crossCatalogue.Body.String())
 	call("GET", endpoint+query, "", 404, nil)
 	call("GET", historyEndpoint+historyQuery, "", 404, nil)
 	call("POST", endpoint, body, 404, nil)
