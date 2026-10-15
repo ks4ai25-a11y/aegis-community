@@ -11,6 +11,11 @@ class Isolation(unittest.TestCase):
   return project,ready
  def test_resolved_shared_names_removed_and_original_unchanged(self):
   project,spec=self.baseline();self.assertTrue(validate(spec,project,'/fixture'))
+ def test_worker_namespace_uses_the_same_resource_isolation(self):
+  project,spec=self.baseline();worker='aegis-worker-'+'b'*24
+  for group in ('volumes','networks'):
+   for value in spec[group].values():value['name']=value['name'].replace(project,worker)
+  self.assertTrue(validate(spec,worker,'/fixture'))
  def test_shared_resources_refused_before_creation(self):
   for group in ('volumes','networks'):
    project,spec=self.baseline();next(iter(spec[group].values()))['name']='aegis-community_shared'

@@ -172,24 +172,34 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 	if e != nil {
 		return out, e
 	}
-	engineCtx, engineCancel := context.WithTimeout(ctx, 5*time.Second)
-	engine, e := inspectOutput(engineCtx, docker, endpoint, 512, "info", "--format", "{{.OSType}} {{.Architecture}} {{.ID}}")
-	engineCancel()
-	if e != nil || len(engine) > 512 {
-		return out, fmt.Errorf("local scanner engine unavailable")
-	}
-	fields := strings.Fields(string(engine))
-	if len(fields) != 3 || fields[0] != "linux" {
-		return out, fmt.Errorf("Linux scanner engine required")
-	}
-	arch := ""
-	switch fields[1] {
-	case "aarch64", "arm64":
-		arch = "arm64"
-	case "x86_64", "amd64":
-		arch = "amd64"
-	default:
-		return out, fmt.Errorf("scanner engine architecture unsupported")
+	arch, engineDigest := "", ""
+	if c.EngineJournalRoot != "" {
+		preflight, e := preflightSDK(ctx, endpoint, tool, lockDigest)
+		if e != nil {
+			return out, fmt.Errorf("local scanner engine or pinned image preflight unavailable")
+		}
+		arch, engineDigest = preflight.Architecture, preflight.Engine
+	} else {
+		engineCtx, engineCancel := context.WithTimeout(ctx, 5*time.Second)
+		engine, e := inspectOutput(engineCtx, docker, endpoint, 512, "info", "--format", "{{.OSType}} {{.Architecture}} {{.ID}}")
+		engineCancel()
+		if e != nil || len(engine) > 512 {
+			return out, fmt.Errorf("local scanner engine unavailable")
+		}
+		fields := strings.Fields(string(engine))
+		if len(fields) != 3 || fields[0] != "linux" {
+			return out, fmt.Errorf("Linux scanner engine required")
+		}
+		arch = ""
+		switch fields[1] {
+		case "aarch64", "arm64":
+			arch = "arm64"
+		case "x86_64", "amd64":
+			arch = "amd64"
+		default:
+			return out, fmt.Errorf("scanner engine architecture unsupported")
+		}
+		engineDigest = source.Hash([]byte(endpoint + "\n" + fields[2]))
 	}
 	if c.GuardDir == "" {
 		return out, fmt.Errorf("independent scanner guard not provisioned")
@@ -260,12 +270,12 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 	}
 	name := "aegis-scan-" + hex.EncodeToString(nonce)
 	if c.BeforeStart != nil {
-		if e = c.BeforeStart(name, source.Hash([]byte(endpoint+"\n"+fields[2]))); e != nil {
+		if e = c.BeforeStart(name, engineDigest); e != nil {
 			return out, fmt.Errorf("durable workspace binding failed")
 		}
 	}
 	if c.BeforeLaunch != nil {
-		if e = c.BeforeLaunch(out, name, source.Hash([]byte(endpoint+"\n"+fields[2]))); e != nil {
+		if e = c.BeforeLaunch(out, name, engineDigest); e != nil {
 			return out, fmt.Errorf("durable scanner launch authorization failed")
 		}
 	}
@@ -294,7 +304,7 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 			rulesPath = rules.Path
 		}
 		options := sdkCreateOptions(tool, name, snapshot.Path, rulesPath, guardRoot, seconds, deadline)
-		result := c.runEngineSDK(runCtx, endpoint, source.Hash([]byte(endpoint+"\n"+fields[2])), name, options, stdout, stderr, cancel)
+		result := c.runEngineSDK(runCtx, endpoint, engineDigest, name, options, stdout, stderr, cancel)
 		runErr = result.err
 		out.Duration = result.duration
 		out.Exit = result.exit

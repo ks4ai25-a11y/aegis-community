@@ -28,9 +28,25 @@ func main() {
 		usage()
 	}
 	switch os.Args[1] {
+	case "engine-preflight":
+		if len(os.Args) != 4 {
+			die(fmt.Errorf("usage: aegis-research engine-preflight SCANNER CANONICAL_AEGIS_SOURCE_ROOT"))
+		}
+		root, e := filepath.EvalSymlinks(os.Args[3])
+		if e != nil || root != os.Args[3] || !filepath.IsAbs(root) {
+			die(fmt.Errorf("canonical trusted source root required"))
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		out, e := (executor.Config{LockPath: filepath.Join(root, "tools/scanners.lock.json")}).Preflight(ctx, os.Args[2])
+		if e != nil {
+			die(fmt.Errorf("explicit Unix engine and preloaded pinned image required"))
+		}
+		json.NewEncoder(os.Stdout).Encode(out)
+
 	case "engine-journal-status":
 		if len(os.Args) != 4 {
-			die(fmt.Errorf("usage: aegis-research engine-journal-status CANONICAL_JOURNAL_ROOT ENGINE_DIGEST"))
+			die(fmt.Errorf("usage: aegis-research engine-preflight SCANNER CANONICAL_AEGIS_SOURCE_ROOT | engine-journal-status CANONICAL_JOURNAL_ROOT ENGINE_DIGEST"))
 		}
 		out, e := enginejournal.ReadObservation(os.Args[2], os.Args[3])
 		if e != nil {
@@ -245,7 +261,7 @@ func main() {
 	}
 }
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: aegis-research engine-journal-status CANONICAL_JOURNAL_ROOT ENGINE_DIGEST | verifier-context SOCKET CREDENTIAL_FILE OWNER VERIFIER_ID ENGINE_DIGEST REGISTRY_DIGEST CANONICAL_AEGIS_SOURCE_ROOT JOB | observe-sandbox PRIVATE_LAUNCH_FILE CANONICAL_REGISTRY CANONICAL_AEGIS_SOURCE_ROOT [APPROVED_RULES_DIGEST] | scan-offline-journaled SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT JOURNAL_ROOT | worker-once-journaled SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT JOURNAL_ROOT | inventory CANONICAL_REPO | invocation SCANNER\nInventory never executes source. Invocation prints an unexecuted adapter blueprint; pinned compatibility validation is required.")
+	fmt.Fprintln(os.Stderr, "usage: aegis-research engine-preflight SCANNER CANONICAL_AEGIS_SOURCE_ROOT | engine-journal-status CANONICAL_JOURNAL_ROOT ENGINE_DIGEST | verifier-context SOCKET CREDENTIAL_FILE OWNER VERIFIER_ID ENGINE_DIGEST REGISTRY_DIGEST CANONICAL_AEGIS_SOURCE_ROOT JOB | observe-sandbox PRIVATE_LAUNCH_FILE CANONICAL_REGISTRY CANONICAL_AEGIS_SOURCE_ROOT [APPROVED_RULES_DIGEST] | scan-offline-journaled SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT JOURNAL_ROOT | worker-once-journaled SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT JOURNAL_ROOT | inventory CANONICAL_REPO | invocation SCANNER\nInventory never executes source. Invocation prints an unexecuted adapter blueprint; pinned compatibility validation is required.")
 	os.Exit(2)
 }
 func die(e error) { fmt.Fprintln(os.Stderr, e); os.Exit(1) }

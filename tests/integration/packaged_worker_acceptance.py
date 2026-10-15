@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+"""Explicit isolated worker execution. No retained demo resources are selected."""
+import datetime,json,os,pathlib,re,secrets,subprocess,tempfile,time,urllib.error,urllib.request
+from recovery_isolation import prepare,validate
+ROOT=pathlib.Path(__file__).resolve().parents[2]
+if not __debug__ or os.environ.get('AEGIS_PACKAGED_WORKER_TEST')!='1':raise SystemExit('Set AEGIS_PACKAGED_WORKER_TEST=1 with assertions enabled')
+context=os.environ.get('DOCKER_CONTEXT','');endpoint=os.environ.get('DOCKER_HOST','') if not context else ''
+if not endpoint:
+ context=context or subprocess.check_output(['docker','context','show'],text=True).strip();endpoint=subprocess.check_output(['docker','context','inspect',context,'--format','{{.Endpoints.docker.Host}}'],text=True).strip()
+if not re.fullmatch(r'unix:///[^\r\n?#]+',endpoint):raise SystemExit('Explicit local Unix engine required')
+env={k:v for k,v in os.environ.items() if k not in {'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH','DOCKER_API_VERSION','DOCKER_TLS'}}
+nonce=secrets.token_hex(12);project='aegis-worker-'+nonce;secret_volume=project+'-credential';helpers=[];checks=[];namespace_verified=False;started=False;confirmed=False;worker_name=project+'-runner';work_root=None;evidence=None
+opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
+def raw(args,timeout=120,success=True):
+ result=subprocess.run(['docker','--host',endpoint,*args],cwd=ROOT,env=env,capture_output=True,text=True,timeout=timeout)
+ if success and result.returncode:raise RuntimeError('Owned packaged worker operation failed')
+ return result
+image=raw(['image','inspect','aegis-community/scanner-worker:0.1.0-alpha.1','--format','{{.Id}}']).stdout.strip()
+if not re.fullmatch(r'sha256:[0-9a-f]{64}',image):raise SystemExit('Build the pinned worker image first')
+engine_socket=os.environ.get('AEGIS_WORKER_TEST_ENGINE_SOCKET','/var/run/docker.sock')
+if not pathlib.PurePosixPath(engine_socket).is_absolute() or any(c in engine_socket for c in ',:\r\n'):raise SystemExit('Canonical daemon-host Unix socket path required')
+def check(name):checks.append({'id':name,'result':'PASS'});print(name+': PASS',flush=True)
+def helper(args,mounts=(),entry='aegis-research',user='10001:10001',caps=(),extra=(),success=True):
+ name=project+'-helper-'+str(len(helpers));helpers.append(name)
+ command=['run','--rm','--pull=never','--name',name,'--label','io.aegis.worker-proof='+nonce,'--network','none','--read-only','--user',user,'--cap-drop','ALL','--security-opt','no-new-privileges','--memory','192m','--pids-limit','64','--log-driver','none']
+ for cap in caps:command+=['--cap-add',cap]
+ for mount in mounts:command+=['--mount',mount]
+ return raw(command+list(extra)+['--entrypoint',entry,image,*args],90,success)
+with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
+ directory=pathlib.Path(temporary).resolve();spec=prepare(json.loads(raw(['compose','-f','deploy/compose.demo.yaml','config','--format','json']).stdout));configuration=directory/'compose.json';configuration.write_text(json.dumps(spec));prefix=['compose','-p',project,'-f',str(configuration)]
+ def compose(*args,success=True):return raw([*prefix,*args],180,success)
+ def inspect(service):return json.loads(raw(['inspect',compose('ps','--all','--quiet',service).stdout.strip()]).stdout)[0]
+ def request(base,path,body=None,cookie=None,csrf=None,expect=200,key=None):
+  headers={}
+  if cookie:headers['Cookie']=cookie
+  if csrf:headers['X-CSRF-Token']=csrf
+  if body is not None:headers['Content-Type']='application/json'
+  if key:headers['Idempotency-Key']=key
+  req=urllib.request.Request(base+'/api/v1'+path,data=None if body is None else json.dumps(body).encode(),headers=headers)
+  try:
+   with opener.open(req,timeout=20) as response:status=response.status;payload=response.read(131073);session=response.headers.get('Set-Cookie','').split(';')[0]
+  except urllib.error.HTTPError as error:status=error.code;payload=error.read(131073);session=''
+  if status!=expect or len(payload)>131072:raise RuntimeError('Unexpected owned worker-fixture API response')
+  return json.loads(payload) if payload else {},session
+ try:
+  validate(json.loads(compose('config','--format','json').stdout),project,str(ROOT/'alpha/fixtures/scanners'));namespace_verified=True
+  no_cli=helper(['which','docker'],entry='/bin/busybox',success=False);assert no_cli.returncode==1 and not no_cli.stdout
+  group=helper(['stat','-c','%g','/run/engine/docker.sock'],entry='/bin/busybox',mounts=['type=bind,src='+engine_socket+',dst=/run/engine/docker.sock,readonly']).stdout.strip();assert group.isdecimal() and int(group)<2**31
+  preflight=json.loads(helper(['engine-preflight','bandit','/opt/aegis'],mounts=['type=bind,src='+engine_socket+',dst=/run/engine/docker.sock,readonly'],extra=['--group-add',group]).stdout);assert preflight['engine_writes_performed'] is False and preflight['cleanup_release_authorized'] is False
+  check('pinned_nonroot_package_has_no_docker_cli_and_reads_sdk_metadata')
+  compose('up','-d','--no-build')
+  for _ in range(80):
+   try:
+    controller=inspect('controller');ports=controller['NetworkSettings']['Ports'].get('7410/tcp');assert ports and ports[0]['HostIp']=='127.0.0.1';base='http://127.0.0.1:'+ports[0]['HostPort'];request(base,'/health/live');break
+   except (OSError,RuntimeError,AssertionError,KeyError):time.sleep(.5)
+  else:raise RuntimeError('Owned worker fixture did not start')
+  logs=compose('logs','--no-color','controller').stdout;token=None
+  for line in logs.splitlines():
+   start=line.find('{')
+   if start<0:continue
+   try:item=json.loads(line[start:])
+   except ValueError:continue
+   if item.get('event')=='local_bootstrap_token':token=item['token']
+  if not token:raise RuntimeError('Owned bootstrap delivery unavailable')
+  password=secrets.token_urlsafe(32);request(base,'/auth/bootstrap',{'token':token,'password':password});login,cookie=request(base,'/auth/login',{'password':password});csrf=login['csrf_token']
+  repo,_=request(base,'/repos',{'app_id':'app_demo','asset_id':'vulnerable','acknowledge_read_only':True},cookie,csrf,201);owner=repo['owner_id']
+  tools=['bandit','gitleaks','osv_v2','semgrep_ce','syft','trivy'] if os.environ.get('AEGIS_WORKER_TEST_ALL_TOOLS')=='1' else ['bandit']
+  request_body={'schema_version':'1.0','app_id':'app_demo','repository_id':repo['repository_id'],'map_digest':repo['map_digest'],'mode':'repo_offline','tool_ids':tools,'tool_timeout_seconds':30}
+  job,_=request(base,'/scans',request_body,cookie,csrf,202,key=secrets.token_hex(16))
+  socket_volume=next(m['Name'] for m in controller['Mounts'] if m['Destination']=='/run/scanner');assert socket_volume.startswith(project+'_')
+  socket_meta=json.loads(raw(['volume','inspect',socket_volume]).stdout)[0];assert socket_meta.get('Labels',{}).get('com.docker.compose.project')==project
+  raw(['volume','create','--label','io.aegis.worker-proof='+nonce,secret_volume])
+  worker_id='packaged-'+nonce
+  compose('run','--rm','--no-deps','--volume',secret_volume+':/run/scanner','--entrypoint','aegisctl','init','scanner-worker','enroll',worker_id,'10','/run/scanner/worker.credential')
+  check('isolated_owner_queue_and_private_uid_socket_enrollment_created')
+  work_root=pathlib.Path(tempfile.mkdtemp(prefix='aegis-worker-runtime-')).resolve();assert work_root.name.startswith('aegis-worker-runtime-') and work_root.parent==pathlib.Path(tempfile.gettempdir()).resolve()
+  root_mount='type=bind,src='+str(work_root)+',dst='+str(work_root)
+  helper(['chown','10001:10001','/target'],entry='/bin/busybox',user='0:0',caps=['CHOWN'],mounts=['type=bind,src='+str(work_root)+',dst=/target'])
+  mounts=[root_mount,'type=bind,src='+str(ROOT/'alpha/fixtures/scanners')+',dst=/opt/aegis/repositories,readonly','type=bind,src='+engine_socket+',dst=/run/engine/docker.sock,readonly','type=volume,src='+socket_volume+',dst=/run/scanner,readonly','type=volume,src='+secret_volume+',dst=/run/worker-credential,readonly']
+  profile_env={**env,'AEGIS_SCANNER_ENGINE_GID':group,'AEGIS_SCANNER_WORK_ROOT':str(work_root),'AEGIS_SCANNER_ASSET_ROOT':str(ROOT/'alpha/fixtures/scanners'),'AEGIS_SCANNER_ENGINE_SOCKET':engine_socket,'AEGIS_SCANNER_OWNER':owner}
+  resolved=subprocess.run(['docker','--host',endpoint,'compose','-p',project,'-f',str(ROOT/'deploy/compose.demo.yaml'),'-f',str(ROOT/'deploy/compose.scanner-worker.yaml'),'--profile','operator-scanner','config','--format','json'],env=profile_env,cwd=ROOT,capture_output=True,text=True,timeout=30)
+  assert resolved.returncode==0
+  profile=json.loads(resolved.stdout)['services']['scanner-worker']
+  assert profile['user']=='10001:10001' and profile['read_only'] and profile['network_mode']=='none' and profile['cap_drop']==['ALL'] and not profile.get('privileged') and profile['restart']=='no' and profile['profiles']==['operator-scanner']
+  assert profile['command'][0]=='worker-once-journaled' and profile['command'][3]==owner and profile['environment']['TMPDIR']==str(work_root)
+  assert all(m.get('read_only') for m in profile['volumes'] if m['target']!=str(work_root))
+  assert any(m['type']=='bind' and m['source']==str(work_root) and m['target']==str(work_root) for m in profile['volumes'])
+  check('explicit_compose_worker_profile_matches_private_mount_and_hardening_contract')
+  command=['create','--pull=never','--name',worker_name,'--label','io.aegis.worker-proof='+nonce,'--network','none','--read-only','--user','10001:10001','--group-add',group,'--cap-drop','ALL','--security-opt','no-new-privileges','--memory','512m','--pids-limit','128','--cpus','1','--log-driver','none','--env','TMPDIR='+str(work_root),'--env','DOCKER_API_VERSION=0.1','--tmpfs','/tmp:rw,noexec,nosuid,size=32m,uid=10001,gid=10001']
+  for mount in mounts:command+=['--mount',mount]
+  arguments=['worker-once-journaled','/run/scanner/worker.sock','/run/worker-credential/worker.credential',owner,'/opt/aegis','/opt/aegis/repositories',str(work_root/'engine-journal')]
+  raw(command+[image,*arguments]);worker=json.loads(raw(['inspect',worker_name]).stdout)[0];host=worker['HostConfig'];assert worker['Config']['User']=='10001:10001' and host['ReadonlyRootfs'] and host['NetworkMode']=='none' and host['CapDrop']==['ALL'] and not host['Privileged'] and host['RestartPolicy']['Name']=='no'
+  assert not any(m['Destination']=='/var/lib/aegis' for m in worker['Mounts']);check('worker_profile_has_no_controller_database_or_network_and_is_hardened')
+  started=True;result=raw(['start','--attach',worker_name],120,False)
+  state=json.loads(raw(['inspect',worker_name]).stdout)[0]['State'];expected_exit=1 if len(tools)>1 else 0;assert not state['Running'] and state['ExitCode']==expected_exit and result.returncode==expected_exit,'Packaged worker did not complete its authorized static fixture'
+  report=json.loads(result.stdout);assert report['job_id']==job['job_id'] and report['state']==('tool_error' if len(tools)>1 else 'completed') and len(report['receipts'])==len(tools)
+  suite,_=request(base,'/scans/'+job['job_id']+'/result',cookie=cookie);assert suite==report['result'] and suite['document']['evidence_tier']=='T0' and suite['document']['cleanup_required'] is True
+  assert suite['document']['finding_claims']>0 and suite['document']['has_tool_error'] is (len(tools)>1)
+  check('packaged_worker_commits_actual_guarded_tool_receipts_and_result')
+  catalogue,_=request(base,'/findings/catalogue?limit=20',cookie=cookie);assert catalogue['retained_result_count']==1 and catalogue['result']['result_digest']==suite['result_digest'] and len(catalogue['findings']['items'])>0
+  for item in catalogue['findings']['items']:assert item['finding']['evidence_tier']=='T0' and item['finding']['status']=='suspected'
+  check('packaged_result_reaches_owned_catalogue_without_proof_promotion')
+  export_directory='/var/lib/aegis/worker-export-'+nonce;compose('exec','-T','controller','mkdir','-m','700',export_directory)
+  plans=[]
+  for tool in tools:
+   launch_file=export_directory+'/'+tool+'.json';compose('exec','-T','controller','aegisctl','scanner-launch','export',job['job_id'],tool,launch_file)
+   launch=json.loads(compose('exec','-T','controller','cat',launch_file).stdout);plan=launch['document']['plan'];assert re.fullmatch(r'aegis-scan-[0-9a-f]{32}',plan['container_id'])
+   assert not raw(['ps','--all','--filter','name=^/'+plan['container_id']+'$','--format','{{.Names}}']).stdout.strip();plans.append(plan)
+  plan=plans[0]
+  journal=json.loads(helper(['engine-journal-status',str(work_root/'engine-journal'),plan['engine_digest']],mounts=[root_mount]).stdout)
+  assert journal['attempts']==len(tools) and journal['unfinished_attempts']==0 and journal['unresolved_requests']==0 and journal['cleanup_release_authorized'] is False
+  confirmed=True;check('exact_child_absence_and_settled_journal_remain_non_authoritative')
+  second,_=request(base,'/scans',request_body,cookie,csrf,202,key=secrets.token_hex(16))
+  confirmed=False
+  blocked=helper(arguments,mounts=mounts,extra=['--group-add',group,'--env','TMPDIR='+str(work_root)],success=False);assert blocked.returncode!=0
+  blocked_report=json.loads(blocked.stdout);assert blocked_report['state']=='not_claimed' and not blocked_report['receipts']
+  status,_=request(base,'/scans/'+job['job_id'],cookie=cookie);next_status,_=request(base,'/scans/'+second['job_id'],cookie=cookie);assert status['execution_admission']=='cleanup_required' and next_status['job']['state']=='queued'
+  after=json.loads(helper(['engine-journal-status',str(work_root/'engine-journal'),plan['engine_digest']],mounts=[root_mount]).stdout);assert after==journal
+  confirmed=True
+  check('second_job_remains_queued_behind_independent_cleanup_hold')
+  evidence={'schema_version':'1.0','status':'PASS','scope':'Isolated packaged nonroot one-shot journaled worker executes one real static fixture; no independent cleanup release or production broker claim','recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'worker_image':image,'preflight':preflight,'result':suite,'tool_ids':tools,'catalogue':catalogue,'journal':journal,'container_hardening_verified':True,'child_absence_observed':True,'controller_cleanup_admission':'HELD','all_engine_writes_mediated':False,'independent_security_signoff':False}
+ finally:
+  if not started or confirmed:
+   raw(['rm','--force',worker_name],success=False)
+   for name in helpers:raw(['rm','--force',name],success=False)
+   if namespace_verified:compose('down','--volumes','--remove-orphans',success=False)
+   raw(['volume','rm',secret_volume],success=False)
+   if work_root is not None:
+    helper(['chown','-R',str(os.geteuid())+':'+str(os.getegid()),'/target'],entry='/bin/busybox',user='0:0',caps=['CHOWN','DAC_OVERRIDE'],mounts=['type=bind,src='+str(work_root)+',dst=/target'])
+    import shutil
+    shutil.rmtree(work_root)
+  else:
+   # Unknown daemon work must retain its records and private mount contents.
+   raw(['stop','--time','10',worker_name],30,False)
+   print('Unconfirmed fixture retained privately for trusted recovery; no dispatch release performed',flush=True)
+
+if evidence is not None:
+ assert not raw(['ps','--all','--filter','label=com.docker.compose.project='+project,'--format','{{.ID}}']).stdout.strip()
+ assert not raw(['ps','--all','--filter','label=io.aegis.worker-proof='+nonce,'--format','{{.ID}}']).stdout.strip()
+ assert not raw(['volume','ls','--filter','label=com.docker.compose.project='+project,'--format','{{.Name}}']).stdout.strip()
+ assert raw(['volume','inspect',secret_volume],success=False).returncode!=0
+ assert not raw(['network','ls','--filter','label=com.docker.compose.project='+project,'--format','{{.ID}}']).stdout.strip()
+ assert work_root is not None and not work_root.exists()
+ evidence['owned_fixture_resources_cleaned']=True
+ path=pathlib.Path(os.environ.get('AEGIS_PACKAGED_WORKER_EVIDENCE',str(ROOT/'docs/evidence/packaged-worker-acceptance.json')));path.write_text(json.dumps(evidence,indent=2)+'\n');print('packaged_worker_checks: '+str(len(checks)),flush=True)

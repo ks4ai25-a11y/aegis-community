@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "backend": "unix-sdk-1.55",
+  "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+  "architecture": "arm64",
+  "tool_id": "semgrep_ce",
+  "tool_version": "1.180.0",
+  "tool_image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
+  "local_image_config_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
+  "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+  "engine_writes_performed": false,
+  "cleanup_release_authorized": false
+}

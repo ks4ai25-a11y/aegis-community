@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "SDK-only metadata and trusted packaged static worker; no independent cleanup authority",
+  "metadata_native": {
+    "schema_version": "1.0",
+    "status": "PASS",
+    "scope": "Actual six preloaded pinned images; direct Unix SDK metadata with proxy/API-version overrides ignored; no engine writes",
+    "receipts": [
+      {
+        "schema_version": "1.0",
+        "backend": "unix-sdk-1.55",
+        "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+        "architecture": "arm64",
+        "tool_id": "semgrep_ce",
+        "tool_version": "1.180.0",
+        "tool_image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
+        "local_image_config_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "engine_writes_performed": false,
+        "cleanup_release_authorized": false
+      },
+      {
+        "schema_version": "1.0",
+        "backend": "unix-sdk-1.55",
+        "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+        "architecture": "arm64",
+        "tool_id": "osv_v2",
+        "tool_version": "2.7.0",
+        "tool_image_digest": "sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0",
+        "local_image_config_digest": "sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "engine_writes_performed": false,
+        "cleanup_release_authorized": false
+      },
+      {
+        "schema_version": "1.0",
+        "backend": "unix-sdk-1.55",
+        "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+        "architecture": "arm64",
+        "tool_id": "trivy",
+        "tool_version": "0.75.0",
+        "tool_image_digest": "sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa",
+        "local_image_config_digest": "sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "engine_writes_performed": false,
+        "cleanup_release_authorized": false
+      },
+      {
+        "schema_version": "1.0",
+        "backend": "unix-sdk-1.55",
+        "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+        "architecture": "arm64",
+        "tool_id": "syft",
+        "tool_version": "1.54.1",
+        "tool_image_digest": "sha256:3eb5379ba7b409c3f4069b686110527af0c47df993fa5c10d13e7cf34f49b1aa",
+        "local_image_config_digest": "sha256:3eb5379ba7b409c3f4069b686110527af0c47df993fa5c10d13e7cf34f49b1aa",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "engine_writes_performed": false,
+        "cleanup_release_authorized": false
+      },
+      {
+        "schema_version": "1.0",
+        "backend": "unix-sdk-1.55",
+        "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+        "architecture": "arm64",
+        "tool_id": "gitleaks",
+        "tool_version": "8.30.1",
+        "tool_image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
+        "local_image_config_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "engine_writes_performed": false,
+        "cleanup_release_authorized": false
+      },
+      {
+        "schema_version": "1.0",
+        "backend": "unix-sdk-1.55",
+        "engine_digest": "sha256:517fe1ccb6ae3f4e79ca8ec18097bf33e91ebba7157164c2d116a94da6e7b0b0",
+        "architecture": "arm64",
+        "tool_id": "bandit",
+        "tool_version": "1.9.4",
+        "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+        "local_image_config_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "engine_writes_performed": false,
+        "cleanup_release_authorized": false
+      }
+    ]
+  },
+  "metadata_race_checks": 69,
+  "metadata_race_repeats": 3,
+  "metadata_schema_valid_receipts": 7,
+  "metadata_schema_refusal_variants": 6,
+  "source_tests": "make test PASS; all Go modules race-enabled; console compiled",
+  "vet": "alpha go vet ./... PASS",
+  "ci_engine_archive": {
+    "schema_version": "1.0",
+    "scope": "disposable_github_linux_amd64_ci_only",
+    "version": "29.8.2",
+    "archive_digest": "sha256:995d1ef289677f74fd58d8d2c35727b6a4ee389c69db8638a3e42d0487aa5b0f",
+    "binary_count": 8,
+    "publisher_signature_verified": false,
+    "status": "PASS",
+    "all_binaries_linux_amd64_elf": true,
+    "binaries_executed_on_workstation": false
+  },
+  "initial_harness_failure": {
+    "status": "initial_harness_export_failure",
+    "worker_exit": 0,
+    "child_absence_observed": true,
+    "journal": {
+      "schema_version": "1.0",
+      "namespace_digest": "sha256:ddb3b02ca8ad5e2960ebc016e59b0df7f414a62b8494d6b0f2bbad81c4d5e16d",
+      "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+      "attempts": 1,
+      "unfinished_attempts": 0,
+      "unresolved_requests": 0,
+      "controller_gate_binding_verified": false,
+      "all_engine_writes_mediated": false,
+      "cleanup_release_authorized": false
+    },
+    "only_owned_fixture_removed_after_confirmation": true,
+    "cleanup_release_authorized": false
+  },
+  "packaged_six_tool_evidence": "packaged-worker-acceptance.json",
+  "controller_cleanup_admission": "HELD",
+  "all_engine_writes_mediated": false,
+  "publisher_signatures_verified": false,
+  "full_v4_release_gate": "NO-GO",
+  "packaged_cleanup_evidence": "packaged-worker-cleanup-acceptance.json",
+  "packaged_cleanup_postconditions_verified": true
+}

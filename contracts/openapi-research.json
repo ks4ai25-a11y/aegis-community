@@ -1420,6 +1420,9 @@
       "ScannerCleanupContextV1": {
         "$ref": "schemas/ScannerCleanupContextV1.json"
       },
+      "ScannerEnginePreflightV1": {
+        "$ref": "schemas/ScannerEnginePreflightV1.json"
+      },
       "ScannerExecutionV1": {
         "$ref": "schemas/ScannerExecutionV1.json"
       },

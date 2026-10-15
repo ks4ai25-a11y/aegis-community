@@ -256,6 +256,18 @@ class FindingPageV1ItemsItemOwnerReviewDocument(TypedDict):
     rationale: str
     previous_digest: str
     updated_at: str
+class ScannerEnginePreflightV1(TypedDict):
+    schema_version: str
+    backend: str
+    engine_digest: str
+    architecture: str
+    tool_id: str
+    tool_version: str
+    tool_image_digest: str
+    local_image_config_digest: str
+    tool_lock_digest: str
+    engine_writes_performed: bool
+    cleanup_release_authorized: bool
 class ScopeGrantDraftRequestV1(TypedDict):
     app_id: str
     mode: str

@@ -1,0 +1,212 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Isolated packaged nonroot one-shot journaled worker executes one real static fixture; no independent cleanup release or production broker claim",
+  "recorded_at": "2026-10-15T14:53:33.571766+00:00",
+  "checks": [
+    {
+      "id": "pinned_nonroot_package_has_no_docker_cli_and_reads_sdk_metadata",
+      "result": "PASS"
+    },
+    {
+      "id": "isolated_owner_queue_and_private_uid_socket_enrollment_created",
+      "result": "PASS"
+    },
+    {
+      "id": "explicit_compose_worker_profile_matches_private_mount_and_hardening_contract",
+      "result": "PASS"
+    },
+    {
+      "id": "worker_profile_has_no_controller_database_or_network_and_is_hardened",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_worker_commits_actual_guarded_tool_receipts_and_result",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_result_reaches_owned_catalogue_without_proof_promotion",
+      "result": "PASS"
+    },
+    {
+      "id": "exact_child_absence_and_settled_journal_remain_non_authoritative",
+      "result": "PASS"
+    },
+    {
+      "id": "second_job_remains_queued_behind_independent_cleanup_hold",
+      "result": "PASS"
+    }
+  ],
+  "worker_image": "sha256:3549aae7c394e91d58777d5a83f57811cd897a440bdf10813aba9cff7e2e1021",
+  "preflight": {
+    "schema_version": "1.0",
+    "backend": "unix-sdk-1.55",
+    "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+    "architecture": "arm64",
+    "tool_id": "bandit",
+    "tool_version": "1.9.4",
+    "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+    "local_image_config_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+    "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+    "engine_writes_performed": false,
+    "cleanup_release_authorized": false
+  },
+  "result": {
+    "result_digest": "sha256:f393d3316c788074851951c8f1ba4939b65db3d813d8e6c76a047fa6cfd056d2",
+    "document": {
+      "schema_version": "1.0",
+      "owner_id": "01a1400d-ba49-7872-b947-0bca8189c4e7",
+      "job_id": "01a1400d-c004-70f0-8d53-01f07ef54a06",
+      "request_digest": "sha256:9ad6fe6b46ffe8c469dccb25afe10326c48c32cad9c8f1bfecd8b03acf1dbe03",
+      "app_id": "app_demo",
+      "repository_id": "01a1400d-bff2-7bd8-9c29-9c9bf0d6498a",
+      "map_digest": "sha256:4eeffaf9e51310019689a09a1311495ffbbe298b252ba7c755c8b160bc54023b",
+      "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+      "snapshot_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+      "status": "completed",
+      "tools": [
+        {
+          "tool_id": "bandit",
+          "receipt_digest": "sha256:4dcea69a2259680ef23be0c18cd9826a87764133008a082238bd2bf90da115ae",
+          "status": "completed",
+          "finding_claims": 1,
+          "has_sbom": false
+        }
+      ],
+      "finding_claims": 1,
+      "has_partial": false,
+      "has_stale_database": false,
+      "has_tool_error": false,
+      "evidence_tier": "T0",
+      "cleanup_required": true,
+      "created_at": "2026-10-15T14:53:30.530871339Z"
+    }
+  },
+  "tool_ids": [
+    "bandit"
+  ],
+  "catalogue": {
+    "schema_version": "1.0",
+    "owner_id": "01a1400d-ba49-7872-b947-0bca8189c4e7",
+    "scope": "retained_static_observations",
+    "result_set_digest": "sha256:ddb8c500f2facf8d5b44b1753c00c796e8881975805ce2b854eee38ebcceaa17",
+    "retained_result_count": 1,
+    "jobs_without_result": 0,
+    "result_index": 0,
+    "result": {
+      "result_digest": "sha256:f393d3316c788074851951c8f1ba4939b65db3d813d8e6c76a047fa6cfd056d2",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "01a1400d-ba49-7872-b947-0bca8189c4e7",
+        "job_id": "01a1400d-c004-70f0-8d53-01f07ef54a06",
+        "request_digest": "sha256:9ad6fe6b46ffe8c469dccb25afe10326c48c32cad9c8f1bfecd8b03acf1dbe03",
+        "app_id": "app_demo",
+        "repository_id": "01a1400d-bff2-7bd8-9c29-9c9bf0d6498a",
+        "map_digest": "sha256:4eeffaf9e51310019689a09a1311495ffbbe298b252ba7c755c8b160bc54023b",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+        "status": "completed",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:4dcea69a2259680ef23be0c18cd9826a87764133008a082238bd2bf90da115ae",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 1,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": false,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-15T14:53:30.530871339Z"
+      }
+    },
+    "findings": {
+      "schema_version": "1.0",
+      "owner_id": "01a1400d-ba49-7872-b947-0bca8189c4e7",
+      "job_id": "01a1400d-c004-70f0-8d53-01f07ef54a06",
+      "request_digest": "sha256:9ad6fe6b46ffe8c469dccb25afe10326c48c32cad9c8f1bfecd8b03acf1dbe03",
+      "result_digest": "sha256:f393d3316c788074851951c8f1ba4939b65db3d813d8e6c76a047fa6cfd056d2",
+      "snapshot_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+      "status": "completed",
+      "has_partial": false,
+      "has_stale_database": false,
+      "has_tool_error": false,
+      "tool_claims": 1,
+      "distinct_static_claims": 1,
+      "matching_static_claims": 1,
+      "items": [
+        {
+          "record_id": "sha256:8fd2046e7256b71ac845e71a1e41b36d7c7e930e900f7e6f496e06051e90feaa",
+          "finding": {
+            "schema_version": "1.0",
+            "id": "sha256:c21f553c149280e3552e2b0644ff008418d07fc8f53f99d75b23261472fa415b",
+            "app_id": "app_demo",
+            "repository_id": "01a1400d-bff2-7bd8-9c29-9c9bf0d6498a",
+            "category": "static_pattern",
+            "summary": "Unverified static scanner claim.",
+            "status": "suspected",
+            "severity": "medium",
+            "confidence": "low",
+            "evidence_tier": "T0",
+            "path": "query.py",
+            "line": 3,
+            "provenance": [
+              {
+                "tool_id": "bandit",
+                "tool_version": "1.9.4",
+                "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+                "parser_version": "1.2",
+                "input_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+                "rule_id": "B608",
+                "severity_claimed": "medium"
+              }
+            ],
+            "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+            "created_at": "2026-10-15T14:53:30.464311006Z"
+          },
+          "receipt_digests": [
+            "sha256:4dcea69a2259680ef23be0c18cd9826a87764133008a082238bd2bf90da115ae"
+          ],
+          "owner_review": {
+            "triage_digest": "sha256:fdb97fc9914af1ef88985bd3010a3b6c7469fd05cb166c66d27fb280af7dbfc0",
+            "document": {
+              "schema_version": "1.0",
+              "owner_id": "01a1400d-ba49-7872-b947-0bca8189c4e7",
+              "job_id": "01a1400d-c004-70f0-8d53-01f07ef54a06",
+              "record_id": "sha256:8fd2046e7256b71ac845e71a1e41b36d7c7e930e900f7e6f496e06051e90feaa",
+              "result_digest": "sha256:f393d3316c788074851951c8f1ba4939b65db3d813d8e6c76a047fa6cfd056d2",
+              "revision": 0,
+              "state": "suspected",
+              "rationale": "",
+              "previous_digest": "",
+              "updated_at": ""
+            }
+          }
+        }
+      ],
+      "next_cursor": ""
+    },
+    "next_cursor": ""
+  },
+  "journal": {
+    "schema_version": "1.0",
+    "namespace_digest": "sha256:c2835ebae19348ae4533e4b9b485c332453823c78024feb9fe142834169911a1",
+    "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+    "attempts": 1,
+    "unfinished_attempts": 0,
+    "unresolved_requests": 0,
+    "controller_gate_binding_verified": false,
+    "all_engine_writes_mediated": false,
+    "cleanup_release_authorized": false
+  },
+  "container_hardening_verified": true,
+  "child_absence_observed": true,
+  "controller_cleanup_admission": "HELD",
+  "all_engine_writes_mediated": false,
+  "independent_security_signoff": false,
+  "owned_fixture_resources_cleaned": true
+}

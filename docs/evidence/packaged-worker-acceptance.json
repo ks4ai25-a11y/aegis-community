@@ -1,0 +1,383 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Isolated packaged nonroot one-shot journaled worker executes one real static fixture; no independent cleanup release or production broker claim",
+  "recorded_at": "2026-10-15T14:51:46.099222+00:00",
+  "checks": [
+    {
+      "id": "pinned_nonroot_package_has_no_docker_cli_and_reads_sdk_metadata",
+      "result": "PASS"
+    },
+    {
+      "id": "isolated_owner_queue_and_private_uid_socket_enrollment_created",
+      "result": "PASS"
+    },
+    {
+      "id": "explicit_compose_worker_profile_matches_private_mount_and_hardening_contract",
+      "result": "PASS"
+    },
+    {
+      "id": "worker_profile_has_no_controller_database_or_network_and_is_hardened",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_worker_commits_actual_guarded_tool_receipts_and_result",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_result_reaches_owned_catalogue_without_proof_promotion",
+      "result": "PASS"
+    },
+    {
+      "id": "exact_child_absence_and_settled_journal_remain_non_authoritative",
+      "result": "PASS"
+    },
+    {
+      "id": "second_job_remains_queued_behind_independent_cleanup_hold",
+      "result": "PASS"
+    }
+  ],
+  "worker_image": "sha256:3549aae7c394e91d58777d5a83f57811cd897a440bdf10813aba9cff7e2e1021",
+  "preflight": {
+    "schema_version": "1.0",
+    "backend": "unix-sdk-1.55",
+    "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+    "architecture": "arm64",
+    "tool_id": "bandit",
+    "tool_version": "1.9.4",
+    "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+    "local_image_config_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+    "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+    "engine_writes_performed": false,
+    "cleanup_release_authorized": false
+  },
+  "result": {
+    "result_digest": "sha256:996605bd31764cc763b6ab6324e060c35b75463ae7b3a99b25f517d987a4fa1d",
+    "document": {
+      "schema_version": "1.0",
+      "owner_id": "01a1400b-e67c-7b39-a184-ac2bbc5c961d",
+      "job_id": "01a1400b-eaa9-7d03-8949-97c7e6c3b3f7",
+      "request_digest": "sha256:91ff83baf2e87002ad874b3ddf2aa587e53e287e0a79124046616bb002a79dc3",
+      "app_id": "app_demo",
+      "repository_id": "01a1400b-ea9f-7c5e-b53a-6d4dd5e934f3",
+      "map_digest": "sha256:4eeffaf9e51310019689a09a1311495ffbbe298b252ba7c755c8b160bc54023b",
+      "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+      "snapshot_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+      "status": "tool_error",
+      "tools": [
+        {
+          "tool_id": "bandit",
+          "receipt_digest": "sha256:bd581faccc746036c6e4baafac961ea6f8d488647e2c00be5b7eaf2afa160bac",
+          "status": "completed",
+          "finding_claims": 1,
+          "has_sbom": false
+        },
+        {
+          "tool_id": "gitleaks",
+          "receipt_digest": "sha256:6f2bd3070ad44f9067d2598d898a76a9874e22534e14878b9c2190ecd48d5d3b",
+          "status": "completed",
+          "finding_claims": 1,
+          "has_sbom": false
+        },
+        {
+          "tool_id": "osv_v2",
+          "receipt_digest": "sha256:2441464097ac572452561b0f078c0a35a91c5ee3656a7180655c651e6e472760",
+          "status": "tool_error",
+          "finding_claims": 0,
+          "has_sbom": false
+        },
+        {
+          "tool_id": "semgrep_ce",
+          "receipt_digest": "sha256:b6624402490a98b3d813df1e1606248fe45126524c3227429b9960d0ab3aeb7c",
+          "status": "completed",
+          "finding_claims": 1,
+          "has_sbom": false
+        },
+        {
+          "tool_id": "syft",
+          "receipt_digest": "sha256:c36a6bde3af7662c0fb9f0ec9606eb3ea3f01dc1e077e6c99c987aa34ef1923f",
+          "status": "completed",
+          "finding_claims": 0,
+          "has_sbom": true
+        },
+        {
+          "tool_id": "trivy",
+          "receipt_digest": "sha256:668db3e6776cedaf23cc9e0b8addea4eb9b2f44d5deb5bb694817f3fff02de4d",
+          "status": "tool_error",
+          "finding_claims": 0,
+          "has_sbom": false
+        }
+      ],
+      "finding_claims": 3,
+      "has_partial": false,
+      "has_stale_database": false,
+      "has_tool_error": true,
+      "evidence_tier": "T0",
+      "cleanup_required": true,
+      "created_at": "2026-10-15T14:51:40.921858011Z"
+    }
+  },
+  "tool_ids": [
+    "bandit",
+    "gitleaks",
+    "osv_v2",
+    "semgrep_ce",
+    "syft",
+    "trivy"
+  ],
+  "catalogue": {
+    "schema_version": "1.0",
+    "owner_id": "01a1400b-e67c-7b39-a184-ac2bbc5c961d",
+    "scope": "retained_static_observations",
+    "result_set_digest": "sha256:bf3a0d2744667bb331b40fa90502bb59b305bf9cd96cd6f2f160e9b39c5e25d8",
+    "retained_result_count": 1,
+    "jobs_without_result": 0,
+    "result_index": 0,
+    "result": {
+      "result_digest": "sha256:996605bd31764cc763b6ab6324e060c35b75463ae7b3a99b25f517d987a4fa1d",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "01a1400b-e67c-7b39-a184-ac2bbc5c961d",
+        "job_id": "01a1400b-eaa9-7d03-8949-97c7e6c3b3f7",
+        "request_digest": "sha256:91ff83baf2e87002ad874b3ddf2aa587e53e287e0a79124046616bb002a79dc3",
+        "app_id": "app_demo",
+        "repository_id": "01a1400b-ea9f-7c5e-b53a-6d4dd5e934f3",
+        "map_digest": "sha256:4eeffaf9e51310019689a09a1311495ffbbe298b252ba7c755c8b160bc54023b",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+        "status": "tool_error",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:bd581faccc746036c6e4baafac961ea6f8d488647e2c00be5b7eaf2afa160bac",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "gitleaks",
+            "receipt_digest": "sha256:6f2bd3070ad44f9067d2598d898a76a9874e22534e14878b9c2190ecd48d5d3b",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "osv_v2",
+            "receipt_digest": "sha256:2441464097ac572452561b0f078c0a35a91c5ee3656a7180655c651e6e472760",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "semgrep_ce",
+            "receipt_digest": "sha256:b6624402490a98b3d813df1e1606248fe45126524c3227429b9960d0ab3aeb7c",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "syft",
+            "receipt_digest": "sha256:c36a6bde3af7662c0fb9f0ec9606eb3ea3f01dc1e077e6c99c987aa34ef1923f",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": true
+          },
+          {
+            "tool_id": "trivy",
+            "receipt_digest": "sha256:668db3e6776cedaf23cc9e0b8addea4eb9b2f44d5deb5bb694817f3fff02de4d",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 3,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": true,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-15T14:51:40.921858011Z"
+      }
+    },
+    "findings": {
+      "schema_version": "1.0",
+      "owner_id": "01a1400b-e67c-7b39-a184-ac2bbc5c961d",
+      "job_id": "01a1400b-eaa9-7d03-8949-97c7e6c3b3f7",
+      "request_digest": "sha256:91ff83baf2e87002ad874b3ddf2aa587e53e287e0a79124046616bb002a79dc3",
+      "result_digest": "sha256:996605bd31764cc763b6ab6324e060c35b75463ae7b3a99b25f517d987a4fa1d",
+      "snapshot_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+      "status": "tool_error",
+      "has_partial": false,
+      "has_stale_database": false,
+      "has_tool_error": true,
+      "tool_claims": 3,
+      "distinct_static_claims": 3,
+      "matching_static_claims": 3,
+      "items": [
+        {
+          "record_id": "sha256:73524b0faec4df6ca0bda434853de8c8e2c2cdcfce6769ab4657bdb34a22876b",
+          "finding": {
+            "schema_version": "1.0",
+            "id": "sha256:496e4b9cfb152d7c9d4dc467a80f2eaefcd0f2595f868e79375c5d1f362b03f7",
+            "app_id": "app_demo",
+            "repository_id": "01a1400b-ea9f-7c5e-b53a-6d4dd5e934f3",
+            "category": "static_pattern",
+            "summary": "Unverified static scanner claim.",
+            "status": "suspected",
+            "severity": "medium",
+            "confidence": "low",
+            "evidence_tier": "T0",
+            "path": "query.py",
+            "line": 3,
+            "provenance": [
+              {
+                "tool_id": "semgrep_ce",
+                "tool_version": "1.180.0",
+                "tool_image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
+                "parser_version": "1.2",
+                "input_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+                "rule_id": "rules.aegis.synthetic-python-sql-concat",
+                "severity_claimed": "medium"
+              }
+            ],
+            "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+            "created_at": "2026-10-15T14:51:37.616979884Z"
+          },
+          "receipt_digests": [
+            "sha256:b6624402490a98b3d813df1e1606248fe45126524c3227429b9960d0ab3aeb7c"
+          ],
+          "owner_review": {
+            "triage_digest": "sha256:3d46964b5482f8afbc889f39feb026da708cffe2c31c57dfbdeacce7098a843c",
+            "document": {
+              "schema_version": "1.0",
+              "owner_id": "01a1400b-e67c-7b39-a184-ac2bbc5c961d",
+              "job_id": "01a1400b-eaa9-7d03-8949-97c7e6c3b3f7",
+              "record_id": "sha256:73524b0faec4df6ca0bda434853de8c8e2c2cdcfce6769ab4657bdb34a22876b",
+              "result_digest": "sha256:996605bd31764cc763b6ab6324e060c35b75463ae7b3a99b25f517d987a4fa1d",
+              "revision": 0,
+              "state": "suspected",
+              "rationale": "",
+              "previous_digest": "",
+              "updated_at": ""
+            }
+          }
+        },
+        {
+          "record_id": "sha256:cc13051658278d10ed30b00f0e2a8000c85122be36593f7271feae2e196a1f66",
+          "finding": {
+            "schema_version": "1.0",
+            "id": "sha256:9f3fd228c54c800b10d5a7087e326893df232b141f6d3131d84f9cc6dff0206e",
+            "app_id": "app_demo",
+            "repository_id": "01a1400b-ea9f-7c5e-b53a-6d4dd5e934f3",
+            "category": "static_pattern",
+            "summary": "Unverified static scanner claim.",
+            "status": "suspected",
+            "severity": "medium",
+            "confidence": "low",
+            "evidence_tier": "T0",
+            "path": "query.py",
+            "line": 3,
+            "provenance": [
+              {
+                "tool_id": "bandit",
+                "tool_version": "1.9.4",
+                "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+                "parser_version": "1.2",
+                "input_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+                "rule_id": "B608",
+                "severity_claimed": "medium"
+              }
+            ],
+            "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+            "created_at": "2026-10-15T14:51:29.176141922Z"
+          },
+          "receipt_digests": [
+            "sha256:bd581faccc746036c6e4baafac961ea6f8d488647e2c00be5b7eaf2afa160bac"
+          ],
+          "owner_review": {
+            "triage_digest": "sha256:ecae6d23f43522908b92c7a986fd128237d75ddb99588c0331407c15889917bb",
+            "document": {
+              "schema_version": "1.0",
+              "owner_id": "01a1400b-e67c-7b39-a184-ac2bbc5c961d",
+              "job_id": "01a1400b-eaa9-7d03-8949-97c7e6c3b3f7",
+              "record_id": "sha256:cc13051658278d10ed30b00f0e2a8000c85122be36593f7271feae2e196a1f66",
+              "result_digest": "sha256:996605bd31764cc763b6ab6324e060c35b75463ae7b3a99b25f517d987a4fa1d",
+              "revision": 0,
+              "state": "suspected",
+              "rationale": "",
+              "previous_digest": "",
+              "updated_at": ""
+            }
+          }
+        },
+        {
+          "record_id": "sha256:09bd01a82e29ac80ae45987394ee354b491a751d259ae6e181567398270d86bc",
+          "finding": {
+            "schema_version": "1.0",
+            "id": "sha256:dd20fd561e6fdddb1410ce232f86c7a8bc199ce93d21e957b5b8de3e863b3cd7",
+            "app_id": "app_demo",
+            "repository_id": "01a1400b-ea9f-7c5e-b53a-6d4dd5e934f3",
+            "category": "secret_candidate",
+            "summary": "Possible exposed credential; rotate after owner review. Matched value omitted.",
+            "status": "suspected",
+            "severity": "high",
+            "confidence": "low",
+            "evidence_tier": "T0",
+            "path": "fake-secret.txt",
+            "line": 1,
+            "provenance": [
+              {
+                "tool_id": "gitleaks",
+                "tool_version": "8.30.1",
+                "tool_image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
+                "parser_version": "1.2",
+                "input_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+                "rule_id": "github-pat",
+                "severity_claimed": "high"
+              }
+            ],
+            "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+            "created_at": "2026-10-15T14:51:30.946597715Z"
+          },
+          "receipt_digests": [
+            "sha256:6f2bd3070ad44f9067d2598d898a76a9874e22534e14878b9c2190ecd48d5d3b"
+          ],
+          "owner_review": {
+            "triage_digest": "sha256:cb483da247a0e547eb70df9d73579f78faf18ef518ed3a2cf439b5699e399acd",
+            "document": {
+              "schema_version": "1.0",
+              "owner_id": "01a1400b-e67c-7b39-a184-ac2bbc5c961d",
+              "job_id": "01a1400b-eaa9-7d03-8949-97c7e6c3b3f7",
+              "record_id": "sha256:09bd01a82e29ac80ae45987394ee354b491a751d259ae6e181567398270d86bc",
+              "result_digest": "sha256:996605bd31764cc763b6ab6324e060c35b75463ae7b3a99b25f517d987a4fa1d",
+              "revision": 0,
+              "state": "suspected",
+              "rationale": "",
+              "previous_digest": "",
+              "updated_at": ""
+            }
+          }
+        }
+      ],
+      "next_cursor": ""
+    },
+    "next_cursor": ""
+  },
+  "journal": {
+    "schema_version": "1.0",
+    "namespace_digest": "sha256:de7f2c1f2886bd406105f28599bd4880655a3f113910669c2ab62ac3faf1c492",
+    "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+    "attempts": 6,
+    "unfinished_attempts": 0,
+    "unresolved_requests": 0,
+    "controller_gate_binding_verified": false,
+    "all_engine_writes_mediated": false,
+    "cleanup_release_authorized": false
+  },
+  "container_hardening_verified": true,
+  "child_absence_observed": true,
+  "controller_cleanup_admission": "HELD",
+  "all_engine_writes_mediated": false,
+  "independent_security_signoff": false,
+  "owned_fixture_resources_cleaned": true
+}

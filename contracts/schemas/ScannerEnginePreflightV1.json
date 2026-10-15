@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerEnginePreflightV1.json",
+  "title": "ScannerEnginePreflightV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "backend": {
+      "type": "string",
+      "const": "unix-sdk-1.55"
+    },
+    "engine_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "architecture": {
+      "type": "string",
+      "enum": [
+        "amd64",
+        "arm64"
+      ]
+    },
+    "tool_id": {
+      "type": "string",
+      "enum": [
+        "semgrep_ce",
+        "osv_v2",
+        "trivy",
+        "syft",
+        "gitleaks",
+        "bandit"
+      ]
+    },
+    "tool_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "tool_image_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "local_image_config_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "tool_lock_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "engine_writes_performed": {
+      "type": "boolean",
+      "const": false
+    },
+    "cleanup_release_authorized": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "backend",
+    "engine_digest",
+    "architecture",
+    "tool_id",
+    "tool_version",
+    "tool_image_digest",
+    "local_image_config_digest",
+    "tool_lock_digest",
+    "engine_writes_performed",
+    "cleanup_release_authorized"
+  ]
+}

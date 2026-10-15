@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "scope": "disposable_github_linux_amd64_ci_only",
+  "version": "29.8.2",
+  "url": "https://download.docker.com/linux/static/stable/x86_64/docker-29.8.2.tgz",
+  "sha256": "sha256:995d1ef289677f74fd58d8d2c35727b6a4ee389c69db8638a3e42d0487aa5b0f",
+  "byte_count": 85591344,
+  "maximum_unpacked_bytes": 536870912,
+  "members": [
+    {
+      "name": "docker",
+      "bytes": 0,
+      "kind": "directory"
+    },
+    {
+      "name": "docker/containerd",
+      "bytes": 38486178,
+      "kind": "file"
+    },
+    {
+      "name": "docker/runc",
+      "bytes": 14130968,
+      "kind": "file"
+    },
+    {
+      "name": "docker/containerd-shim-runc-v2",
+      "bytes": 8458402,
+      "kind": "file"
+    },
+    {
+      "name": "docker/docker",
+      "bytes": 44260160,
+      "kind": "file"
+    },
+    {
+      "name": "docker/docker-proxy",
+      "bytes": 2696190,
+      "kind": "file"
+    },
+    {
+      "name": "docker/ctr",
+      "bytes": 22630562,
+      "kind": "file"
+    },
+    {
+      "name": "docker/dockerd",
+      "bytes": 101934936,
+      "kind": "file"
+    },
+    {
+      "name": "docker/docker-init",
+      "bytes": 743016,
+      "kind": "file"
+    }
+  ],
+  "publisher_signature_verified": false
+}

@@ -1,0 +1,43 @@
+# Explicit opt-in trusted operator worker. Merge with compose.demo.yaml.
+# The engine socket is a privileged capability even when mounted read-only.
+services:
+  scanner-worker:
+    profiles: [operator-scanner]
+    image: aegis-community/scanner-worker:0.1.0-alpha.1
+    build: {context: .., dockerfile: alpha/Dockerfile}
+    user: "10001:10001"
+    group_add: ["${AEGIS_SCANNER_ENGINE_GID:?Set the daemon-host socket group ID}"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    network_mode: none
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+    restart: "no"
+    environment:
+      DOCKER_HOST: unix:///run/engine/docker.sock
+      DOCKER_CONTEXT: ""
+      TMPDIR: "${AEGIS_SCANNER_WORK_ROOT:?Provision an owned private canonical daemon-host workspace path}"
+    command: [worker-once-journaled, /run/scanner/worker.sock, /run/worker-credential/worker.credential, "${AEGIS_SCANNER_OWNER:?Set the enrolled owner ID}", /opt/aegis, /opt/aegis/repositories, "${AEGIS_SCANNER_WORK_ROOT}/engine-journal"]
+    volumes:
+      - {type: volume, source: scanner_socket, target: /run/scanner, read_only: true}
+      - {type: volume, source: scanner_worker_credentials, target: /run/worker-credential, read_only: true}
+      - type: bind
+        source: "${AEGIS_SCANNER_WORK_ROOT}"
+        target: "${AEGIS_SCANNER_WORK_ROOT}"
+        bind: {create_host_path: false}
+      - type: bind
+        source: "${AEGIS_SCANNER_ASSET_ROOT:?Set the approved canonical repository asset root}"
+        target: /opt/aegis/repositories
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: "${AEGIS_SCANNER_ENGINE_SOCKET:?Set the local daemon-host Unix socket path}"
+        target: /run/engine/docker.sock
+        read_only: true
+        bind: {create_host_path: false}
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=32m,uid=10001,gid=10001"]
+    logging: {driver: json-file, options: {max-size: "2m", max-file: "2"}}
+volumes:
+  scanner_worker_credentials: {}

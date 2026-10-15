@@ -12,7 +12,7 @@ def prepare(spec):
  return result
 
 def validate(spec,project,fixture):
- if not re.fullmatch(r'aegis-recovery-[0-9a-f]{24}',project):raise ValueError('unique drill project required')
+ if not re.fullmatch(r'aegis-(?:recovery|worker)-[0-9a-f]{24}',project):raise ValueError('unique drill project required')
  if set(spec.get('services',{}))!=SERVICES:raise ValueError('unexpected drill service')
  for group in ('volumes','networks'):
   for entry in spec.get(group,{}).values():

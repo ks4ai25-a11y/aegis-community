@@ -281,6 +281,19 @@ type FindingPageV1ItemsItemOwnerReviewDocument struct {
 	PreviousDigest string `json:"previous_digest"`
 	UpdatedAt      string `json:"updated_at"`
 }
+type ScannerEnginePreflightV1 struct {
+	SchemaVersion            string `json:"schema_version"`
+	Backend                  string `json:"backend"`
+	EngineDigest             string `json:"engine_digest"`
+	Architecture             string `json:"architecture"`
+	ToolId                   string `json:"tool_id"`
+	ToolVersion              string `json:"tool_version"`
+	ToolImageDigest          string `json:"tool_image_digest"`
+	LocalImageConfigDigest   string `json:"local_image_config_digest"`
+	ToolLockDigest           string `json:"tool_lock_digest"`
+	EngineWritesPerformed    bool   `json:"engine_writes_performed"`
+	CleanupReleaseAuthorized bool   `json:"cleanup_release_authorized"`
+}
 type ScopeGrantDraftRequestV1 struct {
 	AppId           string `json:"app_id"`
 	Mode            string `json:"mode"`

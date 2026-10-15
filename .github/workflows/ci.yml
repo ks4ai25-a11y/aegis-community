@@ -83,3 +83,56 @@ jobs:
       - name: Stop only this disposable CI demo
         if: always()
         run: docker compose -f deploy/compose.demo.yaml down
+
+  packaged-worker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare checksum-pinned engine for this disposable job
+        run: |
+          mkdir -m 700 "$RUNNER_TEMP/aegis-ci-engine-parent"
+          python3 scripts/ci_engine.py "$RUNNER_TEMP/aegis-ci-engine-parent/engine"
+          echo "AEGIS_CI_ENGINE_ROOT=$RUNNER_TEMP/aegis-ci-engine-parent/engine" >> "$GITHUB_ENV"
+      - name: Start isolated job engine with the required SDK API
+        run: |
+          sudo systemctl stop docker.socket docker.service
+          sudo env PATH="$AEGIS_CI_ENGINE_ROOT/bin:$PATH" "$AEGIS_CI_ENGINE_ROOT/bin/dockerd" --host=unix:///var/run/docker.sock --data-root="$AEGIS_CI_ENGINE_ROOT/data" --exec-root="$AEGIS_CI_ENGINE_ROOT/exec" --pidfile="$AEGIS_CI_ENGINE_ROOT/dockerd.pid" > "$AEGIS_CI_ENGINE_ROOT/daemon.log" 2>&1 &
+          for attempt in $(seq 1 60); do
+            if DOCKER_API_VERSION=1.55 "$AEGIS_CI_ENGINE_ROOT/bin/docker" info > /dev/null 2>&1; then
+              echo "$AEGIS_CI_ENGINE_ROOT/bin" >> "$GITHUB_PATH"
+              exit 0
+            fi
+            sleep 1
+          done
+          tail -80 "$AEGIS_CI_ENGINE_ROOT/daemon.log"
+          exit 1
+      - run: docker compose -f deploy/compose.demo.yaml build
+      - run: docker build -f alpha/Dockerfile -t aegis-community/scanner-worker:0.1.0-alpha.1 .
+      - name: Preload the exact public Bandit image
+        run: |
+          python3 - <<'PY'
+          import json,pathlib,re,subprocess
+          tool=next(t for t in json.loads(pathlib.Path('tools/scanners.lock.json').read_text())['tools'] if t['id']=='bandit')
+          assert re.fullmatch(r'ghcr.io/pycqa/bandit/bandit@sha256:[0-9a-f]{64}',tool['image'])
+          subprocess.run(['docker','pull',tool['image']],check=True)
+          PY
+      - name: Verify packaged UID/socket worker and held cleanup admission
+        env:
+          AEGIS_PACKAGED_WORKER_TEST: '1'
+        run: python3 tests/integration/packaged_worker_acceptance.py
+      - name: Stop only this disposable job engine
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os,pathlib,re,subprocess
+          root=os.environ.get('AEGIS_CI_ENGINE_ROOT')
+          if root:
+              pid=pathlib.Path(root)/'dockerd.pid'
+              if pid.is_file():
+                  value=pid.read_text().strip()
+                  if re.fullmatch(r'[1-9][0-9]*',value):
+                      subprocess.run(['sudo','kill','-TERM',value],check=False)
+          PY

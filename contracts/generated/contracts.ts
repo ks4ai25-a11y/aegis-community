@@ -279,6 +279,19 @@ export interface FindingPageV1ItemsItemOwnerReviewDocument {
   previous_digest: string;
   updated_at: string;
 }
+export interface ScannerEnginePreflightV1 {
+  schema_version: "1.0";
+  backend: "unix-sdk-1.55";
+  engine_digest: string;
+  architecture: "amd64" | "arm64";
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  tool_version: string;
+  tool_image_digest: string;
+  local_image_config_digest: string;
+  tool_lock_digest: string;
+  engine_writes_performed: false;
+  cleanup_release_authorized: false;
+}
 export interface ScopeGrantDraftRequestV1 {
   app_id: "app_demo";
   mode: "test_lab";

@@ -58,7 +58,7 @@ func (b *boundedEngineBody) Read(p []byte) (int, error) {
 	b.used += int64(n)
 	if b.capture != nil {
 		b.capture.mu.Lock()
-		if b.capture.operation == "create" && b.used <= 65536 {
+		if (b.capture.operation == "create" || b.capture.operation == "info" || b.capture.operation == "image") && b.used <= 65536 {
 			b.capture.payload = append(b.capture.payload, p[:n]...)
 		}
 		if b.used > 65536 || e != nil && e != io.EOF {
@@ -205,6 +205,10 @@ func (c *scannerEngineClient) attach(ctx context.Context, id string) (io.ReadClo
 	return response.Body, nil
 }
 func newEngineSDK(endpoint, nameValue string, idValue *string) (*scannerEngineClient, error) {
+	req, resp := engineHooks(nameValue, idValue)
+	return newRestrictedEngineSDK(endpoint, req, resp)
+}
+func newRestrictedEngineSDK(endpoint string, req client.RequestHook, resp client.ResponseHook) (*scannerEngineClient, error) {
 	raw, e := localEndpoint(endpoint)
 	if e != nil {
 		return nil, errEngine
@@ -213,7 +217,6 @@ func newEngineSDK(endpoint, nameValue string, idValue *string) (*scannerEngineCl
 	tr := &http.Transport{Proxy: nil, MaxConnsPerHost: 4, MaxIdleConnsPerHost: 2, ResponseHeaderTimeout: 5 * time.Second, MaxResponseHeaderBytes: 65536, DisableCompression: true, DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 		return (&net.Dialer{Timeout: 2 * time.Second}).DialContext(ctx, "unix", u.Path)
 	}}
-	req, resp := engineHooks(nameValue, idValue)
 	hc := &http.Client{Transport: &engineTransport{tr, req, resp}, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	sdk, e := client.New(client.WithHost(raw), client.WithHTTPClient(hc), client.WithScheme("http"), client.WithAPIVersion(engineAPIVersion), client.WithUserAgent("aegis-scanner-tracked/1"))
 	if e != nil {
