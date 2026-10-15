@@ -76,8 +76,12 @@
     {
       "gate_id": "GATE-11",
       "requirement": "Disk-full, restore and upgrade",
-      "status": "pending",
-      "evidence": []
+      "status": "partial",
+      "evidence": [
+        "docs/evidence/database-snapshot-acceptance.json",
+        "docs/evidence/recovery-bundle-acceptance.json",
+        "docs/architecture/adr/044-bound-recovery-bundles.md"
+      ]
     },
     {
       "gate_id": "GATE-12",

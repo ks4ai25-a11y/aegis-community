@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:d9b7969b75293eff4c50b815089a21e4fad739c3b33d759e2ab808afd28828dc",
+  "source_tree_sha256": "sha256:ecc527e1628495b6288f22ef8eaafeba78bbc5b5616b656a3c94ae2b3eca7ae0",
   "files": [
     {
       "path": ".dockerignore",
@@ -1204,7 +1204,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "2ffb22d1d11ba6373527a49e4b9be3591f459f41e46eb4e014284d6e7b7cb0ff"
+      "sha256": "4a8a6ea730d3fda02e8306e94a4fef7fc3bf3405209d372bdaf596f4ad52bd57"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -1384,7 +1384,7 @@
     },
     {
       "path": "docs/release-gates.json",
-      "sha256": "4071de041d563d741a994a16d5aee25cbca23ded893333facc5233f6cf56c636"
+      "sha256": "2c584a26597925848952e17cde6c691e7645f5e9310f6f58225f369049c32a9f"
     },
     {
       "path": "gateway/Dockerfile",
