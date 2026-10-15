@@ -991,3 +991,13 @@ class ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan(TypedDict):
     snapshot_digest: str
     guard_binary_digest: str
     guard_architecture: str
+class DatabaseSnapshotReceiptV1(TypedDict):
+    schema_version: str
+    status: str
+    scope: str
+    database_digest: str
+    byte_count: int
+    created_at: str
+    gateway_configuration_captured: bool
+    tool_manifest_captured: bool
+    restore_verified: bool

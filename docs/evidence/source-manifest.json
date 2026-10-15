@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:f5bc64cb69f7e6c3acc6eea114bd18195cc491b37bb3a6bd2c62c4ceec0d0d45",
+  "source_tree_sha256": "sha256:68e056cbd3070634e9103402da295642e3aafe1309cab9fa199fe99b50a65c9f",
   "files": [
     {
       "path": ".dockerignore",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "beb5640ebd52b6ef2ac3afdb509317c52045cf3bdf71b319c3d1c51157c9214a"
+      "sha256": "c01aa4feaeda2cf711fd1690b85ec3153d2f6e8cc34ebad7f88fa294e330a8f1"
     },
     {
       "path": ".gitignore",
@@ -28,11 +28,11 @@
     },
     {
       "path": "Makefile",
-      "sha256": "84a13922803eee7fc63543883a70f87b821f4fdc2bc34630347c71db4e46d6ec"
+      "sha256": "97e84d6b9578a0432de6bc8bf1b079c975f88456bb21bd6672fd3839401043b4"
     },
     {
       "path": "README.md",
-      "sha256": "34affdfbee5cca7c3f15b4af4d8972d761f52840c5fb73ff5ff935d27eda5345"
+      "sha256": "e66613c1556c799bb8a6dca5da20c9ff1127f2bf5bbbc9a90ceb06324f9be35b"
     },
     {
       "path": "SECURITY.md",
@@ -356,7 +356,7 @@
     },
     {
       "path": "console/src/generated/contracts.ts",
-      "sha256": "81f2d71e52806e59f9c206b0d8997df1cbed63a861ebca3444478d7ce5b384ef"
+      "sha256": "ecac5410fcd65c4dc557166260f18ddd777d7b3366458b6d64341981e39cd866"
     },
     {
       "path": "console/src/generated/research-client.ts",
@@ -404,15 +404,15 @@
     },
     {
       "path": "contracts/generated/contracts.go",
-      "sha256": "a7f98debcb2cb83ec84a2132ec4de7e4ead6408592ad28f000084a46ae821b97"
+      "sha256": "103c097b7518eb0b5c38482af7cf62ec8a32657411b5e70a1493298845dc9f0b"
     },
     {
       "path": "contracts/generated/contracts.py",
-      "sha256": "47e63becc4103d9e4b6659c30515823a5d80a3d11d54e2c07ba8a4ad38f0fd00"
+      "sha256": "2133e3447203c4fb8f276fd5a5e33be945b01375643988e77d356c19f1739e00"
     },
     {
       "path": "contracts/generated/contracts.ts",
-      "sha256": "81f2d71e52806e59f9c206b0d8997df1cbed63a861ebca3444478d7ce5b384ef"
+      "sha256": "ecac5410fcd65c4dc557166260f18ddd777d7b3366458b6d64341981e39cd866"
     },
     {
       "path": "contracts/generated/research_client.go",
@@ -432,11 +432,15 @@
     },
     {
       "path": "contracts/openapi-research.json",
-      "sha256": "8f962fc49d024f1d6547610d5d52fae62ca4540de58791388f00babaa2683d75"
+      "sha256": "e8fd80e62f17f018b3a18c4a2186f34e9ca373a55d4b717acca39d709a2314fd"
     },
     {
       "path": "contracts/samples/ApplicationMapV1.json",
       "sha256": "fbfd5ea713aee9dc2524a83fe5e179b2cae1659dfdc6b332e45dcc49066d9de9"
+    },
+    {
+      "path": "contracts/samples/DatabaseSnapshotReceiptV1.json",
+      "sha256": "cbbf3459acb6adbf5f2e35e0a2d82290f1707344449c4cb732fbef7edc2a9777"
     },
     {
       "path": "contracts/samples/FindingEntryV1.json",
@@ -557,6 +561,10 @@
     {
       "path": "contracts/schemas/ApplicationMapV1.json",
       "sha256": "c625d78fc374d58edf6a3e4426879dab9ece3641642509f3a97c8f71a4061686"
+    },
+    {
+      "path": "contracts/schemas/DatabaseSnapshotReceiptV1.json",
+      "sha256": "0e0472ea1c88acaaef2a4c79bd7bac7af3a4d893140983c10a5cf4f5f1012532"
     },
     {
       "path": "contracts/schemas/EmptyObjectV1.json",
@@ -752,7 +760,11 @@
     },
     {
       "path": "controller/cmd/aegisctl/main.go",
-      "sha256": "ce527fcfe282dc7dc75f84cc5fd1705204bcf70c7934f0aa415eb16bffd15785"
+      "sha256": "0ff290536cdf6613bf135b2c05b62b37884a435c77af89da0b0276b9c6939af5"
+    },
+    {
+      "path": "controller/cmd/aegisctl/main_test.go",
+      "sha256": "16652c9bea3898a9d0af01399c3a2221f80a107a30911b261640a0b4dd4039ea"
     },
     {
       "path": "controller/cmd/aegisd/main.go",
@@ -1087,8 +1099,24 @@
       "sha256": "13c99d4742c879065d1568de5200d4cde166af2f823c599eebfe4c82cfdc242c"
     },
     {
+      "path": "controller/internal/store/backup.go",
+      "sha256": "4df6aec5ceb91aa3402a3931f7846b27e01f56c87f796e6f036a12d6de8c7440"
+    },
+    {
+      "path": "controller/internal/store/backup_other.go",
+      "sha256": "12ac21938342b2c20d42dcfa1e6ab7e58b8032cf39e28822c1ec9a660d6b85fc"
+    },
+    {
+      "path": "controller/internal/store/backup_test.go",
+      "sha256": "7e48db8b06054e748ac38431a4db3f3d5bcd605e336f028ffb6998606a708a94"
+    },
+    {
+      "path": "controller/internal/store/backup_unix.go",
+      "sha256": "4af257e7979cffc54932510589d9885ee060f4d46d4fa2044bdaa9ec822ef16a"
+    },
+    {
       "path": "controller/internal/store/migrations.go",
-      "sha256": "7bd494a0fb3bead488bc4ddbb2cd21cb04c10ae5e0593a9f80ff383b4d949f69"
+      "sha256": "cf9403998862daf1cf9d6790595f39d1e7a7a0a0a252995113cb17b8f4fd50ac"
     },
     {
       "path": "controller/internal/store/reports.go",
@@ -1096,7 +1124,7 @@
     },
     {
       "path": "controller/internal/store/store.go",
-      "sha256": "edc09ed17435defbb8fda564f825c726bacd2749934b64d8be4e6eb24ff8af52"
+      "sha256": "73c19a5fc0b05f6eba2553f5e4d90cdd273f6abf048e3f17cd1713e052641c1c"
     },
     {
       "path": "controller/internal/store/store_test.go",
@@ -1128,11 +1156,11 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "7224356db0f32fa581285be65ff6afe9f661db4051ae553f550974b7c3074f5a"
+      "sha256": "2ffb22d1d11ba6373527a49e4b9be3591f459f41e46eb4e014284d6e7b7cb0ff"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
-      "sha256": "1a2de5f789ec81751241639302f271745a5112dd515bd3f4ca80f439185606d2"
+      "sha256": "23784ddb80a2fed75b02cf917f6b2c39f820996d3ad59f927000e8def8e0392e"
     },
     {
       "path": "docs/architecture/adr/011-v4-research-plane.md",
@@ -1263,6 +1291,14 @@
       "sha256": "824bdfadc00287a5f2e41fde2060a008751bd4e432c7fd7983c803b140b08f63"
     },
     {
+      "path": "docs/architecture/adr/043-private-controller-database-snapshots.md",
+      "sha256": "cb843bfe92971121a9f1166a92bbecedfe3f24c9c1a1cdc83629819f22576b85"
+    },
+    {
+      "path": "docs/operators/database-snapshots.md",
+      "sha256": "98df73743d27b6e741fec97624ec95c290478d3c0742f008c6208dab6b71df6b"
+    },
+    {
       "path": "docs/operators/finding-reviews.md",
       "sha256": "1c865778437fe545b101bff89f733b59ca14ff9a7d2222533a93bd4ed20cda19"
     },
@@ -1324,7 +1360,7 @@
     },
     {
       "path": "scripts/generate_contracts.py",
-      "sha256": "ee0185e8dec679dd5bda4a0b014a58c8e96aea2a45a814fd13fdc32aacfa977a"
+      "sha256": "7c1eac34c455160b4e22e1bac9ec75006227ce7e988a89c09e26a17ce4d56bea"
     },
     {
       "path": "scripts/generate_research_api.py",
@@ -1449,6 +1485,14 @@
     {
       "path": "tests/integration/contract_acceptance.py",
       "sha256": "e7648d744ea4342b21239dce26900e68b6db1bb7236f7406f310d84a6dff177e"
+    },
+    {
+      "path": "tests/integration/database_snapshot_acceptance.py",
+      "sha256": "63e8784b935d61600944ae7af191f2b095cc5a158a9c07718d72a4559309140a"
+    },
+    {
+      "path": "tests/integration/database_snapshot_packaged_acceptance.py",
+      "sha256": "5107475406e0f87b969042bb455c68ddf507606dbb62a05f246ccacdec552bf5"
     },
     {
       "path": "tests/integration/demo_acceptance.py",

@@ -88,8 +88,11 @@ CREATE TRIGGER scanner_verifiers_state_monotonic BEFORE UPDATE OF state ON scann
 CREATE TRIGGER scanner_verifiers_no_delete BEFORE DELETE ON scanner_verifiers BEGIN SELECT RAISE(ABORT,'scanner verifier enrollment is retained'); END;
 `
 
+func migrationBodies() []string {
+	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema}
+}
 func migrate(db *sql.DB) error {
-	versions := []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema}
+	versions := migrationBodies()
 	var exists int
 	if e := db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='migrations'").Scan(&exists); e != nil {
 		return e

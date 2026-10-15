@@ -15,3 +15,5 @@ AI is off by default and no provider is required for the demo. Desktop AI pairin
 Local tests and hashes are not independent sign-off or publisher signature validation. Public beta is NO-GO until every H7 gate has actual evidence, including independent installation and security/legal review. No production, volumetric DDoS, human-parity red team, exhaustive business-logic, or absolute protection claim is made.
 
 An opt-in journaled local scanner backend records create/start/remove uncertainty across restart; it has a read-only existing-journal status command. It is not an exclusive engine broker or an independently authorized cleanup verifier. Uncertain mutations quarantine that namespace with no trusted repair/reset yet. All controller cleanup admission remains held. See the journaled scanner operator guide and ADR 042.
+
+The database snapshot command captures controller state only. It does not include gateway configuration or scanner manifests, and it does not perform or verify application restore. Crash staging cleanup, full recovery bundles, restored-authority invalidation and complete disk-full/restore drills remain unfinished.

@@ -19,7 +19,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		die("usage: aegisctl --version | init | doctor | policy validate FILE | audit verify | backup FILE | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE | scanner-launch export JOB TOOL ABSOLUTE_PRIVATE_FILE | scanner-verifier enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST PRIVATE_FILE | scanner-verifier revoke ID | scanner-verifier probe PRIVATE_FILE")
+		die("usage: aegisctl --version | init | doctor | policy validate FILE | audit verify | backup create ABSOLUTE_FILE [--json] | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE | scanner-launch export JOB TOOL ABSOLUTE_PRIVATE_FILE | scanner-verifier enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST PRIVATE_FILE | scanner-verifier revoke ID | scanner-verifier probe PRIVATE_FILE")
 	}
 	args := os.Args[1:]
 	root := os.Getenv("AEGIS_DATA")
@@ -216,18 +216,30 @@ func main() {
 		}
 		fmt.Println("Audit chain consistent under local-host trust assumptions")
 	case "backup":
-		if len(args) != 2 {
-			die("usage: backup FILE")
+		if len(args) == 2 && args[1] == "--help" {
+			fmt.Println("usage: aegisctl backup create ABSOLUTE_FILE [--json]\nCreates a private controller database snapshot in an existing directory owned by this operator. The directory must not permit group/other writes. Existing targets are refused. This snapshot does not include gateway configuration or tool manifests; restore verification remains pending. Legacy backup ABSOLUTE_FILE is also accepted.")
+			break
 		}
-		s, e := store.Open(filepath.Join(root, "aegis.db"))
+		path, jsonOutput, e := backupArguments(args[1:])
 		if e != nil {
-			die(e.Error())
+			die("usage: backup create ABSOLUTE_FILE [--json]")
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		s, e := store.OpenSnapshotSource(ctx, filepath.Join(root, "aegis.db"))
+		if e != nil {
+			die("Existing recognized controller state is required; snapshot creation never initializes or migrates its source")
 		}
 		defer s.DB.Close()
-		if e = s.Backup(context.Background(), args[1]); e != nil {
-			die(e.Error())
+		receipt, e := s.BackupSnapshot(ctx, path)
+		if e != nil {
+			die("Private database snapshot refused or incomplete; use a new absolute path in an owned directory without group/other write permission")
 		}
-		fmt.Println("Consistent SQLite snapshot created; protect it as sensitive owner state")
+		if jsonOutput {
+			json.NewEncoder(os.Stdout).Encode(receipt)
+		} else {
+			fmt.Printf("Private controller database snapshot created: %s (%d bytes); restore verification remains pending\n", receipt.Digest, receipt.Bytes)
+		}
 	case "report":
 		if len(args) != 3 || args[1] != "verify" {
 			die("usage: report verify FILE")
@@ -257,4 +269,19 @@ func configRoot(fallback string) string {
 		return r
 	}
 	return fallback
+}
+
+func backupArguments(args []string) (string, bool, error) {
+	jsonOutput := false
+	if len(args) > 0 && args[len(args)-1] == "--json" {
+		jsonOutput = true
+		args = args[:len(args)-1]
+	}
+	if len(args) == 2 && args[0] == "create" {
+		args = args[1:]
+	}
+	if len(args) != 1 || !filepath.IsAbs(args[0]) || filepath.Clean(args[0]) != args[0] {
+		return "", false, fmt.Errorf("invalid backup arguments")
+	}
+	return args[0], jsonOutput, nil
 }

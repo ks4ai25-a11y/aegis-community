@@ -1102,3 +1102,14 @@ type ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan struct {
 	GuardBinaryDigest string `json:"guard_binary_digest"`
 	GuardArchitecture string `json:"guard_architecture"`
 }
+type DatabaseSnapshotReceiptV1 struct {
+	SchemaVersion                string `json:"schema_version"`
+	Status                       string `json:"status"`
+	Scope                        string `json:"scope"`
+	DatabaseDigest               string `json:"database_digest"`
+	ByteCount                    int64  `json:"byte_count"`
+	CreatedAt                    string `json:"created_at"`
+	GatewayConfigurationCaptured bool   `json:"gateway_configuration_captured"`
+	ToolManifestCaptured         bool   `json:"tool_manifest_captured"`
+	RestoreVerified              bool   `json:"restore_verified"`
+}

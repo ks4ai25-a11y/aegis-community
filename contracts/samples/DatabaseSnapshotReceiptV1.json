@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "status": "created",
+  "scope": "controller_database_only",
+  "database_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "byte_count": 262144,
+  "created_at": "2026-10-15T00:00:00Z",
+  "gateway_configuration_captured": false,
+  "tool_manifest_captured": false,
+  "restore_verified": false
+}

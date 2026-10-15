@@ -1,0 +1,345 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "recorded_at": "2026-10-15T10:15:32.155168+00:00",
+  "scope": "Private bounded controller-database snapshots and typed local receipts; no complete application backup, restore, authenticity or independent security sign-off claim",
+  "source_base_commit": "c2d1929a7b994dad26a785f9598c13522d71e074",
+  "checks": {
+    "full_source_race_contract_generation_and_console_build": "PASS",
+    "controller_go_vet": "PASS",
+    "repeated_focused_passes": 84,
+    "native_cli_checks": 11,
+    "packaged_snapshot_checks": 9,
+    "live_demo_regression_checks": 58,
+    "existing_source_is_readonly_and_never_initialized_or_migrated": "PASS",
+    "missing_future_gap_checksum_and_alias_sources_refused": "PASS",
+    "unsupported_history_after_preflight_refused_before_publication": "PASS",
+    "private_intermediate_and_published_modes": "PASS",
+    "late_existing_target_never_overwritten": "PASS",
+    "cancellation_and_subprocess_write_failure_leave_no_published_partial": "PASS",
+    "concurrent_wal_writer_keeps_coherent_committed_snapshot": "PASS",
+    "deleted_source_freelist_canary_absent_after_private_compaction": "PASS",
+    "offline_audit_copy_does_not_modify_original_snapshot": "PASS",
+    "deployed_services_and_original_guard_identities_aligned": "PASS"
+  },
+  "focused_test_log": {
+    "sha256": "sha256:9ecc8ff892394714327f128c41e87f7110995b3d621d6459a308d53e2f86eed0",
+    "first_event": "2026-10-15T18:12:34.453456+08:00",
+    "last_event": "2026-10-15T18:13:03.511099+08:00"
+  },
+  "native": {
+    "schema_version": "1.0",
+    "status": "PASS",
+    "scope": "synthetic native CLI controller-database snapshots; application restore is unverified",
+    "recorded_at": "2026-10-15T10:13:09.153611+00:00",
+    "checks": [
+      {
+        "id": "help_does_not_create_database",
+        "result": "PASS"
+      },
+      {
+        "id": "missing_source_never_initializes_or_reports_empty_backup",
+        "result": "PASS"
+      },
+      {
+        "id": "json_receipt_has_exact_declared_fields_bounds_and_false_recovery_flags",
+        "result": "PASS"
+      },
+      {
+        "id": "private_snapshot_preserves_committed_state_without_deleted_canary",
+        "result": "PASS"
+      },
+      {
+        "id": "repeat_never_overwrites_existing_snapshot_or_claims_success",
+        "result": "PASS"
+      },
+      {
+        "id": "legacy_explicit_destination_uses_same_private_backend",
+        "result": "PASS"
+      },
+      {
+        "id": "symlink_target_unchanged",
+        "result": "PASS"
+      },
+      {
+        "id": "fifo_refused_without_waiting_for_reader",
+        "result": "PASS"
+      },
+      {
+        "id": "ambiguous_relative_and_unknown_arguments_refused",
+        "result": "PASS"
+      },
+      {
+        "id": "group_or_other_writable_destination_parent_refused",
+        "result": "PASS"
+      },
+      {
+        "id": "handled_failures_leave_no_staging_and_preserve_source",
+        "result": "PASS"
+      }
+    ],
+    "receipt": {
+      "schema_version": "1.0",
+      "status": "created",
+      "scope": "controller_database_only",
+      "database_digest": "sha256:4696a2130bbc29888b5338ea5133047a20b028c71d6010050cd61177e9a794ff",
+      "byte_count": 417792,
+      "created_at": "2026-10-15T10:13:08.821416Z",
+      "gateway_configuration_captured": false,
+      "tool_manifest_captured": false,
+      "restore_verified": false
+    },
+    "binary_digest": "sha256:3bf875db9194c8edcb5ab06f633f98d78284e3658b9079712929be4afcfe6087"
+  },
+  "packaged": {
+    "schema_version": "1.0",
+    "status": "PASS",
+    "recorded_at": "2026-10-15T10:14:02.965154+00:00",
+    "scope": "packaged private controller-state snapshot of the existing local Aegis demo; offline audit-copy validation only; no application restore claim",
+    "image_digest": "sha256:30c611b7a5af6de326d1f8850790fa111c2ca2120d0821414cd8d2f8df050692",
+    "fixture_id": "b5efbe57463878ffdb3c98386986951d",
+    "checks": [
+      {
+        "id": "source_controller_and_gateway_live_before_snapshot",
+        "result": "PASS"
+      },
+      {
+        "id": "packaged_nonroot_network_none_snapshot_created_with_false_restore_flags",
+        "result": "PASS"
+      },
+      {
+        "id": "actual_sensitive_snapshot_is_private_single_link_and_bounded",
+        "result": "PASS"
+      },
+      {
+        "id": "packaged_receipt_matches_actual_artifact_hash",
+        "result": "PASS"
+      },
+      {
+        "id": "packaged_replay_refuses_existing_target",
+        "result": "PASS"
+      },
+      {
+        "id": "isolated_offline_validation_copy_passes_actual_audit_chain_verifier",
+        "result": "PASS"
+      },
+      {
+        "id": "offline_validation_does_not_mutate_original_snapshot",
+        "result": "PASS"
+      },
+      {
+        "id": "source_controller_and_gateway_policy_remain_available_and_unchanged",
+        "result": "PASS"
+      },
+      {
+        "id": "only_owned_completed_proof_containers_used_and_none_remain",
+        "result": "PASS"
+      }
+    ],
+    "receipt": {
+      "schema_version": "1.0",
+      "status": "created",
+      "scope": "controller_database_only",
+      "database_digest": "sha256:e30fd70f1d79d6d104418bdd011b29d206d93af702cdff9d769c76cddefdb596",
+      "byte_count": 1581056,
+      "created_at": "2026-10-15T10:13:59.069639346Z",
+      "gateway_configuration_captured": false,
+      "tool_manifest_captured": false,
+      "restore_verified": false
+    },
+    "file_metadata": {
+      "mode": "0600",
+      "uid": 10001,
+      "links": 1,
+      "byte_count": 1581056
+    },
+    "gateway_before": {
+      "policy_digest": "sha256:dc792f6e2174064bb5f65016c93ec2d0a1101d9867e0aa07ee9633be9baf69a4",
+      "mode": "observe"
+    },
+    "gateway_after": {
+      "policy_digest": "sha256:dc792f6e2174064bb5f65016c93ec2d0a1101d9867e0aa07ee9633be9baf69a4",
+      "mode": "observe"
+    },
+    "application_restore_verified": false
+  },
+  "schema_checks": {
+    "schema": "DatabaseSnapshotReceiptV1",
+    "validator": "jsonschema 4.26.0",
+    "date_time_validator": "rfc3339-validator 0.1.4",
+    "valid_actual_payloads": 2,
+    "unsafe_or_malformed_variants_rejected": 7,
+    "status": "PASS"
+  },
+  "deployed_services": {
+    "status": "PASS",
+    "services": [
+      {
+        "service": "init",
+        "image_digest": "sha256:30c611b7a5af6de326d1f8850790fa111c2ca2120d0821414cd8d2f8df050692",
+        "state": "exited",
+        "uid": "10001:10001",
+        "read_only": true,
+        "privileged": false,
+        "cap_drop": [
+          "ALL"
+        ],
+        "docker_socket_mounted": false
+      },
+      {
+        "service": "deployer",
+        "image_digest": "sha256:30c611b7a5af6de326d1f8850790fa111c2ca2120d0821414cd8d2f8df050692",
+        "state": "running",
+        "uid": "10001:10001",
+        "read_only": true,
+        "privileged": false,
+        "cap_drop": [
+          "ALL"
+        ],
+        "docker_socket_mounted": false
+      },
+      {
+        "service": "controller",
+        "image_digest": "sha256:30c611b7a5af6de326d1f8850790fa111c2ca2120d0821414cd8d2f8df050692",
+        "state": "running",
+        "uid": "10001:10001",
+        "read_only": true,
+        "privileged": false,
+        "cap_drop": [
+          "ALL"
+        ],
+        "docker_socket_mounted": false
+      },
+      {
+        "service": "verifier",
+        "image_digest": "sha256:30c611b7a5af6de326d1f8850790fa111c2ca2120d0821414cd8d2f8df050692",
+        "state": "running",
+        "uid": "10001:10001",
+        "read_only": true,
+        "privileged": false,
+        "cap_drop": [
+          "ALL"
+        ],
+        "docker_socket_mounted": false
+      }
+    ],
+    "guard_digests": [
+      "sha256:72d3d37589659e992993d30b187d1d4287719d8321679e31b6c716bcde9f5a82",
+      "sha256:8f9c7b4c387884dd8391e93aeda21d55f146fe5e4625ad7fabe5adfc62bc8fe2"
+    ],
+    "controller_live": true
+  },
+  "live_suites": [
+    {
+      "suite": "demo_acceptance",
+      "exit_code": 0,
+      "passed_checks": 10,
+      "log_digest": "sha256:6ddeab59bc795c3eeaeed44a1de3917a041e0128652d0f0ff131d5aed4231c5b"
+    },
+    {
+      "suite": "scoped_jobs_acceptance",
+      "exit_code": 0,
+      "passed_checks": 7,
+      "log_digest": "sha256:7619102c9dc7a0b6594b4ce82bfee49d115f1c2e30381726410a35dc144553cc"
+    },
+    {
+      "suite": "repository_acceptance",
+      "exit_code": 0,
+      "passed_checks": 8,
+      "log_digest": "sha256:3a582a608099bc0f60f509e0b6a30ff291dfb1798411342a20c77e275234679b"
+    },
+    {
+      "suite": "scanner_owner_api_acceptance",
+      "exit_code": 0,
+      "passed_checks": 11,
+      "log_digest": "sha256:b8d537b70712a0237e7a62955dd17725af19400080001de3a6ef27edd5278a80"
+    },
+    {
+      "suite": "scanner_worker_enrollment_acceptance",
+      "exit_code": 0,
+      "passed_checks": 9,
+      "log_digest": "sha256:20496b3c0e96d1d1c8c76e254c5401728792f72395e6012074c44e5f18f6c37f"
+    },
+    {
+      "suite": "scanner_verifier_enrollment_acceptance",
+      "exit_code": 0,
+      "passed_checks": 13,
+      "log_digest": "sha256:61d4b0c8fdd7d1e4881e34b3ef39a4a6beeca17355f3257d4ccd416ae6f64822"
+    }
+  ],
+  "source_digests": [
+    {
+      "path": "controller/internal/store/migrations.go",
+      "sha256": "sha256:cf9403998862daf1cf9d6790595f39d1e7a7a0a0a252995113cb17b8f4fd50ac"
+    },
+    {
+      "path": "controller/internal/store/store.go",
+      "sha256": "sha256:73c19a5fc0b05f6eba2553f5e4d90cdd273f6abf048e3f17cd1713e052641c1c"
+    },
+    {
+      "path": "controller/internal/store/backup.go",
+      "sha256": "sha256:4df6aec5ceb91aa3402a3931f7846b27e01f56c87f796e6f036a12d6de8c7440"
+    },
+    {
+      "path": "controller/internal/store/backup_unix.go",
+      "sha256": "sha256:4af257e7979cffc54932510589d9885ee060f4d46d4fa2044bdaa9ec822ef16a"
+    },
+    {
+      "path": "controller/internal/store/backup_other.go",
+      "sha256": "sha256:12ac21938342b2c20d42dcfa1e6ab7e58b8032cf39e28822c1ec9a660d6b85fc"
+    },
+    {
+      "path": "controller/internal/store/backup_test.go",
+      "sha256": "sha256:7e48db8b06054e748ac38431a4db3f3d5bcd605e336f028ffb6998606a708a94"
+    },
+    {
+      "path": "controller/cmd/aegisctl/main.go",
+      "sha256": "sha256:0ff290536cdf6613bf135b2c05b62b37884a435c77af89da0b0276b9c6939af5"
+    },
+    {
+      "path": "controller/cmd/aegisctl/main_test.go",
+      "sha256": "sha256:16652c9bea3898a9d0af01399c3a2221f80a107a30911b261640a0b4dd4039ea"
+    },
+    {
+      "path": "tests/integration/database_snapshot_acceptance.py",
+      "sha256": "sha256:63e8784b935d61600944ae7af191f2b095cc5a158a9c07718d72a4559309140a"
+    },
+    {
+      "path": "tests/integration/database_snapshot_packaged_acceptance.py",
+      "sha256": "sha256:5107475406e0f87b969042bb455c68ddf507606dbb62a05f246ccacdec552bf5"
+    },
+    {
+      "path": "scripts/generate_contracts.py",
+      "sha256": "sha256:7c1eac34c455160b4e22e1bac9ec75006227ce7e988a89c09e26a17ce4d56bea"
+    },
+    {
+      "path": "contracts/schemas/DatabaseSnapshotReceiptV1.json",
+      "sha256": "sha256:0e0472ea1c88acaaef2a4c79bd7bac7af3a4d893140983c10a5cf4f5f1012532"
+    },
+    {
+      "path": "Makefile",
+      "sha256": "sha256:97e84d6b9578a0432de6bc8bf1b079c975f88456bb21bd6672fd3839401043b4"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "sha256:c01aa4feaeda2cf711fd1690b85ec3153d2f6e8cc34ebad7f88fa294e330a8f1"
+    }
+  ],
+  "bounds": {
+    "context_seconds": 30,
+    "snapshot_bytes": 536870912,
+    "pages_per_step": 128,
+    "maximum_steps": 16384,
+    "staging_mode": "0700",
+    "database_mode": "0600"
+  },
+  "application_restore_verified": false,
+  "public_beta": "NO-GO",
+  "remaining_requirements": [
+    "Matching gateway configuration, policy and tool-manifest recovery bundle",
+    "Offline restore preflight, explicit authorization and restored-session/capability invalidation",
+    "Crash staging/publication recovery and complete disk-full/restore/upgrade drills",
+    "Independent installation and security/legal H7 review",
+    "All remaining v4 scanner/verifier/VM, product UI, investigation/proof and optional AI/MCP/desktop integration requirements"
+  ]
+}

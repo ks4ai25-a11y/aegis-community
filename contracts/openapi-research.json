@@ -1162,6 +1162,9 @@
       "ApplicationMapV1": {
         "$ref": "schemas/ApplicationMapV1.json"
       },
+      "DatabaseSnapshotReceiptV1": {
+        "$ref": "schemas/DatabaseSnapshotReceiptV1.json"
+      },
       "EmptyObjectV1": {
         "$ref": "schemas/EmptyObjectV1.json"
       },

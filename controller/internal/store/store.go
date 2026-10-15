@@ -3,7 +3,6 @@ package store
 
 import (
 	"aegis.local/controller/internal/domain"
-	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -158,14 +157,4 @@ func (s *Store) VerifyAudit() error {
 		prev = h
 	}
 	return rows.Err()
-}
-func (s *Store) Backup(ctx context.Context, path string) error {
-	if _, e := os.Stat(path); !os.IsNotExist(e) {
-		return fmt.Errorf("backup output must not exist")
-	}
-	_, e := s.DB.ExecContext(ctx, "VACUUM INTO ?", path)
-	if e == nil {
-		e = os.Chmod(path, 0600)
-	}
-	return e
 }

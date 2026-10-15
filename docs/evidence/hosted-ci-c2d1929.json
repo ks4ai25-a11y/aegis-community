@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Hosted source/browser/build and disposable demo checks for the exact published scanner engine journal commit; no independent security sign-off",
+  "commit": "c2d1929a7b994dad26a785f9598c13522d71e074",
+  "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38680509857",
+  "created_at": "2026-10-15T04:15:22Z",
+  "updated_at": "2026-10-15T04:21:00Z",
+  "jobs": [
+    {
+      "name": "trusted-demo",
+      "result": "success",
+      "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38680509857/job/116243732835"
+    },
+    {
+      "name": "source",
+      "result": "success",
+      "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38680509857/job/116243733050"
+    }
+  ],
+  "independent_security_signoff": false,
+  "public_beta": "NO-GO"
+}

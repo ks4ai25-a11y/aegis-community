@@ -1100,3 +1100,14 @@ export interface ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan {
   guard_binary_digest: string;
   guard_architecture: "amd64" | "arm64";
 }
+export interface DatabaseSnapshotReceiptV1 {
+  schema_version: "1.0";
+  status: "created";
+  scope: "controller_database_only";
+  database_digest: string;
+  byte_count: number;
+  created_at: string;
+  gateway_configuration_captured: false;
+  tool_manifest_captured: false;
+  restore_verified: false;
+}

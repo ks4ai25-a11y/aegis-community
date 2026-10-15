@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/DatabaseSnapshotReceiptV1.json",
+  "title": "DatabaseSnapshotReceiptV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "status": {
+      "type": "string",
+      "const": "created"
+    },
+    "scope": {
+      "type": "string",
+      "const": "controller_database_only"
+    },
+    "database_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "byte_count": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 536870912
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "gateway_configuration_captured": {
+      "type": "boolean",
+      "const": false
+    },
+    "tool_manifest_captured": {
+      "type": "boolean",
+      "const": false
+    },
+    "restore_verified": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "scope",
+    "database_digest",
+    "byte_count",
+    "created_at",
+    "gateway_configuration_captured",
+    "tool_manifest_captured",
+    "restore_verified"
+  ]
+}
