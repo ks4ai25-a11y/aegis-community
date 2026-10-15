@@ -32,3 +32,5 @@ docker compose -f deploy/compose.demo.yaml run --rm --no-deps --entrypoint aegis
 ```
 
 Choose a new suffix for each capture. These commands retain sensitive bytes inside the controller data volume. Running bundle capture inside the web controller fails because the gateway file is unavailable there; do not grant it another mount to bypass that boundary. The restore command is for a separate fresh offline destination; never copy restored bytes over a running controller volume.
+
+Restoring current state also removes the immutable scanner engine/registry host binding. Historical binding audit and scan records remain; restored workers/verifiers stay revoked and dispatch cleanup holds remain. Provisioning another host cannot bypass a retained hold.

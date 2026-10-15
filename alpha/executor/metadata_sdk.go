@@ -39,6 +39,32 @@ func canonicalArchitecture(raw string) string {
 	}
 	return ""
 }
+
+// ConfiguredEngineDigest reads only local engine identity. It does not require
+// a tool image, allocate a journal, claim a job or perform any engine mutation.
+func ConfiguredEngineDigest(ctx context.Context) (string, error) {
+	endpoint, e := localEndpoint(os.Getenv("DOCKER_HOST"))
+	if e != nil || os.Getenv("DOCKER_CONTEXT") != "" {
+		return "", errEngine
+	}
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	active := &responseCapture{operation: "info"}
+	request, response := metadataHooks("", &active)
+	engine, e := newRestrictedEngineSDK(endpoint, request, response)
+	if e != nil {
+		return "", errEngine
+	}
+	defer engine.Close()
+	if _, e = engine.Info(context.WithValue(ctx, captureKey{}, active), client.InfoOptions{}); e != nil {
+		return "", errEngine
+	}
+	var info system.Info
+	if capturedMetadata(active, &info) != nil || info.OSType != "linux" || !engineIdentityPattern.MatchString(info.ID) || canonicalArchitecture(info.Architecture) == "" {
+		return "", errEngine
+	}
+	return source.Hash([]byte(endpoint + "\n" + info.ID)), nil
+}
 func metadataHooks(image string, active **responseCapture) (client.RequestHook, client.ResponseHook) {
 	_, response := engineHooks("", new(string))
 	return func(r *http.Request) error {

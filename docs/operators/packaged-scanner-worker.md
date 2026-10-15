@@ -31,12 +31,36 @@ docker compose -p aegis-community -f deploy/compose.demo.yaml run --rm --no-deps
 
 The final `60` is the credential lifetime in minutes. Set `AEGIS_SCANNER_OWNER` to the owner ID returned by enrollment. Keep the credential volume private; do not print or copy its contents into source, logs, browser storage or the controller HTTP API. Existing enrollment rules reject unsafe permissions and overwrite. See [worker operations](scanner-workers.md) for revocation and rotation.
 
-With all five required environment variables set, inspect the resolved profile and run once:
+With all five required environment variables set, inspect the resolved profile:
 
 ```sh
 docker compose -p aegis-community -f deploy/compose.demo.yaml \
   -f deploy/compose.scanner-worker.yaml --profile operator-scanner config
+```
 
+Before the first worker claim, calculate the scope under the actual packaged UID and endpoint:
+
+```sh
+docker compose -p aegis-community -f deploy/compose.demo.yaml \
+  -f deploy/compose.scanner-worker.yaml --profile operator-scanner \
+  run --rm --no-deps scanner-worker engine-binding-input \
+  "$AEGIS_SCANNER_WORK_ROOT/aegis-scanner-workspaces-10001"
+```
+
+This prints an engine digest and registry digest with authority flags false. Review and pass those exact hash strings to the local controller command:
+
+```text
+docker compose -p aegis-community -f deploy/compose.demo.yaml exec -T controller \
+  aegisctl scanner-engine bind ENGINE_DIGEST REGISTRY_DIGEST
+```
+
+The initial binding requires no active or held scanner dispatch. Exact repeats return the original record. Replacement/reset is unavailable; changing a path, UID, endpoint or engine is not a cleanup workaround. Existing held installations must await trusted recovery. A restore removes prior host binding, revokes credentials and keeps cleanup held.
+
+The profile uses `worker-once-bound`: missing binding, a changed registry or a mismatched/unavailable engine refuses before claim or source allocation. The controller also checks configured scope on reservations and launches from older clients. Scope binding does not prove independent engine mediation or cleanup. Legacy native commands in an unconfigured database retain their experimental behavior.
+
+Run once after provisioning:
+
+```sh
 docker compose -p aegis-community -f deploy/compose.demo.yaml \
   -f deploy/compose.scanner-worker.yaml --profile operator-scanner \
   run --rm --no-deps scanner-worker

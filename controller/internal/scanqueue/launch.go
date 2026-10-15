@@ -79,6 +79,15 @@ func (q *Queue) RegisterLaunch(l Lease, p scanevidence.LaunchPlan) (scanevidence
 	if e != nil {
 		return scanevidence.LaunchRecord{}, e
 	}
+	// A configured operator scope constrains every backend, including older
+	// clients. Corrupt provisioning is not treated as an absent binding.
+	binding, bindErr := q.engineBindingTx(tx, j.Owner)
+	if bindErr != nil && bindErr != sql.ErrNoRows {
+		return scanevidence.LaunchRecord{}, bindErr
+	}
+	if bindErr == nil && (binding.Document.Engine != p.Engine || binding.Document.Registry != p.Registry) {
+		return scanevidence.LaunchRecord{}, ErrConflict
+	}
 	if !q.Guards.Valid() || q.Guards.Architecture(p.Guard) != p.Architecture || p.Architecture == "" {
 		return scanevidence.LaunchRecord{}, ErrInput
 	}

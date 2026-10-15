@@ -27,6 +27,7 @@ var assetName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$`)
 // All paths are operator provisioned. The claim contains only a mounted asset
 // identifier; it cannot supply a filesystem path, command, URL or image.
 type Config struct {
+	RequireEngineBinding                 bool
 	EngineJournalRoot                    string
 	Socket, Credential, Owner            string
 	SourceRoot, AssetRoot, WorkspaceRoot string
@@ -109,6 +110,20 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 		return out, ErrRun
 	}
 	registryDigest := source.Hash([]byte("aegis-scanner-workspace-registry-v1\n" + registry + "\n" + fmt.Sprint(os.Geteuid())))
+	var binding scanevidence.EngineBindingRecord
+	if cfg.RequireEngineBinding {
+		if cfg.EngineJournalRoot == "" {
+			return out, ErrRun
+		}
+		binding, e = client.EngineBinding(ctx)
+		if e != nil || binding.Document.Registry != registryDigest {
+			return out, ErrRun
+		}
+		engine, e := executor.ConfiguredEngineDigest(ctx)
+		if e != nil || binding.Document.Engine != engine {
+			return out, ErrRun
+		}
+	}
 	l, e := client.Claim(ctx)
 	if errors.Is(e, workerchannel.ErrEmpty) {
 		out.State = "no_job"
@@ -160,6 +175,9 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 			failure = "SCANNER_EXECUTION_FAILED"
 			ex := executor.Config{EngineJournalRoot: cfg.EngineJournalRoot, LockPath: filepath.Join(cfg.SourceRoot, "tools/scanners.lock.json"), ExpectedLockDigest: l.Job.LockDigest, RulesPath: filepath.Join(cfg.SourceRoot, "alpha/rules"), GuardDir: filepath.Join(cfg.SourceRoot, "bin"), ScratchParent: session.Path, DurationSeconds: l.Job.Input.Duration, Deadline: l.Deadline, BeforeLaunch: func(prepared executor.Execution, name, engine string) error {
 				if client.Guard(run, l) != nil {
+					return ErrRun
+				}
+				if cfg.RequireEngineBinding && (binding.Document.Engine != engine || binding.Document.Registry != registryDigest) {
 					return ErrRun
 				}
 				if e := session.Bind(name, engine); e != nil {

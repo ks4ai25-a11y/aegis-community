@@ -51,6 +51,13 @@ func (q *Queue) ReserveWorkspace(l Lease, p scanevidence.WorkspacePlan) (scanevi
 	if j.Owner != l.Job.Owner {
 		return scanevidence.WorkspaceRecord{}, ErrLease
 	}
+	binding, bindErr := q.engineBindingTx(tx, j.Owner)
+	if bindErr != nil && bindErr != sql.ErrNoRows {
+		return scanevidence.WorkspaceRecord{}, bindErr
+	}
+	if bindErr == nil && binding.Document.Registry != p.Registry {
+		return scanevidence.WorkspaceRecord{}, ErrConflict
+	}
 	selected := false
 	for _, tool := range j.Input.Tools {
 		if tool == p.Tool {

@@ -1,0 +1,408 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Isolated packaged nonroot bound worker executes a real static fixture only after immutable operator engine/registry provisioning; no independent cleanup release or production broker claim",
+  "recorded_at": "2026-10-15T15:18:16.874476+00:00",
+  "checks": [
+    {
+      "id": "pinned_nonroot_package_has_no_docker_cli_and_reads_sdk_metadata",
+      "result": "PASS"
+    },
+    {
+      "id": "isolated_owner_queue_and_private_uid_socket_enrollment_created",
+      "result": "PASS"
+    },
+    {
+      "id": "bound_worker_refuses_missing_operator_binding_without_claiming",
+      "result": "PASS"
+    },
+    {
+      "id": "operator_binding_is_immutable_and_changed_registry_refuses_before_claim",
+      "result": "PASS"
+    },
+    {
+      "id": "explicit_compose_worker_profile_matches_private_mount_and_hardening_contract",
+      "result": "PASS"
+    },
+    {
+      "id": "worker_profile_has_no_controller_database_or_network_and_is_hardened",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_worker_commits_actual_guarded_tool_receipts_and_result",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged_result_reaches_owned_catalogue_without_proof_promotion",
+      "result": "PASS"
+    },
+    {
+      "id": "exact_child_absence_and_settled_journal_remain_non_authoritative",
+      "result": "PASS"
+    },
+    {
+      "id": "second_job_remains_queued_behind_independent_cleanup_hold",
+      "result": "PASS"
+    }
+  ],
+  "worker_image": "sha256:08850b770422d48f92aa1e34b14c94fd3aec4e6f05648737a4955801c0e46b90",
+  "preflight": {
+    "schema_version": "1.0",
+    "backend": "unix-sdk-1.55",
+    "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+    "architecture": "arm64",
+    "tool_id": "bandit",
+    "tool_version": "1.9.4",
+    "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+    "local_image_config_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+    "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+    "engine_writes_performed": false,
+    "cleanup_release_authorized": false
+  },
+  "operator_provisioning_input": {
+    "cleanup_release_authorized": false,
+    "controller_binding_verified": false,
+    "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+    "registry_digest": "sha256:727f2272496c11a7f1dbf4839cd924911e205ac534a799b88634f5a99629a53a",
+    "schema_version": "1.0"
+  },
+  "operator_binding": {
+    "binding_digest": "sha256:9e250f9113ecb412c66e94f6c84b69d1edbbdbe26ebe8a9d9552fc41fff002a9",
+    "document": {
+      "schema_version": "1.0",
+      "owner_id": "01a14023-e48b-7267-8ea2-2432ec87f461",
+      "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+      "registry_digest": "sha256:727f2272496c11a7f1dbf4839cd924911e205ac534a799b88634f5a99629a53a",
+      "created_at": "2026-10-15T15:17:43.42046422Z"
+    }
+  },
+  "result": {
+    "result_digest": "sha256:a21f2bccab081dcc1965513bb9360659487effd12060dd4443f87b04834596ec",
+    "document": {
+      "schema_version": "1.0",
+      "owner_id": "01a14023-e48b-7267-8ea2-2432ec87f461",
+      "job_id": "01a14023-eb37-7001-a28a-813da7082413",
+      "request_digest": "sha256:01e10b788b9345d6f0ecd714454586d32d7aa214ce47c460d9ecfbb4f670d2fb",
+      "app_id": "app_demo",
+      "repository_id": "01a14023-eb26-77a7-9acd-fa16b0e5c2eb",
+      "map_digest": "sha256:4eeffaf9e51310019689a09a1311495ffbbe298b252ba7c755c8b160bc54023b",
+      "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+      "snapshot_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+      "status": "tool_error",
+      "tools": [
+        {
+          "tool_id": "bandit",
+          "receipt_digest": "sha256:81408982c4ab47076857db0277bf59aa2508f4e459f6a2f895c0930bf32b89e7",
+          "status": "completed",
+          "finding_claims": 1,
+          "has_sbom": false
+        },
+        {
+          "tool_id": "gitleaks",
+          "receipt_digest": "sha256:b78011321f1bf91b93136896ff4f212efd52c59da07fb64a896c3a860f8a599e",
+          "status": "completed",
+          "finding_claims": 1,
+          "has_sbom": false
+        },
+        {
+          "tool_id": "osv_v2",
+          "receipt_digest": "sha256:cb7e38b2712d7fbca6f4b4f267785351246dd01c3feed81e44d7293104a9dff7",
+          "status": "tool_error",
+          "finding_claims": 0,
+          "has_sbom": false
+        },
+        {
+          "tool_id": "semgrep_ce",
+          "receipt_digest": "sha256:38e98715d4868690631255e1f9a74fbf75108238e278371e6aefb7cfe3e09686",
+          "status": "completed",
+          "finding_claims": 1,
+          "has_sbom": false
+        },
+        {
+          "tool_id": "syft",
+          "receipt_digest": "sha256:1a5342d6097471c59e7b435f7d8f33f185fb58bd2de1f21602906e311371ee6b",
+          "status": "completed",
+          "finding_claims": 0,
+          "has_sbom": true
+        },
+        {
+          "tool_id": "trivy",
+          "receipt_digest": "sha256:f8dc726a42359f604014629944ed94d8e7524fea23d1e5c9f6f8efea0f503f9c",
+          "status": "tool_error",
+          "finding_claims": 0,
+          "has_sbom": false
+        }
+      ],
+      "finding_claims": 3,
+      "has_partial": false,
+      "has_stale_database": false,
+      "has_tool_error": true,
+      "evidence_tier": "T0",
+      "cleanup_required": true,
+      "created_at": "2026-10-15T15:18:11.655961386Z"
+    }
+  },
+  "tool_ids": [
+    "bandit",
+    "gitleaks",
+    "osv_v2",
+    "semgrep_ce",
+    "syft",
+    "trivy"
+  ],
+  "catalogue": {
+    "schema_version": "1.0",
+    "owner_id": "01a14023-e48b-7267-8ea2-2432ec87f461",
+    "scope": "retained_static_observations",
+    "result_set_digest": "sha256:d2225311096866646ca12e3b9f12cec6a40285c19ce91d855a77909576b2b927",
+    "retained_result_count": 1,
+    "jobs_without_result": 0,
+    "result_index": 0,
+    "result": {
+      "result_digest": "sha256:a21f2bccab081dcc1965513bb9360659487effd12060dd4443f87b04834596ec",
+      "document": {
+        "schema_version": "1.0",
+        "owner_id": "01a14023-e48b-7267-8ea2-2432ec87f461",
+        "job_id": "01a14023-eb37-7001-a28a-813da7082413",
+        "request_digest": "sha256:01e10b788b9345d6f0ecd714454586d32d7aa214ce47c460d9ecfbb4f670d2fb",
+        "app_id": "app_demo",
+        "repository_id": "01a14023-eb26-77a7-9acd-fa16b0e5c2eb",
+        "map_digest": "sha256:4eeffaf9e51310019689a09a1311495ffbbe298b252ba7c755c8b160bc54023b",
+        "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+        "snapshot_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+        "status": "tool_error",
+        "tools": [
+          {
+            "tool_id": "bandit",
+            "receipt_digest": "sha256:81408982c4ab47076857db0277bf59aa2508f4e459f6a2f895c0930bf32b89e7",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "gitleaks",
+            "receipt_digest": "sha256:b78011321f1bf91b93136896ff4f212efd52c59da07fb64a896c3a860f8a599e",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "osv_v2",
+            "receipt_digest": "sha256:cb7e38b2712d7fbca6f4b4f267785351246dd01c3feed81e44d7293104a9dff7",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "semgrep_ce",
+            "receipt_digest": "sha256:38e98715d4868690631255e1f9a74fbf75108238e278371e6aefb7cfe3e09686",
+            "status": "completed",
+            "finding_claims": 1,
+            "has_sbom": false
+          },
+          {
+            "tool_id": "syft",
+            "receipt_digest": "sha256:1a5342d6097471c59e7b435f7d8f33f185fb58bd2de1f21602906e311371ee6b",
+            "status": "completed",
+            "finding_claims": 0,
+            "has_sbom": true
+          },
+          {
+            "tool_id": "trivy",
+            "receipt_digest": "sha256:f8dc726a42359f604014629944ed94d8e7524fea23d1e5c9f6f8efea0f503f9c",
+            "status": "tool_error",
+            "finding_claims": 0,
+            "has_sbom": false
+          }
+        ],
+        "finding_claims": 3,
+        "has_partial": false,
+        "has_stale_database": false,
+        "has_tool_error": true,
+        "evidence_tier": "T0",
+        "cleanup_required": true,
+        "created_at": "2026-10-15T15:18:11.655961386Z"
+      }
+    },
+    "findings": {
+      "schema_version": "1.0",
+      "owner_id": "01a14023-e48b-7267-8ea2-2432ec87f461",
+      "job_id": "01a14023-eb37-7001-a28a-813da7082413",
+      "request_digest": "sha256:01e10b788b9345d6f0ecd714454586d32d7aa214ce47c460d9ecfbb4f670d2fb",
+      "result_digest": "sha256:a21f2bccab081dcc1965513bb9360659487effd12060dd4443f87b04834596ec",
+      "snapshot_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+      "status": "tool_error",
+      "has_partial": false,
+      "has_stale_database": false,
+      "has_tool_error": true,
+      "tool_claims": 3,
+      "distinct_static_claims": 3,
+      "matching_static_claims": 3,
+      "items": [
+        {
+          "record_id": "sha256:bb4951846e872c32baa46c2c54c5411ff40784feed5f3fa84a5ef7539255fe29",
+          "finding": {
+            "schema_version": "1.0",
+            "id": "sha256:294ab2779dc184481c93fee5272e20f0f9e0a32f2fba32b548875c40cff527d0",
+            "app_id": "app_demo",
+            "repository_id": "01a14023-eb26-77a7-9acd-fa16b0e5c2eb",
+            "category": "static_pattern",
+            "summary": "Unverified static scanner claim.",
+            "status": "suspected",
+            "severity": "medium",
+            "confidence": "low",
+            "evidence_tier": "T0",
+            "path": "query.py",
+            "line": 3,
+            "provenance": [
+              {
+                "tool_id": "semgrep_ce",
+                "tool_version": "1.180.0",
+                "tool_image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
+                "parser_version": "1.2",
+                "input_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+                "rule_id": "rules.aegis.synthetic-python-sql-concat",
+                "severity_claimed": "medium"
+              }
+            ],
+            "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+            "created_at": "2026-10-15T15:18:07.363741801Z"
+          },
+          "receipt_digests": [
+            "sha256:38e98715d4868690631255e1f9a74fbf75108238e278371e6aefb7cfe3e09686"
+          ],
+          "owner_review": {
+            "triage_digest": "sha256:6ae7f655098b79db66a8d000808b6518189d79621929818f3d63776c8ea854db",
+            "document": {
+              "schema_version": "1.0",
+              "owner_id": "01a14023-e48b-7267-8ea2-2432ec87f461",
+              "job_id": "01a14023-eb37-7001-a28a-813da7082413",
+              "record_id": "sha256:bb4951846e872c32baa46c2c54c5411ff40784feed5f3fa84a5ef7539255fe29",
+              "result_digest": "sha256:a21f2bccab081dcc1965513bb9360659487effd12060dd4443f87b04834596ec",
+              "revision": 0,
+              "state": "suspected",
+              "rationale": "",
+              "previous_digest": "",
+              "updated_at": ""
+            }
+          }
+        },
+        {
+          "record_id": "sha256:280ca5208eea72c3749dd7398206fbefd33bdf9b90f24409492e72e5f597d83b",
+          "finding": {
+            "schema_version": "1.0",
+            "id": "sha256:a0a703d89cfcc77499752e51a815c59a1124d41b04c3bf90845efc6bd4884436",
+            "app_id": "app_demo",
+            "repository_id": "01a14023-eb26-77a7-9acd-fa16b0e5c2eb",
+            "category": "secret_candidate",
+            "summary": "Possible exposed credential; rotate after owner review. Matched value omitted.",
+            "status": "suspected",
+            "severity": "high",
+            "confidence": "low",
+            "evidence_tier": "T0",
+            "path": "fake-secret.txt",
+            "line": 1,
+            "provenance": [
+              {
+                "tool_id": "gitleaks",
+                "tool_version": "8.30.1",
+                "tool_image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
+                "parser_version": "1.2",
+                "input_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+                "rule_id": "github-pat",
+                "severity_claimed": "high"
+              }
+            ],
+            "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+            "created_at": "2026-10-15T15:17:54.392906128Z"
+          },
+          "receipt_digests": [
+            "sha256:b78011321f1bf91b93136896ff4f212efd52c59da07fb64a896c3a860f8a599e"
+          ],
+          "owner_review": {
+            "triage_digest": "sha256:4e05e9575eeefb7737a598f05a2162f27d0244ccd878ad3f452f90529dd5222a",
+            "document": {
+              "schema_version": "1.0",
+              "owner_id": "01a14023-e48b-7267-8ea2-2432ec87f461",
+              "job_id": "01a14023-eb37-7001-a28a-813da7082413",
+              "record_id": "sha256:280ca5208eea72c3749dd7398206fbefd33bdf9b90f24409492e72e5f597d83b",
+              "result_digest": "sha256:a21f2bccab081dcc1965513bb9360659487effd12060dd4443f87b04834596ec",
+              "revision": 0,
+              "state": "suspected",
+              "rationale": "",
+              "previous_digest": "",
+              "updated_at": ""
+            }
+          }
+        },
+        {
+          "record_id": "sha256:5b565d63244afcb987098e8e52a11a79c61b552c007de27c4bfbd6aba098c5ca",
+          "finding": {
+            "schema_version": "1.0",
+            "id": "sha256:b0d325fda8b700da8a14fc280f6311c0e9d4483dd73e30415657e57da2f4f0d1",
+            "app_id": "app_demo",
+            "repository_id": "01a14023-eb26-77a7-9acd-fa16b0e5c2eb",
+            "category": "static_pattern",
+            "summary": "Unverified static scanner claim.",
+            "status": "suspected",
+            "severity": "medium",
+            "confidence": "low",
+            "evidence_tier": "T0",
+            "path": "query.py",
+            "line": 3,
+            "provenance": [
+              {
+                "tool_id": "bandit",
+                "tool_version": "1.9.4",
+                "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+                "parser_version": "1.2",
+                "input_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+                "rule_id": "B608",
+                "severity_claimed": "medium"
+              }
+            ],
+            "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+            "created_at": "2026-10-15T15:17:51.929249127Z"
+          },
+          "receipt_digests": [
+            "sha256:81408982c4ab47076857db0277bf59aa2508f4e459f6a2f895c0930bf32b89e7"
+          ],
+          "owner_review": {
+            "triage_digest": "sha256:4f3d73e8a7910c31562c74bdd1e133231811ed1d5a9e36f28620c262fe14d6cf",
+            "document": {
+              "schema_version": "1.0",
+              "owner_id": "01a14023-e48b-7267-8ea2-2432ec87f461",
+              "job_id": "01a14023-eb37-7001-a28a-813da7082413",
+              "record_id": "sha256:5b565d63244afcb987098e8e52a11a79c61b552c007de27c4bfbd6aba098c5ca",
+              "result_digest": "sha256:a21f2bccab081dcc1965513bb9360659487effd12060dd4443f87b04834596ec",
+              "revision": 0,
+              "state": "suspected",
+              "rationale": "",
+              "previous_digest": "",
+              "updated_at": ""
+            }
+          }
+        }
+      ],
+      "next_cursor": ""
+    },
+    "next_cursor": ""
+  },
+  "journal": {
+    "schema_version": "1.0",
+    "namespace_digest": "sha256:ba647197dda80b21bcfe79a5a47ebfbb5b831a0bf873023bb3368418a4287893",
+    "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+    "attempts": 6,
+    "unfinished_attempts": 0,
+    "unresolved_requests": 0,
+    "controller_gate_binding_verified": false,
+    "all_engine_writes_mediated": false,
+    "cleanup_release_authorized": false
+  },
+  "container_hardening_verified": true,
+  "child_absence_observed": true,
+  "controller_cleanup_admission": "HELD",
+  "all_engine_writes_mediated": false,
+  "independent_security_signoff": false,
+  "owned_fixture_resources_cleaned": true
+}

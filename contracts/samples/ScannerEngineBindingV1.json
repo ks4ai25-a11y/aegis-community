@@ -1,0 +1,10 @@
+{
+  "binding_digest": "sha256:9e250f9113ecb412c66e94f6c84b69d1edbbdbe26ebe8a9d9552fc41fff002a9",
+  "document": {
+    "schema_version": "1.0",
+    "owner_id": "01a14023-e48b-7267-8ea2-2432ec87f461",
+    "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+    "registry_digest": "sha256:727f2272496c11a7f1dbf4839cd924911e205ac534a799b88634f5a99629a53a",
+    "created_at": "2026-10-15T15:17:43.42046422Z"
+  }
+}

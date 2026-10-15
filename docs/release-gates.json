@@ -49,7 +49,9 @@
         "docs/evidence/scanner-acceptance.json",
         "docs/evidence/scanner-engine-journal-acceptance.json",
         "docs/evidence/cli-free-worker-acceptance.json",
-        "docs/evidence/packaged-worker-acceptance.json"
+        "docs/evidence/packaged-worker-acceptance.json",
+        "docs/evidence/engine-binding-acceptance.json",
+        "docs/evidence/engine-bound-worker-acceptance.json"
       ]
     },
     {

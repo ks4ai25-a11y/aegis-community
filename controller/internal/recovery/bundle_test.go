@@ -8,6 +8,7 @@ import (
 	"aegis.local/controller/internal/store"
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -198,6 +199,7 @@ func seedAuthorities(t *testing.T, s *store.Store) {
 		t.Fatal(e)
 	}
 	s.Set("preview:"+domain.Digest(p), "prior-proof")
+	s.Set("scanner_engine_binding", "prior-host-authority")
 }
 func TestOfflineRestoreInvalidatesAuthorityPreservesHistoryAndCleanupHold(t *testing.T) {
 	c, s, parent := fixture(t)
@@ -228,6 +230,9 @@ func TestOfflineRestoreInvalidatesAuthorityPreservesHistoryAndCleanupHold(t *tes
 		if e = state.DB.QueryRow("SELECT count(*) FROM " + table + " WHERE state='active'").Scan(&n); e != nil || n != 0 {
 			t.Fatal("active restored role", table, n, e)
 		}
+	}
+	if _, e = state.Get("scanner_engine_binding"); e != sql.ErrNoRows {
+		t.Fatal("restored engine authority survived", e)
 	}
 	var dispatch, job string
 	if e = state.DB.QueryRow("SELECT state FROM scanner_dispatch").Scan(&dispatch); e != nil || dispatch != "cleanup_required" {

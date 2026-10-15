@@ -19,7 +19,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		die("usage: aegisctl --version | init | doctor | policy validate FILE | audit verify | backup create ABSOLUTE_FILE [--json] | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE | scanner-launch export JOB TOOL ABSOLUTE_PRIVATE_FILE | scanner-verifier enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST PRIVATE_FILE | scanner-verifier revoke ID | scanner-verifier probe PRIVATE_FILE")
+		die("usage: aegisctl scanner-engine bind ENGINE_DIGEST REGISTRY_DIGEST | --version | init | doctor | policy validate FILE | audit verify | backup create ABSOLUTE_FILE [--json] | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE | scanner-launch export JOB TOOL ABSOLUTE_PRIVATE_FILE | scanner-verifier enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST PRIVATE_FILE | scanner-verifier revoke ID | scanner-verifier probe PRIVATE_FILE")
 	}
 	args := os.Args[1:]
 	root := os.Getenv("AEGIS_DATA")
@@ -27,6 +27,25 @@ func main() {
 		root = "/var/lib/aegis"
 	}
 	switch args[0] {
+	case "scanner-engine":
+		if len(args) != 4 || args[1] != "bind" {
+			die("usage: scanner-engine bind ENGINE_DIGEST REGISTRY_DIGEST")
+		}
+		s, e := store.Open(filepath.Join(root, "aegis.db"))
+		if e != nil {
+			die("Scanner state unavailable")
+		}
+		defer s.DB.Close()
+		owner, e := s.Get("repository_mount_owner")
+		if e != nil {
+			die("Connect an owned repository before engine binding")
+		}
+		bound, e := (&scanqueue.Queue{S: s}).BindEngine(owner, args[2], args[3])
+		if e != nil {
+			die("Immutable scanner engine binding refused; cleanup admission unchanged")
+		}
+		json.NewEncoder(os.Stdout).Encode(bound)
+
 	case "scanner-launch":
 		if len(args) != 5 || args[1] != "export" {
 			die("usage: scanner-launch export JOB_ID TOOL_ID ABSOLUTE_PRIVATE_FILE")

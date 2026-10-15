@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Immutable operator engine/registry binding; no exclusive daemon mediation or cleanup release",
+  "focused_race_tests": {
+    "controller": {
+      "repeats": 3,
+      "test_pass_events": 66,
+      "test_cases": 22
+    },
+    "worker": {
+      "repeats": 3,
+      "test_pass_events": 84,
+      "test_cases": 28
+    }
+  },
+  "full_source_tests": "make test PASS",
+  "vet": "controller and alpha PASS",
+  "actual_packaged_six_tool_evidence": "engine-bound-worker-acceptance.json",
+  "actual_schema_valid_payloads": 2,
+  "actual_schema_refusal_variants": 5,
+  "controller_database_schema": 13,
+  "migration_added": false,
+  "guard_builds": {
+    "linux_amd64": "sha256:1c283acfe2a6c3757107b868bef1218441e1d91849981f0c82da2625b47dbdfb",
+    "linux_arm64": "sha256:1fd5e192d2962c9a071c1928f91ac1ff02ac3f4af5f73c43d073ff980166f263"
+  },
+  "binding_replacement_available": false,
+  "journal_namespace_bound": false,
+  "all_engine_writes_mediated": false,
+  "cleanup_release_authorized": false,
+  "public_beta": "NO-GO"
+}

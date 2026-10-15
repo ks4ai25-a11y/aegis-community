@@ -2,10 +2,11 @@
 
 All services using the controller image must move together. A retained init container has its own image identity; rebuilding a tag and replacing only the controller does not replace init. An older init binary correctly refuses a database migrated by a newer controller. This was observed during the migration 4 crash test and resolved by recreating init from the same image.
 
-Use these commands from the repository root for the current local demo. They affect only the named Aegis compose project. Stop submitting jobs and wait for active jobs to finish before the service restart. Preserve an online backup as sensitive local owner state using a fresh filename:
+Use these commands from the repository root for the current local demo. They affect only the named Aegis compose project. Stop submitting jobs and wait for active jobs to finish before the service restart. Preserve an online backup as sensitive local owner state using a fresh private directory and filename. Replace `UNIQUE` with a new suffix; existing directories/files must be refused:
 
 ```sh
-docker compose -f deploy/compose.demo.yaml exec -T controller aegisctl backup /var/lib/aegis/pre-upgrade-unique-name.db
+docker compose -f deploy/compose.demo.yaml exec -T controller mkdir -m 700 /var/lib/aegis/pre-upgrade-UNIQUE
+docker compose -f deploy/compose.demo.yaml exec -T controller aegisctl backup create /var/lib/aegis/pre-upgrade-UNIQUE/state.db --json
 docker compose -f deploy/compose.demo.yaml build init
 docker compose -f deploy/compose.demo.yaml up -d --no-deps init
 docker wait aegis-community-init-1

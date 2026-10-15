@@ -27,6 +27,9 @@ verification=obj({'schema_version':string(const='1.0'),'report_id':uuid,'test_sc
 schemas={'PolicyRevisionV1':policy,'FindingV1':finding,'ScopeGrantV1':grant,'ScopeGrantRecordV1':grant_record,'VerificationJobInputV1':job_input,'ResearchJobV1':job,'VerificationReportV1':verification}
 
 schemas.update({'FindingQueryV1':finding_query,'FindingEntryV1':finding_entry,'FindingPageV1':finding_page})
+engine_binding=obj({'schema_version':string(const='1.0'),'owner_id':string(minLength=1,maxLength=128),'engine_digest':hash,'registry_digest':hash,'created_at':string(format='date-time')})
+schemas['ScannerEngineBindingV1']=obj({'binding_digest':hash,'document':engine_binding})
+schemas['ScannerEngineBindingInputV1']=obj({'schema_version':string(const='1.0'),'engine_digest':hash,'registry_digest':hash,'controller_binding_verified':{'type':'boolean','const':False},'cleanup_release_authorized':{'type':'boolean','const':False}})
 schemas['ScannerEnginePreflightV1']=obj({'schema_version':string(const='1.0'),'backend':string(const='unix-sdk-1.55'),'engine_digest':hash,'architecture':string(enum=['amd64','arm64']),'tool_id':string(enum=['semgrep_ce','osv_v2','trivy','syft','gitleaks','bandit']),'tool_version':string(minLength=1,maxLength=64),'tool_image_digest':hash,'local_image_config_digest':hash,'tool_lock_digest':hash,'engine_writes_performed':{'type':'boolean','const':False},'cleanup_release_authorized':{'type':'boolean','const':False}})
 
 

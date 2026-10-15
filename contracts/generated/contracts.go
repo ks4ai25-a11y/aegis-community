@@ -281,6 +281,24 @@ type FindingPageV1ItemsItemOwnerReviewDocument struct {
 	PreviousDigest string `json:"previous_digest"`
 	UpdatedAt      string `json:"updated_at"`
 }
+type ScannerEngineBindingV1 struct {
+	BindingDigest string                         `json:"binding_digest"`
+	Document      ScannerEngineBindingV1Document `json:"document"`
+}
+type ScannerEngineBindingV1Document struct {
+	SchemaVersion  string `json:"schema_version"`
+	OwnerId        string `json:"owner_id"`
+	EngineDigest   string `json:"engine_digest"`
+	RegistryDigest string `json:"registry_digest"`
+	CreatedAt      string `json:"created_at"`
+}
+type ScannerEngineBindingInputV1 struct {
+	SchemaVersion             string `json:"schema_version"`
+	EngineDigest              string `json:"engine_digest"`
+	RegistryDigest            string `json:"registry_digest"`
+	ControllerBindingVerified bool   `json:"controller_binding_verified"`
+	CleanupReleaseAuthorized  bool   `json:"cleanup_release_authorized"`
+}
 type ScannerEnginePreflightV1 struct {
 	SchemaVersion            string `json:"schema_version"`
 	Backend                  string `json:"backend"`

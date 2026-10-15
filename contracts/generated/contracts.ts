@@ -279,6 +279,24 @@ export interface FindingPageV1ItemsItemOwnerReviewDocument {
   previous_digest: string;
   updated_at: string;
 }
+export interface ScannerEngineBindingV1 {
+  binding_digest: string;
+  document: ScannerEngineBindingV1Document;
+}
+export interface ScannerEngineBindingV1Document {
+  schema_version: "1.0";
+  owner_id: string;
+  engine_digest: string;
+  registry_digest: string;
+  created_at: string;
+}
+export interface ScannerEngineBindingInputV1 {
+  schema_version: "1.0";
+  engine_digest: string;
+  registry_digest: string;
+  controller_binding_verified: false;
+  cleanup_release_authorized: false;
+}
 export interface ScannerEnginePreflightV1 {
   schema_version: "1.0";
   backend: "unix-sdk-1.55";

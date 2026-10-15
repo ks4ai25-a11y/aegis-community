@@ -19,7 +19,7 @@ services:
       DOCKER_HOST: unix:///run/engine/docker.sock
       DOCKER_CONTEXT: ""
       TMPDIR: "${AEGIS_SCANNER_WORK_ROOT:?Provision an owned private canonical daemon-host workspace path}"
-    command: [worker-once-journaled, /run/scanner/worker.sock, /run/worker-credential/worker.credential, "${AEGIS_SCANNER_OWNER:?Set the enrolled owner ID}", /opt/aegis, /opt/aegis/repositories, "${AEGIS_SCANNER_WORK_ROOT}/engine-journal"]
+    command: [worker-once-bound, /run/scanner/worker.sock, /run/worker-credential/worker.credential, "${AEGIS_SCANNER_OWNER:?Set the enrolled owner ID}", /opt/aegis, /opt/aegis/repositories, "${AEGIS_SCANNER_WORK_ROOT}/engine-journal"]
     volumes:
       - {type: volume, source: scanner_socket, target: /run/scanner, read_only: true}
       - {type: volume, source: scanner_worker_credentials, target: /run/worker-credential, read_only: true}

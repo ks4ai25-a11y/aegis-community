@@ -1,0 +1,7 @@
+{
+  "cleanup_release_authorized": false,
+  "controller_binding_verified": false,
+  "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+  "registry_digest": "sha256:727f2272496c11a7f1dbf4839cd924911e205ac534a799b88634f5a99629a53a",
+  "schema_version": "1.0"
+}

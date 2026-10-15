@@ -256,6 +256,21 @@ class FindingPageV1ItemsItemOwnerReviewDocument(TypedDict):
     rationale: str
     previous_digest: str
     updated_at: str
+class ScannerEngineBindingV1(TypedDict):
+    binding_digest: str
+    document: ScannerEngineBindingV1Document
+class ScannerEngineBindingV1Document(TypedDict):
+    schema_version: str
+    owner_id: str
+    engine_digest: str
+    registry_digest: str
+    created_at: str
+class ScannerEngineBindingInputV1(TypedDict):
+    schema_version: str
+    engine_digest: str
+    registry_digest: str
+    controller_binding_verified: bool
+    cleanup_release_authorized: bool
 class ScannerEnginePreflightV1(TypedDict):
     schema_version: str
     backend: str
