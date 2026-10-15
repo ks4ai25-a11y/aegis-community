@@ -10,4 +10,3 @@ export async function validateFindingReview(next:FindingTriageRecordV1,owner:str
   if('sha256:'+Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('')!==next.triage_digest)throw new Error('Triage record digest could not be confirmed');
   return next;
  }
-
