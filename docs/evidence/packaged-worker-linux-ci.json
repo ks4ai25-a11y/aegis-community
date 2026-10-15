@@ -1,0 +1,208 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Disposable hosted Linux AMD64 CI at exact implementation revision; no independent installer/security signoff",
+  "head_sha": "5dd15a171ff23f74149559fecfb1fa31b47ad53f",
+  "run_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38755538467",
+  "conclusion": "success",
+  "completed_at": "2026-10-15T14:57:39Z",
+  "jobs": [
+    {
+      "name": "source",
+      "conclusion": "success",
+      "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38755538467/job/116492848616",
+      "completed_at": "2026-10-15T14:57:05Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run make test",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install pinned test browser",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify scanner console in browser",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run make research-build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run python3 scripts/source_manifest.py",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "packaged-worker",
+      "conclusion": "success",
+      "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38755538467/job/116492848980",
+      "completed_at": "2026-10-15T14:57:14Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prepare checksum-pinned engine for this disposable job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Start isolated job engine with the required SDK API",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run docker compose -f deploy/compose.demo.yaml build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run docker build -f alpha/Dockerfile -t aegis-community/scanner-worker:0.1.0-alpha.1 .",
+          "conclusion": "success"
+        },
+        {
+          "name": "Preload the exact public Bandit image",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify packaged UID/socket worker and held cleanup admission",
+          "conclusion": "success"
+        },
+        {
+          "name": "Stop only this disposable job engine",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "trusted-demo",
+      "conclusion": "success",
+      "url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38755538467/job/116492849488",
+      "completed_at": "2026-10-15T14:57:38Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run docker compose -f deploy/compose.demo.yaml build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run docker compose -f deploy/compose.demo.yaml up -d",
+          "conclusion": "success"
+        },
+        {
+          "name": "Wait for local demo liveness",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run python3 tests/integration/demo_acceptance.py",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run python3 tests/integration/scoped_jobs_acceptance.py",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run python3 tests/integration/repository_acceptance.py",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run python3 tests/integration/scanner_owner_api_acceptance.py",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run python3 tests/integration/scanner_verifier_enrollment_acceptance.py",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify owner retained finding catalogue",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify owner finding history refusal boundaries",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify private packaged database snapshot",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prove isolated application recovery after database loss",
+          "conclusion": "success"
+        },
+        {
+          "name": "Stop only this disposable CI demo",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "worker_tool_ids": [
+    "bandit"
+  ],
+  "ci_engine_lock": "tools/ci-engine.lock.json",
+  "publisher_signatures_verified": false,
+  "controller_cleanup_admission": "HELD",
+  "all_engine_writes_mediated": false,
+  "independent_security_signoff": false,
+  "public_beta": "NO-GO"
+}

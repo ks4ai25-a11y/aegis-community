@@ -128,5 +128,6 @@
   "publisher_signatures_verified": false,
   "full_v4_release_gate": "NO-GO",
   "packaged_cleanup_evidence": "packaged-worker-cleanup-acceptance.json",
-  "packaged_cleanup_postconditions_verified": true
+  "packaged_cleanup_postconditions_verified": true,
+  "hosted_linux_amd64_evidence": "packaged-worker-linux-ci.json"
 }

@@ -44,8 +44,13 @@
     {
       "gate_id": "GATE-6",
       "requirement": "Pinned reproducible scanners",
-      "status": "pending",
-      "evidence": []
+      "status": "partial",
+      "evidence": [
+        "docs/evidence/scanner-acceptance.json",
+        "docs/evidence/scanner-engine-journal-acceptance.json",
+        "docs/evidence/cli-free-worker-acceptance.json",
+        "docs/evidence/packaged-worker-acceptance.json"
+      ]
     },
     {
       "gate_id": "GATE-7",

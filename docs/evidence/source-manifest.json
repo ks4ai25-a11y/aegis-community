@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:896682770167e83008be458563a378d21ffd7d5c20fc62b9c1ac7cd1e875f0d7",
+  "source_tree_sha256": "sha256:1256592dc09883109f237619202ff45b1b14d60160dd0657d2a0a2cdc42ce580",
   "files": [
     {
       "path": ".dockerignore",
@@ -32,7 +32,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "31ee5d9fa1958dedf6869e3d975192106f1a177597b20c2c7c61c53e38d60b0b"
+      "sha256": "bb7db4d2f1d633d6f65feb0bd7acbc4f0b0c3f68a92ffd7811eaa936681908bf"
     },
     {
       "path": "SECURITY.md",
@@ -1300,11 +1300,11 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "e5a6659b495ea31b4f474cbfc3b67b53ae20171e586ca963221b3d7a8460ca03"
+      "sha256": "c98d79ed1ad3513ac4d18e2c4893d1141e19f5610805858e495a1a1957778a93"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
-      "sha256": "23784ddb80a2fed75b02cf917f6b2c39f820996d3ad59f927000e8def8e0392e"
+      "sha256": "55f2f2c120c6ee631560c57a37ed9ea408580ee1184a31f5347b66067db89f9c"
     },
     {
       "path": "docs/architecture/adr/011-v4-research-plane.md",
@@ -1452,7 +1452,7 @@
     },
     {
       "path": "docs/architecture/adr/047-cli-free-journaled-worker-profile.md",
-      "sha256": "824296520a909bd262a088f072bb38df33a19b92d42114398188f50d36e2b3db"
+      "sha256": "3771add2e4df091601dcf8af6ea1163578d790dcdf32375268d0d1f3a43056cf"
     },
     {
       "path": "docs/operators/database-snapshots.md",
@@ -1496,11 +1496,11 @@
     },
     {
       "path": "docs/operators/scanner-workers.md",
-      "sha256": "83ecffd5a5c680bb98f378f44867375c1638c110cc13f82fb1ed1b863130fb83"
+      "sha256": "fc133f8c459a4b8f8c3a90f14d06c584a319fb39fc100ea778cc2db853b0cf99"
     },
     {
       "path": "docs/release-gates.json",
-      "sha256": "2c584a26597925848952e17cde6c691e7645f5e9310f6f58225f369049c32a9f"
+      "sha256": "404605c204c9513ecd631957acc7a722969f361f9b7d251674e620100e2cd72c"
     },
     {
       "path": "gateway/Dockerfile",

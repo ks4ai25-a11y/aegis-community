@@ -18,7 +18,7 @@ Revocation requests cancellation of a running job and prevents future claim/rene
 
 In the current demo, run these commands via `docker compose -f deploy/compose.demo.yaml exec -T controller aegisctl ...` with the credential path inside its protected controller volume. Update all shared-image services using the local demo upgrade guide before invoking a newer binary against migrated state.
 
-Enrollment and the private Unix channel are implemented; the actual executor worker is still unfinished. These commands alone do not start a scanner, provide Docker access to the controller or complete offline scanner orchestration. The public API has no enrollment endpoint.
+Enrollment and the private Unix channel support the native one-shot executor and the separate [packaged one-shot profile](packaged-scanner-worker.md). Enrollment commands alone do not start a scanner or provide engine access to the controller. Background orchestration and independent cleanup release remain unfinished. The public API has no enrollment endpoint.
 
 The Unix worker channel is now implemented. Check enrolled identity from the trusted controller host:
 
