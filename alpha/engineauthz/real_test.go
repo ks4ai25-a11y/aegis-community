@@ -87,7 +87,39 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 		}
 		return res.StatusCode, b
 	}
-	checks := []string{}
+	// Docker's native HTTP/2 gRPC dispatcher bypasses HTTP authorization.
+	// The CI daemon explicitly disables HTTP/2, and must refuse even a read-only
+	// gRPC Info probe from an otherwise CA-valid but unapproved client.
+	h2transport := clients["unknown"].Transport.(*http.Transport).Clone()
+	h2transport.TLSClientConfig = h2transport.TLSClientConfig.Clone()
+	h2transport.TLSClientConfig.NextProtos = []string{"h2"}
+	h2transport.ForceAttemptHTTP2 = true
+	defer h2transport.CloseIdleConnections()
+	h2client := &http.Client{Transport: h2transport, Timeout: 5 * time.Second}
+	probe, _ := http.NewRequestWithContext(ctx, "POST", endpoint+"/moby.buildkit.v1.Control/Info", bytes.NewReader([]byte{0, 0, 0, 0, 0}))
+	probe.Header.Set("Content-Type", "application/grpc")
+	response, probeErr := h2client.Do(probe)
+	if probeErr == nil {
+		response.Body.Close()
+		if response.ProtoMajor == 2 || strings.HasPrefix(response.Header.Get("Content-Type"), "application/grpc") {
+			t.Fatal("native gRPC/HTTP2 bypass still reachable")
+		}
+		if response.StatusCode < 400 {
+			t.Fatal("native gRPC probe was not refused")
+		}
+	}
+	legacy, _ := http.NewRequestWithContext(ctx, "POST", endpoint+"/grpc", nil)
+	legacy.Header.Set("Upgrade", "h2c")
+	legacy.Header.Set("Connection", "Upgrade")
+	response, probeErr = clients["broker"].Do(legacy)
+	if probeErr != nil {
+		t.Fatal("legacy upgrade policy check unavailable", probeErr)
+	}
+	response.Body.Close()
+	if response.StatusCode != 403 {
+		t.Fatal("legacy unversioned gRPC upgrade not denied", response.StatusCode)
+	}
+	checks := []string{"native HTTP2/gRPC transport unavailable", "legacy unversioned gRPC upgrade denied"}
 	for _, role := range []string{"broker", "observer"} {
 		status, _ := request(role, "GET", "/info", nil)
 		if status != 200 {
@@ -178,12 +210,12 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 	}
 	profile.HostConfig.Mounts[0].ReadOnly = true
 	checks = append(checks, "observer writes and unsafe scanner profiles denied")
-	status, response := request("broker", "POST", "/containers/create?name="+name, b)
+	status, createdBody := request("broker", "POST", "/containers/create?name="+name, b)
 	if status != 201 {
-		t.Fatalf("fixed scanner create denied: %d %s", status, response)
+		t.Fatalf("fixed scanner create denied: %d %s", status, createdBody)
 	}
 	var created container.CreateResponse
-	if json.Unmarshal(response, &created) != nil || len(created.ID) != 64 {
+	if json.Unmarshal(createdBody, &created) != nil || len(created.ID) != 64 {
 		t.Fatal("create identity")
 	}
 	id := created.ID

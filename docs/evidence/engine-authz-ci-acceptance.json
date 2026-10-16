@@ -1,0 +1,41 @@
+{
+  "all_engine_writes_mediated": false,
+  "checks": [
+    "TLS principals and observer read",
+    "broad reads and non-scanner writes denied",
+    "observer writes and unsafe scanner profiles denied",
+    "exact tracked-ID lifecycle and SDK wait",
+    "real guarded offline Bandit B307",
+    "observer exact-ID absence",
+    "late start after removal denied",
+    "anonymous TLS refused",
+    "bootstrap raw listener removed",
+    "plugin unavailable fails closed",
+    "daemon stopped and plugin journal settled"
+  ],
+  "ci_engine_archive_digest": "sha256:995d1ef289677f74fd58d8d2c35727b6a4ee389c69db8638a3e42d0487aa5b0f",
+  "ci_engine_version": "29.8.2",
+  "cleanup_release_authorized": false,
+  "controller_bound": false,
+  "finding_tier": "T0",
+  "guard_digest": "sha256:d0355bed871cdea81cd1aa2e0f23e7522c6231a3355dc62c4fde193f5f4d7f3f",
+  "journal": {
+    "all_engine_writes_mediated": false,
+    "attempts": 1,
+    "cleanup_release_authorized": false,
+    "controller_gate_binding_verified": false,
+    "engine_digest": "sha256:5747dbea3a11dae31762b4134ea9376e6feef13a19ce27bbbc5748faa8401980",
+    "namespace_digest": "sha256:84231c7fc33684ecb9db2b9f7c1788de04c9b86a0a925b3a657541007ea8886e",
+    "schema_version": "1.0",
+    "unfinished_attempts": 0,
+    "unresolved_requests": 0
+  },
+  "public_beta": "NO-GO",
+  "publisher_signature_verified": false,
+  "schema_version": "1.0",
+  "tool": "bandit",
+  "tool_image": "ghcr.io/pycqa/bandit/bandit@sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+  "tested_git_commit": "1a87ae302b046501e70c4e253df089c1525402fd",
+  "hosted_job_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38855104370/job/116824770069",
+  "native_grpc_exclusion_verified": false
+}

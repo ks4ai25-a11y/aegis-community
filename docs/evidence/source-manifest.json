@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:15d8769ced240a6297e9229c8449baf30edcc12b9e8363f3079fd32a9188c1f9",
+  "source_tree_sha256": "sha256:3b29706daf9662f1d55e5bdc3f1c0629629d73781dc84f726c83c01d53e5a6a1",
   "files": [
     {
       "path": ".dockerignore",
@@ -96,7 +96,7 @@
     },
     {
       "path": "alpha/engineauthz/real_test.go",
-      "sha256": "c4c640d17b0cf9a134282d1fd1a3258bd874968ebe96bcb890f5ade68adf5da2"
+      "sha256": "c8581513f93eb5f464f36339228e951faf71d93786740ce84bb95fc62a439c45"
     },
     {
       "path": "alpha/engineauthz/server.go",
@@ -1656,7 +1656,7 @@
     },
     {
       "path": "docs/architecture/adr/051-isolated-daemon-authorization-adapter.md",
-      "sha256": "954aebb44df4cd89f9829a15bcabd48a6386077563a517db7dbd64881d138880"
+      "sha256": "b39e381714de2940c776395e32525d4ca76805aabf04b14295143cdc7e2179b2"
     },
     {
       "path": "docs/operators/database-snapshots.md",
@@ -1672,7 +1672,7 @@
     },
     {
       "path": "docs/operators/isolated-engine-authorization.md",
-      "sha256": "dfe5b356ec1bbd688af4f65ae4d21c32d8b950dd7147dbdc7c80da7a9d538c67"
+      "sha256": "36cb799710dfc44eed9f6f13eb9da50245daaeaece129feeca5cee04a9cdedd1"
     },
     {
       "path": "docs/operators/journaled-scanner-engine.md",
@@ -1712,7 +1712,7 @@
     },
     {
       "path": "docs/release-gates.json",
-      "sha256": "7e11bd3bcdf1161bce646e0d408792ffeb8b8651a1fc92396fddb5ecddb7cfb4"
+      "sha256": "b038fd66c20dc203eaf7687fc7487adfbae1c473f60a622d9655083149cbfe96"
     },
     {
       "path": "gateway/Dockerfile",
@@ -1936,7 +1936,7 @@
     },
     {
       "path": "tests/integration/engine_authz_acceptance.py",
-      "sha256": "74f5ecdd63e2ca355a6beb2ac26b9e31abc8a9a75bc501276734e59d4476f1ad"
+      "sha256": "1652f4e55088303792fcc8c14a6cfdc909a5ad2fca5623fa8d88235bd31c6bdf"
     },
     {
       "path": "tests/integration/finding_catalogue_acceptance.py",

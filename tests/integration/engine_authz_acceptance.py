@@ -38,7 +38,7 @@ def main():
  daemon=None;plugin=None;logs=[];installed=False
  def start(extra,label):
   log=(fixture/(label+'.log')).open('xb');logs.append(log)
-  args=['sudo','env','PATH='+env['PATH'],str(engine/'bin/dockerd'),'--data-root='+str(fixture/'data'),'--exec-root='+str(fixture/'exec'),'--pidfile='+str(pidfile),'--bridge=none','--iptables=false','--ip6tables=false','--ip-forward=false','--ip-masq=false','--userland-proxy=false']+extra
+  args=['sudo','env','PATH='+env['PATH'],'GODEBUG=http2server=0',str(engine/'bin/dockerd'),'--data-root='+str(fixture/'data'),'--exec-root='+str(fixture/'exec'),'--pidfile='+str(pidfile),'--bridge=none','--iptables=false','--ip6tables=false','--ip-forward=false','--ip-masq=false','--userland-proxy=false']+extra
   return subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=log,stderr=log,env=env,start_new_session=True)
  def stop(process):
   if process is None or process.poll() is not None:return
