@@ -15,3 +15,4 @@ td.actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 .actions-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
 pre.mono{white-space:pre-wrap;word-break:break-all;background:rgba(127,127,127,.08);padding:12px;border-radius:8px;font-size:12px}
 textarea{width:100%;font:inherit;padding:12px;border-radius:5px;border:1px solid #32484c;background:#0b171b;color:#d0e2df;margin-top:9px;outline:none}
+.remediation{margin:12px 0}.remediation summary{cursor:pointer;color:#9abbb0;font-size:12px}.remediation ol{font-size:12px;line-height:1.7}

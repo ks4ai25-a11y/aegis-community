@@ -158,3 +158,51 @@ func TestStoredMapBudgetCountsUTF8BytesAndRollsBack(t *testing.T) {
 		t.Fatal("quota refusal changed identity", e)
 	}
 }
+
+func TestExcerptOnlyServesUnchangedInventoriedFiles(t *testing.T) {
+	path, _ := filepath.EvalSymlinks(t.TempDir())
+	os.Mkdir(filepath.Join(path, "fixture"), 0700)
+	src := "a\nb\nc\nd\ne\nf\n"
+	os.WriteFile(filepath.Join(path, "fixture", "query.py"), []byte(src), 0600)
+	os.WriteFile(filepath.Join(path, "fixture", ".env"), []byte("SECRET=1\n"), 0600)
+	os.WriteFile(filepath.Join(path, "fixture", "config.py"), []byte("x = 1\nTOKEN = 'ghp_SYNTHETICDEMOONLY0123456789'\ny = 2\n"), 0600)
+	s, e := store.Open(filepath.Join(t.TempDir(), "repository.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	owner := domain.ID()
+	s.DB.Exec("INSERT INTO owners VALUES(?,'test',?)", owner, domain.Now())
+	r, e := Open(s, path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer r.Root.Close()
+	rec, e := r.Connect(owner, "app_demo", "fixture", true)
+	if e != nil {
+		t.Fatal(e)
+	}
+	x, e := r.Excerpt(owner, rec.ID, "query.py", 3, 1)
+	if e != nil || x.StartLine != 2 || strings.Join(x.Lines, ",") != "b,c,d" || x.Content != src {
+		t.Fatal(x, e)
+	}
+	c, e := r.Excerpt(owner, rec.ID, "config.py", 2, 1)
+	if e != nil || !c.Redacted || strings.Contains(strings.Join(c.Lines, "\n"), "ghp_") {
+		t.Fatal("credential not redacted", c, e)
+	}
+	if x.Redacted {
+		t.Fatal("clean file marked redacted")
+	}
+	for _, bad := range []string{".env", "../fixture/query.py", "missing.py", "/etc/passwd"} {
+		if _, e = r.Excerpt(owner, rec.ID, bad, 1, 1); e == nil {
+			t.Fatal("served", bad)
+		}
+	}
+	if _, e = r.Excerpt(domain.ID(), rec.ID, "query.py", 1, 1); e == nil {
+		t.Fatal("served to another owner")
+	}
+	os.WriteFile(filepath.Join(path, "fixture", "query.py"), []byte(src+"changed\n"), 0600)
+	if _, e = r.Excerpt(owner, rec.ID, "query.py", 1, 1); e != ErrSourceChanged {
+		t.Fatal("served modified source", e)
+	}
+}

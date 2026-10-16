@@ -12,6 +12,7 @@ import (
 	"aegis.local/controller/internal/ingest"
 	"aegis.local/controller/internal/policy"
 	"aegis.local/controller/internal/propose"
+	"aegis.local/controller/internal/remediate"
 	"aegis.local/controller/internal/repository"
 	"aegis.local/controller/internal/research"
 	"aegis.local/controller/internal/scanqueue"
@@ -253,6 +254,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		output(w, 200, map[string]string{"state": "revoked"})
+	case path == "/findings/remediation" && r.Method == "POST" && session != "":
+		s.remediation(w, r, actor)
 	case path == "/adapters" && r.Method == "GET":
 		output(w, 200, map[string]any{"items": []policy.Capability{policy.GatewayAdapter{}.Capabilities()}})
 	case path == "/ai/status" && r.Method == "GET":
@@ -505,6 +508,55 @@ func (s *Server) assessment(w http.ResponseWriter, r *http.Request, actor, id st
 	}
 	s.assessed.Store(id, a)
 	output(w, 200, a)
+}
+
+// remediation returns deterministic guidance for a static finding and, on request,
+// a local-model patch draft that is only returned if it applies to the exact
+// inventoried file. Nothing is written to the repository.
+func (s *Server) remediation(w http.ResponseWriter, r *http.Request, actor string) {
+	var in struct {
+		Finding remediate.Finding `json:"finding"`
+		Draft   bool              `json:"draft_patch"`
+	}
+	if auth.Decode(r, &in) != nil || in.Finding.Validate() != nil {
+		fail(w, 400, "VALIDATION_FAILED", "Invalid finding")
+		return
+	}
+	out := remediate.Guidance(in.Finding)
+	var excerpt *repository.Excerpt
+	if in.Finding.Category == "static_pattern" && in.Finding.Path != "" && in.Finding.Line > 0 && s.R != nil {
+		if x, e := s.R.Excerpt(actor, in.Finding.RepositoryID, in.Finding.Path, in.Finding.Line, 6); e == nil {
+			excerpt = &x
+		}
+	}
+	if in.Draft {
+		select {
+		case s.assessing <- struct{}{}:
+			defer func() { <-s.assessing }()
+		default:
+			fail(w, 429, "RATE_LIMITED", "Another model request is running")
+			return
+		}
+		switch {
+		case in.Finding.Category != "static_pattern":
+			out.DraftNote = "Patch drafts are generated for static code findings only."
+		case excerpt == nil:
+			out.DraftNote = "The source file is not in the current inventory or changed since it was inventoried; reconnect the repository to refresh it."
+		case excerpt.Redacted:
+			out.DraftNote = "The file appears to contain a credential, so it is not sent to a model. Remove the credential first."
+		case s.AI.Provider == "none":
+			out.DraftNote = "No local model is configured."
+		default:
+			d, e := remediate.DraftPatch(r.Context(), s.AI.ForCode(), in.Finding, excerpt.Path, excerpt.Content)
+			if e != nil {
+				out.DraftNote = e.Error()
+			} else {
+				out.Draft = d
+			}
+			s.S.Audit(actor, "finding.patch_drafted", in.Finding.RepositoryID+":"+in.Finding.Path, map[bool]string{true: "draft_returned", false: "no_draft"}[d != nil], map[string]string{"model": s.AI.ForCode().Model})
+		}
+	}
+	output(w, 200, map[string]any{"remediation": out, "excerpt": excerpt})
 }
 
 // exposure compares a connected repository's declared routes with this site's

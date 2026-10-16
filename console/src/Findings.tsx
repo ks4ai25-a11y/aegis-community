@@ -4,6 +4,7 @@ import {listFindings} from './generated/research-client';
 import type {FindingPageV1,FindingQueryV1,ScannerSuiteResultV1,FindingTriageRecordV1} from './generated/contracts';
 import {short} from './client';
 import {FindingTriage,validateFindingReview} from './FindingTriage';
+import {Remediation} from './Remediation';
 
 type Category=NonNullable<FindingQueryV1['category']>|'';
 type Severity=NonNullable<FindingQueryV1['severity']>|'';
@@ -67,6 +68,7 @@ export function FindingRecords({page,result,onRecorded}:{page:FindingPageV1,resu
     {f.advisories?.length&&<p>Advisories: {f.advisories.join(', ')}</p>}
     <p className="small muted">{f.coverage_note}</p>
     <div className="table-wrap"><table><thead><tr><th>Original tool</th><th>Version / parser</th><th>Rule / advisory</th><th>Claimed severity</th></tr></thead><tbody>{f.provenance.map((p,i)=><tr key={i}><td>{p.tool_id}</td><td>{p.tool_version} / {p.parser_version}</td><td>{p.rule_id||'Unspecified'}</td><td>{p.severity_claimed||'Unspecified'}</td></tr>)}</tbody></table></div>
+    <Remediation finding={f}/>
     <FindingTriage key={result.result_digest+record_id} owner={d.owner_id} job={d.job_id} result={result.result_digest} record={record_id} review={owner_review} onRecorded={next=>onRecorded(record_id,next)}/>
     <details><summary>Source and receipt identities</summary><p className="mono">Record: {record_id}</p><p className="mono">Finding: {f.id}</p>{f.provenance.map((p,i)=><div key={i}><p className="mono">{p.tool_id} image: {p.tool_image_digest}</p><p className="mono">Input: {p.input_digest}</p></div>)}{receipt_digests.map(ref=><p className="mono" key={ref}>Receipt: {ref}</p>)}</details>
    </article>)}

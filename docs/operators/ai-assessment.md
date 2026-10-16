@@ -41,3 +41,7 @@ Only the incident dossier: incident summary, detector identity and thresholds, u
 The dossier is wrapped in explicit data markers and the model is told that everything inside is untrusted and may be attacker-written. The reply must be one JSON object. Aegis drops evidence references that are not in the dossier, unknown action kinds, invalid confidence values, control characters and oversized text, and always appends "Model output is advisory and was not independently verified." If the model is unreachable, slow (180 s default, `AEGIS_AI_TIMEOUT_SECONDS` 10–600) or returns unusable output, the deterministic assessment is returned with the fallback reason.
 
 Each assessment is written to the audit chain with its dossier digest and model name. One assessment runs at a time. Results are cached in controller memory and can be regenerated from the same dossier.
+
+## Patch drafts for code findings
+
+On a static code finding, **How to fix → Draft a patch** asks the code model (`AEGIS_AI_CODE_MODEL`, default `qwen2.5-coder:3b` in the overlay; it is pulled by the same one-time job) for a small line edit near the finding. Aegis builds the diff, checks that it applies to the exact inventoried file and keeps brackets balanced, and lets you download it as a `.patch`. Aegis never changes your repository. Files that appear to contain credentials are never sent to a model.

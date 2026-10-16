@@ -10,9 +10,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"sort"
+	"strings"
 )
 
 var ErrAsset = errors.New("invalid or unavailable provisioned repository asset")
@@ -248,4 +250,80 @@ func (r *Registry) authorizeMounts(owner string, bind bool) error {
 		return e
 	}
 	return tx.Commit()
+}
+
+// Excerpt is a bounded view of one inventoried source file around a line.
+type Excerpt struct {
+	Path      string   `json:"path"`
+	Digest    string   `json:"file_digest"`
+	StartLine int      `json:"start_line"`
+	Lines     []string `json:"lines"`
+	// Redacted is true when any line of the file looked like a credential; such
+	// lines are replaced in Lines and the file is never sent to a model.
+	Redacted bool   `json:"redacted"`
+	Content  string `json:"-"`
+}
+
+// likelySecret matches common credential shapes. It is a conservative filter for
+// display and model input, not a secret scanner.
+var likelySecret = regexp.MustCompile(`(?i)(gh[pousr]_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16}|xox[abposr]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9]{20,}|(password|passwd|secret|api[_-]?key|token)\s*[:=]\s*\S{6,})`)
+
+var ErrSourceChanged = errors.New("source file is not in the current inventory or changed since it was inventoried")
+
+// Excerpt reads a file only if the repository's current application map lists it
+// with the same digest, so protected and generated files (never inventoried) and
+// modified files are refused. Reads stay inside the asset's os.Root.
+func (r *Registry) Excerpt(owner, id, path string, line, radius int) (Excerpt, error) {
+	rec, e := r.Get(owner, id)
+	if e != nil {
+		return Excerpt{}, e
+	}
+	m, e := r.Map(owner, id)
+	if e != nil {
+		return Excerpt{}, e
+	}
+	digest := ""
+	for _, f := range m.Files {
+		if f.Path == path {
+			digest = f.Digest
+		}
+	}
+	if digest == "" || r.Root == nil || line < 1 || radius < 0 || radius > 40 {
+		return Excerpt{}, ErrSourceChanged
+	}
+	anchor, e := r.Root.OpenRoot(rec.Asset)
+	if e != nil {
+		return Excerpt{}, e
+	}
+	defer anchor.Close()
+	f, e := anchor.Open(path)
+	if e != nil {
+		return Excerpt{}, ErrSourceChanged
+	}
+	defer f.Close()
+	b, e := io.ReadAll(io.LimitReader(f, 1<<20+1))
+	if e != nil || len(b) > 1<<20 || domain.Hash(b) != digest {
+		return Excerpt{}, ErrSourceChanged
+	}
+	all := strings.Split(string(b), "\n")
+	redacted := false
+	for _, l := range all {
+		if likelySecret.MatchString(l) {
+			redacted = true
+		}
+	}
+	start := max(1, line-radius)
+	end := min(len(all), line+radius)
+	out := Excerpt{Path: path, Digest: digest, StartLine: start, Content: string(b), Redacted: redacted}
+	for i := start; i <= end; i++ {
+		v := all[i-1]
+		if likelySecret.MatchString(v) {
+			v = "[redacted: possible credential]"
+		}
+		if len(v) > 400 {
+			v = v[:400]
+		}
+		out.Lines = append(out.Lines, v)
+	}
+	return out, nil
 }

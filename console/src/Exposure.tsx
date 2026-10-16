@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 import {GitCompareArrows} from 'lucide-react';
 import {api} from './client';
+import {listRepositories} from './generated/research-client';
 
 // Declared (repository) versus observed (gateway) routes for the selected site.
 export function Exposure({site}: {site: string}) {
@@ -8,7 +9,7 @@ export function Exposure({site}: {site: string}) {
   const [repo, setRepo] = useState('');
   const [data, setData] = useState<any>();
   const [error, setError] = useState('');
-  useEffect(() => { api('/repositories').then(v => { const items = Array.isArray(v.items) ? v.items : []; setRepos(items); if (items[0]) setRepo(items[0].repository_id); }).catch(() => setRepos([])); }, []);
+  useEffect(() => { listRepositories().then((v: any) => { const items = Array.isArray(v.items) ? v.items : []; setRepos(items); if (items[0]) setRepo(items[0].repository_id); }).catch(() => setRepos([])); }, []);
   useEffect(() => { setData(undefined); setError(''); if (repo) api('/sites/' + site + '/exposure?repository_id=' + encodeURIComponent(repo)).then(setData).catch(e => setError(e.message)); }, [site, repo]);
   if (!repos.length) return null;
   return <section className="card">

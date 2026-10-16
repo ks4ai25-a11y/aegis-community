@@ -26,10 +26,12 @@ type Config struct {
 	Model    string
 	KeyFile  string
 	Timeout  time.Duration
+	// CodeModel optionally names a code-specialised model for patch drafts.
+	CodeModel string
 }
 
 func FromEnv() Config {
-	c := Config{Provider: os.Getenv("AEGIS_AI_PROVIDER"), URL: os.Getenv("AEGIS_AI_URL"), Model: os.Getenv("AEGIS_AI_MODEL"), KeyFile: os.Getenv("AEGIS_AI_KEY_FILE"), Timeout: 180 * time.Second}
+	c := Config{Provider: os.Getenv("AEGIS_AI_PROVIDER"), URL: os.Getenv("AEGIS_AI_URL"), Model: os.Getenv("AEGIS_AI_MODEL"), KeyFile: os.Getenv("AEGIS_AI_KEY_FILE"), Timeout: 180 * time.Second, CodeModel: os.Getenv("AEGIS_AI_CODE_MODEL")}
 	if n, e := strconv.Atoi(os.Getenv("AEGIS_AI_TIMEOUT_SECONDS")); e == nil && n >= 10 && n <= 600 {
 		c.Timeout = time.Duration(n) * time.Second
 	}
@@ -56,7 +58,18 @@ func (c Config) Validate() error {
 	if c.Model == "" || len(c.Model) > 128 || strings.ContainsAny(c.Model, "\r\n\"") {
 		return fmt.Errorf("AEGIS_AI_MODEL required")
 	}
+	if len(c.CodeModel) > 128 || strings.ContainsAny(c.CodeModel, "\r\n\"") {
+		return fmt.Errorf("invalid AEGIS_AI_CODE_MODEL")
+	}
 	return nil
+}
+
+// ForCode returns the configuration used for patch drafts.
+func (c Config) ForCode() Config {
+	if c.CodeModel != "" {
+		c.Model = c.CodeModel
+	}
+	return c
 }
 
 // Public describes the configuration without secrets.
@@ -69,6 +82,7 @@ func (c Config) Public() map[string]any {
 			host = u.Host
 		}
 		out["model"] = c.Model
+		out["code_model"] = c.ForCode().Model
 		out["endpoint_host"] = host
 		out["api_key_configured"] = c.KeyFile != ""
 	}
@@ -102,23 +116,28 @@ func (c Config) key() (string, error) {
 
 // Complete sends the dossier and returns the raw model text (bounded).
 func (c Config) Complete(ctx context.Context, d Dossier) (string, error) {
+	dossier, _ := json.Marshal(Compact(d))
+	return c.CompleteJSON(ctx, instructions, "<<<DOSSIER\n"+string(dossier)+"\nDOSSIER>>>", outputSchema(), 900)
+}
+
+// CompleteJSON asks the configured model for one JSON object constrained by schema.
+// The user content must already be delimited as untrusted data by the caller.
+func (c Config) CompleteJSON(ctx context.Context, system, user string, schema map[string]any, maxTokens int) (string, error) {
 	if c.Provider == "none" {
 		return "", ErrDisabled
 	}
 	if e := c.Validate(); e != nil {
 		return "", e
 	}
-	dossier, _ := json.Marshal(Compact(d))
-	user := "<<<DOSSIER\n" + string(dossier) + "\nDOSSIER>>>"
-	messages := []map[string]string{{"role": "system", "content": instructions}, {"role": "user", "content": user}}
+	messages := []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": user}}
 	var body []byte
 	endpoint := strings.TrimRight(c.URL, "/")
 	if c.Provider == "ollama" {
 		endpoint += "/api/chat"
-		body, _ = json.Marshal(map[string]any{"model": c.Model, "messages": messages, "stream": false, "format": outputSchema(), "options": map[string]any{"temperature": 0, "num_ctx": 4096, "num_predict": 900}})
+		body, _ = json.Marshal(map[string]any{"model": c.Model, "messages": messages, "stream": false, "format": schema, "options": map[string]any{"temperature": 0, "num_ctx": 4096, "num_predict": maxTokens}})
 	} else {
 		endpoint += "/v1/chat/completions"
-		body, _ = json.Marshal(map[string]any{"model": c.Model, "messages": messages, "temperature": 0, "max_tokens": 900, "response_format": map[string]any{"type": "json_schema", "json_schema": map[string]any{"name": "incident_assessment", "strict": true, "schema": outputSchema()}}})
+		body, _ = json.Marshal(map[string]any{"model": c.Model, "messages": messages, "temperature": 0, "max_tokens": maxTokens, "response_format": map[string]any{"type": "json_schema", "json_schema": map[string]any{"name": "aegis_output", "strict": true, "schema": schema}}})
 	}
 	ctx, cancel := context.WithTimeout(ctx, c.Timeout)
 	defer cancel()
