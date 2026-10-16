@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:3b29706daf9662f1d55e5bdc3f1c0629629d73781dc84f726c83c01d53e5a6a1",
+  "source_tree_sha256": "sha256:1f9b29e35d40a21a4e35d8d4011caf27222145392e911a701ece6c08bb08c29a",
   "files": [
     {
       "path": ".dockerignore",
@@ -1488,7 +1488,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "2fdf6c31932bd35b55bf2628101ee159b9cf21e0cf8b0ac316cc2adb01de7fa1"
+      "sha256": "a3448211eaf1c71874d17eae5ca5fa1eb52c7589e485d52232e7d00639409506"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -1656,7 +1656,7 @@
     },
     {
       "path": "docs/architecture/adr/051-isolated-daemon-authorization-adapter.md",
-      "sha256": "b39e381714de2940c776395e32525d4ca76805aabf04b14295143cdc7e2179b2"
+      "sha256": "46ee367896ca64ec609fefa6868bc62bacba76a7a2ed439ebe8083a1244361f6"
     },
     {
       "path": "docs/operators/database-snapshots.md",
@@ -1712,7 +1712,7 @@
     },
     {
       "path": "docs/release-gates.json",
-      "sha256": "b038fd66c20dc203eaf7687fc7487adfbae1c473f60a622d9655083149cbfe96"
+      "sha256": "4afc3cc2db812f2d7b3f1cce3225bd9b238b83fd8cc97aebd8817b13be837782"
     },
     {
       "path": "gateway/Dockerfile",

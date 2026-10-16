@@ -1,6 +1,8 @@
 {
   "all_engine_writes_mediated": false,
   "checks": [
+    "native HTTP2/gRPC transport unavailable",
+    "legacy unversioned gRPC upgrade denied",
     "TLS principals and observer read",
     "broad reads and non-scanner writes denied",
     "observer writes and unsafe scanner profiles denied",
@@ -24,8 +26,8 @@
     "attempts": 1,
     "cleanup_release_authorized": false,
     "controller_gate_binding_verified": false,
-    "engine_digest": "sha256:5747dbea3a11dae31762b4134ea9376e6feef13a19ce27bbbc5748faa8401980",
-    "namespace_digest": "sha256:84231c7fc33684ecb9db2b9f7c1788de04c9b86a0a925b3a657541007ea8886e",
+    "engine_digest": "sha256:759949b30a3c91271a34c142fcc057d091ee1bfe1308efce3aafa8765e40e250",
+    "namespace_digest": "sha256:eab98fb23df19070b8314ec0ce42fac59a061493e3f55adf1cb82ed3ca379c9f",
     "schema_version": "1.0",
     "unfinished_attempts": 0,
     "unresolved_requests": 0
@@ -35,7 +37,8 @@
   "schema_version": "1.0",
   "tool": "bandit",
   "tool_image": "ghcr.io/pycqa/bandit/bandit@sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
-  "tested_git_commit": "1a87ae302b046501e70c4e253df089c1525402fd",
-  "hosted_job_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38855104370/job/116824770069",
-  "native_grpc_exclusion_verified": false
+  "tested_git_commit": "a8dc8a241cdf8a05fdb5af38dcde8032bd10b618",
+  "hosted_job_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38855428468/job/116825824875",
+  "native_grpc_exclusion_verified": true,
+  "isolated_daemon_http2_setting": "GODEBUG=http2server=0"
 }

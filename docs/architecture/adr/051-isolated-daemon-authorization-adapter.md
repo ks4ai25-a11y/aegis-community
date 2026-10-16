@@ -36,3 +36,7 @@ All engine-write mediation, controller-bound cleanup and cleanup-release authori
 - [Pinned Docker plugin activation client](https://github.com/moby/moby/blob/docker-v29.8.2/pkg/plugins/client.go)
 
 - [Pinned native gRPC dispatcher outside the HTTP API middleware](https://github.com/moby/moby/blob/docker-v29.8.2/daemon/command/httphandler.go)
+
+## Observed reference evidence
+
+`docs/evidence/engine-authz-acceptance.json` records 255 local race-test pass events across 85 tests/subtests repeated three times, full source checks, static analysis, guarded CI context refusals, unchanged guard build identities and the plugin dependency separation. `docs/evidence/engine-authz-ci-acceptance.json` records thirteen real isolated-daemon checks, including native gRPC transport exclusion, legacy upgrade refusal, actual guarded Bandit B307, observer child absence, plugin-unavailable fail-closed behavior and a settled plugin-owned journal. Its exact hosted job/source revision is retained. These checks do not establish controller lease binding, exclusive deployed broker authority, independent cleanup release, publisher authenticity or independent security sign-off.

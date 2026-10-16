@@ -58,7 +58,8 @@
         "docs/evidence/broker-dispatch-acceptance.json",
         "docs/architecture/adr/051-isolated-daemon-authorization-adapter.md",
         "alpha/engineauthz/policy_test.go",
-        "docs/evidence/engine-authz-ci-acceptance.json"
+        "docs/evidence/engine-authz-ci-acceptance.json",
+        "docs/evidence/engine-authz-acceptance.json"
       ]
     },
     {

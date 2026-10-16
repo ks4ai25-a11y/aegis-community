@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Automated local authorization policy and shared scanner profile checks; real daemon evidence is separate",
+  "race_checks": {
+    "unique_tests_and_subtests": 85,
+    "repeats": 3,
+    "pass_events": 255,
+    "fail_events": 0
+  },
+  "full_source_checks": "make test PASS",
+  "static_analysis": "alpha go vet ./... PASS",
+  "native_plugin_build": "PASS",
+  "unauthorized_ci_fixture_contexts_refused_before_allocation": 5,
+  "plugin_has_engine_sdk_executor_or_worker_dependency": false,
+  "guard_builds": {
+    "scanner-guard-linux-amd64": "sha256:d0355bed871cdea81cd1aa2e0f23e7522c6231a3355dc62c4fde193f5f4d7f3f",
+    "scanner-guard-linux-arm64": "sha256:bbbb7f602ce019705311aeae62f886c5ba77b65f18d5e8ad34a54fef5db88239"
+  },
+  "real_daemon_evidence": "engine-authz-ci-acceptance.json",
+  "controller_database_schema": 13,
+  "migration_added": false,
+  "existing_packaged_worker_auto_remove_changed": false,
+  "isolated_authz_profile_auto_remove": false,
+  "retained_demo_reconfigured": false,
+  "controller_bound": false,
+  "all_engine_writes_mediated": false,
+  "cleanup_release_authorized": false,
+  "independent_security_signoff": false,
+  "public_beta": "NO-GO"
+}
