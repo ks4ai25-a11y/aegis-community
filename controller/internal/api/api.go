@@ -2,11 +2,13 @@
 package api
 
 import (
+	"aegis.local/controller/internal/assess"
 	"aegis.local/controller/internal/auth"
 	"aegis.local/controller/internal/detect"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/ingest"
 	"aegis.local/controller/internal/policy"
+	"aegis.local/controller/internal/propose"
 	"aegis.local/controller/internal/repository"
 	"aegis.local/controller/internal/research"
 	"aegis.local/controller/internal/scanqueue"
@@ -35,7 +37,10 @@ type Server struct {
 	R         *repository.Registry
 	Scans     *scanqueue.Queue
 	Assets    string
+	AI        assess.Config
 	mutations sync.Mutex
+	assessing chan struct{}
+	assessed  sync.Map
 	streams   chan struct{}
 }
 
@@ -44,6 +49,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/v1/", s.api)
 	mux.Handle("/", http.FileServer(http.Dir(s.Assets)))
 	s.streams = make(chan struct{}, 5)
+	s.assessing = make(chan struct{}, 1)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")
@@ -199,6 +205,20 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		default:
 			fail(w, 404, "RESOURCE_NOT_FOUND", "Endpoint not available in this alpha")
 		}
+	case path == "/ai/status" && r.Method == "GET":
+		output(w, 200, s.AI.Public())
+	case strings.HasPrefix(path, "/incidents/") && strings.HasSuffix(path, "/proposals") && r.Method == "GET":
+		res, e := propose.Propose(s.S, strings.TrimSuffix(strings.TrimPrefix(path, "/incidents/"), "/proposals"))
+		if e == sql.ErrNoRows {
+			fail(w, 404, "RESOURCE_NOT_FOUND", "Incident not found")
+			return
+		} else if e != nil {
+			fail(w, 500, "INTERNAL_ERROR", "Proposals unavailable")
+			return
+		}
+		output(w, 200, res)
+	case strings.HasPrefix(path, "/incidents/") && strings.HasSuffix(path, "/assessment"):
+		s.assessment(w, r, actor, strings.TrimSuffix(strings.TrimPrefix(path, "/incidents/"), "/assessment"))
 	case strings.HasPrefix(path, "/incidents/") && r.Method == "GET":
 		s.incident(w, strings.TrimPrefix(path, "/incidents/"))
 	case path == "/verify/fixtures" && r.Method == "GET":
@@ -370,6 +390,58 @@ func (s *Server) stream(w http.ResponseWriter, r *http.Request, site string) {
 // incidentSite derives an incident's site from its linked evidence; incidents whose
 // evidence aged out are listed under the bundled demo, where they originated.
 const incidentSite = "coalesce(CASE WHEN json_valid(notes) THEN json_extract(notes,'$.site_id') END,(SELECT json_extract(e.document,'$.site_id') FROM incident_events ie JOIN events e ON e.id=ie.event WHERE ie.incident=incidents.id LIMIT 1),'site_demo')"
+
+// assessment returns (GET) or produces (POST) an advisory IncidentAssessmentV1.
+// One assessment runs at a time; the model, if configured, sees only the dossier.
+func (s *Server) assessment(w http.ResponseWriter, r *http.Request, actor, id string) {
+	if r.Method == "GET" {
+		if v, ok := s.assessed.Load(id); ok {
+			output(w, 200, v)
+			return
+		}
+		fail(w, 404, "RESOURCE_NOT_FOUND", "No assessment generated for this incident since the controller started")
+		return
+	}
+	if r.Method != "POST" {
+		fail(w, 405, "METHOD_NOT_ALLOWED", "GET or POST required")
+		return
+	}
+	var in struct {
+		UseModel bool `json:"use_model"`
+	}
+	if auth.Decode(r, &in) != nil {
+		fail(w, 400, "VALIDATION_FAILED", "Invalid assessment request")
+		return
+	}
+	select {
+	case s.assessing <- struct{}{}:
+		defer func() { <-s.assessing }()
+	default:
+		fail(w, 429, "RATE_LIMITED", "Another assessment is running")
+		return
+	}
+	d, e := assess.Build(s.S, id)
+	if e == sql.ErrNoRows {
+		fail(w, 404, "RESOURCE_NOT_FOUND", "Incident not found")
+		return
+	} else if e != nil {
+		fail(w, 500, "INTERNAL_ERROR", "Dossier unavailable")
+		return
+	}
+	a := assess.Assess(r.Context(), s.AI, d, in.UseModel)
+	if e = s.S.Audit(actor, "incident.assessed", id, a.Provenance.Assessor, map[string]string{"dossier_digest": a.Provenance.DossierDigest, "model": a.Provenance.Model, "fallback": a.Provenance.Fallback}); e != nil {
+		fail(w, 500, "INTERNAL_ERROR", "Assessment audit unavailable")
+		return
+	}
+	// Bounded in-memory cache: assessments are reproducible from the dossier.
+	n := 0
+	s.assessed.Range(func(k, _ any) bool { n++; return true })
+	if n >= 200 {
+		s.assessed.Range(func(k, _ any) bool { s.assessed.Delete(k); return true })
+	}
+	s.assessed.Store(id, a)
+	output(w, 200, a)
+}
 
 // detector parses the detector record stored with an incident. Incidents from
 // before detector records existed were CRS observations (DET-01).

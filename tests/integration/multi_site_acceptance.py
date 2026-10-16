@@ -26,13 +26,13 @@ csrf = ""
 evidence = {"schema_version": "1.0", "test_scope": "local-multi-site-synthetic", "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "checks": []}
 
 
-def call(path, body=None, headers=None, expected=200):
+def call(path, body=None, headers=None, expected=200, timeout=60):
     h = {"Content-Type": "application/json", **(headers or {})}
     if body is not None and csrf:
         h["X-CSRF-Token"] = csrf
     req = urllib.request.Request(CONSOLE + "/api/v1" + path, data=None if body is None else json.dumps(body).encode(), headers=h)
     try:
-        with opener.open(req, timeout=60) as r:
+        with opener.open(req, timeout=timeout) as r:
             code, raw = r.status, r.read(262144)
     except urllib.error.HTTPError as r:
         code, raw = r.code, r.read(262144)

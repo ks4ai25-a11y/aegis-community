@@ -44,8 +44,10 @@ type Raw struct {
 	Privacy     string  `json:"privacy_version"`
 	ClientKey   string  `json:"client_key"`
 	PathKey     string  `json:"path_key"`
+	Target      string  `json:"target"`
 }
 
+var argTarget = regexp.MustCompile(`^ARGS:[a-zA-Z][a-zA-Z0-9_]{0,31}$`)
 var pseudonym = regexp.MustCompile(`^[0-9a-f]{16}$`)
 
 var sitePrefix = regexp.MustCompile(`^(site_[a-z0-9_]{1,32})\.[0-9a-fA-F-]{8,64}$`)
@@ -81,11 +83,14 @@ func Normalize(b []byte) (domain.Event, error) {
 	if at.After(time.Now().Add(time.Minute)) {
 		return domain.Event{}, fmt.Errorf("future record")
 	}
+	if r.Target != "" && !argTarget.MatchString(r.Target) {
+		return domain.Event{}, fmt.Errorf("invalid target")
+	}
 	if (r.ClientKey != "" && !pseudonym.MatchString(r.ClientKey)) || (r.PathKey != "" && !pseudonym.MatchString(r.PathKey)) {
 		return domain.Event{}, fmt.Errorf("invalid pseudonym")
 	}
 	site, synthetic := SiteOf(r.Request)
-	ev := domain.Event{ID: domain.ID(), Schema: "1.0", At: at.Format(time.RFC3339Nano), Site: site, Request: r.Request, Revision: r.Revision, Type: "access", Decision: "unknown", Method: r.Method, Route: r.Route, Status: r.Status, Rules: []string{}, Collection: r.Collection, Privacy: r.Privacy, Source: r.Source, Dropped: r.Dropped, Synthetic: synthetic, ClientKey: r.ClientKey, PathKey: r.PathKey}
+	ev := domain.Event{ID: domain.ID(), Schema: "1.0", At: at.Format(time.RFC3339Nano), Site: site, Request: r.Request, Revision: r.Revision, Type: "access", Decision: "unknown", Method: r.Method, Route: r.Route, Status: r.Status, Rules: []string{}, Collection: r.Collection, Privacy: r.Privacy, Source: r.Source, Dropped: r.Dropped, Synthetic: synthetic, ClientKey: r.ClientKey, PathKey: r.PathKey, Target: r.Target}
 	if r.Source == "coraza" {
 		ev.Type = "waf_match"
 		if r.Rule != "" {

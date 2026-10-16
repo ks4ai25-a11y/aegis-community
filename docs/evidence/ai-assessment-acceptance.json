@@ -1,0 +1,68 @@
+{
+ "schema_version": "1.0",
+ "test_scope": "local-assessment-synthetic",
+ "started_at": "2026-10-16T16:18:45Z",
+ "checks": [
+  {
+   "id": "incident_records_argument_name_only",
+   "result": "PASS",
+   "detail": {
+    "detector": "DET-01"
+   }
+  },
+  {
+   "id": "deterministic_assessment",
+   "result": "PASS",
+   "detail": {
+    "dossier_digest": "sha256:8eb4c98bce48cb13ab031273b5c95f89c14163ba2c4828c46cdac20a116d00c3"
+   }
+  },
+  {
+   "id": "local_model_assessment",
+   "result": "PASS",
+   "detail": {
+    "assessor": "ollama",
+    "model": "llama3.2:3b",
+    "fallback": "",
+    "seconds": 39.9,
+    "hypotheses": 1
+   }
+  },
+  {
+   "id": "assessment_audited",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "proposals_generated",
+   "result": "PASS",
+   "detail": {
+    "kinds": [
+     "exclusion",
+     "protect"
+    ]
+   }
+  },
+  {
+   "id": "unsafe_exclusion_rejected_by_fixture",
+   "result": "PASS",
+   "detail": {
+    "fixture_result": "FAIL"
+   }
+  },
+  {
+   "id": "protect_proposal_passes_fixture",
+   "result": "PASS",
+   "detail": {
+    "candidate": "sha256:1545be5e82b8d3f919f8dc7580e4984be59a88e04ec52af1c61a32af639ab444"
+   }
+  },
+  {
+   "id": "proposals_never_activate_themselves",
+   "result": "PASS",
+   "detail": null
+  }
+ ],
+ "result": "PASS",
+ "finished_at": "2026-10-16T16:19:31Z"
+}

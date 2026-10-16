@@ -61,3 +61,21 @@ func TestPseudonymsReplaceAddressesAndPaths(t *testing.T) {
 		t.Fatal("distinct clients collapsed")
 	}
 }
+
+func TestMatchedArgumentNameOnly(t *testing.T) {
+	raw := `{"logger":"http.handlers.waf","ts":1791619200,"msg":"[id \"942100\"] [data \"Matched Data: s&sos found within ARGS:query: 1' OR CANARY_VALUE\"] [unique_id \"request-1\"]"}`
+	v := Sanitize([]byte(raw))
+	if v["target"] != "ARGS:query" {
+		t.Fatal(v)
+	}
+	b, _ := json.Marshal(v)
+	if strings.Contains(string(b), "CANARY_VALUE") || strings.Contains(string(b), "OR") {
+		t.Fatal("matched value persisted", string(b))
+	}
+	for _, msg := range []string{`found within REQUEST_HEADERS:User-Agent: x`, `found within ARGS:9bad: x`, `found within ARGS:` + strings.Repeat("a", 40) + `: x`} {
+		raw := `{"logger":"http.handlers.waf","ts":1791619200,"msg":"[id \"942100\"] [data \"` + msg + `\"] [unique_id \"request-1\"]"}`
+		if v := Sanitize([]byte(raw)); v["target"] != nil {
+			t.Fatal("unexpected target", msg, v["target"])
+		}
+	}
+}

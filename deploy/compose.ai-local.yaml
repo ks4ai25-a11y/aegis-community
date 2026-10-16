@@ -1,0 +1,49 @@
+# Optional overlay: a free local model for advisory incident assessments.
+#   docker compose -f deploy/compose.demo.yaml -f deploy/compose.ai-local.yaml --profile ai-pull run --rm ollama-pull
+#   docker compose -f deploy/compose.demo.yaml -f deploy/compose.ai-local.yaml up -d
+# The runtime model server has no internet access; only the explicit one-shot pull
+# job does. The controller reaches it on an internal network and sends only the
+# sanitized incident dossier when an owner asks for a model assessment.
+x-ollama: &ollama
+  image: ollama/ollama:0.34.4@sha256:8262851b2846b87c649eddf3e76beb270c52f4d1bc94559f47efde16b0841551
+  user: "10001:10001"
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  environment: {HOME: /tmp, OLLAMA_MODELS: /models, OLLAMA_HOST: "0.0.0.0:11434"}
+  volumes: ["ai_models:/models"]
+  tmpfs: ["/tmp:rw,nosuid,size=256m,uid=10001,gid=10001"]
+services:
+  ai-models-init:
+    image: aegis-community/controller:0.1.0-alpha.1
+    user: "0:0"
+    network_mode: none
+    entrypoint: [/bin/sh, -c, "chown 10001:10001 /models"]
+    volumes: ["ai_models:/models"]
+  ollama:
+    <<: *ollama
+    entrypoint: [ollama, serve]
+    depends_on: {ai-models-init: {condition: service_completed_successfully}}
+    read_only: true
+    mem_limit: 6g
+    cpus: 6.0
+    pids_limit: 256
+    networks: [ai_net]
+    restart: unless-stopped
+  ollama-pull:
+    <<: *ollama
+    profiles: [ai-pull]
+    depends_on: {ai-models-init: {condition: service_completed_successfully}}
+    entrypoint: [/bin/sh, -c, "ollama serve >/dev/null 2>&1 & for i in $$(seq 30); do ollama list >/dev/null 2>&1 && break; sleep 1; done; ollama pull $${AEGIS_AI_MODEL:-llama3.2:3b}"]
+    environment: {HOME: /tmp, OLLAMA_MODELS: /models, OLLAMA_HOST: "127.0.0.1:11434", AEGIS_AI_MODEL: "${AEGIS_AI_MODEL:-llama3.2:3b}"}
+    networks: [ai_pull_net]
+  controller:
+    environment:
+      AEGIS_AI_PROVIDER: ollama
+      AEGIS_AI_URL: http://ollama:11434
+      AEGIS_AI_MODEL: "${AEGIS_AI_MODEL:-llama3.2:3b}"
+    networks: [management_net, ingress_net, ai_net]
+networks:
+  ai_net: {internal: true}
+  ai_pull_net: {}
+volumes:
+  ai_models:

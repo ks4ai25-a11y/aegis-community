@@ -49,6 +49,10 @@ func pseudonym(kind, value string) string {
 
 var ruleID = regexp.MustCompile(`\[id "([0-9]{1,7})"\]`)
 var txID = regexp.MustCompile(`\[unique_id "([A-Za-z0-9_.-]{1,128})"\]`)
+
+// target keeps only the name of a matched request argument (never its value), so an
+// owner can scope an exclusion to exactly that parameter.
+var target = regexp.MustCompile(`found within ARGS(?:_GET|_POST)?:([a-zA-Z][a-zA-Z0-9_]{0,31})(?:[^a-zA-Z0-9_]|$)`)
 var numberSegment = regexp.MustCompile(`^[0-9]+$|^[0-9a-fA-F-]{20,}$`)
 
 // Route is analytics-only and deliberately omits unrecognized segments.
@@ -232,6 +236,9 @@ func Sanitize(b []byte) map[string]any {
 		if len(ids) == 2 && len(tx) == 2 {
 			out["rule_id"] = ids[1]
 			out["request_id"] = tx[1]
+			if t := target.FindStringSubmatch(msg); len(t) == 2 {
+				out["target"] = "ARGS:" + t[1]
+			}
 			return out
 		}
 		if msg == "WAF rule violation detected" {
