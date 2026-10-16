@@ -42,7 +42,7 @@ echo "Aegis Community is running."
 echo "  Console:  http://127.0.0.1:$console_port"
 echo "  Gateway:  http://127.0.0.1:$gateway_port  (demo host: demo.example.test)"
 if [ -n "$token" ]; then
-  echo "  First sign-in: choose 'Enroll the first owner' and use this one-time token"
+  echo "  First sign-in: select 'First installation? Enroll owner' and use this one-time token"
   echo "  (valid for a short time, printed only to local logs):"
   echo "    $token"
 else

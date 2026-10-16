@@ -13,7 +13,7 @@ The script builds the images, starts the stack and prints:
 - the console at `http://127.0.0.1:7410` (loopback only),
 - a one-time **bootstrap token** for creating the owner account.
 
-Open the console, choose **Enroll the first owner**, paste the token and pick a passphrase of at least 14 characters.
+Open the console, select **First installation? Enroll owner**, paste the token and pick a passphrase of at least 14 characters.
 
 ## 2. See it work on the bundled demo
 

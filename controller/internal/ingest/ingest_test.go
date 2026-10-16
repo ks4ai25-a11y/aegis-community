@@ -6,6 +6,7 @@ import (
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/store"
 	"bufio"
+	"fmt"
 	"io"
 	"path/filepath"
 	"strings"
@@ -83,5 +84,30 @@ func TestCanaryTrafficSkipsIncidentsAndDetectors(t *testing.T) {
 	s.DB.QueryRow("SELECT document FROM events WHERE id='e1'").Scan(&doc)
 	if n != 0 || !strings.Contains(doc, `"canary":true`) {
 		t.Fatal(n, doc)
+	}
+}
+
+func TestSummaryRulesDoNotOpenIncidentsAndAccessRecordsJoin(t *testing.T) {
+	s, e := store.Open(filepath.Join(t.TempDir(), "j.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	i := &Ingestor{S: s, Detect: detect.New(detect.Defaults())}
+	st := 200
+	for n, ev := range []domain.Event{
+		{ID: "w1", Schema: "1.0", At: "2026-10-16T12:00:00Z", Site: "site_demo", Request: "r1", Type: "waf_match", Rules: []string{"942100"}, Source: "coraza"},
+		{ID: "w2", Schema: "1.0", At: "2026-10-16T12:00:00Z", Site: "site_demo", Request: "r1", Type: "waf_match", Rules: []string{"949110"}, Source: "coraza"},
+		{ID: "a1", Schema: "1.0", At: "2026-10-16T12:00:00Z", Site: "site_demo", Request: "r1", Type: "access", Method: "GET", Route: "/test-pattern", Status: &st, Rules: []string{}, Source: "caddy-access", ClientKey: "aaaaaaaaaaaaaaaa"},
+	} {
+		if e = i.persist(ev, fmt.Sprint("k", n)); e != nil {
+			t.Fatal(e)
+		}
+	}
+	var incidents, linked int
+	s.DB.QueryRow("SELECT count(*) FROM incidents").Scan(&incidents)
+	s.DB.QueryRow("SELECT count(*) FROM incident_events WHERE event='a1'").Scan(&linked)
+	if incidents != 1 || linked != 1 {
+		t.Fatal("incidents", incidents, "access links", linked)
 	}
 }

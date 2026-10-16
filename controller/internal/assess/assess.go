@@ -193,16 +193,16 @@ func Deterministic(d Dossier) Assessment {
 	ruleList := keys(rules)
 	a.ObservedFacts = append(a.ObservedFacts,
 		fmt.Sprintf("%s raised this incident on %s at %s.", det, d.Site.ID, d.Incident.OpenedAt),
-		fmt.Sprintf("%d retained evidence records are linked; %d distinct pseudonymous clients appear.", len(d.Evidence), len(clients)),
+		fmt.Sprintf("%s linked; %s.", plural(len(d.Evidence), "retained evidence record is", "retained evidence records are"), plural(len(clients), "distinct pseudonymous client appears", "distinct pseudonymous clients appear")),
 		fmt.Sprintf("The site is in %s mode with CRS blocking paranoia %d and anomaly threshold %d.", d.Site.Mode, d.Site.CRS.Blocking, d.Site.CRS.Threshold))
 	if len(ruleList) > 0 {
 		a.ObservedFacts = append(a.ObservedFacts, "CRS rules matched: "+strings.Join(ruleList, ", ")+".")
 	}
 	if blocked > 0 {
-		a.ObservedFacts = append(a.ObservedFacts, fmt.Sprintf("%d linked requests were denied by the WAF.", blocked))
+		a.ObservedFacts = append(a.ObservedFacts, plural(blocked, "linked request was", "linked requests were")+" denied by the WAF.")
 	}
 	if d.Related > 0 {
-		a.ObservedFacts = append(a.ObservedFacts, fmt.Sprintf("%d other incidents opened in the preceding 24 hours.", d.Related))
+		a.ObservedFacts = append(a.ObservedFacts, plural(d.Related, "other incident", "other incidents")+" opened in the preceding 24 hours.")
 	}
 	a.Uncertainties = []string{
 		"Request bodies, query values and client addresses are not retained, so payload intent cannot be confirmed.",
@@ -255,4 +255,11 @@ func keys(m map[string]bool) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+func plural(n int, one, many string) string {
+	if n == 1 {
+		return "1 " + one
+	}
+	return fmt.Sprintf("%d %s", n, many)
 }

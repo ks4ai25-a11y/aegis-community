@@ -222,7 +222,9 @@ func (i *Ingestor) persist(ev domain.Event, key string) error {
 		return e
 	}
 	n, _ := res.RowsAffected()
-	if n > 0 && !ev.Canary && ev.Type == "waf_match" && len(ev.Rules) > 0 {
+	// CRS anomaly evaluation (949xxx) and correlation (980xxx) rules summarise the
+	// detection rules that fired; they are stored as evidence but not as incidents.
+	if n > 0 && !ev.Canary && ev.Type == "waf_match" && len(ev.Rules) > 0 && !summaryRule(ev.Rules[0]) {
 		// Actual match observations are grouped by the rule and minute, with no exploit claim.
 		key := ev.At[:16] + ":" + ev.Rules[0]
 		summary := "Synthetic request matched CRS rule " + ev.Rules[0]
@@ -240,6 +242,13 @@ func (i *Ingestor) persist(ev domain.Event, key string) error {
 	if e != nil {
 		return e
 	}
+	// Link the request's access record (method, route, status, client key) to any
+	// incident its WAF records opened, so dossiers describe the whole request.
+	if n > 0 && ev.Source == "caddy-access" && ev.Request != "" {
+		if _, e = tx.Exec("INSERT OR IGNORE INTO incident_events SELECT DISTINCT ie.incident,? FROM incident_events ie JOIN events w ON w.id=ie.event WHERE w.request=? AND w.id<>?", ev.ID, ev.Request, ev.ID); e != nil {
+			return e
+		}
+	}
 	if n > 0 && !ev.Canary && i.Detect != nil {
 		for _, sig := range i.Detect.Observe(ev) {
 			incident := domain.Hash([]byte(fmt.Sprintf("%s|%s|%s|%d", sig.Detector, sig.Site, sig.Key, sig.Bucket)))
@@ -256,6 +265,10 @@ func (i *Ingestor) persist(ev domain.Event, key string) error {
 		}
 	}
 	return tx.Commit()
+}
+
+func summaryRule(id string) bool {
+	return strings.HasPrefix(id, "949") || strings.HasPrefix(id, "980")
 }
 
 // detectorNotes records the detector identity and thresholds with each incident
