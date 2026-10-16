@@ -76,20 +76,7 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 		if body != nil {
 			r.Header.Set("Content-Type", "application/json")
 		}
-		selected := clients[role]
-		if method == "POST" && strings.HasPrefix(path, "/containers/create?") {
-			// A freshly restored daemon can need more than five seconds for
-			// its first snapshot allocation. This is an engine response budget,
-			// not an extension of the plugin's separate authorization deadline.
-			// Keep the existing total client deadline and every refusal check.
-			transport := clients[role].Transport.(*http.Transport).Clone()
-			transport.ResponseHeaderTimeout = 30 * time.Second
-			defer transport.CloseIdleConnections()
-			boundedClient := *selected
-			boundedClient.Transport = transport
-			selected = &boundedClient
-		}
-		res, e := selected.Do(r)
+		res, e := clients[role].Do(r)
 		if e != nil {
 			t.Fatal("isolated engine request failed", e)
 		}
@@ -124,11 +111,20 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 	legacy, _ := http.NewRequestWithContext(ctx, "POST", endpoint+"/grpc", nil)
 	legacy.Header.Set("Upgrade", "h2c")
 	legacy.Header.Set("Connection", "Upgrade")
-	response, probeErr = clients["broker"].Do(legacy)
+	// Keep the hostile upgrade probe outside the ordinary broker connection
+	// pool. Ordinary denied/allowed API calls below still reuse their pool.
+	legacyTransport := clients["broker"].Transport.(*http.Transport).Clone()
+	defer legacyTransport.CloseIdleConnections()
+	legacyClient := &http.Client{Transport: legacyTransport, Timeout: 5 * time.Second, CheckRedirect: clients["broker"].CheckRedirect}
+	response, probeErr = legacyClient.Do(legacy)
 	if probeErr != nil {
 		t.Fatal("legacy upgrade policy check unavailable", probeErr)
 	}
+	legacyBody, legacyReadErr := io.ReadAll(io.LimitReader(response.Body, 65537))
 	response.Body.Close()
+	if legacyReadErr != nil || len(legacyBody) > 65536 {
+		t.Fatal("bounded legacy upgrade refusal unavailable")
+	}
 	if response.StatusCode != 403 {
 		t.Fatal("legacy unversioned gRPC upgrade not denied", response.StatusCode)
 	}
