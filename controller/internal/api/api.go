@@ -7,6 +7,7 @@ import (
 	"aegis.local/controller/internal/connector"
 	"aegis.local/controller/internal/detect"
 	"aegis.local/controller/internal/domain"
+	"aegis.local/controller/internal/exposure"
 	"aegis.local/controller/internal/ingest"
 	"aegis.local/controller/internal/policy"
 	"aegis.local/controller/internal/propose"
@@ -199,6 +200,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			s.endpoints(w, r, site)
 		case rest == "/incidents" && r.Method == "GET":
 			s.incidents(w, r, site)
+		case rest == "/exposure" && r.Method == "GET":
+			s.exposure(w, r, actor, site)
 		case rest == "/policy" && r.Method == "GET":
 			// One gateway revision governs every site; it is returned whole.
 			p, d, e := s.S.Active()
@@ -483,6 +486,39 @@ func (s *Server) assessment(w http.ResponseWriter, r *http.Request, actor, id st
 	}
 	s.assessed.Store(id, a)
 	output(w, 200, a)
+}
+
+// exposure compares a connected repository's declared routes with this site's
+// observed route templates (E3). It prioritises review and proves nothing.
+func (s *Server) exposure(w http.ResponseWriter, r *http.Request, actor, site string) {
+	if s.R == nil {
+		fail(w, 404, "RESOURCE_NOT_FOUND", "Repositories are not configured")
+		return
+	}
+	m, e := s.R.Map(actor, r.URL.Query().Get("repository_id"))
+	if e != nil {
+		fail(w, 404, "RESOURCE_NOT_FOUND", "Repository map not found")
+		return
+	}
+	declared := map[string]string{}
+	for _, route := range m.Routes {
+		declared[route.Pattern] = route.Path
+	}
+	rows, e := s.S.DB.Query("SELECT coalesce(json_extract(document,'$.method'),''),coalesce(json_extract(document,'$.route_template'),''),count(*) FROM events WHERE json_extract(document,'$.source')='caddy-access' AND json_extract(document,'$.site_id')=? GROUP BY 1,2 LIMIT 2000", site)
+	if e != nil {
+		fail(w, 500, "INTERNAL_ERROR", "Inventory unavailable")
+		return
+	}
+	defer rows.Close()
+	observed := []exposure.Observed{}
+	for rows.Next() {
+		var o exposure.Observed
+		if rows.Scan(&o.Method, &o.Route, &o.Count) == nil && o.Route != "" {
+			observed = append(observed, o)
+		}
+	}
+	report := exposure.Compare(declared, observed)
+	output(w, 200, map[string]any{"site_id": site, "repository_id": r.URL.Query().Get("repository_id"), "map_commit": m.Commit, "entries": report.Entries, "counts": report.Counts, "limitations": report.Limits})
 }
 
 // detector parses the detector record stored with an incident. Incidents from

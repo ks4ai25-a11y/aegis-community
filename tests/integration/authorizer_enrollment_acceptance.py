@@ -34,7 +34,7 @@ with tempfile.TemporaryDirectory(prefix='aegis-authorizer-proof-') as temporary:
   row=db.execute('SELECT id,owner,state,engine_digest,registry_digest,policy_digest,token_hash FROM scanner_authorizers').fetchone()
   assert row[:6]==('gate-a','fixture-owner','active',engine,registry,policy)
   assert row[6]==digest(b'aegis-scanner-engine-authorizer-v1\x00'+token.strip())
-  assert db.execute('SELECT max(version) FROM migrations').fetchone()==(14,)
+  assert db.execute('SELECT count(*) FROM migrations WHERE version=14').fetchone()==(1,)  # authorizer migration retained across later upgrades
   assert db.execute('SELECT count(*) FROM scanner_workers').fetchone()==(0,)
   assert db.execute('SELECT count(*) FROM scanner_verifiers').fetchone()==(0,)
   assert db.execute('SELECT count(*) FROM scanner_dispatch').fetchone()==(0,)

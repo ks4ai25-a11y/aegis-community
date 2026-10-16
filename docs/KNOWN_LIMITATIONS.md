@@ -2,7 +2,7 @@
 
 Aegis is an unfinished internal demo preview. Default mode is Observe. The gateway's WAF acts only on HTTP requests passing through its configured route. A matched rule is not proof of a successful exploit; a passing synthetic test is not proof an arbitrary application is secure.
 
-The current configuration supports the bundled Go demo and fixed hostname/origin only. Production TLS, custom app registration, trusted CDN proxy ranges, rate-limit controls and rule-expiry scheduling are not implemented. Docker origin ports are not published. Only loopback gateway and controller ports are published; this is not a host firewall audit or an HA deployment.
+Owner-registered sites (exact host names, private origins reachable from the gateway network) are supported alongside the bundled demo; the isolated preview fixture verifies only the bundled demo controls, not the owner's application. Production TLS, trusted CDN proxy ranges, rate-limit enforcement and rule-expiry scheduling are not implemented. Docker origin ports are not published. Only loopback gateway and controller ports are published; this is not a host firewall audit or an HA deployment.
 
 The controller and gateway can fail independently. Controller/collector loss leaves the current gateway policy active. Gateway failure causes an outage; no automatic origin bypass is provided. Gateway restart uses its own persisted active configuration. Controller crash during a leased fixture times out without a passing report. Remaining crash windows, disk-full behaviour, upgrade/restore and volume corruption must pass fault injection before release.
 
@@ -19,3 +19,9 @@ An opt-in journaled local scanner backend records create/start/remove uncertaint
 The database snapshot command captures controller state only. Separate recovery-bundle commands bind schema-13 demo database, persisted gateway policy and trusted scanner lock, restore to a new offline directory and revoke restored authority before startup. An isolated same-engine application drill passes after disposable database loss. This does not establish second-host restore, signed update compatibility, broad disk-full/upgrade fault coverage or independent installation acceptance. See the recovery bundle operator guide.
 
 A separate opt-in dedicated scanner broker now owns the fixed orchestrator, while a scratch dispatch client receives only a limited private credential and Unix socket. Configured controller claims/live authority select one enrolled broker. This does not establish exclusive mediation of every daemon client or independent cleanup release: the broker still has raw engine authority, host-admin trust remains, and safe binding/credential replacement is unfinished. See scanner broker operations and ADR 050.
+
+Behavioural detectors (DET-02…06) record incidents only and can be triggered by crawlers, shared NAT, load tests and deploys. Client and path pseudonyms rotate daily and are held only in gateway memory, so correlation does not span days or gateway restarts.
+
+Incident assessments are advisory. Small local models can be wrong; output is schema-checked and evidence references are validated, but conclusions are not independently verified. A misconfigured remote `AEGIS_AI_URL` would send sanitized dossiers off-host.
+
+Mitigation proposals cover CRS exclusions and Protect only. They must still pass the isolated fixture preview and explicit approval. Connector credentials (MCP) are read-only but can read every site's incidents for their owner.
