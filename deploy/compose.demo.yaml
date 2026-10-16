@@ -14,7 +14,7 @@ x-hardening: &hardening
 services:
   deployer:
     <<: *hardening
-    image: aegis-community/controller:0.1.0-alpha.1
+    image: aegis-community/controller:${AEGIS_IMAGE_TAG:-0.1.0-alpha.1}
     entrypoint: [policy-deployer]
     tmpfs: ["/tmp:rw,noexec,nosuid,size=64m,uid=10001,gid=10001", "/var/log/aegis:rw,noexec,nosuid,size=20m,uid=10001,gid=10001", "/data:rw,nosuid,size=16m,uid=10001,gid=10001", "/config:rw,nosuid,size=16m,uid=10001,gid=10001"]
     network_mode: none
@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
   init:
     <<: *hardening
-    image: aegis-community/controller:0.1.0-alpha.1
+    image: aegis-community/controller:${AEGIS_IMAGE_TAG:-0.1.0-alpha.1}
     build: {context: .., dockerfile: controller/Dockerfile}
     entrypoint: [aegisctl, init]
     network_mode: none
@@ -31,28 +31,28 @@ services:
     volumes: ["controller_data:/var/lib/aegis", "gateway_policies:/var/lib/deployer"]
   demo-origin:
     <<: *hardening
-    image: aegis-community/demo-origin:0.1.0-alpha.1
+    image: aegis-community/demo-origin:${AEGIS_IMAGE_TAG:-0.1.0-alpha.1}
     build: {context: .., dockerfile: demo/origin/Dockerfile}
     networks: [origin_net]
   gateway:
     <<: *hardening
-    image: aegis-community/gateway:0.1.0-alpha.1
+    image: aegis-community/gateway:${AEGIS_IMAGE_TAG:-0.1.0-alpha.1}
     build: {context: .., dockerfile: gateway/Dockerfile}
     mem_limit: 768m
     cpus: 2.0
     entrypoint: [caddy, run, --config, /var/lib/deployer/active.Caddyfile, --adapter, caddyfile]
     depends_on: {init: {condition: service_completed_successfully}, demo-origin: {condition: service_started}}
-    ports: ["127.0.0.1:8080:8080"]
+    ports: ["127.0.0.1:${AEGIS_GATEWAY_PORT:-8080}:8080"]
     networks: [origin_net, management_net, ingress_net]
     volumes: ["gateway_policies:/var/lib/deployer:ro", "gateway_socket:/run/gateway", "gateway_logs:/var/log/aegis", "gateway_data:/data", "gateway_config:/config"]
     restart: unless-stopped
   fixture-origin:
     <<: *hardening
-    image: aegis-community/demo-origin:0.1.0-alpha.1
+    image: aegis-community/demo-origin:${AEGIS_IMAGE_TAG:-0.1.0-alpha.1}
     networks: [fixture_net]
   verifier:
     <<: *hardening
-    image: aegis-community/controller:0.1.0-alpha.1
+    image: aegis-community/controller:${AEGIS_IMAGE_TAG:-0.1.0-alpha.1}
     entrypoint: [fixture-worker]
     mem_limit: 1536m
     cpus: 2.0
@@ -64,10 +64,10 @@ services:
     restart: unless-stopped
   controller:
     <<: *hardening
-    image: aegis-community/controller:0.1.0-alpha.1
+    image: aegis-community/controller:${AEGIS_IMAGE_TAG:-0.1.0-alpha.1}
     depends_on: [gateway, verifier, deployer]
     mem_limit: 512m
-    ports: ["127.0.0.1:7410:7410"]
+    ports: ["127.0.0.1:${AEGIS_CONSOLE_PORT:-7410}:7410"]
     networks: [management_net, ingress_net]
     environment: {AEGIS_SCANNER_SOCKET: /run/scanner/worker.sock, AEGIS_REPOSITORY_ROOT: /opt/aegis/repositories, AEGIS_LISTEN: "0.0.0.0:7410", AEGIS_DATA: /var/lib/aegis, VERIFIER_SOCKET: /run/verifier/verifier.sock}
     volumes: ["scanner_socket:/run/scanner", "../alpha/fixtures/scanners:/opt/aegis/repositories:ro", "controller_data:/var/lib/aegis", "deployer_socket:/run/deployer", "gateway_logs:/var/log/aegis:ro", "verifier_socket:/run/verifier"]
