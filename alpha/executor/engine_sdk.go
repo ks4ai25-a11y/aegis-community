@@ -198,7 +198,7 @@ func (c *scannerEngineClient) Close() error {
 // Use the ordinary HTTP transport's bounded upgrade support for attach. The
 // SDK's raw-hijack fallback does not retain our context-aware custom transport.
 func (c *scannerEngineClient) attach(ctx context.Context, id string) (io.ReadCloser, error) {
-	r, e := http.NewRequestWithContext(ctx, "POST", c.scheme+"://docker/v"+engineAPIVersion+"/containers/"+id+"/attach?stream=1&stdout=1&stderr=1", nil)
+	r, e := http.NewRequestWithContext(ctx, "POST", c.scheme+"://docker/v"+engineAPIVersion+"/containers/"+id+"/attach?stderr=1&stdout=1&stream=1", nil)
 	if e != nil {
 		return nil, errEngine
 	}

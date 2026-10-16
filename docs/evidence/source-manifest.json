@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:bc3c80e776aff93ec320acf933888e5c928bef2ab92203d72190360d3e2c51b5",
+  "source_tree_sha256": "sha256:e15eeb83b09b0ee717d0fcff5cb23d5ac65932d9a24d3cde65ddb451431473e7",
   "files": [
     {
       "path": ".dockerignore",
@@ -160,7 +160,7 @@
     },
     {
       "path": "alpha/executor/engine_sdk.go",
-      "sha256": "180c300e2ac7750bbe11c1f18f30c478994cb550f9c0075bafa3fafc0c5c4a3e"
+      "sha256": "245004ce6ec9ac5476293f35293f27ea1c9ce5e764891a4180dfa47249e9d9a9"
     },
     {
       "path": "alpha/executor/engine_sdk_real_test.go",
@@ -220,7 +220,7 @@
     },
     {
       "path": "alpha/executor/tls_sdk_test.go",
-      "sha256": "70b9dcd19a49d3774354086751e6a90115ab05ba4ff4275a5791269b15704d15"
+      "sha256": "96ae747b486e2fc616004c1f78e225b24cbe3050aac33b87553c8cdadfeb2723"
     },
     {
       "path": "alpha/fixtures/scanners/safe/package-lock.json",
@@ -1700,7 +1700,7 @@
     },
     {
       "path": "docs/architecture/adr/052-selected-broker-mutual-tls-engine.md",
-      "sha256": "6a514d14fcf22a2c1e907546fc5eb4c48df33d619ff3d9c5aedc4b63dbdd77d1"
+      "sha256": "8e2514caae1ae5505cd512d130b61aa22598d3bd1ace30f153b6d181aa8ff57b"
     },
     {
       "path": "docs/operators/database-snapshots.md",
@@ -1984,7 +1984,7 @@
     },
     {
       "path": "tests/integration/engine_authz_acceptance.py",
-      "sha256": "01098d5665ec5d450f8893a9067e3940605ce03ca922f99c9dd2f3106d156f18"
+      "sha256": "8bb93032ac413c009e544f2657b40bbab3bdda3fe26191c44c7c4b2ad6d20c70"
     },
     {
       "path": "tests/integration/finding_catalogue_acceptance.py",
@@ -2000,7 +2000,7 @@
     },
     {
       "path": "tests/integration/packaged_engine_fixture.py",
-      "sha256": "82d339938c820e9a9fc485de7d97ac5910e7cc96938fcc2c52d40fed89d07738"
+      "sha256": "e41d9dded075e3a680b4221f5f0a9a51fb309d0270b58d5e99d6a0764743d284"
     },
     {
       "path": "tests/integration/packaged_worker_acceptance.py",

@@ -21,6 +21,7 @@ class EngineFixture:
   receipt=json.loads((self.engine/'prepared.json').read_text());lock=json.loads((ROOT/'tools/ci-engine.lock.json').read_text())
   if receipt['scope']!='disposable_github_linux_amd64_ci_only' or receipt['archive_digest']!=lock['sha256'] or receipt['version']!=lock['version']:raise RuntimeError('Pinned disposable CI engine required')
   self.engine_receipt=receipt;self.env={k:v for k,v in os.environ.items() if k not in {'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH','DOCKER_API_VERSION','AEGIS_SCANNER_ENGINE_TLS_DIR'}};self.env['PATH']=str(self.engine/'bin')+':'+self.env['PATH']
+  self.namespace='aegis-scan-'+secrets.token_hex(12)
   self.pidfile=self.root/'dockerd.pid';self.tls=self.root/'tls';self.tls.mkdir(mode=0o700)
   self.client_dir=self.root/'broker-client';self.plugin_root=self.root/'plugin';self.relay_root=self.root/'relay'
   for path in [self.client_dir,self.plugin_root,self.relay_root]:path.mkdir(mode=0o700)
@@ -29,7 +30,7 @@ class EngineFixture:
   except BaseException:self.close();raise
  def daemon_start(self,extra,label):
   log=(self.root/(label+'.log')).open('xb');self.logs.append(log)
-  args=['sudo','env','PATH='+self.env['PATH'],'GODEBUG=http2server=0',str(self.engine/'bin/dockerd'),'--data-root='+str(self.root/'data'),'--exec-root='+str(self.root/'exec'),'--pidfile='+str(self.pidfile),'--bridge=none','--iptables=false','--ip6tables=false','--ip-forward=false','--ip-masq=false','--userland-proxy=false']+extra
+  args=['sudo','env','PATH='+self.env['PATH'],'GODEBUG=http2server=0',str(self.engine/'bin/dockerd'),'--data-root='+str(self.root/'data'),'--exec-root='+str(self.root/'exec'),'--pidfile='+str(self.pidfile),'--containerd-namespace='+self.namespace,'--containerd-plugins-namespace='+self.namespace+'-plugins','--bridge=none','--iptables=false','--ip6tables=false','--ip-forward=false','--ip-masq=false','--userland-proxy=false']+extra
   self.daemon=subprocess.Popen(args,env=self.env,stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True)
  def daemon_stop(self):
   if self.daemon is not None and self.daemon.poll() is None:
@@ -117,7 +118,7 @@ class EngineFixture:
   observation=json.loads(run(self.as_user([self.programs/'aegis-research','engine-journal-status',self.journal,self.engine_digest]),env=self.env).stdout)
   if observation['attempts']!=1 or observation['unresolved_requests'] or observation['unfinished_attempts'] or observation['all_engine_writes_mediated'] or observation['cleanup_release_authorized']:raise RuntimeError('Independent plugin journal unconfirmed')
   self.finished=True
-  self.proof={'schema_version':'1.0','separate_daemon':True,'raw_bootstrap_listener_removed':not self.bootstrap.exists(),'broker_has_raw_daemon_socket':False,'broker_has_daemon_socket_group':False,'end_to_end_tls_over_opaque_unix_relay':True,'relay_has_engine_credentials':False,'daemon_http2_setting':'GODEBUG=http2server=0','plugin_journal':observation,'controller_plugin_lease_binding_verified':False,'all_engine_writes_mediated':False,'cleanup_release_authorized':False,'public_beta':'NO-GO'}
+  self.proof={'schema_version':'1.0','separate_daemon':True,'unique_containerd_namespaces':True,'raw_bootstrap_listener_removed':not self.bootstrap.exists(),'broker_has_raw_daemon_socket':False,'broker_has_daemon_socket_group':False,'end_to_end_tls_over_opaque_unix_relay':True,'relay_has_engine_credentials':False,'daemon_http2_setting':'GODEBUG=http2server=0','plugin_journal':observation,'controller_plugin_lease_binding_verified':False,'all_engine_writes_mediated':False,'cleanup_release_authorized':False,'public_beta':'NO-GO'}
   return self.proof
  def close(self):
   if sys.exc_info()[0] is not None:

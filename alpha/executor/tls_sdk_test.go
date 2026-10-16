@@ -164,3 +164,22 @@ func TestTLSModeNeverFallsBackToPlaintextUnixHTTP(t *testing.T) {
 		t.Fatal("TLS identity fell back to plaintext")
 	}
 }
+
+type attachTransport func(*http.Request) (*http.Response, error)
+
+func (f attachTransport) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
+func TestTLSAttachUsesCanonicalOutputOnlyUpgrade(t *testing.T) {
+	seen := false
+	c := &scannerEngineClient{scheme: "https", http: &http.Client{Transport: attachTransport(func(r *http.Request) (*http.Response, error) {
+		seen = true
+		if r.URL.Scheme != "https" || r.Method != "POST" || r.URL.RawQuery != "stderr=1&stdout=1&stream=1" || r.Header.Get("Upgrade") != "tcp" || r.Header.Get("Connection") != "Upgrade" || r.Body != nil {
+			t.Fatal("attach differs from finite daemon authorization contract")
+		}
+		return &http.Response{StatusCode: 101, Header: http.Header{"Upgrade": []string{"tcp"}}, Body: io.NopCloser(strings.NewReader("")), Request: r}, nil
+	})}}
+	body, e := c.attach(context.Background(), strings.Repeat("a", 64))
+	if e != nil || !seen {
+		t.Fatal("canonical TLS attach failed", e)
+	}
+	body.Close()
+}
