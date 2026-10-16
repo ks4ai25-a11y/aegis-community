@@ -143,3 +143,25 @@ jobs:
                   if re.fullmatch(r'[1-9][0-9]*',value):
                       subprocess.run(['sudo','kill','-TERM',value],check=False)
           PY
+
+  isolated-engine-authz:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: alpha/go.sum
+      - name: Prepare checksum-pinned additional daemon
+        run: |
+          mkdir -m 700 "$RUNNER_TEMP/aegis-authz-engine-parent"
+          python3 scripts/ci_engine.py "$RUNNER_TEMP/aegis-authz-engine-parent/engine"
+          echo "AEGIS_CI_ENGINE_ROOT=$RUNNER_TEMP/aegis-authz-engine-parent/engine" >> "$GITHUB_ENV"
+      - run: make research-build engine-authz-build
+      - name: Verify native daemon authorization with real guarded Bandit
+        env:
+          AEGIS_REAL_ENGINE_AUTHZ_TEST: '1'
+        run: python3 tests/integration/engine_authz_acceptance.py

@@ -55,7 +55,9 @@
         "docs/evidence/journal-binding-acceptance.json",
         "docs/evidence/journal-bound-worker-acceptance.json",
         "docs/evidence/scanner-broker-acceptance.json",
-        "docs/evidence/broker-dispatch-acceptance.json"
+        "docs/evidence/broker-dispatch-acceptance.json",
+        "docs/architecture/adr/051-isolated-daemon-authorization-adapter.md",
+        "alpha/engineauthz/policy_test.go"
       ]
     },
     {

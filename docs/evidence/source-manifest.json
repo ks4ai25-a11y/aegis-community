@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:8fb0ff8b872df60e2d9d118b1db77645833cb1294994686def916c8721765751",
+  "source_tree_sha256": "sha256:5e9533ecf8e43582172a4be3a22c68f7b4930b5dbb99031ce47f1472b91c9263",
   "files": [
     {
       "path": ".dockerignore",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "4747ac4d3470054957c4d9996fa00f9e575555ce3c0fcf9604ee07c4b5c3ebc0"
+      "sha256": "b10afd89de89fa3a5c5f5f1abcf9c2d44313871dd8a55e5ce2433467b95ac8f0"
     },
     {
       "path": ".gitignore",
@@ -28,11 +28,11 @@
     },
     {
       "path": "Makefile",
-      "sha256": "3eb80fa89d028963366507ac1be4a269dcf499e8b2eccbff07b3e29402e01428"
+      "sha256": "f9af2339e4e2502c64fba740561e46bcfd017f19673adcd2e3b7ee239226f09a"
     },
     {
       "path": "README.md",
-      "sha256": "befd9287b2f0ff051d6ce491a53f5dabc5472c4564cda4c12c8c05c008792a6b"
+      "sha256": "2ce8eec5427f724b394db502c06e3f782c4f876131836186b32e7a8322608ede"
     },
     {
       "path": "SECURITY.md",
@@ -45,6 +45,10 @@
     {
       "path": "alpha/Dockerfile",
       "sha256": "f3470552871741324da8a721b79dce259b9fe9e2361190fba020356bd988fa9a"
+    },
+    {
+      "path": "alpha/cmd/aegis-engine-authz/main.go",
+      "sha256": "9c8180b276e48fe20b6c1f9c0111869357c79e1c6235af604bd74ad1c7479d30"
     },
     {
       "path": "alpha/cmd/aegis-research/main.go",
@@ -67,6 +71,38 @@
       "sha256": "035e200ef8f41ea68390b3b9eb067c000a9c4eefb6df34382f498819240dfda5"
     },
     {
+      "path": "alpha/engineauthz/json.go",
+      "sha256": "8b52231762cc3c427afa9596d8a22c990417f26ddf506ff66bce6058f13e5b64"
+    },
+    {
+      "path": "alpha/engineauthz/lock_other.go",
+      "sha256": "32bdc58aa7593b8f1aebbb2861497f7d44117b73866eae00a2deaa33ed56a766"
+    },
+    {
+      "path": "alpha/engineauthz/lock_unix.go",
+      "sha256": "5afd68b085f8ec8231096386705ff5766f20c4c692dbedf93bfa364a1488d863"
+    },
+    {
+      "path": "alpha/engineauthz/lock_unix_test.go",
+      "sha256": "a61e6e8b3fa620e067bbd878567dd474cf147ff25048b1c1d40fc56baab31a51"
+    },
+    {
+      "path": "alpha/engineauthz/policy.go",
+      "sha256": "c80931d5b163604d2c8dc64734c44235ff43bfa15abba83f11a7bcc9825913a7"
+    },
+    {
+      "path": "alpha/engineauthz/policy_test.go",
+      "sha256": "8343fe6d3ba91a69e5981621f06fe7e75f5f20c7a30cc749594dd05306fdfaa6"
+    },
+    {
+      "path": "alpha/engineauthz/real_test.go",
+      "sha256": "1848dbf3c349edab39e64fe11485aaa499b30fe4d17a5033a82efbf24c3ca21c"
+    },
+    {
+      "path": "alpha/engineauthz/server.go",
+      "sha256": "eb96e6c704934a4aebed67c4edca23ee475bb8009bd3315cf400928437edbce4"
+    },
+    {
       "path": "alpha/enginejournal/existing_test.go",
       "sha256": "4e5b8c93cfbb7ffd13e92b6a3a3f9f93b269e5a5ff904c8c17709a1ece58d391"
     },
@@ -87,12 +123,16 @@
       "sha256": "c3fcaaca769c5caf0a10593bb2632b3d08d89e367749cd7158b45dd6eafb92e7"
     },
     {
+      "path": "alpha/engineprofile/profile.go",
+      "sha256": "1ca1e6d7433600ca0ce9e94e09a4f5ae28d68ead24b6b05e92a5b36c895d97c0"
+    },
+    {
       "path": "alpha/executor/engine.go",
       "sha256": "7517225e7e37b4784850a312349b07d46b747d171f60b7f9a847eb6a984d75c7"
     },
     {
       "path": "alpha/executor/engine_sdk.go",
-      "sha256": "98016af1f70f0b206296700f18e0621229540351ba2ea8cbeb2acc4dc4b3133f"
+      "sha256": "506909bd77f25edde4def927e7b27098fa055e91921d6d350d56f093495b1281"
     },
     {
       "path": "alpha/executor/engine_sdk_real_test.go",
@@ -1448,7 +1488,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "65999672299caaeea1e573990ea822015a8abab2c0573384fa171d3695b4268f"
+      "sha256": "2fdf6c31932bd35b55bf2628101ee159b9cf21e0cf8b0ac316cc2adb01de7fa1"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -1615,6 +1655,10 @@
       "sha256": "17b011f3707e5ee428a8ac655f19d1ae4e8ca790af256850107bccce98586980"
     },
     {
+      "path": "docs/architecture/adr/051-isolated-daemon-authorization-adapter.md",
+      "sha256": "cf56b8016a7b3d61be245b41874ccc53515cec85861e36c363a7e48e3ee1c65c"
+    },
+    {
       "path": "docs/operators/database-snapshots.md",
       "sha256": "3c62f228aa2828f135f5293c85d3da33a1e25464022bcbe6bd9344de9e3c6e85"
     },
@@ -1625,6 +1669,10 @@
     {
       "path": "docs/operators/finding-reviews.md",
       "sha256": "ca5dd2c1fc3699adabf68929008066263406bf3ec77f3a5c85e0d0000e5ca81f"
+    },
+    {
+      "path": "docs/operators/isolated-engine-authorization.md",
+      "sha256": "01cd130a7ee10600a6407959c3794eb35cc2d342cb7e9cb9eeb391dc3b4059cf"
     },
     {
       "path": "docs/operators/journaled-scanner-engine.md",
@@ -1664,7 +1712,7 @@
     },
     {
       "path": "docs/release-gates.json",
-      "sha256": "d38569f19bab0f93a947570cc8528ee0be1a6b8170ef8134006ce6d55129788b"
+      "sha256": "7e11bd3bcdf1161bce646e0d408792ffeb8b8651a1fc92396fddb5ecddb7cfb4"
     },
     {
       "path": "gateway/Dockerfile",
@@ -1885,6 +1933,10 @@
     {
       "path": "tests/integration/demo_acceptance.py",
       "sha256": "e2ce5465fa100c7c0018311095a89218de988b889c75de2e869701ef5c53345a"
+    },
+    {
+      "path": "tests/integration/engine_authz_acceptance.py",
+      "sha256": "74f5ecdd63e2ca355a6beb2ac26b9e31abc8a9a75bc501276734e59d4476f1ad"
     },
     {
       "path": "tests/integration/finding_catalogue_acceptance.py",

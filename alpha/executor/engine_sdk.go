@@ -3,6 +3,7 @@ package executor
 
 import (
 	"aegis.local/alpha/enginejournal"
+	"aegis.local/alpha/engineprofile"
 	"aegis.local/source"
 	"context"
 	"encoding/binary"
@@ -21,7 +22,6 @@ import (
 	"time"
 
 	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/client"
 )
 
@@ -263,13 +263,8 @@ type sdkOutcome struct {
 }
 
 func sdkCreateOptions(tool Tool, nameValue, sourceDir, rulesDir, guardDir string, seconds int, deadline time.Time) client.ContainerCreateOptions {
-	uid, gid := strconv.Itoa(os.Geteuid()), strconv.Itoa(os.Getegid())
-	pids := int64(128)
-	mounts := []mount.Mount{{Type: mount.TypeBind, Source: sourceDir, Target: "/src", ReadOnly: true}, {Type: mount.TypeBind, Source: guardDir, Target: "/aegis", ReadOnly: true}}
-	if rulesDir != "" {
-		mounts = append(mounts, mount.Mount{Type: mount.TypeBind, Source: rulesDir, Target: "/rules", ReadOnly: true})
-	}
-	return client.ContainerCreateOptions{Name: nameValue, Image: tool.Image, Config: &container.Config{Entrypoint: []string{"/aegis/scanner-guard"}, Cmd: []string{tool.ID, strconv.Itoa(seconds), deadline.UTC().Format(time.RFC3339Nano)}, User: uid + ":" + gid, Env: []string{"HOME=/tmp", "SEMGREP_SEND_METRICS=off"}, AttachStdout: true, AttachStderr: true, Tty: false, Labels: map[string]string{"io.aegis.scan": nameValue, "io.aegis.operator_pid": strconv.Itoa(os.Getpid())}}, HostConfig: &container.HostConfig{AutoRemove: true, ReadonlyRootfs: true, NetworkMode: "none", IpcMode: "private", CapDrop: []string{"ALL"}, SecurityOpt: []string{"no-new-privileges"}, LogConfig: container.LogConfig{Type: "none"}, Mounts: mounts, Tmpfs: map[string]string{"/tmp": fmt.Sprint("rw,noexec,nosuid,size=96m,uid=", uid, ",gid=", gid)}, Resources: container.Resources{PidsLimit: &pids, Memory: 768 << 20, MemorySwap: 768 << 20, NanoCPUs: 1e9}}}
+	p := engineprofile.Create(tool.ID, tool.Image, nameValue, sourceDir, rulesDir, guardDir, seconds, deadline, os.Geteuid(), os.Getegid(), os.Getpid())
+	return client.ContainerCreateOptions{Name: nameValue, Config: p.Config, HostConfig: p.HostConfig}
 }
 func (c Config) runEngineSDK(runCtx context.Context, endpoint, engine, nameValue string, options client.ContainerCreateOptions, stdout, stderr io.Writer, cancelRun context.CancelFunc) (out sdkOutcome) {
 	defer func() {

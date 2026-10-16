@@ -224,3 +224,7 @@ A dedicated broker now owns scanner authority and the bound worker execution pat
 This advances privilege separation for scan coordination. Exclusive daemon mediation, independent verifier/reconciliation, allocation/lease and late-start exclusion, atomic cleanup release, safe enrollment replacement, VM execution, advisory databases, proof/remediation, desktop AI/MCP and remaining H7 gates remain unfinished.
 
 Evidence: `docs/evidence/scanner-broker-acceptance.json` and `docs/evidence/broker-dispatch-acceptance.json` record the final six-tool broker/client run, sixteen checks, fourteen one-shot regressions, source tests/vet and minimal-client dependency/schema checks. Neither fixture releases cleanup admission or promotes scanner proof.
+
+## Isolated engine authorization adapter (ADR 051)
+
+A separate opt-in native Docker authorization plugin now restricts verified TLS broker/observer principals to the shared fixed static scanner profile and exact tracked container lifecycle. A plugin-owned durable journal records intents before allow and quarantines unresolved mutation responses across restart. The new disposable Linux CI fixture provisions an additional TLS-only daemon for real guarded Bandit and policy refusal checks; it does not reconfigure the workstation or retained demo. Packaged broker TLS integration, authenticated controller leases, independent source/guard attestation, exclusive engine deployment, cleanup reconciliation and release remain unfinished. All mediation/release authority flags remain false; full v4 and public beta remain NO-GO.

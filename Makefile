@@ -43,3 +43,6 @@ research-build:
 broker-build:
 	cd alpha && CGO_ENABLED=0 go build -trimpath -buildvcs=false -o ../bin/aegis-scanner-broker ./cmd/aegis-scanner-broker
 	cd alpha && CGO_ENABLED=0 go build -trimpath -buildvcs=false -o ../bin/aegis-scan-dispatch ./cmd/aegis-scan-dispatch
+
+engine-authz-build:
+	cd alpha && CGO_ENABLED=0 go build -trimpath -buildvcs=false -o ../bin/aegis-engine-authz ./cmd/aegis-engine-authz
