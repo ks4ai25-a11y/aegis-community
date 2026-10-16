@@ -509,3 +509,40 @@ func TestRateLimitKeyFollowsTrustedProxiesOnly(t *testing.T) {
 		t.Fatal("untrusted X-Forwarded-For bypassed the rate limit")
 	}
 }
+
+func TestGatewayAdapterClassifiesOutcomes(t *testing.T) {
+	scratch, _ := os.MkdirTemp("/tmp", "aegis-adapter-")
+	defer os.RemoveAll(scratch)
+	socket := filepath.Join(scratch, "d.sock")
+	ln, e := net.Listen("unix", socket)
+	if e != nil {
+		t.Fatal(e)
+	}
+	mode := "busy"
+	srv := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/status" {
+			json.NewEncoder(w).Encode(map[string]string{"digest": domain.Digest(domain.Initial())})
+			return
+		}
+		if mode == "busy" {
+			w.WriteHeader(429)
+		} else {
+			w.WriteHeader(503)
+		}
+		json.NewEncoder(w).Encode(map[string]string{"error": "x"})
+	})}
+	go srv.Serve(ln)
+	defer srv.Close()
+	a := GatewayAdapter{M: &Manager{DeploySocket: socket}}
+	if e = a.Apply(context.Background(), domain.Initial()); !Definitive(e) || errors.Is(e, ErrUnknownOutcome) {
+		t.Fatal("busy must be definitive", e)
+	}
+	mode = "unknown"
+	if e = a.Apply(context.Background(), domain.Initial()); Definitive(e) || !errors.Is(e, ErrUnknownOutcome) {
+		t.Fatal("503 must be unknown", e)
+	}
+	c := a.Capabilities()
+	if !c.Safety.WriteRequiresApproval || len(c.Unsupported) == 0 {
+		t.Fatal(c)
+	}
+}

@@ -63,7 +63,7 @@ Rules:
 
 Each phase is gated by evidence, not dates. Phases map to Frontier milestones FX0–FX8.
 
-### Phase F0 — Contracts and seams (Community work, now)
+### Phase F0 — Contracts and seams (Community work, now; connector credential done)
 
 - Freeze the seven contracts in §3; publish them as JSON Schema with generated Go/TS/Python bindings (partly done).
 - Add a **connector credential** to Community: owner-issued, scoped (read events/incidents/findings/policy; propose-only), expiring, revocable, audited. No write access to policy activation.
@@ -111,13 +111,13 @@ Ordered by value; each item is useful to Community users on its own.
 | Step | Work | Why it helps Frontier |
 | --- | --- | --- |
 | C1 | Multi-site gateway policy (**done**, ADR 056) | Frontier protects many apps per install from day one. |
-| C2 | Scoped connector credential + read-only export API | The only channel Frontier needs into a Community install. |
-| C3 | Enforcement adapter interface around the deployer | Frontier adds RLS/middleware/OPA adapters behind the same verbs. |
-| C4 | Deterministic detector catalogue (**DET-01…06 done**) | Typed signals for Frontier fusion. |
-| C5 | Local-model AI investigator producing `IncidentAssessmentV1` | Same envelope Frontier's managed investigators emit; Community stays zero-cost via local models. |
-| C6 | Remediation proposal records (`MitigationProposalV1`) | Frontier's remediation transactions extend, not replace, them. |
+| C2 | Scoped connector credential + read-only export API (**done**, ADR 061) | The only channel Frontier needs into a Community install. |
+| C3 | Enforcement adapter interface around the deployer (**done**: `controller/internal/policy/adapter.go`, `/api/v1/adapters`) | Frontier adds RLS/middleware/OPA adapters behind the same verbs. |
+| C4 | Deterministic detector catalogue (**DET-01…07 done**, ADRs 058, 063) | Typed signals for Frontier fusion. |
+| C5 | Local-model AI investigator producing `IncidentAssessmentV1` (**done**, ADR 059) | Same envelope Frontier's managed investigators emit; Community stays zero-cost via local models. |
+| C6 | Remediation proposal records (`MitigationProposalV1`) (**done** for WAF/rate-limit proposals, ADR 060; code patches open) | Frontier's remediation transactions extend, not replace, them. |
 | C7 | Signed evidence export (detached signature over report digest, local key) | Frontier's evidence ledger verifies Community-originated proofs. |
-| C8 | Application map ↔ observed route diff (E3) | First "meaning" facts for the graph. |
+| C8 | Application map ↔ observed route diff (E3) (**done**) | First "meaning" facts for the graph. |
 
 ## 7. What stays exclusive to Frontier
 

@@ -36,6 +36,7 @@ var (
 		regexp.MustCompile(`^/incidents/` + id + `$`),
 		regexp.MustCompile(`^/incidents/` + id + `/(assessment|proposals)$`),
 		regexp.MustCompile(`^/ai/status$`),
+		regexp.MustCompile(`^/adapters$`),
 		regexp.MustCompile(`^/findings/catalogue$`),
 	}
 )

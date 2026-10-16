@@ -253,6 +253,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		output(w, 200, map[string]string{"state": "revoked"})
+	case path == "/adapters" && r.Method == "GET":
+		output(w, 200, map[string]any{"items": []policy.Capability{policy.GatewayAdapter{}.Capabilities()}})
 	case path == "/ai/status" && r.Method == "GET":
 		output(w, 200, s.AI.Public())
 	case strings.HasPrefix(path, "/incidents/") && strings.HasSuffix(path, "/proposals") && r.Method == "GET":
