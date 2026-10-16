@@ -18,6 +18,7 @@ class PolicyRevisionV1ExclusionsItem(TypedDict):
     method: str
     path: str
     parameter: str
+    expires_at: NotRequired[str]
 class PolicyRevisionV1Metadata(TypedDict):
     rationale: str
     requested_by: str
@@ -157,6 +158,7 @@ class PolicyRevisionV2ExclusionsItem(TypedDict):
     method: str
     path: str
     parameter: str
+    expires_at: NotRequired[str]
 class PolicyRevisionV2Metadata(TypedDict):
     rationale: str
     requested_by: str
@@ -180,6 +182,7 @@ class PolicyRevisionV2SitesItemExclusionsItem(TypedDict):
     method: str
     path: str
     parameter: str
+    expires_at: NotRequired[str]
 class PolicyRevisionV2SitesItemRateLimit(TypedDict):
     requests: int
     window_seconds: int

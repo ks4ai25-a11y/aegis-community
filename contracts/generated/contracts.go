@@ -20,6 +20,7 @@ type PolicyRevisionV1ExclusionsItem struct {
 	Method    string `json:"method"`
 	Path      string `json:"path"`
 	Parameter string `json:"parameter"`
+	ExpiresAt string `json:"expires_at,omitempty"`
 }
 type PolicyRevisionV1Metadata struct {
 	Rationale   string `json:"rationale"`
@@ -172,6 +173,7 @@ type PolicyRevisionV2ExclusionsItem struct {
 	Method    string `json:"method"`
 	Path      string `json:"path"`
 	Parameter string `json:"parameter"`
+	ExpiresAt string `json:"expires_at,omitempty"`
 }
 type PolicyRevisionV2Metadata struct {
 	Rationale   string `json:"rationale"`
@@ -199,6 +201,7 @@ type PolicyRevisionV2SitesItemExclusionsItem struct {
 	Method    string `json:"method"`
 	Path      string `json:"path"`
 	Parameter string `json:"parameter"`
+	ExpiresAt string `json:"expires_at,omitempty"`
 }
 type PolicyRevisionV2SitesItemRateLimit struct {
 	Requests      int64 `json:"requests"`

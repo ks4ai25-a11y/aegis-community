@@ -80,6 +80,10 @@
           "parameter": {
             "type": "string",
             "pattern": "^[a-zA-Z][a-zA-Z0-9_]{0,31}$"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [

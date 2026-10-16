@@ -18,6 +18,7 @@ export interface PolicyRevisionV1ExclusionsItem {
   method: "GET" | "POST";
   path: "/catalog" | "/test-pattern";
   parameter: string;
+  expires_at?: string;
 }
 export interface PolicyRevisionV1Metadata {
   rationale: string;
@@ -170,6 +171,7 @@ export interface PolicyRevisionV2ExclusionsItem {
   method: "GET" | "POST";
   path: "/catalog" | "/test-pattern";
   parameter: string;
+  expires_at?: string;
 }
 export interface PolicyRevisionV2Metadata {
   rationale: string;
@@ -197,6 +199,7 @@ export interface PolicyRevisionV2SitesItemExclusionsItem {
   method: "GET" | "POST";
   path: string;
   parameter: string;
+  expires_at?: string;
 }
 export interface PolicyRevisionV2SitesItemRateLimit {
   requests: number;
