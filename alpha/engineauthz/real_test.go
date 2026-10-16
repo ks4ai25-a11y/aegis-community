@@ -76,7 +76,20 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 		if body != nil {
 			r.Header.Set("Content-Type", "application/json")
 		}
-		res, e := clients[role].Do(r)
+		selected := clients[role]
+		if method == "POST" && strings.HasPrefix(path, "/containers/create?") {
+			// A freshly restored daemon can need more than five seconds for
+			// its first snapshot allocation. This is an engine response budget,
+			// not an extension of the plugin's separate authorization deadline.
+			// Keep the existing total client deadline and every refusal check.
+			transport := clients[role].Transport.(*http.Transport).Clone()
+			transport.ResponseHeaderTimeout = 30 * time.Second
+			defer transport.CloseIdleConnections()
+			boundedClient := *selected
+			boundedClient.Transport = transport
+			selected = &boundedClient
+		}
+		res, e := selected.Do(r)
 		if e != nil {
 			t.Fatal("isolated engine request failed", e)
 		}

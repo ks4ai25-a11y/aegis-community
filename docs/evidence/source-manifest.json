@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:b0780eaff5c1b075eba20990c62d3445e1adb794f8d9a450379062b6a7764855",
+  "source_tree_sha256": "sha256:82fd0d1244ca2cb6bc0eeedb0996ef51b55d3b1ba15fa71a1bfb97af45845f8e",
   "files": [
     {
       "path": ".dockerignore",
@@ -104,7 +104,7 @@
     },
     {
       "path": "alpha/engineauthz/real_test.go",
-      "sha256": "c8581513f93eb5f464f36339228e951faf71d93786740ce84bb95fc62a439c45"
+      "sha256": "c4e91669ec8ea59eb754f5e3cbd7879b60eb284350e5b69c158912a544c81a9e"
     },
     {
       "path": "alpha/engineauthz/server.go",
@@ -1760,7 +1760,7 @@
     },
     {
       "path": "docs/architecture/adr/054-controller-observed-daemon-launch-preconditions.md",
-      "sha256": "f08f818f2d4810feb2c2dadc3884d7a079fa8b1fb31e15cb4e4fb6c9233995a8"
+      "sha256": "40fc9d63783db233e36e3b5afd9e542ede0dd12a0e9b31d8a096505bf382994a"
     },
     {
       "path": "docs/operators/controller-observed-engine-gate.md",
