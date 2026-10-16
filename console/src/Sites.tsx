@@ -26,7 +26,8 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
   const [sites, setSites] = useState<Site[]>([]);
   const [current, setCurrent] = useState<any>();
   const [error, setError] = useState('');
-  const [form, setForm] = useState({id: '', name: '', hosts: '', origin: ''});
+  const [form, setForm] = useState({id: '', name: '', hosts: '', origin: '', tls: '', email: '', limit: ''});
+  const [editing, setEditing] = useState<any>();
   const [preview, setPreview] = useState<any>();
   const [ack, setAck] = useState(false);
   const [reason, setReason] = useState('');
@@ -40,6 +41,15 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
   const siteID = 'site_' + form.id.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
   const hostnames = form.hosts.split(/[\s,]+/).map(h => h.trim().toLowerCase()).filter(Boolean);
   const ready = form.id && form.name && hostnames.length && form.origin;
+  // Optional fields are omitted when unset so the candidate stays minimal.
+  function extras(f: {tls: string; email: string; limit: string}) {
+    const out: any = {};
+    if (f.tls) out.tls = f.tls;
+    if (f.tls === 'acme' && f.email.trim()) out.acme_email = f.email.trim();
+    const n = Number(f.limit);
+    if (f.limit && n > 0) out.rate_limit = {requests: n, window_seconds: 60};
+    return out;
+  }
 
   function stage(sites: any[], why: string) {
     if (!current) return;
@@ -59,9 +69,10 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
           <td><strong>{s.display_name}</strong><div className="mono muted">{s.site_id}</div></td>
           <td className="mono">{s.hostnames.join(', ')}</td>
           <td className="mono">{s.origin_url}</td>
-          <td><span className={'badge ' + (s.mode === 'protect' ? 'blocked' : '')}>{s.mode}</span>{s.synthetic && <span className="badge">synthetic</span>}</td>
+          <td><span className={'badge ' + (s.mode === 'protect' ? 'blocked' : '')}>{s.mode}</span>{s.synthetic && <span className="badge">synthetic</span>}{(s as any).tls && <span className="badge">TLS {(s as any).tls}</span>}{(s as any).rate_limit && <span className="badge">{(s as any).rate_limit.requests}/min</span>}</td>
           <td className="actions">
             <button className="button light" onClick={() => onSelect(s.site_id)}>View activity<ArrowRight size={14}/></button>
+            {!s.synthetic && <button disabled={busy} className="button light" onClick={() => { const r = registered.find(x => x.site_id === s.site_id); setEditing({site_id: s.site_id, tls: r?.tls || '', email: r?.acme_email || '', limit: r?.rate_limit ? String(r.rate_limit.requests) : ''}); }}>Settings</button>}
             {!s.synthetic && <button disabled={busy} className="button light" aria-label={'Remove ' + s.display_name} onClick={() => {
               if (window.confirm('Remove ' + s.display_name + ' from the gateway? Requests to its host names will receive 421 after activation.'))
                 stage(registered.filter(r => r.site_id !== s.site_id), 'Remove ' + s.site_id + ' from the gateway');
@@ -78,12 +89,21 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
         <label>Display name<input value={form.name} maxLength={64} placeholder="Shop" onChange={e => setForm({...form, name: e.target.value})}/></label>
         <label>Host names<input value={form.hosts} placeholder="shop.example.com www.shop.example.com" onChange={e => setForm({...form, hosts: e.target.value})}/><small className="muted">The DNS names clients use. Up to eight.</small></label>
         <label>Private origin<input value={form.origin} placeholder="shop-app:3000" onChange={e => setForm({...form, origin: e.target.value})}/><small className="muted">host:port reachable from the gateway network. Loopback and metadata addresses are refused.</small></label>
+        <TLSFields value={form} onChange={v => setForm({...form, ...v})}/>
       </div>
-      <button disabled={busy || !ready || !current} className="button primary" onClick={() => stage([...registered, {site_id: siteID, display_name: form.name.trim(), hostnames, origin: form.origin.trim(), requested_mode: 'observe', crs: defaultCRS, exclusions: []}], 'Register ' + siteID + ' in Observe mode')}>
+      <button disabled={busy || !ready || !current} className="button primary" onClick={() => stage([...registered, {site_id: siteID, display_name: form.name.trim(), hostnames, origin: form.origin.trim(), requested_mode: 'observe', crs: defaultCRS, exclusions: [], ...extras(form)}], 'Register ' + siteID + ' in Observe mode')}>
         <Plus size={15}/>{busy ? 'Validating & testing…' : 'Validate and preview'}
       </button>
     </section>
 
+    {editing && <section className="card">
+      <div className="card-heading"><h2>Settings for {editing.site_id}</h2></div>
+      <div className="form-grid"><TLSFields value={editing} onChange={v => setEditing({...editing, ...v})}/></div>
+      <div className="actions-row">
+        <button disabled={busy} className="button primary" onClick={() => { const e = editing; setEditing(undefined); stage(registered.map(r => { if (r.site_id !== e.site_id) return r; const {tls, acme_email, rate_limit, ...rest} = r; return {...rest, ...extras(e)}; }), 'Update TLS and rate limit for ' + e.site_id); }}>Validate and preview</button>
+        <button className="button light" onClick={() => setEditing(undefined)}>Cancel</button>
+      </div>
+    </section>}
     {preview && <section className="card">
       <div className="card-heading"><h2>Candidate preview</h2><span className="badge">{preview.fixture_result}</span></div>
       <div className="system-row"><span>Change</span><strong>{reason}</strong></div>
@@ -94,8 +114,20 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
       <button disabled={busy || !ack || preview.fixture_result !== 'PASS'} className="button primary" onClick={() => action(async () => {
         await activateCandidate('site_demo', preview, current.digest, reason);
         setPreview(undefined);
-        setForm({id: '', name: '', hosts: '', origin: ''});
+        setForm({id: '', name: '', hosts: '', origin: '', tls: '', email: '', limit: ''});
       }, 'Gateway activation confirmed.')}>Approve and activate<ShieldCheck size={16}/></button>
     </section>}
+  </>;
+}
+
+function TLSFields({value, onChange}: {value: {tls: string; email: string; limit: string}; onChange: (v: any) => void}) {
+  return <>
+    <label>HTTPS<select value={value.tls} onChange={e => onChange({tls: e.target.value})}>
+      <option value="">Off · plain HTTP on the shared listener</option>
+      <option value="acme">Automatic public certificate (ACME, free)</option>
+      <option value="internal">Aegis local CA (private networks)</option>
+    </select><small className="muted">ACME needs public DNS for every host name and the public overlay (ports 80/443).</small></label>
+    {value.tls === 'acme' && <label>ACME contact email (optional)<input value={value.email} maxLength={320} onChange={e => onChange({email: e.target.value})}/></label>}
+    <label>Rate limit (requests per minute per client)<input type="number" min={10} max={100000} placeholder="Off" value={value.limit} onChange={e => onChange({limit: e.target.value})}/><small className="muted">Over-limit requests receive 429 before the WAF and origin. Shared NAT clients count together.</small></label>
   </>;
 }

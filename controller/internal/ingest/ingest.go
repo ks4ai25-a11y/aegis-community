@@ -107,6 +107,8 @@ func Normalize(b []byte) (domain.Event, error) {
 	if r.Source == "caddy-access" && r.Status != nil {
 		if *r.Status >= 500 {
 			ev.Decision = "upstream_error"
+		} else if *r.Status == 429 {
+			ev.Decision = "rate_limited"
 		} else if *r.Status == 413 || *r.Status == 431 || *r.Status == 421 {
 			ev.Decision = "rejected_parse"
 		} else if *r.Status < 400 {

@@ -85,3 +85,29 @@ func TestBehaviouralDetectorsAreAdvisoryOnly(t *testing.T) {
 		t.Fatal(r, e)
 	}
 }
+
+func TestBurstProposesRateLimitForRegisteredSite(t *testing.T) {
+	s, id := seed(t, "site_shop", "/catalog", "", "942100")
+	_, d, _ := s.Active()
+	p := domain.Initial()
+	p.Schema, p.Parent = "1.1", d
+	p.Metadata.Rationale = "Register shop"
+	p.Sites = []domain.SitePolicy{{ID: "site_shop", Name: "Shop", Hostnames: []string{"shop.example.com"}, Origin: "shop:3000", Mode: "observe", CRS: domain.CRS{Blocking: 1, Executing: 1, Threshold: 5}, Exclusions: []domain.Exclusion{}}}
+	b, _ := json.Marshal(p)
+	s.DB.Exec("INSERT INTO policies VALUES(?,?,?,?,?,?)", domain.Digest(p), d, string(b), "ACTIVE", domain.Now(), "owner")
+	s.DB.Exec("UPDATE settings SET value=? WHERE key='active'", domain.Digest(p))
+	s.DB.Exec(`UPDATE incidents SET notes='{"detector_id":"DET-04","site_id":"site_shop"}' WHERE id=?`, id)
+	r, e := Propose(s, id)
+	if e != nil || len(r.Proposals) != 1 || r.Proposals[0].Kind != "rate_limit" {
+		t.Fatal(r, e)
+	}
+	got := r.Proposals[0].Candidate.Sites[0].RateLimit
+	if got == nil || got.Requests != 600 || got.WindowSeconds != 60 || r.Proposals[0].Candidate.Parent != domain.Digest(p) {
+		t.Fatal(r.Proposals[0].Candidate)
+	}
+	// Demo bursts are explained, not proposed.
+	s.DB.Exec(`UPDATE incidents SET notes='{"detector_id":"DET-04","site_id":"site_demo"}' WHERE id=?`, id)
+	if r, _ = Propose(s, id); len(r.Proposals) != 0 || len(r.NotProposed) != 1 {
+		t.Fatal(r)
+	}
+}

@@ -58,6 +58,23 @@ def gateway(path, host, expected, spoof="spoofed-id"):
     return h
 
 
+def gateway_status(path, host, follow=False):
+    req = urllib.request.Request(GATEWAY + path, headers={"Host": host})
+    opener_ = urllib.request.build_opener(NoRedirect)
+    try:
+        with opener_.open(req, timeout=8) as r:
+            r.read(4096)
+            return r.status
+    except urllib.error.HTTPError as r:
+        r.read(4096)
+        return r.code
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *a, **k):
+        return None
+
+
 def login():
     global csrf
     if CREDENTIAL.exists():
@@ -154,6 +171,25 @@ def main():
         gateway("/catalog?query=benign", HOST, 200)
         check("site_benign_request_allowed")
 
+        # Approved per-client rate limit: excess requests get 429 before the WAF and origin.
+        activate({**base, "schema_version": "1.1", "sites": [{**site, "requested_mode": "protect", "rate_limit": {"requests": 10, "window_seconds": 60}}]}, "Rate limit synthetic shop")
+        codes = [gateway_status("/catalog", HOST) for _ in range(15)]
+        assert codes.count(429) >= 4 and codes[0] == 200, codes
+        check("site_rate_limit_enforced", {"statuses": codes})
+        https = os.environ.get("AEGIS_GATEWAY_HTTPS_PORT")
+        if https:
+            activate({**base, "schema_version": "1.1", "sites": [{**site, "tls": "internal"}]}, "Serve synthetic shop over HTTPS")
+            out = ""
+            for _ in range(40):
+                p = subprocess.run(["curl", "-sk", "-o", "/dev/null", "-D", "-", "--resolve", HOST + ":" + https + ":127.0.0.1", "https://" + HOST + ":" + https + "/catalog"], capture_output=True, text=True, timeout=10)
+                out = p.stdout
+                if out.startswith("HTTP/"):
+                    break
+                time.sleep(0.5)
+            assert out.split()[1] == "200" and "x-aegis-request-id: " + SITE + "." in out.lower(), out
+            redirect = gateway_status("/catalog", HOST, follow=False)
+            assert redirect == 308, redirect
+            check("site_https_internal_ca_and_redirect")
         restored = activate({**base, "schema_version": "1.1"}, "Remove synthetic shop after acceptance")
         gateway("/catalog", HOST, 421)
         assert [s["site_id"] for s in call("/sites")["items"]] == ["site_demo"]

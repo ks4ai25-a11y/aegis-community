@@ -57,6 +57,9 @@ func Propose(s *store.Store, incident string) (Result, error) {
 	if json.Unmarshal([]byte(notes), &det) != nil || det["detector_id"] == nil {
 		det["detector_id"] = "DET-01"
 	}
+	if det["detector_id"] == "DET-04" {
+		return proposeRateLimit(s, incident, det, res)
+	}
 	if det["detector_id"] != "DET-01" {
 		res.NotProposed = append(res.NotProposed, fmt.Sprint(det["detector_id"])+" is advisory; Community does not generate automatic mitigations for behavioural detectors.")
 		return res, nil
@@ -216,4 +219,54 @@ func setMode(p *domain.Policy, site, mode string) {
 			p.Sites[i].Mode = mode
 		}
 	}
+}
+
+// proposeRateLimit answers a request-burst incident on a registered site with an
+// owner-approvable per-client limit. The demo site has no rate-limit support.
+func proposeRateLimit(s *store.Store, incident string, det map[string]any, res Result) (Result, error) {
+	site, _ := det["site_id"].(string)
+	active, digest, e := s.Active()
+	if e != nil {
+		return res, e
+	}
+	reg, ok := active.FindSite(site)
+	if !ok {
+		res.NotProposed = append(res.NotProposed, "Rate limits apply to registered sites only.")
+		return res, nil
+	}
+	if reg.RateLimit != nil {
+		res.NotProposed = append(res.NotProposed, fmt.Sprintf("%s already limits clients to %d requests per %d s.", site, reg.RateLimit.Requests, reg.RateLimit.WindowSeconds))
+		return res, nil
+	}
+	refs := []string{}
+	rows, e := s.DB.Query("SELECT event FROM incident_events WHERE incident=? LIMIT 20", incident)
+	if e == nil {
+		for rows.Next() {
+			var id string
+			if rows.Scan(&id) == nil {
+				refs = append(refs, id)
+			}
+		}
+		rows.Close()
+	}
+	p := clone(active)
+	p.Parent = digest
+	p.Metadata = domain.Metadata{Rationale: "Limit each client of " + site + " to 600 requests per minute (proposed from a burst incident)", RequestedBy: "local-owner"}
+	for i := range p.Sites {
+		if p.Sites[i].ID == site {
+			p.Sites[i].RateLimit = &domain.RateLimit{Requests: 600, WindowSeconds: 60}
+		}
+	}
+	if e := policy.Validate(p); e != nil {
+		res.NotProposed = append(res.NotProposed, "A rate limit cannot be expressed safely: "+e.Error())
+		return res, nil
+	}
+	res.Proposals = append(res.Proposals, finish(Proposal{IncidentID: incident, Site: site, Kind: "rate_limit", Priority: "P2",
+		Title:        "Limit each client of " + site + " to 600 requests per minute",
+		Rationale:    "One client exceeded the burst threshold. A per-client limit returns 429 to excess requests before they reach the WAF or the origin.",
+		Impact:       "Clients sending more than 600 requests in a minute receive 429 until the window passes.",
+		SideEffects:  []string{"Clients behind one shared address (NAT, corporate proxy, CDN without trusted proxy support) share the limit.", "Legitimate batch jobs or load tests above this rate are slowed."},
+		EvidenceRefs: refs, Tests: []string{"Validate and preview the candidate in the isolated fixture.", "Confirm normal browsing and API clients stay well below the limit."},
+		Candidate: p}))
+	return res, nil
 }

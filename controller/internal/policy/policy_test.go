@@ -5,8 +5,10 @@ import (
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/store"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -14,6 +16,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestPO001ObserveDefault(t *testing.T) {
@@ -275,5 +278,144 @@ func TestRenderedSitesValidateWithGateway(t *testing.T) {
 	out, e := exec.Command(bin, "validate", "--config", path, "--adapter", "caddyfile").CombinedOutput()
 	if e != nil {
 		t.Fatal(string(out))
+	}
+	// ACME with a contact address and a rate limit must also validate offline.
+	acme := sitePolicy()
+	acme.Sites[0].TLS, acme.Sites[0].ACMEEmail = "acme", "ops@shop.example.com"
+	acme.Sites[0].RateLimit = &domain.RateLimit{Requests: 100, WindowSeconds: 60}
+	rendered = Render(acme, "demo-origin:8080", ":8080", filepath.Join(dir, "admin.sock"), filepath.Join(dir, "events.jsonl"))
+	for _, want := range []string{"https://shop.example.com, https://www.shop.example.com {", " tls ops@shop.example.com", "redir @site_shop_https https://{host}{uri} 308", "events 100", "auto_https disable_redirects"} {
+		if !strings.Contains(rendered, want) {
+			t.Fatal("missing", want)
+		}
+	}
+	os.WriteFile(path, []byte(rendered), 0600)
+	cmd := exec.Command(bin, "validate", "--config", path, "--adapter", "caddyfile")
+	cmd.Env = append(os.Environ(), "XDG_DATA_HOME="+dir, "XDG_CONFIG_HOME="+dir, "HOME="+dir)
+	if out, e = cmd.CombinedOutput(); e != nil {
+		t.Fatal(string(out))
+	}
+}
+
+func freePort(t *testing.T) int {
+	l, e := net.Listen("tcp", "127.0.0.1:0")
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port
+}
+
+func TestTLSAndRateLimitValidation(t *testing.T) {
+	ok := sitePolicy()
+	ok.Sites[0].TLS, ok.Sites[0].ACMEEmail = "acme", "ops@shop.example.com"
+	ok.Sites[0].RateLimit = &domain.RateLimit{Requests: 100, WindowSeconds: 60}
+	if e := Validate(ok); e != nil {
+		t.Fatal(e)
+	}
+	cases := map[string]func(*domain.SitePolicy){
+		"unknown tls":        func(s *domain.SitePolicy) { s.TLS = "self" },
+		"email without acme": func(s *domain.SitePolicy) { s.TLS = "internal" },
+		"email injection":    func(s *domain.SitePolicy) { s.ACMEEmail = "a@b.com\n}" },
+		"tiny limit":         func(s *domain.SitePolicy) { s.RateLimit = &domain.RateLimit{Requests: 1, WindowSeconds: 60} },
+		"huge window":        func(s *domain.SitePolicy) { s.RateLimit = &domain.RateLimit{Requests: 100, WindowSeconds: 86400} },
+	}
+	for name, mutate := range cases {
+		p := sitePolicy()
+		p.Sites[0].TLS, p.Sites[0].ACMEEmail = "acme", "ops@shop.example.com"
+		mutate(&p.Sites[0])
+		if Validate(p) == nil {
+			t.Error(name, "accepted")
+		}
+	}
+	// Without TLS sites the production configuration is byte-identical to the fixture one.
+	if Render(sitePolicy(), "o:1", ":8080", "/a", "/l") != RenderFixture(sitePolicy(), "o:1", ":8080", "/a", "/l") {
+		t.Fatal("TLS-free render changed")
+	}
+}
+
+func TestTLSRedirectAndRateLimitWithRealGateway(t *testing.T) {
+	bin, _ := filepath.Abs("../../../bin/caddy")
+	if out, e := exec.Command(bin, "list-modules").Output(); e != nil || !strings.Contains(string(out), "http.handlers.rate_limit") {
+		t.Skip("gateway binary with rate limiting not built")
+	}
+	origin := http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("origin ok")) })}
+	ol, _ := net.Listen("tcp", "127.0.0.1:0")
+	go origin.Serve(ol)
+	defer origin.Close()
+	dir, e := os.MkdirTemp("/tmp", "aegis-tls-")
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer os.RemoveAll(dir)
+	httpPort, httpsPort := freePort(t), freePort(t)
+	HTTPSPort = httpsPort
+	defer func() { HTTPSPort = 8443 }()
+	p := sitePolicy()
+	p.Sites[0].Hostnames = []string{"shop.example.test"}
+	p.Sites[0].Origin = ol.Addr().String()
+	p.Sites[0].TLS = "internal"
+	p.Sites[0].RateLimit = &domain.RateLimit{Requests: 10, WindowSeconds: 60}
+	cfg := Render(p, "127.0.0.1:1", fmt.Sprintf(":%d", httpPort), filepath.Join(dir, "admin.sock"), filepath.Join(dir, "events.jsonl"))
+	path := filepath.Join(dir, "Caddyfile")
+	os.WriteFile(path, []byte(cfg), 0600)
+	cmd := exec.Command(bin, "run", "--config", path, "--adapter", "caddyfile")
+	cmd.Env = append(os.Environ(), "XDG_DATA_HOME="+dir, "XDG_CONFIG_HOME="+dir, "HOME="+dir)
+	var logs strings.Builder
+	cmd.Stderr = &logs
+	if e = cmd.Start(); e != nil {
+		t.Fatal(e)
+	}
+	defer func() { cmd.Process.Signal(os.Interrupt); cmd.Wait() }()
+	dial := func(port int) *http.Client {
+		return &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+			Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true, ServerName: "shop.example.test"}, DialContext: func(ctx context.Context, n, _ string) (net.Conn, error) {
+				return (&net.Dialer{}).DialContext(ctx, n, fmt.Sprintf("127.0.0.1:%d", port))
+			}}}
+	}
+	var resp *http.Response
+	for i := 0; i < 100; i++ {
+		if resp, e = dial(httpsPort).Get("https://shop.example.test/catalog"); e == nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	if e != nil {
+		t.Fatal(e, logs.String())
+	}
+	resp.Body.Close()
+	if resp.StatusCode != 200 || resp.TLS == nil || !strings.HasPrefix(resp.Header.Get("X-Aegis-Request-ID"), "site_shop.") || resp.Header.Get("X-Aegis-Mode") != "observe" {
+		t.Fatal(resp.StatusCode, resp.Header)
+	}
+	redirect, e := dial(httpPort).Get("http://shop.example.test/catalog")
+	if e != nil {
+		t.Fatal(e)
+	}
+	redirect.Body.Close()
+	if redirect.StatusCode != 308 || !strings.HasPrefix(redirect.Header.Get("Location"), "https://shop.example.test") {
+		t.Fatal("no HTTPS redirect", redirect.StatusCode, redirect.Header)
+	}
+	limited := 0
+	for i := 0; i < 15; i++ {
+		r, e := dial(httpsPort).Get("https://shop.example.test/catalog")
+		if e != nil {
+			t.Fatal(e)
+		}
+		r.Body.Close()
+		if r.StatusCode == 429 {
+			limited++
+		}
+	}
+	if limited < 5 {
+		t.Fatal("rate limit not enforced", limited)
+	}
+	demo, e := dial(httpPort).Get("http://demo.example.test/catalog")
+	if e != nil {
+		t.Fatal(e)
+	}
+	demo.Body.Close()
+	// The demo origin is unreachable here (502), but it must be routed, not redirected.
+	if demo.StatusCode == 308 || demo.StatusCode == 421 || demo.Header.Get("X-Aegis-Mode") != "observe" || strings.Contains(demo.Header.Get("X-Aegis-Request-ID"), ".") {
+		t.Fatal("demo HTTP listener changed", demo.StatusCode)
 	}
 }

@@ -48,8 +48,21 @@ Choose the site in the header **Site** selector. Live activity, Endpoints and In
 
 Registered sites' request IDs look like `site_shop.<uuid>`. The gateway removes any client-supplied request-ID header before assigning its own, so attribution does not trust client input. The same sanitizer applies to every site: no bodies, query values, cookies, authorization headers or client IPs are stored.
 
+## HTTPS
+
+In a site's **Settings** (or at registration), choose **Automatic public certificate (ACME, free)** for public host names, or **Aegis local CA** for private networks. Then publish the gateway's HTTPS listener:
+
+```sh
+docker compose -f deploy/compose.demo.yaml -f deploy/compose.sites.yaml -f deploy/compose.public.yaml up -d
+```
+
+ACME needs public DNS for every host name pointing at this server and port 80 reachable for the HTTP-01 challenge. HTTP requests for TLS sites are redirected to HTTPS. Certificates stay in the gateway's private data volume.
+
+## Rate limits
+
+Set **Rate limit (requests per minute per client)** to return 429 to clients that exceed it, before the WAF or origin. A request-burst incident (DET-04) on a registered site also proposes a limit you can preview and approve.
+
 ## Current limits
 
-- The gateway listens on plain HTTP on loopback in the reference deployment; terminate TLS in front of it or wait for the TLS profile.
-- Per-site rate limiting is not yet available.
+- Client identity is the connecting address. Behind a CDN or load balancer, all clients share one rate-limit key until trusted proxy ranges are supported.
 - A generic WAF does not enforce your application's authorization or tenant ownership.

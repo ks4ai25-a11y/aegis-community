@@ -167,6 +167,9 @@ class PolicyRevisionV2SitesItem(TypedDict):
     requested_mode: str
     crs: PolicyRevisionV2SitesItemCrs
     exclusions: list[PolicyRevisionV2SitesItemExclusionsItem]
+    tls: NotRequired[str]
+    acme_email: NotRequired[str]
+    rate_limit: NotRequired[PolicyRevisionV2SitesItemRateLimit]
 class PolicyRevisionV2SitesItemCrs(TypedDict):
     blocking_paranoia: int
     executing_paranoia: int
@@ -176,6 +179,9 @@ class PolicyRevisionV2SitesItemExclusionsItem(TypedDict):
     method: str
     path: str
     parameter: str
+class PolicyRevisionV2SitesItemRateLimit(TypedDict):
+    requests: int
+    window_seconds: int
 class FindingQueryV1(TypedDict):
     job_id: str
     category: NotRequired[str]

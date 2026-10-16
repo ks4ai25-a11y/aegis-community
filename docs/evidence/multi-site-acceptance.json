@@ -1,7 +1,7 @@
 {
  "schema_version": "1.0",
  "test_scope": "local-multi-site-synthetic",
- "started_at": "2026-10-16T15:48:05Z",
+ "started_at": "2026-10-16T16:46:04Z",
  "checks": [
   {
    "id": "owner_session",
@@ -27,7 +27,7 @@
    "id": "site_registered_in_observe",
    "result": "PASS",
    "detail": {
-    "revision": "sha256:4d689d83a027e89fa3bdc1883c1f087c69c2d113442f0fc478d77b83df9f883b"
+    "revision": "sha256:eeccee8b190a92bb4428ff5be297d0784bcf681e17ee4b28ca067867ea69c442"
    }
   },
   {
@@ -63,7 +63,7 @@
    "id": "protect_isolated_to_site",
    "result": "PASS",
    "detail": {
-    "revision": "sha256:c6833a9b8766feedc1d8ae8b8652029e1d9de59f169d88c21e2e25c7679831e7"
+    "revision": "sha256:327a396961ca7b98ba9bb5e133a5ee9c12c1c25992fc40248d994fea13292694"
    }
   },
   {
@@ -72,13 +72,41 @@
    "detail": null
   },
   {
+   "id": "site_rate_limit_enforced",
+   "result": "PASS",
+   "detail": {
+    "statuses": [
+     200,
+     200,
+     200,
+     200,
+     200,
+     200,
+     200,
+     200,
+     200,
+     200,
+     429,
+     429,
+     429,
+     429,
+     429
+    ]
+   }
+  },
+  {
+   "id": "site_https_internal_ca_and_redirect",
+   "result": "PASS",
+   "detail": null
+  },
+  {
    "id": "site_removed_restores_421",
    "result": "PASS",
    "detail": {
-    "revision": "sha256:4c523f305b89850c8f6422ba5221130669b90027f7ef514a47c6e33c50fbe2f4"
+    "revision": "sha256:8e056a3598827259fea5c53b4e1ddff8cebeca5f4ec7f5209ef91977a22af01f"
    }
   }
  ],
  "result": "PASS",
- "finished_at": "2026-10-16T15:48:10Z"
+ "finished_at": "2026-10-16T16:46:13Z"
 }

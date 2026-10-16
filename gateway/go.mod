@@ -5,6 +5,7 @@ go 1.27.1
 require (
 	github.com/caddyserver/caddy/v2 v2.11.4
 	github.com/corazawaf/coraza-caddy/v2 v2.6.2
+	github.com/mholt/caddy-ratelimit v0.1.1-0.20260612195517-5625512f24f6
 )
 
 require (

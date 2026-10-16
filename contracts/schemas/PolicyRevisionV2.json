@@ -206,6 +206,37 @@
               ]
             },
             "maxItems": 8
+          },
+          "tls": {
+            "type": "string",
+            "enum": [
+              "acme",
+              "internal"
+            ]
+          },
+          "acme_email": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "rate_limit": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requests": {
+                "type": "integer",
+                "minimum": 10,
+                "maximum": 100000
+              },
+              "window_seconds": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3600
+              }
+            },
+            "required": [
+              "requests",
+              "window_seconds"
+            ]
           }
         },
         "required": [

@@ -5,5 +5,6 @@ import (
  _ "github.com/caddyserver/caddy/v2/modules/standard"
  _ "github.com/corazawaf/coraza-caddy/v2"
  _ "aegis.local/gateway/telemetry"
+ _ "github.com/mholt/caddy-ratelimit"
 )
 func main(){ caddycmd.Main() }

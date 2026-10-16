@@ -137,7 +137,7 @@ func exercise(ctx context.Context, root, binary string, p domain.Policy, port in
 		return statuses, nil, e
 	}
 	log := filepath.Join(dir, "events.jsonl")
-	cfg := policy.Render(p, "fixture-origin:8080", "127.0.0.1:"+strconv.Itoa(port), filepath.Join(dir, "admin.sock"), log)
+	cfg := policy.RenderFixture(p, "fixture-origin:8080", "127.0.0.1:"+strconv.Itoa(port), filepath.Join(dir, "admin.sock"), log)
 	path := filepath.Join(dir, "Caddyfile")
 	if e := os.WriteFile(path, []byte(cfg), 0600); e != nil {
 		return statuses, nil, e

@@ -29,6 +29,7 @@ var (
 	hostname    = regexp.MustCompile(`^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$`)
 	origin      = regexp.MustCompile(`^([a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?):([0-9]{1,5})$`)
 	exactRoute  = regexp.MustCompile(`^/[A-Za-z0-9._~-]+(?:/[A-Za-z0-9._~-]+){0,15}$`)
+	email       = regexp.MustCompile(`^[A-Za-z0-9._%+-]{1,64}@(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$`)
 	displayName = regexp.MustCompile(`^[A-Za-z0-9 ._()-]{1,64}$`)
 )
 
@@ -124,6 +125,21 @@ func validateSite(s domain.SitePolicy) error {
 	if e := validateCRS(s.CRS); e != nil {
 		return e
 	}
+	switch s.TLS {
+	case "", "internal":
+		if s.ACMEEmail != "" {
+			return fmt.Errorf("acme_email is only used with tls \"acme\"")
+		}
+	case "acme":
+		if s.ACMEEmail != "" && !email.MatchString(s.ACMEEmail) {
+			return fmt.Errorf("invalid ACME contact email")
+		}
+	default:
+		return fmt.Errorf("tls must be empty, \"acme\" or \"internal\"")
+	}
+	if l := s.RateLimit; l != nil && (l.Requests < 10 || l.Requests > 100000 || l.WindowSeconds < 1 || l.WindowSeconds > 3600) {
+		return fmt.Errorf("rate limit must allow 10–100000 requests per 1–3600 seconds")
+	}
 	return validateExclusions(s.Exclusions, false)
 }
 
@@ -188,22 +204,27 @@ func ProtectRequiresObservation(parent, candidate domain.Policy) error {
 }
 
 type block struct {
-	matcher, prefix, mode, origin, hosts string
-	crs                                  domain.CRS
-	exclusions                           []domain.Exclusion
+	matcher, prefix, mode, origin string
+	hosts                         []string
+	crs                           domain.CRS
+	exclusions                    []domain.Exclusion
+	tls, email                    string
+	limit                         *domain.RateLimit
 }
 
 func blocks(p domain.Policy, demoOrigin string) []block {
-	out := []block{{"owned", "", p.Mode, demoOrigin, strings.Join(demoHosts, " "), p.CRS, p.Exclusions}}
+	out := []block{{matcher: "owned", mode: p.Mode, origin: demoOrigin, hosts: demoHosts, crs: p.CRS, exclusions: p.Exclusions}}
 	for _, s := range p.Sites {
 		// Registered sites prefix their request IDs with the site ID so WAF and
 		// access records can be attributed without trusting any client header.
-		out = append(out, block{s.ID, s.ID + ".", s.Mode, s.Origin, strings.Join(s.Hostnames, " "), s.CRS, s.Exclusions})
+		out = append(out, block{s.ID, s.ID + ".", s.Mode, s.Origin, s.Hostnames, s.CRS, s.Exclusions, s.TLS, s.ACMEEmail, s.RateLimit})
 	}
 	return out
 }
 
-func renderRoute(b block, digest string) string {
+// route renders the ordered handler chain for one site: trusted identity, hard
+// limits and the approved rate limit precede the WAF, which precedes the origin.
+func route(b block, digest, indent string) string {
 	engine := "DetectionOnly"
 	if b.mode == "protect" {
 		engine = "On"
@@ -212,10 +233,18 @@ func renderRoute(b block, digest string) string {
 	for i, x := range b.exclusions {
 		exclusions += fmt.Sprintf("SecRule REQUEST_METHOD \"@streq %s\" \"id:%d,phase:1,pass,nolog,chain\"\nSecRule REQUEST_URI \"@rx ^%s(?:[?]|$)\" \"chain\"\nSecRule &ARGS:%s \"@ge 0\" \"ctl:ruleRemoveTargetById=%d;ARGS:%s\"\n", x.Method, 10000+i, regexp.QuoteMeta(x.Path), x.Parameter, x.RuleID, x.Parameter)
 	}
-	// route blocks make ordering explicit: trusted identity and hard limits precede WAF.
-	return fmt.Sprintf(` @%s host %s
- handle @%s {
-  route {
+	limit := ""
+	if b.limit != nil {
+		limit = fmt.Sprintf(`
+   rate_limit {
+    zone %s {
+     key {http.request.remote.host}
+     events %d
+     window %ds
+    }
+   }`, b.matcher, b.limit.Requests, b.limit.WindowSeconds)
+	}
+	body := fmt.Sprintf(`route {
    request_header -X-Forwarded-For
    request_header -Forwarded
    request_header -X-Real-IP
@@ -224,7 +253,7 @@ func renderRoute(b block, digest string) string {
    request_header X-Aegis-Request-ID %s{http.request.uuid}
    header X-Aegis-Request-ID %s{http.request.uuid}
    header X-Aegis-Revision %s
-   header X-Aegis-Mode %s
+   header X-Aegis-Mode %s%s
    request_body {
     max_size 1MB
    }
@@ -252,24 +281,79 @@ Include @owasp_crs/*.conf
      dial_timeout 3s
      response_header_timeout 15s }
    }
-  }
- }
-`, b.matcher, b.hosts, b.matcher, b.prefix, b.prefix, digest, b.mode, engine, b.crs.Blocking, b.crs.Executing, b.crs.Threshold, exclusions, b.origin)
+  }`, b.prefix, b.prefix, digest, b.mode, limit, engine, b.crs.Blocking, b.crs.Executing, b.crs.Threshold, exclusions, b.origin)
+	return indent + body
 }
 
+func errorResponse(b block, digest string) string {
+	return fmt.Sprintf("   header X-Aegis-Request-ID %s{http.request.uuid}\n   header X-Aegis-Revision %s\n   header X-Aegis-Mode %s\n   respond \"Request could not be processed\" {http.error.status_code}\n", b.prefix, digest, b.mode)
+}
+
+const logBlock = ` log {
+  output aegis {
+   path %s
+  }
+  format json
+ }
+`
+
+// Render produces the production gateway configuration: sites with TLS get their
+// own HTTPS site blocks (certificates under the gateway's private data volume).
 func Render(p domain.Policy, origin, listen, admin, log string) string {
+	return render(p, origin, listen, admin, log, true)
+}
+
+// RenderFixture keeps every site on the plain HTTP listener so the isolated
+// fixture never binds HTTPS ports or contacts a certificate authority.
+func RenderFixture(p domain.Policy, origin, listen, admin, log string) string {
+	return render(p, origin, listen, admin, log, false)
+}
+
+// HTTPSPort is the TLS listener inside the gateway container; publish host port
+// 443 to it. The HTTP port is the shared listener's port (8080 in the reference
+// deployment), which also answers ACME HTTP-01 challenges and HTTPS redirects.
+var HTTPSPort = 8443
+
+func render(p domain.Policy, origin, listen, admin, log string, withTLS bool) string {
 	digest := domain.Digest(p)
-	routes := ""
-	errors := ""
+	routes, errs, secure := "", "", ""
+	anyTLS := false
 	for _, b := range blocks(p, origin) {
-		routes += renderRoute(b, digest)
+		if withTLS && b.tls != "" {
+			anyTLS = true
+			names := []string{}
+			for _, h := range b.hosts {
+				names = append(names, "https://"+h)
+			}
+			issuer := "internal"
+			if b.tls == "acme" {
+				issuer = b.email
+			}
+			tls := ""
+			if issuer != "" {
+				tls = " tls " + issuer + "\n"
+			}
+			secure += fmt.Sprintf("%s {\n%s%s\n handle_errors {\n%s }\n"+logBlock+"}\n", strings.Join(names, ", "), tls, route(b, digest, " "), errorResponse(b, digest), log)
+			// Explicit redirect on the shared listener; implicit redirects are disabled.
+			routes += fmt.Sprintf(" @%s_https host %s\n redir @%s_https https://{host}{uri} 308\n", b.matcher, strings.Join(b.hosts, " "), b.matcher)
+			continue
+		}
+		routes += fmt.Sprintf(" @%s host %s\n handle @%s {\n%s\n }\n", b.matcher, strings.Join(b.hosts, " "), b.matcher, route(b, digest, "  "))
 		if b.prefix != "" {
-			errors += fmt.Sprintf("  @%s_error host %s\n  handle @%s_error {\n   header X-Aegis-Request-ID %s{http.request.uuid}\n   header X-Aegis-Revision %s\n   header X-Aegis-Mode %s\n   respond \"Request could not be processed\" {http.error.status_code}\n  }\n", b.matcher, b.hosts, b.matcher, b.prefix, digest, b.mode)
+			errs += fmt.Sprintf("  @%s_error host %s\n  handle @%s_error {\n%s  }\n", b.matcher, strings.Join(b.hosts, " "), b.matcher, errorResponse(b, digest))
 		}
 	}
+	global, protocols := " auto_https off\n", "h1 h2c"
+	if anyTLS {
+		// Certificates are managed only for the TLS site blocks; their HTTP names
+		// redirect to HTTPS on the shared listener and ACME HTTP-01 uses it too.
+		port := listen[strings.LastIndex(listen, ":")+1:]
+		// skip_install_trust: the internal CA is never added to any system trust store.
+		global = fmt.Sprintf(" http_port %s\n https_port %d\n auto_https disable_redirects\n skip_install_trust\n", port, HTTPSPort)
+		protocols = "h1 h2 h2c"
+	}
 	return fmt.Sprintf(`{
- auto_https off
- admin unix/%s
+%s admin unix/%s
  log default {
   level INFO
   output aegis {
@@ -279,7 +363,7 @@ func Render(p domain.Policy, origin, listen, admin, log string) string {
  }
  servers {
   max_header_size 32KB
-  protocols h1 h2c
+  protocols %s
   timeouts {
    read_header 5s
    read_body 15s
@@ -298,15 +382,10 @@ http://%s {
    respond "Request could not be processed" {http.error.status_code}
   }
  }
- log {
-  output aegis {
-   path %s
-  }
-  format json
- }
+`+logBlock+`}
+%s`, global, admin, log, protocols, listen, routes, errs, digest, p.Mode, log, secure)
 }
-`, admin, log, listen, routes, errors, digest, p.Mode, log)
-}
+
 func Atomic(path string, b []byte) error {
 	if e := os.MkdirAll(filepath.Dir(path), 0700); e != nil {
 		return e

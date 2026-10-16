@@ -351,7 +351,14 @@ func (s *Server) sites(w http.ResponseWriter) {
 	}
 	items := []any{map[string]any{"site_id": "site_demo", "display_name": "Bundled demo", "hostname": "demo.example.test", "hostnames": []string{"demo.example.test"}, "origin_url": "http://demo-origin:8080", "mode": p.Mode, "synthetic": true}}
 	for _, site := range p.Sites {
-		items = append(items, map[string]any{"site_id": site.ID, "display_name": site.Name, "hostname": site.Hostnames[0], "hostnames": site.Hostnames, "origin_url": "http://" + site.Origin, "mode": site.Mode, "synthetic": false})
+		item := map[string]any{"site_id": site.ID, "display_name": site.Name, "hostname": site.Hostnames[0], "hostnames": site.Hostnames, "origin_url": "http://" + site.Origin, "mode": site.Mode, "synthetic": false}
+		if site.TLS != "" {
+			item["tls"] = site.TLS
+		}
+		if site.RateLimit != nil {
+			item["rate_limit"] = site.RateLimit
+		}
+		items = append(items, item)
 	}
 	output(w, 200, map[string]any{"items": items, "cursor": nil, "policy_digest": d})
 }

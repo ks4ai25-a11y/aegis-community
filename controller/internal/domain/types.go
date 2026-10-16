@@ -63,6 +63,18 @@ type SitePolicy struct {
 	Mode       string      `json:"requested_mode"`
 	CRS        CRS         `json:"crs"`
 	Exclusions []Exclusion `json:"exclusions"`
+	// TLS is "" (plain HTTP on the shared listener), "acme" (public certificate via
+	// ACME, free) or "internal" (Aegis-local CA, for private networks and testing).
+	TLS       string     `json:"tls,omitempty"`
+	ACMEEmail string     `json:"acme_email,omitempty"`
+	RateLimit *RateLimit `json:"rate_limit,omitempty"`
+}
+
+// RateLimit is an owner-approved per-client request limit for one site. Requests
+// over the limit receive 429 before reaching the WAF or the origin.
+type RateLimit struct {
+	Requests      int `json:"requests"`
+	WindowSeconds int `json:"window_seconds"`
 }
 
 // SiteIDs returns every site governed by p, starting with the bundled demo.

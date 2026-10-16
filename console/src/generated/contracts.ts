@@ -182,6 +182,9 @@ export interface PolicyRevisionV2SitesItem {
   requested_mode: "observe" | "protect";
   crs: PolicyRevisionV2SitesItemCrs;
   exclusions: Array<PolicyRevisionV2SitesItemExclusionsItem>;
+  tls?: "acme" | "internal";
+  acme_email?: string;
+  rate_limit?: PolicyRevisionV2SitesItemRateLimit;
 }
 export interface PolicyRevisionV2SitesItemCrs {
   blocking_paranoia: number;
@@ -193,6 +196,10 @@ export interface PolicyRevisionV2SitesItemExclusionsItem {
   method: "GET" | "POST";
   path: string;
   parameter: string;
+}
+export interface PolicyRevisionV2SitesItemRateLimit {
+  requests: number;
+  window_seconds: number;
 }
 export interface FindingQueryV1 {
   job_id: string;

@@ -184,6 +184,9 @@ type PolicyRevisionV2SitesItem struct {
 	RequestedMode string                                    `json:"requested_mode"`
 	Crs           PolicyRevisionV2SitesItemCrs              `json:"crs"`
 	Exclusions    []PolicyRevisionV2SitesItemExclusionsItem `json:"exclusions"`
+	Tls           string                                    `json:"tls,omitempty"`
+	AcmeEmail     string                                    `json:"acme_email,omitempty"`
+	RateLimit     PolicyRevisionV2SitesItemRateLimit        `json:"rate_limit,omitempty"`
 }
 type PolicyRevisionV2SitesItemCrs struct {
 	BlockingParanoia        int64 `json:"blocking_paranoia"`
@@ -195,6 +198,10 @@ type PolicyRevisionV2SitesItemExclusionsItem struct {
 	Method    string `json:"method"`
 	Path      string `json:"path"`
 	Parameter string `json:"parameter"`
+}
+type PolicyRevisionV2SitesItemRateLimit struct {
+	Requests      int64 `json:"requests"`
+	WindowSeconds int64 `json:"window_seconds"`
 }
 type FindingQueryV1 struct {
 	JobId    string `json:"job_id"`

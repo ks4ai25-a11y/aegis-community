@@ -1,0 +1,8 @@
+# Overlay: serve registered sites to the network with automatic HTTPS.
+#   docker compose -f deploy/compose.demo.yaml -f deploy/compose.sites.yaml -f deploy/compose.public.yaml up -d
+# Host ports 80 and 443 map to the unprivileged gateway listeners 8080 and 8443.
+# Port 80 answers ACME HTTP-01 challenges and redirects TLS sites to HTTPS.
+# Certificates live in the gateway's private data volume. The console stays on loopback.
+services:
+  gateway:
+    ports: !override ["80:8080", "443:8443"]
