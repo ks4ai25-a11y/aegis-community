@@ -1,0 +1,551 @@
+{
+ "schema_version": "1.0",
+ "test_scope": "local-gateway-latency-synthetic",
+ "recorded_at": "2026-10-16T20:39:00Z",
+ "host": {
+  "platform": "macOS-14.6-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "docker_cpus": "8",
+  "docker_mem_bytes": "8321798144"
+ },
+ "method": "open-loop fixed-rate cases for 20s after 5s warm-up, same Docker network for baseline and gateway, plain HTTP, CRS PL1 threshold 5, gateway limited to 2 CPUs and 768 MiB by the reference Compose file, no AI or scanner jobs",
+ "telemetry_loss": {
+  "events_dropped_delta": 0,
+  "ingest_rejected_delta": 0
+ },
+ "summary": {
+  "get_short@25rps/gateway_observe": {
+   "p50_ms": 2.65,
+   "p95_ms": 4.25,
+   "p99_ms": 6.19,
+   "added_p95_ms": 2.92,
+   "p95_target_15ms_met": true,
+   "saturated": false,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "6.29% 56.65MiB / 768MiB"
+  },
+  "get_short@50rps/gateway_observe": {
+   "p50_ms": 2.25,
+   "p95_ms": 4.76,
+   "p99_ms": 7.95,
+   "added_p95_ms": 3.6,
+   "p95_target_15ms_met": true,
+   "saturated": false,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "9.54% 63.59MiB / 768MiB"
+  },
+  "get_short@100rps/gateway_observe": {
+   "p50_ms": 1.68,
+   "p95_ms": 3.2,
+   "p99_ms": 4.52,
+   "added_p95_ms": 2.45,
+   "p95_target_15ms_met": true,
+   "saturated": false,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "17.42% 64.36MiB / 768MiB"
+  },
+  "get_1kib@25rps/gateway_observe": {
+   "p50_ms": 8.33,
+   "p95_ms": 10.04,
+   "p99_ms": 11.86,
+   "added_p95_ms": 8.77,
+   "p95_target_15ms_met": true,
+   "saturated": false,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "22.12% 64.76MiB / 768MiB"
+  },
+  "get_1kib@50rps/gateway_observe": {
+   "p50_ms": 7.81,
+   "p95_ms": 9.75,
+   "p99_ms": 13.6,
+   "added_p95_ms": 8.53,
+   "p95_target_15ms_met": true,
+   "saturated": false,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "40.74% 64.66MiB / 768MiB"
+  },
+  "post_10kib@25rps/gateway_observe": {
+   "p50_ms": 74.36,
+   "p95_ms": 217.82,
+   "p99_ms": 302.73,
+   "added_p95_ms": 216.58,
+   "p95_target_15ms_met": false,
+   "saturated": false,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "192.78% 74.78MiB / 768MiB"
+  },
+  "get_short@25rps/gateway_protect": {
+   "p50_ms": 2.75,
+   "p95_ms": 5.38,
+   "p99_ms": 6.93,
+   "added_p95_ms": 4.05,
+   "p95_target_15ms_met": true,
+   "saturated": false,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "7.43% 65.92MiB / 768MiB"
+  },
+  "get_short@50rps/gateway_protect": {
+   "p50_ms": 2.17,
+   "p95_ms": 4.64,
+   "p99_ms": 6.03,
+   "added_p95_ms": 3.48,
+   "p95_target_15ms_met": true,
+   "saturated": false,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "12.14% 68.72MiB / 768MiB"
+  },
+  "get_short@100rps/gateway_protect": {
+   "p50_ms": 1.68,
+   "p95_ms": 3.32,
+   "p99_ms": 5.1,
+   "added_p95_ms": 2.56,
+   "p95_target_15ms_met": true,
+   "saturated": false,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "20.33% 69.07MiB / 768MiB"
+  },
+  "get_1kib@25rps/gateway_protect": {
+   "p50_ms": 8.16,
+   "p95_ms": 10.18,
+   "p99_ms": 12.97,
+   "added_p95_ms": 8.91,
+   "p95_target_15ms_met": true,
+   "saturated": false,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "21.33% 69.12MiB / 768MiB"
+  },
+  "get_1kib@50rps/gateway_protect": {
+   "p50_ms": 8.42,
+   "p95_ms": 10.55,
+   "p99_ms": 13.88,
+   "added_p95_ms": 9.33,
+   "p95_target_15ms_met": true,
+   "saturated": false,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "50.67% 69.67MiB / 768MiB"
+  },
+  "post_10kib@25rps/gateway_protect": {
+   "p50_ms": 708.57,
+   "p95_ms": 1277.44,
+   "p99_ms": 1554.99,
+   "added_p95_ms": 1276.2,
+   "p95_target_15ms_met": false,
+   "saturated": true,
+   "errors_or_5xx": 0,
+   "gateway_cpu_mem": "201.05% 78.88MiB / 768MiB"
+  }
+ },
+ "cases": [
+  {
+   "case": "get_short",
+   "path": "baseline_origin_direct",
+   "achieved_rps": 25.04646666204945,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "",
+   "max_ms": 8.325,
+   "mean_ms": 0.6502579999999999,
+   "method": "GET",
+   "p50_ms": 0.54,
+   "p95_ms": 1.33,
+   "p99_ms": 2.059,
+   "requests_sent": 500,
+   "statuses": {
+    "200": 500
+   },
+   "target": "http://demo-origin:8080/catalog?query=ordinary",
+   "target_rps": 25,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "0.00% 50.11MiB / 768MiB"
+  },
+  {
+   "case": "get_short",
+   "path": "baseline_origin_direct",
+   "achieved_rps": 50.04895056127757,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "",
+   "max_ms": 4.605,
+   "mean_ms": 0.5138220000000001,
+   "method": "GET",
+   "p50_ms": 0.425,
+   "p95_ms": 1.159,
+   "p99_ms": 1.76,
+   "requests_sent": 1000,
+   "statuses": {
+    "200": 1000
+   },
+   "target": "http://demo-origin:8080/catalog?query=ordinary",
+   "target_rps": 50,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "0.00% 50.11MiB / 768MiB"
+  },
+  {
+   "case": "get_short",
+   "path": "baseline_origin_direct",
+   "achieved_rps": 100.03506786824286,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "",
+   "max_ms": 5.184,
+   "mean_ms": 0.4240564999999995,
+   "method": "GET",
+   "p50_ms": 0.374,
+   "p95_ms": 0.755,
+   "p99_ms": 1.384,
+   "requests_sent": 2000,
+   "statuses": {
+    "200": 2000
+   },
+   "target": "http://demo-origin:8080/catalog?query=ordinary",
+   "target_rps": 100,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "0.00% 50.1MiB / 768MiB"
+  },
+  {
+   "case": "get_1kib",
+   "path": "baseline_origin_direct",
+   "achieved_rps": 25.047136402616104,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "",
+   "max_ms": 3.21,
+   "mean_ms": 0.6434039999999998,
+   "method": "GET",
+   "p50_ms": 0.551,
+   "p95_ms": 1.267,
+   "p99_ms": 1.968,
+   "requests_sent": 500,
+   "statuses": {
+    "200": 500
+   },
+   "target": "http://demo-origin:8080/catalog?query=benignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenign",
+   "target_rps": 25,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "0.00% 50.14MiB / 768MiB"
+  },
+  {
+   "case": "get_1kib",
+   "path": "baseline_origin_direct",
+   "achieved_rps": 50.03449751265702,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "",
+   "max_ms": 5.854,
+   "mean_ms": 0.5627660000000005,
+   "method": "GET",
+   "p50_ms": 0.475,
+   "p95_ms": 1.221,
+   "p99_ms": 1.713,
+   "requests_sent": 1000,
+   "statuses": {
+    "200": 1000
+   },
+   "target": "http://demo-origin:8080/catalog?query=benignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenign",
+   "target_rps": 50,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "0.00% 41.25MiB / 768MiB"
+  },
+  {
+   "case": "post_10kib",
+   "path": "baseline_origin_direct",
+   "achieved_rps": 25.046010239630697,
+   "body_bytes": 10240,
+   "duration": "20s",
+   "host": "",
+   "max_ms": 4.313,
+   "mean_ms": 0.6498500000000001,
+   "method": "POST",
+   "p50_ms": 0.553,
+   "p95_ms": 1.241,
+   "p99_ms": 2.093,
+   "requests_sent": 500,
+   "statuses": {
+    "200": 500
+   },
+   "target": "http://demo-origin:8080/catalog",
+   "target_rps": 25,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "0.00% 41.25MiB / 768MiB"
+  },
+  {
+   "case": "get_short",
+   "path": "gateway_observe",
+   "achieved_rps": 25.045213435070966,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 26.76,
+   "mean_ms": 2.761924000000001,
+   "method": "GET",
+   "p50_ms": 2.645,
+   "p95_ms": 4.253,
+   "p99_ms": 6.193,
+   "requests_sent": 500,
+   "statuses": {
+    "200": 500
+   },
+   "target": "http://gateway:8080/catalog?query=ordinary",
+   "target_rps": 25,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "6.29% 56.65MiB / 768MiB"
+  },
+  {
+   "case": "get_short",
+   "path": "gateway_observe",
+   "achieved_rps": 50.037327511073165,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 32.173,
+   "mean_ms": 2.514407000000001,
+   "method": "GET",
+   "p50_ms": 2.252,
+   "p95_ms": 4.762,
+   "p99_ms": 7.952,
+   "requests_sent": 1000,
+   "statuses": {
+    "200": 1000
+   },
+   "target": "http://gateway:8080/catalog?query=ordinary",
+   "target_rps": 50,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "9.54% 63.59MiB / 768MiB"
+  },
+  {
+   "case": "get_short",
+   "path": "gateway_observe",
+   "achieved_rps": 100.03890466984714,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 9.537,
+   "mean_ms": 1.9050540000000018,
+   "method": "GET",
+   "p50_ms": 1.676,
+   "p95_ms": 3.204,
+   "p99_ms": 4.517,
+   "requests_sent": 2000,
+   "statuses": {
+    "200": 2000
+   },
+   "target": "http://gateway:8080/catalog?query=ordinary",
+   "target_rps": 100,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "17.42% 64.36MiB / 768MiB"
+  },
+  {
+   "case": "get_1kib",
+   "path": "gateway_observe",
+   "achieved_rps": 25.037456022943466,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 15.421,
+   "mean_ms": 8.568525999999997,
+   "method": "GET",
+   "p50_ms": 8.327,
+   "p95_ms": 10.04,
+   "p99_ms": 11.858,
+   "requests_sent": 500,
+   "statuses": {
+    "200": 500
+   },
+   "target": "http://gateway:8080/catalog?query=benignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenign",
+   "target_rps": 25,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "22.12% 64.76MiB / 768MiB"
+  },
+  {
+   "case": "get_1kib",
+   "path": "gateway_observe",
+   "achieved_rps": 50.02863480465446,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 16.906,
+   "mean_ms": 8.085530999999998,
+   "method": "GET",
+   "p50_ms": 7.806,
+   "p95_ms": 9.749,
+   "p99_ms": 13.595,
+   "requests_sent": 1000,
+   "statuses": {
+    "200": 1000
+   },
+   "target": "http://gateway:8080/catalog?query=benignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenign",
+   "target_rps": 50,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "40.74% 64.66MiB / 768MiB"
+  },
+  {
+   "case": "post_10kib",
+   "path": "gateway_observe",
+   "achieved_rps": 24.964619869854317,
+   "body_bytes": 10240,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 356.721,
+   "mean_ms": 101.53155199999993,
+   "method": "POST",
+   "p50_ms": 74.363,
+   "p95_ms": 217.823,
+   "p99_ms": 302.733,
+   "requests_sent": 500,
+   "statuses": {
+    "200": 500
+   },
+   "target": "http://gateway:8080/catalog",
+   "target_rps": 25,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "192.78% 74.78MiB / 768MiB"
+  },
+  {
+   "case": "get_short",
+   "path": "gateway_protect",
+   "achieved_rps": 25.038858471747883,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 9.203,
+   "mean_ms": 3.104592000000002,
+   "method": "GET",
+   "p50_ms": 2.755,
+   "p95_ms": 5.384,
+   "p99_ms": 6.935,
+   "requests_sent": 500,
+   "statuses": {
+    "200": 500
+   },
+   "target": "http://gateway:8080/catalog?query=ordinary",
+   "target_rps": 25,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "7.43% 65.92MiB / 768MiB"
+  },
+  {
+   "case": "get_short",
+   "path": "gateway_protect",
+   "achieved_rps": 50.039134959444986,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 13.454,
+   "mean_ms": 2.4189300000000005,
+   "method": "GET",
+   "p50_ms": 2.166,
+   "p95_ms": 4.636,
+   "p99_ms": 6.033,
+   "requests_sent": 1000,
+   "statuses": {
+    "200": 1000
+   },
+   "target": "http://gateway:8080/catalog?query=ordinary",
+   "target_rps": 50,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "12.14% 68.72MiB / 768MiB"
+  },
+  {
+   "case": "get_short",
+   "path": "gateway_protect",
+   "achieved_rps": 100.04181076409388,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 11.788,
+   "mean_ms": 1.9395235,
+   "method": "GET",
+   "p50_ms": 1.684,
+   "p95_ms": 3.318,
+   "p99_ms": 5.1,
+   "requests_sent": 2000,
+   "statuses": {
+    "200": 2000
+   },
+   "target": "http://gateway:8080/catalog?query=ordinary",
+   "target_rps": 100,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "20.33% 69.07MiB / 768MiB"
+  },
+  {
+   "case": "get_1kib",
+   "path": "gateway_protect",
+   "achieved_rps": 25.036223597521513,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 17.389,
+   "mean_ms": 8.456404,
+   "method": "GET",
+   "p50_ms": 8.164,
+   "p95_ms": 10.179,
+   "p99_ms": 12.968,
+   "requests_sent": 500,
+   "statuses": {
+    "200": 500
+   },
+   "target": "http://gateway:8080/catalog?query=benignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenign",
+   "target_rps": 25,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "21.33% 69.12MiB / 768MiB"
+  },
+  {
+   "case": "get_1kib",
+   "path": "gateway_protect",
+   "achieved_rps": 50.024842211580165,
+   "body_bytes": 0,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 20.942,
+   "mean_ms": 8.662112999999998,
+   "method": "GET",
+   "p50_ms": 8.421,
+   "p95_ms": 10.547,
+   "p99_ms": 13.877,
+   "requests_sent": 1000,
+   "statuses": {
+    "200": 1000
+   },
+   "target": "http://gateway:8080/catalog?query=benignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenignbenign",
+   "target_rps": 50,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "50.67% 69.67MiB / 768MiB"
+  },
+  {
+   "case": "post_10kib",
+   "path": "gateway_protect",
+   "achieved_rps": 24.293675199665348,
+   "body_bytes": 10240,
+   "duration": "20s",
+   "host": "demo.example.test",
+   "max_ms": 1737.57,
+   "mean_ms": 625.8376019999997,
+   "method": "POST",
+   "p50_ms": 708.572,
+   "p95_ms": 1277.44,
+   "p99_ms": 1554.993,
+   "requests_sent": 500,
+   "statuses": {
+    "200": 500
+   },
+   "target": "http://gateway:8080/catalog",
+   "target_rps": 25,
+   "transport_errors": 0,
+   "gateway_cpu_mem_sample": "201.05% 78.88MiB / 768MiB"
+  }
+ ],
+ "limitations": [
+  "Single run on a developer laptop under Docker Desktop; other workloads were running. Not the reference 4 vCPU Linux AMD64 system.",
+  "No TLS, no sampling-error estimate across repeated runs.",
+  "Synthetic origin with tiny responses; real applications will differ."
+ ],
+ "source_commit": "14f1da5",
+ "body_size_cost_single_request_ms": {
+  "1KiB": 22.9,
+  "10KiB": 74.6,
+  "50KiB": 416.5,
+  "100KiB": 768.6,
+  "500KiB": 3570.7,
+  "realistic_10KB_json": 7.8,
+  "note": "one long form field, Protect off (Observe), measured with curl on the same stack after the sweep"
+ }
+}
