@@ -161,7 +161,11 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		fail(w, 401, "NOT_AUTHENTICATED", "Sign in; state changes also require a valid CSRF token")
 		return
 	}
-	if r.Method != "GET" && r.Method != "HEAD" {
+	// Advisory model calls (assessments, patch drafts) change no policy and have
+	// their own one-at-a-time limit; they must not hold the global mutation lock
+	// for the minutes a local model can take.
+	advisory := strings.HasSuffix(path, "/assessment") || path == "/findings/remediation"
+	if r.Method != "GET" && r.Method != "HEAD" && !advisory {
 		if !s.mutations.TryLock() {
 			fail(w, 429, "RATE_LIMITED", "Another state change is in progress")
 			return

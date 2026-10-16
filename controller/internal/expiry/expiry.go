@@ -64,7 +64,9 @@ func (w *Worker) Tick(ctx context.Context) Outcome {
 		return Outcome{Changed: true, Incident: w.incident(digest, report.Overall), Err: e}
 	}
 	b, _ := json.Marshal(c)
-	if _, e = w.S.DB.Exec("INSERT OR IGNORE INTO policies VALUES(?,?,?,?,?,?)", d, digest, string(b), "PENDING_APPROVAL", domain.Now(), Actor); e != nil {
+	// A candidate whose earlier activation failed is re-armed, otherwise expiry
+	// would stall forever on "not pending approval".
+	if _, e = w.S.DB.Exec("INSERT INTO policies VALUES(?,?,?,?,?,?) ON CONFLICT(digest) DO UPDATE SET state='PENDING_APPROVAL' WHERE policies.state='FAILED'", d, digest, string(b), "PENDING_APPROVAL", domain.Now(), Actor); e != nil {
 		return Outcome{Changed: true, Err: e}
 	}
 	if e = w.Apply(ctx, c, Actor); e != nil {

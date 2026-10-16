@@ -74,3 +74,29 @@ func TestUnexpiredDoesNothing(t *testing.T) {
 		t.Fatal(o)
 	}
 }
+
+func TestFailedActivationIsRetried(t *testing.T) {
+	s, _ := setup(t, "2026-10-01T00:00:00Z")
+	calls := 0
+	w := &Worker{S: s, Now: func() time.Time { return time.Date(2026, 10, 17, 0, 0, 0, 0, time.UTC) },
+		Verify: func(context.Context, domain.Policy) (domain.Report, error) { return report("PASS"), nil },
+		Apply: func(_ context.Context, p domain.Policy, _ string) error {
+			calls++
+			if calls == 1 {
+				s.DB.Exec("UPDATE policies SET state='FAILED' WHERE digest=?", domain.Digest(p))
+				return context.DeadlineExceeded
+			}
+			var state string
+			s.DB.QueryRow("SELECT state FROM policies WHERE digest=?", domain.Digest(p)).Scan(&state)
+			if state != "PENDING_APPROVAL" {
+				t.Fatal("failed candidate not re-armed", state)
+			}
+			return nil
+		}}
+	if o := w.Tick(context.Background()); o.Err == nil {
+		t.Fatal("first failure not reported")
+	}
+	if o := w.Tick(context.Background()); o.Applied == "" || calls != 2 {
+		t.Fatal("expiry not retried", o, calls)
+	}
+}

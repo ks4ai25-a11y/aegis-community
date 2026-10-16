@@ -109,3 +109,35 @@ func TestConnectorCredentialIsReadOnlyAndRevocable(t *testing.T) {
 		t.Fatal(e)
 	}
 }
+
+func TestAdvisoryCallsDoNotHoldTheMutationLock(t *testing.T) {
+	s, e := store.Open(filepath.Join(t.TempDir(), "api.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	a := auth.New(s)
+	a.Enroll(a.Bootstrap, "a sufficiently long test passphrase")
+	login := httptest.NewRecorder()
+	csrf, _ := a.Login(login, httptest.NewRequest("POST", "http://localhost", nil), "a sufficiently long test passphrase")
+	cookie := login.Result().Cookies()[0]
+	server := &Server{S: s, A: a, Q: &research.Queue{S: s}, Assets: t.TempDir(), Connectors: &connector.Registry{S: s}}
+	h := server.Handler()
+	server.mutations.Lock() // a long state change is in progress
+	defer server.mutations.Unlock()
+	send := func(path string) int {
+		req := httptest.NewRequest("POST", "http://localhost/api/v1"+path, bytes.NewReader([]byte(`{"finding":{"category":"secret_candidate","path":"a.txt"},"draft_patch":false}`)))
+		req.AddCookie(cookie)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-CSRF-Token", csrf)
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+		return w.Code
+	}
+	if c := send("/findings/remediation"); c != 200 {
+		t.Fatal("advisory call blocked by mutation lock", c)
+	}
+	if c := send("/connectors"); c != 429 {
+		t.Fatal("state change ran while another held the lock", c)
+	}
+}
