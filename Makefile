@@ -1,4 +1,4 @@
-.PHONY: mcp-build test generate check-generated build demo-up demo-verify scoped-verify repository-verify research-build
+.PHONY: mcp-build defence-verify test generate check-generated build demo-up demo-verify scoped-verify repository-verify research-build
 
 test: check-generated
 	cd gateway && go test -race ./...
@@ -54,3 +54,13 @@ engine-relay-build:
 
 mcp-build:
 	cd controller && CGO_ENABLED=0 go build -trimpath -buildvcs=false -o ../bin/aegis-mcp ./cmd/aegis-mcp
+
+# Live defence-plane suites against a running stack (defaults: the demo on 7410/8080).
+# Override AEGIS_CONSOLE_URL, AEGIS_GATEWAY_URL, AEGIS_COMPOSE_FILES and AEGIS_CREDENTIAL for another install.
+defence-verify: mcp-build
+	cd tests/integration && python3 multi_site_acceptance.py
+	cd tests/integration && python3 detector_acceptance.py
+	cd tests/integration && python3 assessment_acceptance.py
+	cd tests/integration && python3 mcp_acceptance.py
+	cd tests/integration && python3 remediation_acceptance.py
+	python3 tests/negative-security/defence_negative.py
