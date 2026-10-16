@@ -1,7 +1,7 @@
 {
  "schema_version": "1.0",
  "test_scope": "local-remediation-synthetic",
- "started_at": "2026-10-16T17:54:23Z",
+ "started_at": "2026-10-16T19:35:19Z",
  "checks": [
   {
    "id": "static_guidance_and_confined_excerpt",
@@ -29,7 +29,7 @@
    "detail": {
     "model": "qwen2.5-coder:3b",
     "attempts": 1,
-    "seconds": 9.5,
+    "seconds": 23.5,
     "diff": "--- a/query.py\n+++ b/query.py\n@@ -1,4 +1,4 @@\n # Trusted inert synthetic source: scanned only, never executed.\n def query(db, user_input):\n-    return db.execute(\"SELECT * FROM products WHERE name='\" + user_input + \"'\")\n+    return db.execute(\"SELECT * FROM products WHERE name=?\", (user_input,))\n \n"
    }
   },
@@ -40,6 +40,7 @@
   }
  ],
  "result": "PASS",
- "finished_at": "2026-10-16T17:54:33Z",
- "environment_note": "Run on a local stack whose controller image was built from a working tree that also contained another agent's uncommitted scanner migration 016; the remediation code path does not use that schema."
+ "finished_at": "2026-10-16T19:35:43Z",
+ "source_commit": "1cbd6e2983e8f769f8d2c6ce924be3662d9409ad",
+ "environment": "Isolated local Compose stack built from a clean worktree of source_commit with fresh volumes (schema 15)."
 }

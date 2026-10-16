@@ -1,7 +1,7 @@
 {
  "schema_version": "1.0",
  "test_scope": "local-mcp-bridge",
- "started_at": "2026-10-16T16:29:51Z",
+ "started_at": "2026-10-16T19:35:18Z",
  "checks": [
   {
    "id": "connector_issued_token_shown_once",
@@ -55,5 +55,7 @@
   }
  ],
  "result": "PASS",
- "finished_at": "2026-10-16T16:29:51Z"
+ "finished_at": "2026-10-16T19:35:19Z",
+ "source_commit": "1cbd6e2983e8f769f8d2c6ce924be3662d9409ad",
+ "environment": "Isolated local Compose stack built from a clean worktree of source_commit with fresh volumes (schema 15)."
 }

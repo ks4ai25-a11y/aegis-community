@@ -1,7 +1,7 @@
 {
  "schema_version": "1.0",
  "test_scope": "local-multi-site-synthetic",
- "started_at": "2026-10-16T16:46:04Z",
+ "started_at": "2026-10-16T19:33:49Z",
  "checks": [
   {
    "id": "owner_session",
@@ -27,7 +27,7 @@
    "id": "site_registered_in_observe",
    "result": "PASS",
    "detail": {
-    "revision": "sha256:eeccee8b190a92bb4428ff5be297d0784bcf681e17ee4b28ca067867ea69c442"
+    "revision": "sha256:86c6ed81e017cdd0cd42d8d1a2d29712f94d1e1915704db8989520bc621477d6"
    }
   },
   {
@@ -63,7 +63,7 @@
    "id": "protect_isolated_to_site",
    "result": "PASS",
    "detail": {
-    "revision": "sha256:327a396961ca7b98ba9bb5e133a5ee9c12c1c25992fc40248d994fea13292694"
+    "revision": "sha256:2057eb6799127dacb1fb63e04bf1a5d4dffc65f3b820cd2e5dabbdd902b06719"
    }
   },
   {
@@ -103,10 +103,12 @@
    "id": "site_removed_restores_421",
    "result": "PASS",
    "detail": {
-    "revision": "sha256:8e056a3598827259fea5c53b4e1ddff8cebeca5f4ec7f5209ef91977a22af01f"
+    "revision": "sha256:fc89c7e8fdd0f3656a767d61fa863c7f5c0eb1579ebf5b817743f7aaadf7b36b"
    }
   }
  ],
  "result": "PASS",
- "finished_at": "2026-10-16T16:46:13Z"
+ "finished_at": "2026-10-16T19:33:57Z",
+ "source_commit": "1cbd6e2983e8f769f8d2c6ce924be3662d9409ad",
+ "environment": "Isolated local Compose stack built from a clean worktree of source_commit with fresh volumes (schema 15)."
 }

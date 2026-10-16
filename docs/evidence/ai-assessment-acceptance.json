@@ -1,7 +1,7 @@
 {
  "schema_version": "1.0",
  "test_scope": "local-assessment-synthetic",
- "started_at": "2026-10-16T16:18:45Z",
+ "started_at": "2026-10-16T19:33:58Z",
  "checks": [
   {
    "id": "incident_records_argument_name_only",
@@ -14,7 +14,7 @@
    "id": "deterministic_assessment",
    "result": "PASS",
    "detail": {
-    "dossier_digest": "sha256:8eb4c98bce48cb13ab031273b5c95f89c14163ba2c4828c46cdac20a116d00c3"
+    "dossier_digest": "sha256:f08453bc1a78d1e87a97d9979451eba07c1d7c35ba0aa7e08e1d538d7e77506b"
    }
   },
   {
@@ -24,7 +24,7 @@
     "assessor": "ollama",
     "model": "llama3.2:3b",
     "fallback": "",
-    "seconds": 39.9,
+    "seconds": 73.7,
     "hypotheses": 1
    }
   },
@@ -54,7 +54,7 @@
    "id": "protect_proposal_passes_fixture",
    "result": "PASS",
    "detail": {
-    "candidate": "sha256:1545be5e82b8d3f919f8dc7580e4984be59a88e04ec52af1c61a32af639ab444"
+    "candidate": "sha256:7b4289739c763c3db8f5ecef4e8f3f851d182bb3b1162bd5a255e9aa0560f9dc"
    }
   },
   {
@@ -64,5 +64,7 @@
   }
  ],
  "result": "PASS",
- "finished_at": "2026-10-16T16:19:31Z"
+ "finished_at": "2026-10-16T19:35:18Z",
+ "source_commit": "1cbd6e2983e8f769f8d2c6ce924be3662d9409ad",
+ "environment": "Isolated local Compose stack built from a clean worktree of source_commit with fresh volumes (schema 15)."
 }
