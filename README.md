@@ -11,7 +11,9 @@ The current source is an unfinished internal alpha. See [implementation status](
 - **Assesses incidents without spending money.** A deterministic assessment always works offline; an optional local model (bundled Ollama overlay or any OpenAI-compatible server) adds schema-checked, evidence-cited hypotheses. See [incident assessment](docs/operators/ai-assessment.md).
 - **Proposes and proves mitigations.** Incidents yield complete candidate policy revisions (parameter-scoped exclusions, Protect) that must pass the pinned validator and an isolated fixture test before an owner can approve them. Rollback is one click.
 - **Connects your desktop AI app.** `aegis-mcp` gives Claude, Codex, Kimi or any MCP client read-only access to sites, incidents, assessments and proposals using a revocable connector credential. See [assistant connections](docs/operators/assistant-connections.md).
+- **Helps fix code.** Findings get concrete remediation steps; with the free local code model, code findings get a small patch draft that Aegis checks against the exact file before offering it as a `.patch` (never applied for you).
 - **Scans code offline.** Pinned Semgrep CE, Gitleaks, Syft and Bandit run against private read-only snapshots with immutable receipts and a finding catalogue.
+- **Proves what it says.** Verification reports can be exported with an installation signature and checked offline (`aegisctl report verify`); a live canary re-checks the gateway after every change; `aegisctl diagnostics` gives a counts-only support bundle. Measured capacity is in [performance](docs/operators/performance.md).
 
 Nothing requires a paid service, model or account. Planned commercial extensions are described in the [Community → Frontier plan](docs/strategy/community-to-frontier.md).
 
