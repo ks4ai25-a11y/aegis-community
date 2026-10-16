@@ -15,6 +15,15 @@ The current source is an unfinished internal alpha. See [implementation status](
 
 Nothing requires a paid service, model or account. Planned commercial extensions are described in the [Community → Frontier plan](docs/strategy/community-to-frontier.md).
 
+## Quickstart
+
+```sh
+scripts/quickstart.sh          # build, start and print the console URL and first-owner token
+scripts/quickstart.sh --ai     # also run a free local model for incident assessments
+```
+
+Then follow [getting started](docs/user/getting-started.md).
+
 ## Development build
 
 Requirements: Go 1.27.1, Node 22.23.1 and Docker Compose.
