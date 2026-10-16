@@ -116,7 +116,7 @@ Ordered by value; each item is useful to Community users on its own.
 | C4 | Deterministic detector catalogue (**DET-01…07 done**, ADRs 058, 063) | Typed signals for Frontier fusion. |
 | C5 | Local-model AI investigator producing `IncidentAssessmentV1` (**done**, ADR 059) | Same envelope Frontier's managed investigators emit; Community stays zero-cost via local models. |
 | C6 | Remediation proposal records (`MitigationProposalV1`) (**done**: WAF/rate-limit proposals ADR 060, validated code-patch drafts ADR 065) | Frontier's remediation transactions extend, not replace, them. |
-| C7 | Signed evidence export (detached signature over report digest, local key) | Frontier's evidence ledger verifies Community-originated proofs. |
+| C7 | Signed evidence export (detached signature over report digest, local key) (**done**, ADR 066) | Frontier's evidence ledger verifies Community-originated proofs. |
 | C8 | Application map ↔ observed route diff (E3) (**done**) | First "meaning" facts for the graph. |
 
 ## 7. What stays exclusive to Frontier

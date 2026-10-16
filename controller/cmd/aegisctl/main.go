@@ -3,6 +3,7 @@ package main
 
 import (
 	"aegis.local/controller/internal/domain"
+	"aegis.local/controller/internal/evidence"
 	"aegis.local/controller/internal/policy"
 	"aegis.local/controller/internal/scannerauth"
 	"aegis.local/controller/internal/scanqueue"
@@ -281,12 +282,28 @@ func main() {
 			fmt.Printf("Private controller database snapshot created: %s (%d bytes); restore verification remains pending\n", receipt.Digest, receipt.Bytes)
 		}
 	case "report":
-		if len(args) != 3 || args[1] != "verify" {
-			die("usage: report verify FILE")
+		if (len(args) != 3 && !(len(args) == 5 && args[3] == "--key")) || args[1] != "verify" {
+			die("usage: report verify FILE [--key KEY_ID_OR_PUBLIC_KEY]")
 		}
 		b, e := os.ReadFile(args[2])
 		if e != nil {
 			die(e.Error())
+		}
+		var env evidence.Envelope
+		if json.Unmarshal(b, &env) == nil && env.Scheme != "" {
+			trusted := ""
+			if len(args) == 5 {
+				trusted = args[4]
+			}
+			if e = evidence.Verify(env, evidence.ReportDigest, trusted); e != nil {
+				die("Signed evidence rejected: " + e.Error())
+			}
+			if trusted == "" {
+				fmt.Println("Signature and report identity verified for key " + env.KeyID + " (not pinned; pass --key to require a specific installation)")
+			} else {
+				fmt.Println("Signature and report identity verified for pinned key " + env.KeyID)
+			}
+			return
 		}
 		var r domain.Report
 		if e = json.Unmarshal(b, &r); e != nil {

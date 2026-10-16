@@ -8,6 +8,7 @@ import (
 	"aegis.local/controller/internal/canary"
 	"aegis.local/controller/internal/connector"
 	"aegis.local/controller/internal/domain"
+	"aegis.local/controller/internal/evidence"
 	"aegis.local/controller/internal/expiry"
 	"aegis.local/controller/internal/ingest"
 	"aegis.local/controller/internal/policy"
@@ -205,7 +206,12 @@ func main() {
 			}
 		}
 	}()
-	app := &api.Server{CanaryNow: canaryNow, S: s, A: a, P: m, I: i, V: v, Q: q, R: repos, Scans: sq, Assets: env("AEGIS_ASSETS", "/opt/aegis/console"), AI: ai, Connectors: &connector.Registry{S: s}}
+	signer, e := evidence.LoadOrCreate(root)
+	if e != nil {
+		fmt.Println(`{"event":"evidence_signing_unavailable"}`)
+		signer = nil
+	}
+	app := &api.Server{Signer: signer, CanaryNow: canaryNow, S: s, A: a, P: m, I: i, V: v, Q: q, R: repos, Scans: sq, Assets: env("AEGIS_ASSETS", "/opt/aegis/console"), AI: ai, Connectors: &connector.Registry{S: s}}
 	server := &http.Server{Addr: env("AEGIS_LISTEN", "127.0.0.1:7410"), Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32768}
 	go func() {
 		<-ctx.Done()

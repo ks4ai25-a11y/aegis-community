@@ -8,6 +8,7 @@ import (
 	"aegis.local/controller/internal/connector"
 	"aegis.local/controller/internal/detect"
 	"aegis.local/controller/internal/domain"
+	"aegis.local/controller/internal/evidence"
 	"aegis.local/controller/internal/exposure"
 	"aegis.local/controller/internal/ingest"
 	"aegis.local/controller/internal/policy"
@@ -20,6 +21,7 @@ import (
 	"aegis.local/controller/internal/verify"
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -43,6 +45,7 @@ type Server struct {
 	Scans      *scanqueue.Queue
 	Assets     string
 	AI         assess.Config
+	Signer     *evidence.Signer
 	// CanaryNow, when set, asks the DET-07 canary to check the new revision.
 	CanaryNow chan struct{}
 	mutations sync.Mutex
@@ -284,6 +287,15 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		s.jobOperation(w, r, actor, strings.TrimPrefix(path, "/verifications/"))
 	case path == "/scope-grants" || strings.HasPrefix(path, "/scope-grants/"):
 		s.scopeOperation(w, r, actor, path)
+	case path == "/evidence/key" && r.Method == "GET":
+		if s.Signer == nil {
+			fail(w, 503, "DEPENDENCY_UNAVAILABLE", "Evidence signing is not configured")
+			return
+		}
+		pub := s.Signer.Public()
+		output(w, 200, map[string]string{"signature_scheme": evidence.Scheme, "key_id": evidence.KeyID(pub), "public_key": base64.StdEncoding.EncodeToString(pub)})
+	case strings.HasPrefix(path, "/verify/reports/") && strings.HasSuffix(path, "/signed") && r.Method == "GET":
+		s.signedReport(w, actor, strings.TrimSuffix(strings.TrimPrefix(path, "/verify/reports/"), "/signed"))
 	case strings.HasPrefix(path, "/verify/reports/") && r.Method == "GET":
 		s.reportDocument(w, actor, strings.TrimPrefix(path, "/verify/reports/"))
 	case strings.HasPrefix(path, "/verify/jobs/") && r.Method == "GET":
@@ -508,6 +520,27 @@ func (s *Server) assessment(w http.ResponseWriter, r *http.Request, actor, id st
 	}
 	s.assessed.Store(id, a)
 	output(w, 200, a)
+}
+
+// signedReport exports an owned verification report with an installation signature.
+func (s *Server) signedReport(w http.ResponseWriter, actor, digest string) {
+	if s.Signer == nil {
+		fail(w, 503, "DEPENDENCY_UNAVAILABLE", "Evidence signing is not configured")
+		return
+	}
+	var raw string
+	if e := s.S.DB.QueryRow("SELECT r.document FROM reports r JOIN report_owners o ON o.digest=r.digest WHERE r.digest=? AND o.owner=?", digest, actor).Scan(&raw); e != nil {
+		fail(w, 404, "RESOURCE_NOT_FOUND", "Report not found")
+		return
+	}
+	d, e := evidence.ReportDigest(json.RawMessage(raw))
+	if e != nil || d != digest {
+		fail(w, 500, "INTERNAL_ERROR", "Stored report failed its integrity check")
+		return
+	}
+	env := s.Signer.Sign(json.RawMessage(raw), d)
+	s.S.Audit(actor, "evidence.signed", d, env.KeyID, nil)
+	output(w, 200, env)
 }
 
 // remediation returns deterministic guidance for a static finding and, on request,
