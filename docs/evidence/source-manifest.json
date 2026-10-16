@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:e15eeb83b09b0ee717d0fcff5cb23d5ac65932d9a24d3cde65ddb451431473e7",
+  "source_tree_sha256": "sha256:3967397303fa54f2635dbb0d5e25dfd24316ca4709069b60e8ad23bbde8ffaa6",
   "files": [
     {
       "path": ".dockerignore",
@@ -1700,7 +1700,7 @@
     },
     {
       "path": "docs/architecture/adr/052-selected-broker-mutual-tls-engine.md",
-      "sha256": "8e2514caae1ae5505cd512d130b61aa22598d3bd1ace30f153b6d181aa8ff57b"
+      "sha256": "f16a6a88fcf9cea6a7ea586ecd505ff3756c61ec3baab7bffd157104b75fb7df"
     },
     {
       "path": "docs/operators/database-snapshots.md",
@@ -1760,7 +1760,7 @@
     },
     {
       "path": "docs/release-gates.json",
-      "sha256": "0c3042218142df55045ee627ea82136fc7ba1a4a106686adad5670383d6ee730"
+      "sha256": "dfaba023a3a588895bf22c914f9f10b8df088b77c7a956cd60abd0586f70a3f3"
     },
     {
       "path": "gateway/Dockerfile",

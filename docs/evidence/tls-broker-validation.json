@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Automated selected broker TLS reference validation; test-status evidence only",
+  "tested_source_commit": "a2c44cfdc397007f3920ea03d3287d2f25a17b77",
+  "hosted_run": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38878628060",
+  "hosted_jobs": {
+    "source": "PASS",
+    "trusted-demo": "PASS",
+    "packaged-worker": "PASS",
+    "isolated-engine-authz": "PASS"
+  },
+  "packaged_tls_checks": [
+    {
+      "test": "pinned_nonroot_package_has_no_docker_cli_and_reads_sdk_metadata",
+      "status": "PASS"
+    },
+    {
+      "test": "isolated_owner_queue_and_private_uid_socket_enrollment_created",
+      "status": "PASS"
+    },
+    {
+      "test": "bound_worker_refuses_missing_operator_binding_without_claiming",
+      "status": "PASS"
+    },
+    {
+      "test": "operator_binding_is_immutable_and_changed_registry_refuses_before_claim",
+      "status": "PASS"
+    },
+    {
+      "test": "bound_worker_refuses_missing_journal_provisioning_before_claim",
+      "status": "PASS"
+    },
+    {
+      "test": "existing_partial_journal_is_refused_without_creating_lock_or_identity",
+      "status": "PASS"
+    },
+    {
+      "test": "immutable_journal_binding_refuses_a_fresh_namespace_at_the_approved_path",
+      "status": "PASS"
+    },
+    {
+      "test": "explicit_compose_worker_profile_matches_private_mount_and_hardening_contract",
+      "status": "PASS"
+    },
+    {
+      "test": "invalid_tls_identity_refuses_before_claim_without_plaintext_fallback",
+      "status": "PASS"
+    },
+    {
+      "test": "controller_bound_broker_refuses_other_workers_and_dispatch_credential_role",
+      "status": "PASS"
+    },
+    {
+      "test": "packaged_broker_has_only_opaque_tls_relay_and_private_client_identity",
+      "status": "PASS"
+    },
+    {
+      "test": "minimal_dispatch_client_has_no_engine_worker_credential_source_or_journal_mount",
+      "status": "PASS"
+    },
+    {
+      "test": "broker_compose_profile_separates_control_client_from_privileged_orchestrator",
+      "status": "PASS"
+    },
+    {
+      "test": "packaged_worker_commits_actual_guarded_tool_receipts_and_result",
+      "status": "PASS"
+    },
+    {
+      "test": "packaged_result_reaches_owned_catalogue_without_proof_promotion",
+      "status": "PASS"
+    },
+    {
+      "test": "exact_child_absence_and_settled_journal_remain_non_authoritative",
+      "status": "PASS"
+    },
+    {
+      "test": "used_bound_journal_cannot_be_reinitialized_or_reset",
+      "status": "PASS"
+    },
+    {
+      "test": "second_job_remains_queued_behind_independent_cleanup_hold",
+      "status": "PASS"
+    },
+    {
+      "test": "separate_restricted_engine_and_plugin_journal_settle_without_cleanup_release",
+      "status": "PASS"
+    }
+  ],
+  "repeated_local_tests": [
+    {
+      "package": "aegis.local/alpha/engineauthz",
+      "unique_tests_and_subtests": 85,
+      "repeats": 3,
+      "pass_events": 255
+    },
+    {
+      "package": "aegis.local/alpha/enginerelay",
+      "unique_tests_and_subtests": 2,
+      "repeats": 3,
+      "pass_events": 6
+    },
+    {
+      "package": "aegis.local/alpha/enginetls",
+      "unique_tests_and_subtests": 16,
+      "repeats": 3,
+      "pass_events": 48
+    },
+    {
+      "package": "aegis.local/alpha/executor",
+      "unique_tests_and_subtests": 104,
+      "repeats": 3,
+      "pass_events": 312
+    }
+  ],
+  "local_source_checks": "make test PASS",
+  "local_static_analysis": "alpha go vet ./... PASS",
+  "dispatcher_dependency_boundary": "PASS",
+  "opaque_relay_dependency_boundary": "PASS",
+  "scope_limitation": "Bandit fixture only; no arbitrary repository-code VM or independent cleanup release acceptance",
+  "independent_security_signoff": false,
+  "all_engine_writes_mediated": false,
+  "cleanup_release_authorized": false,
+  "public_beta": "NO-GO"
+}

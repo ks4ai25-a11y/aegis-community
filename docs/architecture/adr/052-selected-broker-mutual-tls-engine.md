@@ -25,3 +25,7 @@ An explicitly gated GitHub Linux AMD64 fixture starts an additional checksum-pin
 ## Limits and remaining work
 
 The plugin still trusts the broker role to propose fixed profiles and source/guard paths. It does not independently authenticate the controller launch/lease, original guard bytes or source digest. Exclusive host deployment, certificate rotation/revocation, active-lease exclusion, delayed allocation reconciliation, independent cleanup verification and release remain unfinished. Native-process/host administrators and the daemon/plugin remain trusted. This does not provide the disposable VM boundary required for arbitrary repository/patch execution. The raw operator experiments remain explicitly separate from this opt-in TLS profile. All-engine-write mediation and cleanup-release flags remain false; full v4 and public beta remain NO-GO.
+
+## Observed reference validation
+
+`docs/evidence/tls-broker-validation.json` records nineteen packaged TLS checks, 621 repeated local race-test pass events across 207 tests/subtests, source checks, static analysis and dependency separation. The cited hosted source, trusted-demo, packaged-worker and isolated-engine-authz jobs all pass. The packaged job separately retains the earlier one-shot and raw broker regression checks. The public record contains test statuses and source references only; runtime identities, mounts, journal records and dispatch details are excluded. These automated reference results do not constitute independent security or release sign-off.
