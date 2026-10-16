@@ -1,0 +1,74 @@
+{
+ "schema_version": "1.0",
+ "test_scope": "local-defence-negative-security",
+ "started_at": "2026-10-16T21:12:30Z",
+ "checks": [
+  {
+   "id": "unauthenticated_reads_refused",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "session_mutation_without_csrf_refused",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "cross_origin_mutation_refused",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "spoofed_request_id_and_forwarded_for_ignored",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "query_authorization_cookie_and_client_address_not_stored",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "unknown_host_refused",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "unsafe_origins_hosts_injections_and_proxies_refused",
+   "result": "PASS",
+   "detail": {
+    "cases": 12
+   }
+  },
+  {
+   "id": "stale_parent_revision_refused",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "active_policy_unchanged_by_refused_candidates",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "connector_cannot_write_read_secrets_or_survive_revocation",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "source_excerpt_path_escape_and_protected_files_refused",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "prompt_injection_in_traffic_cannot_change_policy",
+   "result": "PASS",
+   "detail": {
+    "assessor": "ollama"
+   }
+  }
+ ],
+ "result": "PASS",
+ "finished_at": "2026-10-16T21:13:50Z",
+ "source_commit": "0253be4"
+}
