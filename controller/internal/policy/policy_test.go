@@ -15,6 +15,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -545,4 +546,56 @@ func TestGatewayAdapterClassifiesOutcomes(t *testing.T) {
 	if !c.Safety.WriteRequiresApproval || len(c.Unsupported) == 0 {
 		t.Fatal(c)
 	}
+}
+
+func TestRollbackUsesFreshDeadlineAfterSlowReload(t *testing.T) {
+	s, e := store.Open(filepath.Join(t.TempDir(), "state.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	old, active, _ := s.Active()
+	p := domain.Initial()
+	p.Parent = active
+	p.Mode = "protect"
+	p.Metadata.Rationale = "Slow reload fixture"
+	d := domain.Digest(p)
+	b, _ := json.Marshal(p)
+	s.DB.Exec("INSERT INTO policies VALUES(?,?,?,?,?,?)", d, active, string(b), "PENDING_APPROVAL", domain.Now(), "owner")
+	scratch, _ := os.MkdirTemp("/tmp", "aegis-slow-")
+	defer os.RemoveAll(scratch)
+	socket := filepath.Join(scratch, "d.sock")
+	ln, e := net.Listen("unix", socket)
+	if e != nil {
+		t.Fatal(e)
+	}
+	var applies atomic.Int64
+	srv := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var in struct {
+			Policy domain.Policy `json:"policy"`
+		}
+		json.NewDecoder(r.Body).Decode(&in)
+		switch r.URL.Path {
+		case "/status":
+			json.NewEncoder(w).Encode(map[string]string{"digest": active})
+		case "/validate":
+			json.NewEncoder(w).Encode(map[string]string{"digest": domain.Digest(in.Policy)})
+		case "/apply":
+			applies.Add(1)
+			if in.Policy.Mode == "protect" {
+				time.Sleep(400 * time.Millisecond) // forward reload outlives the caller's deadline
+			}
+			json.NewEncoder(w).Encode(map[string]string{"digest": domain.Digest(in.Policy)})
+		}
+	})}
+	go srv.Serve(ln)
+	defer srv.Close()
+	m := Manager{S: s, DeploySocket: socket}
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+	e = m.Apply(ctx, p, "owner")
+	if e == nil || m.Frozen.Load() || applies.Load() != 2 {
+		t.Fatal("rollback did not run on a fresh deadline", e, m.Frozen.Load(), applies.Load())
+	}
+	_ = old
 }

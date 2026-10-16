@@ -853,7 +853,7 @@ func (s *Server) activate(w http.ResponseWriter, r *http.Request, actor, path, o
 		fail(w, 404, "RESOURCE_NOT_FOUND", "Unknown policy action")
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 25*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
 	defer cancel()
 	if e = s.P.Apply(ctx, p, actor); e != nil {
 		fail(w, 409, "CONFLICT", e.Error())

@@ -668,7 +668,12 @@ func (m *Manager) Apply(ctx context.Context, p domain.Policy, actor string) erro
 			m.S.Set("apply_journal", "")
 			return e
 		}
-		if re := m.Reload(ctx, old); re != nil {
+		// The rollback gets its own deadline: when the forward reload timed out,
+		// reusing that expired context made recovery fail instantly and froze changes.
+		rctx, rcancel := context.WithTimeout(context.Background(), 55*time.Second)
+		re := m.Reload(rctx, old)
+		rcancel()
+		if re != nil {
 			m.Frozen.Store(true)
 			m.S.Set("apply_frozen", "true")
 			logFreeze("apply_and_rollback_unconfirmed", e, re)
@@ -788,7 +793,7 @@ func (m *Manager) Remote(ctx context.Context, operation string, p domain.Policy)
 	if err != nil {
 		return "", err
 	}
-	client := &http.Client{Timeout: 20 * time.Second, Transport: &http.Transport{DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+	client := &http.Client{Timeout: 55 * time.Second, Transport: &http.Transport{DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 		return (&net.Dialer{}).DialContext(ctx, "unix", m.DeploySocket)
 	}}}
 	req, err := http.NewRequestWithContext(ctx, "POST", "http://deployer/"+operation, strings.NewReader(string(b)))

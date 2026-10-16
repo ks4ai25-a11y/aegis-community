@@ -8,7 +8,7 @@ gateway CPU/memory and telemetry loss. Only the bundled synthetic origin is cont
 
 Environment: the multi_site_acceptance.py variables plus
   AEGIS_PROJECT      Compose project name (default aegis-community)
-  AEGIS_BENCH_RPS    rate (default 100)   AEGIS_BENCH_SECONDS  measured seconds per case (default 30)
+  AEGIS_BENCH_SECONDS  measured seconds per case (default 30)
   AEGIS_BENCH_OUT    JSON evidence path
 Build the generator first: (cd tests/performance/loadgen && CGO_ENABLED=0 GOOS=linux go build -o /tmp/aegis-loadgen .)
 """
@@ -17,16 +17,18 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "integratio
 import multi_site_acceptance as m
 
 PROJECT = os.environ.get("AEGIS_PROJECT", "aegis-community")
-RPS = int(os.environ.get("AEGIS_BENCH_RPS", "100"))
 SECONDS = int(os.environ.get("AEGIS_BENCH_SECONDS", "30"))
 LOADGEN = os.environ.get("AEGIS_LOADGEN", "/tmp/aegis-loadgen")
 IMAGE = "alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659"
 QUERY = "/catalog?query=" + "benign" * 160  # ~1 KiB request line, no attack patterns
 
 
-def loadgen(url, host="", body=0):
+SCENARIOS = [("get_short", "/catalog?query=ordinary", 0, [25, 50, 100]), ("get_1kib", QUERY, 0, [25, 50]), ("post_10kib", "/catalog", 10240, [25])]
+
+
+def loadgen(url, rps, host="", body=0):
     cmd = ["docker", "run", "--rm", "--network", PROJECT + "_origin_net", "-v", LOADGEN + ":/loadgen:ro", "--cap-drop", "ALL", "--read-only", IMAGE,
-           "/loadgen", "-url", url, "-rps", str(RPS), "-duration", f"{SECONDS}s", "-warmup", "5s", "-body", str(body)] + (["-host", host] if host else [])
+           "/loadgen", "-url", url, "-rps", str(rps), "-duration", f"{SECONDS}s", "-warmup", "5s", "-body", str(body)] + (["-host", host] if host else [])
     sampler = subprocess.Popen(["sh", "-c", f"sleep {SECONDS // 2 + 5}; docker stats --no-stream --format '{{{{.CPUPerc}}}} {{{{.MemUsage}}}}' {PROJECT}-gateway-1"], stdout=subprocess.PIPE, text=True)
     out = subprocess.run(cmd, capture_output=True, text=True, timeout=SECONDS + 120)
     stats = sampler.communicate(timeout=60)[0].strip()
@@ -54,27 +56,31 @@ original = m.call("/sites/site_demo/policy")["policy"]["requested_mode"]
 cases = []
 try:
     loss0 = dropped()
-    for name, body in [("get_1kib", 0), ("post_10kib", 10240)]:
-        url = QUERY if body == 0 else "/catalog"
-        cases.append({"case": name, "path": "baseline_origin_direct", **loadgen("http://demo-origin:8080" + url, body=body)})
-        for mode in ["observe", "protect"]:
-            set_mode(mode)
-            cases.append({"case": name, "path": "gateway_" + mode, **loadgen("http://gateway:8080" + url, "demo.example.test", body)})
+    for path in ["baseline_origin_direct", "gateway_observe", "gateway_protect"]:
+        if path != "baseline_origin_direct":
+            set_mode(path.split("_")[1])
+        for name, url, body, rates in SCENARIOS:
+            for rps in rates:
+                base = "http://demo-origin:8080" if path == "baseline_origin_direct" else "http://gateway:8080"
+                cases.append({"case": name, "path": path, **loadgen(base + url, rps, "" if path == "baseline_origin_direct" else "demo.example.test", body)})
+                time.sleep(5)  # let the gateway drain before the next case
     loss1 = dropped()
 finally:
     set_mode(original)
 
 summary = {}
-for name in ["get_1kib", "post_10kib"]:
-    base = next(c for c in cases if c["case"] == name and c["path"] == "baseline_origin_direct")
-    for c in cases:
-        if c["case"] == name and c["path"] != "baseline_origin_direct":
-            summary[name + "/" + c["path"]] = {"added_p50_ms": round(c["p50_ms"] - base["p50_ms"], 2), "added_p95_ms": round(c["p95_ms"] - base["p95_ms"], 2), "added_p99_ms": round(c["p99_ms"] - base["p99_ms"], 2),
-                                               "p95_target_15ms_met": c["p95_ms"] - base["p95_ms"] <= 15, "non_2xx": sum(v for k, v in c["statuses"].items() if not k.startswith("2")), "errors": c["transport_errors"]}
+for c in cases:
+    if c["path"] == "baseline_origin_direct":
+        continue
+    base = next(b for b in cases if b["path"] == "baseline_origin_direct" and b["case"] == c["case"] and b["target_rps"] == c["target_rps"])
+    errors = c["transport_errors"] + sum(v for k, v in c["statuses"].items() if k.startswith("5"))
+    summary[f'{c["case"]}@{c["target_rps"]}rps/{c["path"]}'] = {"p50_ms": round(c["p50_ms"], 2), "p95_ms": round(c["p95_ms"], 2), "p99_ms": round(c["p99_ms"], 2),
+        "added_p95_ms": round(c["p95_ms"] - base["p95_ms"], 2), "p95_target_15ms_met": c["p95_ms"] - base["p95_ms"] <= 15 and errors == 0,
+        "saturated": errors > 0 or c["achieved_rps"] < 0.95 * c["target_rps"] or c["p95_ms"] > 1000, "errors_or_5xx": errors, "gateway_cpu_mem": c["gateway_cpu_mem_sample"]}
 evidence = {"schema_version": "1.0", "test_scope": "local-gateway-latency-synthetic", "recorded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "host": {"platform": platform.platform(), "machine": platform.machine(), "docker_cpus": subprocess.run(["docker", "info", "--format", "{{.NCPU}}"], capture_output=True, text=True).stdout.strip(),
                      "docker_mem_bytes": subprocess.run(["docker", "info", "--format", "{{.MemTotal}}"], capture_output=True, text=True).stdout.strip()},
-            "method": f"open-loop {RPS} RPS for {SECONDS}s after 5s warm-up, same Docker network for baseline and gateway, plain HTTP, CRS PL1 threshold 5, no AI or scanner jobs",
+            "method": f"open-loop fixed-rate cases for {SECONDS}s after 5s warm-up, same Docker network for baseline and gateway, plain HTTP, CRS PL1 threshold 5, gateway limited to 2 CPUs and 768 MiB by the reference Compose file, no AI or scanner jobs",
             "telemetry_loss": {"events_dropped_delta": loss1[0] - loss0[0], "ingest_rejected_delta": loss1[1] - loss0[1]},
             "summary": summary, "cases": cases,
             "limitations": ["Single run on a developer laptop under Docker Desktop; other workloads were running. Not the reference 4 vCPU Linux AMD64 system.", "No TLS, no sampling-error estimate across repeated runs.", "Synthetic origin with tiny responses; real applications will differ."]}

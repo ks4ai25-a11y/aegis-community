@@ -70,7 +70,8 @@ func main() {
 		}
 		defer func() { <-lock }()
 		err = nil
-		ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+		// A gateway under heavy WAF load answers its admin API slowly; allow headroom.
+		ctx, cancel := context.WithTimeout(r.Context(), 50*time.Second)
 		defer cancel()
 		var digest string
 		switch r.URL.Path {
@@ -108,7 +109,7 @@ func main() {
 		}
 		json.NewEncoder(w).Encode(map[string]string{"digest": digest})
 	})
-	server := &http.Server{Handler: handler, ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 20 * time.Second, IdleTimeout: 20 * time.Second, MaxHeaderBytes: 8192}
+	server := &http.Server{Handler: handler, ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 60 * time.Second, IdleTimeout: 20 * time.Second, MaxHeaderBytes: 8192}
 	fmt.Println("Typed policy deployer ready")
 	if err := server.Serve(ln); err != nil {
 		panic(err)
