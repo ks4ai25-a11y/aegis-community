@@ -3,6 +3,7 @@ package api
 
 import (
 	"aegis.local/controller/internal/auth"
+	"aegis.local/controller/internal/detect"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/ingest"
 	"aegis.local/controller/internal/policy"
@@ -250,11 +251,15 @@ func (s *Server) status(w http.ResponseWriter, r *http.Request) {
 	s.S.DB.QueryRow("SELECT count(*) FROM events").Scan(&total)
 	var incidents int
 	s.S.DB.QueryRow("SELECT count(*) FROM incidents WHERE state='open'").Scan(&incidents)
+	evicted := uint64(0)
+	if s.I.Detect != nil {
+		evicted = s.I.Detect.Evicted.Load()
+	}
 	size := int64(0)
 	if st, e := os.Stat(s.S.Path); e == nil {
 		size = st.Size()
 	}
-	output(w, 200, map[string]any{"version": domain.Version, "release_maturity": "internal-alpha", "mode": p.Mode, "active_revision": d, "gateway_revision": g, "gateway_healthy": ge == nil && g == d, "apply_frozen": s.P.Frozen.Load(), "requests_retained": total, "counter_definition": "retained source records; WAF and access are separate records, not total requests", "open_incidents": incidents, "events_dropped_total": s.I.Dropped.Load(), "ingest_rejected_total": s.I.Rejected.Load(), "last_ingest_unix": s.I.Last.Load(), "database_bytes": size, "external_services_required": false})
+	output(w, 200, map[string]any{"version": domain.Version, "release_maturity": "internal-alpha", "mode": p.Mode, "active_revision": d, "gateway_revision": g, "gateway_healthy": ge == nil && g == d, "apply_frozen": s.P.Frozen.Load(), "requests_retained": total, "counter_definition": "retained source records; WAF and access are separate records, not total requests", "open_incidents": incidents, "events_dropped_total": s.I.Dropped.Load(), "ingest_rejected_total": s.I.Rejected.Load(), "last_ingest_unix": s.I.Last.Load(), "detector_state_evicted": evicted, "detector_version": detect.Version, "database_bytes": size, "external_services_required": false})
 }
 
 // siteRoute splits /sites/{id}/rest and accepts only sites governed by the active policy.
@@ -364,10 +369,19 @@ func (s *Server) stream(w http.ResponseWriter, r *http.Request, site string) {
 
 // incidentSite derives an incident's site from its linked evidence; incidents whose
 // evidence aged out are listed under the bundled demo, where they originated.
-const incidentSite = "coalesce((SELECT json_extract(e.document,'$.site_id') FROM incident_events ie JOIN events e ON e.id=ie.event WHERE ie.incident=incidents.id LIMIT 1),'site_demo')"
+const incidentSite = "coalesce(CASE WHEN json_valid(notes) THEN json_extract(notes,'$.site_id') END,(SELECT json_extract(e.document,'$.site_id') FROM incident_events ie JOIN events e ON e.id=ie.event WHERE ie.incident=incidents.id LIMIT 1),'site_demo')"
 
+// detector parses the detector record stored with an incident. Incidents from
+// before detector records existed were CRS observations (DET-01).
+func detector(notes string) map[string]any {
+	d := map[string]any{}
+	if json.Unmarshal([]byte(notes), &d) != nil || d["detector_id"] == nil {
+		return map[string]any{"detector_id": "DET-01", "detector_version": "legacy", "response": "record_only"}
+	}
+	return d
+}
 func (s *Server) incidents(w http.ResponseWriter, r *http.Request, site string) {
-	rows, e := s.S.DB.Query("SELECT id,summary,opened_at,state,severity,confidence FROM incidents WHERE "+incidentSite+"=? ORDER BY opened_at DESC LIMIT ?", site, limit(r))
+	rows, e := s.S.DB.Query("SELECT id,summary,opened_at,state,severity,confidence,notes FROM incidents WHERE "+incidentSite+"=? ORDER BY opened_at DESC LIMIT ?", site, limit(r))
 	if e != nil {
 		fail(w, 500, "INTERNAL_ERROR", "Incidents unavailable")
 		return
@@ -375,15 +389,16 @@ func (s *Server) incidents(w http.ResponseWriter, r *http.Request, site string) 
 	defer rows.Close()
 	items := []any{}
 	for rows.Next() {
-		var id, sum, at, state, sev, conf string
-		rows.Scan(&id, &sum, &at, &state, &sev, &conf)
-		items = append(items, map[string]any{"incident_id": id, "summary": sum, "opened_at": at, "state": state, "severity": sev, "confidence": conf, "synthetic": site == "site_demo", "label_source": "rule_match_observation"})
+		var id, sum, at, state, sev, conf, notes string
+		rows.Scan(&id, &sum, &at, &state, &sev, &conf, &notes)
+		d := detector(notes)
+		items = append(items, map[string]any{"incident_id": id, "summary": sum, "opened_at": at, "state": state, "severity": sev, "confidence": conf, "synthetic": site == "site_demo", "label_source": "deterministic_detector", "detector_id": d["detector_id"]})
 	}
 	output(w, 200, map[string]any{"items": items})
 }
 func (s *Server) incident(w http.ResponseWriter, id string) {
-	var sum, at, state, sev, conf, site string
-	if e := s.S.DB.QueryRow("SELECT summary,opened_at,state,severity,confidence,"+incidentSite+" FROM incidents WHERE id=?", id).Scan(&sum, &at, &state, &sev, &conf, &site); e != nil {
+	var sum, at, state, sev, conf, site, notes string
+	if e := s.S.DB.QueryRow("SELECT summary,opened_at,state,severity,confidence,"+incidentSite+",notes FROM incidents WHERE id=?", id).Scan(&sum, &at, &state, &sev, &conf, &site, &notes); e != nil {
 		fail(w, 404, "RESOURCE_NOT_FOUND", "Incident not found")
 		return
 	}
@@ -399,7 +414,7 @@ func (s *Server) incident(w http.ResponseWriter, id string) {
 		rows.Scan(&b)
 		events = append(events, json.RawMessage(b))
 	}
-	output(w, 200, map[string]any{"incident_id": id, "site_id": site, "summary": sum, "opened_at": at, "state": state, "severity": sev, "confidence": conf, "synthetic": site == "site_demo", "evidence": events, "unknowns": []string{"Pattern detection does not prove successful exploitation.", "Retained evidence may be incomplete after retention or telemetry loss.", "Source attribution and application authorization were not assessed."}})
+	output(w, 200, map[string]any{"incident_id": id, "site_id": site, "detector": detector(notes), "summary": sum, "opened_at": at, "state": state, "severity": sev, "confidence": conf, "synthetic": site == "site_demo", "evidence": events, "unknowns": []string{"Pattern detection does not prove successful exploitation.", "Retained evidence may be incomplete after retention or telemetry loss.", "Source attribution and application authorization were not assessed."}})
 }
 func (s *Server) endpoints(w http.ResponseWriter, r *http.Request, site string) {
 	rows, e := s.S.DB.Query("SELECT document FROM events WHERE json_extract(document,'$.source')='caddy-access' AND json_extract(document,'$.site_id')=? ORDER BY seq DESC LIMIT 50000", site)

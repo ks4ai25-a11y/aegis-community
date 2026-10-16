@@ -3,6 +3,10 @@
 package telemetry
 
 import (
+	"crypto/hmac"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/caddyserver/caddy/v2"
@@ -14,7 +18,34 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 )
+
+// pseudonyms turn client addresses and raw paths into short keyed digests so
+// detectors can count distinct clients and paths without storing either. The key
+// is random, held only in memory and replaced every UTC day; digests cannot be
+// linked across days or restarts and cannot be reversed without the key.
+var pseudonyms struct {
+	mu  sync.Mutex
+	day int64
+	key [32]byte
+}
+
+func pseudonym(kind, value string) string {
+	day := time.Now().UTC().Unix() / 86400
+	pseudonyms.mu.Lock()
+	if pseudonyms.day != day {
+		if _, e := rand.Read(pseudonyms.key[:]); e != nil {
+			pseudonyms.mu.Unlock()
+			return ""
+		}
+		pseudonyms.day = day
+	}
+	mac := hmac.New(sha256.New, pseudonyms.key[:])
+	pseudonyms.mu.Unlock()
+	mac.Write([]byte(kind + "\x00" + value))
+	return hex.EncodeToString(mac.Sum(nil)[:8])
+}
 
 var ruleID = regexp.MustCompile(`\[id "([0-9]{1,7})"\]`)
 var txID = regexp.MustCompile(`\[unique_id "([A-Za-z0-9_.-]{1,128})"\]`)
@@ -79,10 +110,14 @@ func (w *Writer) OpenWriter() (io.WriteCloser, error) {
 				os.Rename(w.Path, w.Path+".1")
 				w.file, _ = os.OpenFile(w.Path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 			}
-			if w.file != nil {
-				if _, e := w.file.Write(b); e != nil {
-					w.drops.Add(1)
-				}
+			if w.file == nil {
+				// Reopen after rotation failed; the record is lost and must be counted.
+				w.file, _ = os.OpenFile(w.Path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
+			}
+			if w.file == nil {
+				w.drops.Add(1)
+			} else if _, e := w.file.Write(b); e != nil {
+				w.drops.Add(1)
 			}
 		}
 		if w.file != nil {
@@ -145,9 +180,11 @@ func Sanitize(b []byte) map[string]any {
 	out["ts"] = ts
 	if strings.HasPrefix(logger, "http.log.access") {
 		var req struct {
-			Method  string              `json:"method"`
-			URI     string              `json:"uri"`
-			Headers map[string][]string `json:"headers"`
+			Method   string              `json:"method"`
+			URI      string              `json:"uri"`
+			ClientIP string              `json:"client_ip"`
+			RemoteIP string              `json:"remote_ip"`
+			Headers  map[string][]string `json:"headers"`
 		}
 		if json.Unmarshal(raw["request"], &req) != nil {
 			return nil
@@ -157,6 +194,20 @@ func Sanitize(b []byte) map[string]any {
 		out["source"] = "caddy-access"
 		out["method"] = req.Method
 		out["route_template"] = Route(req.URI)
+		client := req.ClientIP
+		if client == "" {
+			client = req.RemoteIP
+		}
+		if client != "" {
+			if k := pseudonym("client", client); k != "" {
+				out["client_key"] = k
+			}
+		}
+		if path := strings.SplitN(req.URI, "?", 2)[0]; path != "" && len(path) <= 2048 {
+			if k := pseudonym("path", path); k != "" {
+				out["path_key"] = k
+			}
+		}
 		out["http_status"] = status
 		var headers map[string][]string
 		json.Unmarshal(raw["resp_headers"], &headers)

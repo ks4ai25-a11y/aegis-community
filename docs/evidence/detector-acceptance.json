@@ -1,0 +1,29 @@
+{
+ "schema_version": "1.0",
+ "test_scope": "local-detector-synthetic",
+ "started_at": "2026-10-16T15:48:04Z",
+ "checks": [
+  {
+   "id": "enumeration_incident_recorded",
+   "result": "PASS",
+   "detail": {
+    "observed": 30,
+    "evidence": 20
+   }
+  },
+  {
+   "id": "enumeration_evidence_pseudonymous",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "detector_loss_counter_exposed",
+   "result": "PASS",
+   "detail": {
+    "evicted": 0
+   }
+  }
+ ],
+ "result": "PASS",
+ "finished_at": "2026-10-16T15:48:05Z"
+}

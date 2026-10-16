@@ -2,6 +2,7 @@
 package ingest
 
 import (
+	"aegis.local/controller/internal/detect"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/store"
 	"bufio"
@@ -20,6 +21,7 @@ import (
 
 type Ingestor struct {
 	S        *store.Store
+	Detect   *detect.Engine
 	Path     string
 	Dropped  atomic.Uint64
 	Rejected atomic.Uint64
@@ -40,7 +42,11 @@ type Raw struct {
 	Dropped     uint64  `json:"dropped_before"`
 	Collection  string  `json:"collection_status"`
 	Privacy     string  `json:"privacy_version"`
+	ClientKey   string  `json:"client_key"`
+	PathKey     string  `json:"path_key"`
 }
+
+var pseudonym = regexp.MustCompile(`^[0-9a-f]{16}$`)
 
 var sitePrefix = regexp.MustCompile(`^(site_[a-z0-9_]{1,32})\.[0-9a-fA-F-]{8,64}$`)
 
@@ -75,8 +81,11 @@ func Normalize(b []byte) (domain.Event, error) {
 	if at.After(time.Now().Add(time.Minute)) {
 		return domain.Event{}, fmt.Errorf("future record")
 	}
+	if (r.ClientKey != "" && !pseudonym.MatchString(r.ClientKey)) || (r.PathKey != "" && !pseudonym.MatchString(r.PathKey)) {
+		return domain.Event{}, fmt.Errorf("invalid pseudonym")
+	}
 	site, synthetic := SiteOf(r.Request)
-	ev := domain.Event{ID: domain.ID(), Schema: "1.0", At: at.Format(time.RFC3339Nano), Site: site, Request: r.Request, Revision: r.Revision, Type: "access", Decision: "unknown", Method: r.Method, Route: r.Route, Status: r.Status, Rules: []string{}, Collection: r.Collection, Privacy: r.Privacy, Source: r.Source, Dropped: r.Dropped, Synthetic: synthetic}
+	ev := domain.Event{ID: domain.ID(), Schema: "1.0", At: at.Format(time.RFC3339Nano), Site: site, Request: r.Request, Revision: r.Revision, Type: "access", Decision: "unknown", Method: r.Method, Route: r.Route, Status: r.Status, Rules: []string{}, Collection: r.Collection, Privacy: r.Privacy, Source: r.Source, Dropped: r.Dropped, Synthetic: synthetic, ClientKey: r.ClientKey, PathKey: r.PathKey}
 	if r.Source == "coraza" {
 		ev.Type = "waf_match"
 		if r.Rule != "" {
@@ -105,6 +114,9 @@ func Normalize(b []byte) (domain.Event, error) {
 	return ev, nil
 }
 func (i *Ingestor) Run(ctx context.Context) {
+	if i.Detect == nil {
+		i.Detect = detect.New(detect.Defaults())
+	}
 	if value, e := i.S.Get("events_dropped_total"); e == nil {
 		n, _ := strconv.ParseUint(value, 10, 64)
 		i.Dropped.Store(n)
@@ -207,7 +219,8 @@ func (i *Ingestor) persist(ev domain.Event, key string) error {
 			summary = "Request to " + ev.Site + " matched CRS rule " + ev.Rules[0]
 		}
 		incident := domain.Hash([]byte(key))
-		_, e = tx.Exec("INSERT OR IGNORE INTO incidents(id,summary,opened_at,state,severity,confidence) VALUES(?,?,?,'open','medium','high')", incident, summary, ev.At)
+		notes := detectorNotes("DET-01", ev.Site, time.Minute, 1, 1, "A CRS rule matched request metadata. A match does not establish successful exploitation.")
+		_, e = tx.Exec("INSERT OR IGNORE INTO incidents(id,summary,opened_at,state,severity,confidence,notes) VALUES(?,?,?,'open','medium','high',?)", incident, summary, ev.At, notes)
 		if e == nil {
 			_, e = tx.Exec("INSERT OR IGNORE INTO incident_events VALUES(?,?)", incident, ev.ID)
 		}
@@ -215,7 +228,29 @@ func (i *Ingestor) persist(ev domain.Event, key string) error {
 	if e != nil {
 		return e
 	}
+	if n > 0 && i.Detect != nil {
+		for _, sig := range i.Detect.Observe(ev) {
+			incident := domain.Hash([]byte(fmt.Sprintf("%s|%s|%s|%d", sig.Detector, sig.Site, sig.Key, sig.Bucket)))
+			notes := detectorNotes(sig.Detector, sig.Site, sig.Window, sig.Threshold, sig.Observed, sig.Assumption)
+			if _, e = tx.Exec("INSERT OR IGNORE INTO incidents(id,summary,opened_at,state,severity,confidence,notes) VALUES(?,?,?,'open',?,?,?)", incident, sig.Summary, ev.At, sig.Severity, sig.Confidence, notes); e != nil {
+				return e
+			}
+			for _, id := range sig.Evidence {
+				// Evidence per incident is capped so a recurring signal cannot grow without bound.
+				if _, e = tx.Exec("INSERT OR IGNORE INTO incident_events SELECT ?,id FROM events WHERE id=? AND (SELECT count(*) FROM incident_events WHERE incident=?)<50", incident, id, incident); e != nil {
+					return e
+				}
+			}
+		}
+	}
 	return tx.Commit()
+}
+
+// detectorNotes records the detector identity and thresholds with each incident
+// so every observation is reproducible from its knobs and retained evidence.
+func detectorNotes(id, site string, window time.Duration, threshold, observed int, assumption string) string {
+	b, _ := json.Marshal(map[string]any{"detector_id": id, "detector_version": detect.Version, "site_id": site, "window_seconds": int(window.Seconds()), "threshold": threshold, "observed": observed, "assumption": assumption, "response": "record_only"})
+	return string(b)
 }
 
 // retain applies the event cap and age limit once per read cycle instead of on

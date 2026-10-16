@@ -1,7 +1,7 @@
 {
  "schema_version": "1.0",
  "test_scope": "local-multi-site-synthetic",
- "started_at": "2026-10-16T15:38:33Z",
+ "started_at": "2026-10-16T15:48:05Z",
  "checks": [
   {
    "id": "owner_session",
@@ -27,7 +27,7 @@
    "id": "site_registered_in_observe",
    "result": "PASS",
    "detail": {
-    "revision": "sha256:86c6ed81e017cdd0cd42d8d1a2d29712f94d1e1915704db8989520bc621477d6"
+    "revision": "sha256:4d689d83a027e89fa3bdc1883c1f087c69c2d113442f0fc478d77b83df9f883b"
    }
   },
   {
@@ -63,7 +63,7 @@
    "id": "protect_isolated_to_site",
    "result": "PASS",
    "detail": {
-    "revision": "sha256:2057eb6799127dacb1fb63e04bf1a5d4dffc65f3b820cd2e5dabbdd902b06719"
+    "revision": "sha256:c6833a9b8766feedc1d8ae8b8652029e1d9de59f169d88c21e2e25c7679831e7"
    }
   },
   {
@@ -75,10 +75,10 @@
    "id": "site_removed_restores_421",
    "result": "PASS",
    "detail": {
-    "revision": "sha256:b7c16edf279df91110e8d1e9628e2a3005caeec7030c36dd75e3cf6eaec70911"
+    "revision": "sha256:4c523f305b89850c8f6422ba5221130669b90027f7ef514a47c6e33c50fbe2f4"
    }
   }
  ],
  "result": "PASS",
- "finished_at": "2026-10-16T15:38:38Z"
+ "finished_at": "2026-10-16T15:48:10Z"
 }

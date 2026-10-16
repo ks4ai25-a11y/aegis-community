@@ -106,6 +106,9 @@ type Event struct {
 	Source     string   `json:"source"`
 	Dropped    uint64   `json:"dropped_before"`
 	Synthetic  bool     `json:"synthetic"`
+	// Keyed daily pseudonyms from the gateway; never raw addresses or paths.
+	ClientKey string `json:"client_key,omitempty"`
+	PathKey   string `json:"path_key,omitempty"`
 }
 type Check struct {
 	ID              string   `json:"id"`

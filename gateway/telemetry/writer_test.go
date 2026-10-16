@@ -39,3 +39,25 @@ func FuzzSanitize(f *testing.F) {
 	f.Add([]byte(`{"msg":"hello"}`))
 	f.Fuzz(func(t *testing.T, b []byte) { Sanitize(b) })
 }
+
+func TestPseudonymsReplaceAddressesAndPaths(t *testing.T) {
+	raw := `{"logger":"http.log.access.demo","ts":1791619200,"request":{"method":"GET","uri":"/private/CANARY_PATH?x=1","client_ip":"203.0.113.77","remote_ip":"203.0.113.77"},"status":404,"resp_headers":{}}`
+	v := Sanitize([]byte(raw))
+	b, _ := json.Marshal(v)
+	if strings.Contains(string(b), "203.0.113.77") || strings.Contains(string(b), "CANARY_PATH") {
+		t.Fatal("address or raw path persisted", string(b))
+	}
+	client, _ := v["client_key"].(string)
+	path, _ := v["path_key"].(string)
+	if len(client) != 16 || len(path) != 16 || client == path {
+		t.Fatal(v)
+	}
+	again := Sanitize([]byte(raw))
+	if again["client_key"] != client || again["path_key"] != path {
+		t.Fatal("pseudonyms unstable within a day")
+	}
+	other := Sanitize([]byte(strings.ReplaceAll(raw, "203.0.113.77", "198.51.100.9")))
+	if other["client_key"] == client {
+		t.Fatal("distinct clients collapsed")
+	}
+}
