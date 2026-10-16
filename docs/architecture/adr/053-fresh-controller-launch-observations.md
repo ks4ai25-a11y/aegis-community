@@ -1,6 +1,6 @@
 # ADR 053: Fresh controller observations of an approved live scanner launch
 
-Status: implemented read-only precondition; daemon consumption and durable engine allocation authorization remain unfinished.
+Status: implemented read-only precondition; optional native daemon consumption follows in [ADR 054](054-controller-observed-daemon-launch-preconditions.md). Durable engine allocation authorization remains unfinished.
 
 ## Decision
 
@@ -20,7 +20,7 @@ The preflight schema previously accepted only the raw Unix backend string. Add t
 
 This response describes a transactional snapshot at its observation time. It may become stale immediately afterward; a concurrent revocation can commit after the snapshot. A nonce-correlated unkeyed digest is not a transferable grant or independent attestation. A consumer must not turn this read into a permanent allow, a release capability, or a claim that all engine writes are mediated.
 
-The daemon plugin has not yet consumed this endpoint. Durable allocation admission, mutation intent correlation, source/guard byte verification, cancellation/revocation fencing and independent cleanup reconciliation/release remain required. Work admitted before a cancellation may still reach the engine and must remain represented as possible allocation until independently reconciled. Existing standalone and packaged TLS experiments retain their conservative false mediation/release flags and second-job hold. Host/controller clocks and privileged host components remain trusted. Full v4 and public beta remain NO-GO.
+This increment originally supplied the endpoint without a daemon consumer. [ADR 054](054-controller-observed-daemon-launch-preconditions.md) adds optional native create/start preconditions and byte checks; packaged bound-mode execution, durable controller allocation admission/fencing and independent cleanup reconciliation/release remain required. Work admitted before a cancellation may still reach the engine and must remain represented as possible allocation until independently reconciled. Existing standalone and packaged TLS experiments retain their conservative false mediation/release flags and second-job hold. Host/controller clocks and privileged host components remain trusted. Full v4 and public beta remain NO-GO.
 
 ## Validation scope
 

@@ -7,6 +7,7 @@ import (
 	"aegis.local/alpha/enginejournal"
 	"aegis.local/alpha/engineprofile"
 	"aegis.local/source"
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/moby/moby/api/types/container"
@@ -55,6 +56,7 @@ type Config struct {
 	WorkRoot, JournalRoot, EngineDigest string
 	UID, GID                            int
 	Images                              map[string]string
+	Live                                *LiveConfig
 }
 type Policy struct {
 	mu                           sync.Mutex
@@ -64,6 +66,8 @@ type Policy struct {
 	ticket                       *enginejournal.Ticket
 	pending, operation, name, id string
 	closed                       bool
+	live                         *liveGate
+	createBody                   []byte
 }
 
 func Open(c Config) (*Policy, error) {
@@ -91,7 +95,27 @@ func Open(c Config) (*Policy, error) {
 		j.Close()
 		return nil, ErrPolicy
 	}
-	return &Policy{config: c, journal: j}, nil
+	var live *liveGate
+	if c.Live != nil {
+		live, e = openLive(c, *c.Live)
+		if e != nil {
+			j.Close()
+			return nil, ErrPolicy
+		}
+	}
+	seal := ""
+	if live != nil {
+		seal = live.policy
+	}
+	if e = j.RequirePolicy(seal); e != nil {
+		if live != nil {
+			live.client.Close()
+		}
+		j.Close()
+		return nil, ErrPolicy
+	}
+	c.Live = nil // Retain only the private, validated configuration copy.
+	return &Policy{config: c, journal: j, live: live}, nil
 }
 func canonicalDir(p string) bool {
 	if !filepath.IsAbs(p) || filepath.Clean(p) != p || strings.ContainsAny(p, "\x00\r\n:,") {
@@ -106,6 +130,9 @@ func (p *Policy) Close() {
 	defer p.mu.Unlock()
 	if !p.closed {
 		p.closed = true
+		if p.live != nil {
+			p.live.client.Close()
+		}
 		p.journal.Close()
 	}
 }
@@ -163,7 +190,7 @@ func (p *Policy) read(r Request, u *url.URL) bool {
 	}
 	return false
 }
-func (p *Policy) create(r Request, u *url.URL, now time.Time) bool {
+func (p *Policy) create(ctx context.Context, r Request, u *url.URL, now time.Time) bool {
 	name := u.Query().Get("name")
 	if !namePattern.MatchString(name) || !exactQuery(u, url.Values{"name": {name}}) || len(r.RequestBody) == 0 {
 		return false
@@ -226,6 +253,12 @@ func (p *Policy) create(r Request, u *url.URL, now time.Time) bool {
 	if !reflect.DeepEqual(actual, prototype) {
 		return false
 	}
+	if p.live != nil && p.live.check(ctx, name, r.RequestBody) != nil {
+		return false
+	}
+	if ctx.Err() != nil {
+		return false
+	}
 	a, e := p.journal.Begin(name, source.Hash(r.RequestBody))
 	if e != nil {
 		return false
@@ -240,12 +273,19 @@ func (p *Policy) create(r Request, u *url.URL, now time.Time) bool {
 	p.ticket = t
 	p.pending = fingerprint(r)
 	p.operation = "create"
-	return true
+	p.createBody = append([]byte(nil), r.RequestBody...)
+	return ctx.Err() == nil
 }
 func (p *Policy) AuthorizeRequest(r Request) Decision {
+	return p.AuthorizeRequestContext(context.Background(), r)
+}
+
+func (p *Policy) AuthorizeRequestContext(ctx context.Context, r Request) Decision {
+	ctx, cancel := context.WithTimeout(ctx, 4*time.Second)
+	defer cancel()
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if p.closed {
+	if p.closed || ctx.Err() != nil {
 		return deny()
 	}
 	u, ok := parsed(r)
@@ -259,7 +299,7 @@ func (p *Policy) AuthorizeRequest(r Request) Decision {
 		return deny()
 	}
 	if r.RequestMethod == "POST" && u.Path == api+"/containers/create" && p.attempt == nil {
-		if p.create(r, u, time.Now()) {
+		if p.create(ctx, r, u, time.Now()) {
 			return allow()
 		}
 		return deny()
@@ -277,6 +317,14 @@ func (p *Policy) AuthorizeRequest(r Request) Decision {
 	if operation == "" {
 		return deny()
 	}
+	// Cleanup remains available for the tracked allocation even after lease
+	// expiry or cancellation; a new start always obtains a new observation.
+	if operation == "start" && p.live != nil && p.live.check(ctx, p.name, p.createBody) != nil {
+		return deny()
+	}
+	if ctx.Err() != nil {
+		return deny()
+	}
 	ticket, e := p.attempt.Begin(operation, p.id)
 	if e != nil {
 		return deny()
@@ -284,6 +332,9 @@ func (p *Policy) AuthorizeRequest(r Request) Decision {
 	p.ticket = ticket
 	p.pending = fingerprint(r)
 	p.operation = operation
+	if ctx.Err() != nil {
+		return deny()
+	}
 	return allow()
 }
 func (p *Policy) AuthorizeResponse(r Request) Decision {
@@ -324,6 +375,7 @@ func (p *Policy) AuthorizeResponse(r Request) Decision {
 			return deny()
 		}
 		p.attempt = nil
+		p.createBody = nil
 	}
 	p.operation = ""
 	return allow()

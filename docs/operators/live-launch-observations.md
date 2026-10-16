@@ -1,6 +1,6 @@
 # Private observations of an approved live scanner launch
 
-This operator-only read is a prerequisite for daemon authorization integration. It does not authorize an engine write or verify/release cleanup. The daemon plugin does not yet consume it. Read [ADR 053](../architecture/adr/053-fresh-controller-launch-observations.md).
+This operator-only read supplies metadata for daemon precondition checks. It does not authorize an engine write or verify/release cleanup. The opt-in native `serve-bound` plugin mode consumes it as described in the [controller-observed gate guide](controller-observed-engine-gate.md); the packaged TLS fixture still uses the earlier unbound mode. Read [ADR 053](../architecture/adr/053-fresh-controller-launch-observations.md) and [ADR 054](../architecture/adr/054-controller-observed-daemon-launch-preconditions.md).
 
 Provision the existing private observer enrollment as described in [verifier context operations](scanner-verifier-context.md). Its owner, engine and registry must match the immutable engine/journal/selected-broker approval chain. The exact launch must already be registered as guarded revision 1.2, while its job and worker lease remain active. An old unbound launch, expired/cancelled job, changed scope or cleanup-held dispatch is refused.
 

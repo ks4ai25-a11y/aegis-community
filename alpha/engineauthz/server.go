@@ -32,7 +32,7 @@ func (p *Policy) Handler() http.Handler {
 					var request Request
 					if strict(raw, &request, 262144) == nil {
 						if r.URL.Path == "/AuthZPlugin.AuthZReq" {
-							result = p.AuthorizeRequest(request)
+							result = p.AuthorizeRequestContext(r.Context(), request)
 						} else {
 							result = p.AuthorizeResponse(request)
 						}

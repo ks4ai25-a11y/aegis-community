@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "validation_environment": "local automated reference checks",
+  "tested_source_tree_sha256": "sha256:b0780eaff5c1b075eba20990c62d3445e1adb794f8d9a450379062b6a7764855",
+  "scope": "Native controller-observed create/start preconditions, physical file checks and durable local configuration; not actual bound-mode daemon execution or cleanup release",
+  "repeated_tests": [
+    {
+      "scope": "actual_private_controller_channel_and_plugin_decisions",
+      "unique_tests_and_subtests": 46,
+      "repeats": 3,
+      "pass_events": 138
+    },
+    {
+      "scope": "local_policy_seal_and_namespace_compatibility",
+      "unique_tests_and_subtests": 10,
+      "repeats": 3,
+      "pass_events": 30
+    }
+  ],
+  "full_local_source_checks": "PASS",
+  "alpha_static_analysis": "PASS",
+  "operator_native_plugin_and_both_guard_builds": "PASS",
+  "legacy_daemon_profile_and_sandbox_observer_regressions": "PASS",
+  "controller_schema_migration_added": false,
+  "native_bound_daemon_execution_verified": false,
+  "packaged_bound_mode_verified": false,
+  "controller_allocation_fencing_verified": false,
+  "all_engine_writes_mediated": false,
+  "cleanup_release_authorized": false,
+  "independent_security_signoff": false,
+  "public_record_contains_runtime_metadata": false,
+  "public_beta": "NO-GO"
+}

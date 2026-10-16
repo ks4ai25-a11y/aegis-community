@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 	"slices"
 	"strconv"
@@ -285,51 +284,10 @@ func (c Config) InspectSandbox(ctx context.Context, x SandboxExpectation) (out S
 	if len(mounts) != required || mounts["/src"] == "" || mounts["/aegis"] == "" {
 		return fail("SANDBOX_MOUNT_MISMATCH")
 	}
-	session := filepath.Join(x.Registry, p.Workspace)
-	root, e := inspectionRoot(session, 0700)
+	files, e := checkLaunchFiles(ctx, x, mounts)
+	out.GuardMatched, out.SourceMatched, out.RulesMatched = files.GuardMatched, files.SourceMatched, files.RulesMatched
 	if e != nil {
-		return fail("WORKSPACE_UNCONFIRMED")
-	}
-	root.Close()
-	sourceDir, e := inspectionChild(session, mounts["/src"], "aegis-source-")
-	if e != nil {
-		return fail("SOURCE_MOUNT_UNCONFIRMED")
-	}
-	defer sourceDir.Close()
-	guardDir, e := inspectionChild(session, mounts["/aegis"], "aegis-guard-")
-	if e != nil {
-		return fail("GUARD_MOUNT_UNCONFIRMED")
-	}
-	defer guardDir.Close()
-	guard, e := inspectionFile(guardDir, "scanner-guard", 0500, 16<<20)
-	if e != nil || source.Hash(guard) != p.Guard {
-		return fail("GUARD_FILE_MISMATCH")
-	}
-	out.GuardMatched = true
-	manifestBytes, e := inspectionFile(guardDir, "input-manifest.json", 0400, scanevidence.MaxOutput)
-	if e != nil {
-		return fail("SOURCE_MANIFEST_UNCONFIRMED")
-	}
-	var manifest source.Manifest
-	if inspectionJSON(manifestBytes, &manifest, scanevidence.MaxOutput) != nil || manifest.Digest != p.Snapshot || manifest.InputMap != d.Map || source.ValidateSnapshot(ctx, sourceDir, manifest) != nil {
-		return fail("SOURCE_SNAPSHOT_MISMATCH")
-	}
-	out.SourceMatched = true
-	if p.Tool == "semgrep_ce" {
-		rules, e := inspectionChild(session, mounts["/rules"], "aegis-source-")
-		if e != nil {
-			return fail("RULES_MOUNT_UNCONFIRMED")
-		}
-		defer rules.Close()
-		b, e := inspectionFile(guardDir, "rules-manifest.json", 0400, scanevidence.MaxOutput)
-		if e != nil {
-			return fail("RULES_MANIFEST_UNCONFIRMED")
-		}
-		var m source.Manifest
-		if inspectionJSON(b, &m, scanevidence.MaxOutput) != nil || m.Digest != x.RulesDigest || source.ValidateSnapshot(ctx, rules, m) != nil {
-			return fail("RULES_SNAPSHOT_MISMATCH")
-		}
-		out.RulesMatched = true
+		return fail(files.Code)
 	}
 	if e = ctx.Err(); e != nil {
 		return fail("OBSERVATION_CANCELLED")

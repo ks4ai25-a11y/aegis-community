@@ -236,3 +236,10 @@ An additional disabled profile connects the selected packaged broker to the rest
 ## Fresh controller launch observations (ADR 053)
 
 The private observer channel now supports a challenge-bound read of an exact revision 1.2 launch under the current engine/journal/broker chain and live job/worker lease. The client validates nested scope, challenge, freshness and expiry without receiving or renewing a lease. Current revision 1.2 cleanup-context reads and TLS preflight schema parity are corrected. This is a read-only precondition: the daemon plugin does not consume it yet, and durable allocation authorization, independent byte checks and cleanup release remain unfinished. Public beta remains NO-GO.
+
+
+## Controller-observed native daemon preconditions (ADR 054)
+
+The opt-in native `serve-bound` authorizer now checks fresh private controller observations before and after source/guard verification at each create/start. It requires the current revision 1.2 launch and full immutable engine/journal/broker chain, exact tool/image/version/lock, original duration/deadline, native guard architecture, reserved workspace and complete source snapshot. Semgrep needs an additional operator-pinned rules snapshot. Changed bytes, stale/revoked/cancelled scope, controller/capability loss and cancelled requests deny execution; exact tracked removal remains available. A synced local journal seal prevents configuration substitution or downgrade, and attempts retain its digest. No lease renewal, controller migration or cleanup release is added.
+
+Real private-channel/SQLite integration tests exercise plugin decisions using synthetic Docker envelopes and guard bytes, alongside seal/restart/fault and existing sandbox-observer regressions. The current packaged TLS acceptance fixture remains in the earlier unbound mode: bound packaging and actual bound-daemon execution still need implementation and verification. Controller allocation fencing, independent reconciliation/release, VM isolation, advisory databases, proof/remediation, desktop AI/MCP and remaining H7 requirements remain unfinished. Full v4 stays active and public beta remains NO-GO.

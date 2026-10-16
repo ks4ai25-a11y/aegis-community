@@ -35,7 +35,16 @@ type manifest struct {
 	Engine     string `json:"engine_digest"`
 	Name       string `json:"container_name"`
 	Descriptor string `json:"descriptor_digest"`
+	Policy     string `json:"local_policy_digest,omitempty"`
 	Created    string `json:"created_at"`
+}
+
+type localPolicy struct {
+	Schema    string `json:"schema_version"`
+	Namespace string `json:"namespace_digest"`
+	Engine    string `json:"engine_digest"`
+	Policy    string `json:"local_policy_digest"`
+	Created   string `json:"created_at"`
 }
 type intent struct {
 	Schema    string `json:"schema_version"`
@@ -74,11 +83,35 @@ type Observation struct {
 type Journal struct {
 	mu                                      sync.Mutex
 	files                                   *privateRoot
-	engine, namespace                       string
+	engine, namespace, policy               string
 	attempts, unfinished, unresolved, bytes int
 	closed                                  bool
 	active                                  *Attempt
 }
+
+// RequirePolicy seals a local consumer configuration only on an unused
+// namespace. Exact replay is permitted; changing or dropping it is refused.
+// This is local persistence, not independently authenticated controller proof.
+func (j *Journal) RequirePolicy(digest string) error {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	if j.closed || digest != "" && !hash.MatchString(digest) {
+		return ErrJournal
+	}
+	if j.policy == digest {
+		return nil
+	}
+	if j.policy != "" || digest == "" || j.attempts != 0 || j.active != nil {
+		return ErrJournal
+	}
+	d := wrapped(localPolicy{Schema: "1.0", Namespace: j.namespace, Engine: j.engine, Policy: digest, Created: time.Now().UTC().Format(time.RFC3339Nano)})
+	if e := j.write(j.files, "policy.json", d); e != nil {
+		return e
+	}
+	j.policy = digest
+	return nil
+}
+
 type Attempt struct {
 	j                                 *Journal
 	dir                               *privateRoot
@@ -126,7 +159,7 @@ func (j *Journal) Begin(nameValue, descriptor string) (*Attempt, error) {
 	if e != nil {
 		return nil, e
 	}
-	d := wrapped(manifest{Schema: "1.0", Namespace: j.namespace, Engine: j.engine, Name: nameValue, Descriptor: descriptor, Created: time.Now().UTC().Format(time.RFC3339Nano)})
+	d := wrapped(manifest{Schema: "1.0", Namespace: j.namespace, Engine: j.engine, Name: nameValue, Descriptor: descriptor, Policy: j.policy, Created: time.Now().UTC().Format(time.RFC3339Nano)})
 	if e = j.write(dir, "attempt.json", d); e != nil {
 		dir.close()
 		return nil, e

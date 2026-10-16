@@ -65,7 +65,11 @@
         "docs/evidence/tls-broker-validation.json",
         "docs/architecture/adr/053-fresh-controller-launch-observations.md",
         "tests/integration/scannerchannel/live_launch_test.go",
-        "docs/evidence/live-launch-validation.json"
+        "docs/evidence/live-launch-validation.json",
+        "docs/architecture/adr/054-controller-observed-daemon-launch-preconditions.md",
+        "tests/integration/scannerchannel/engine_gate_test.go",
+        "alpha/enginejournal/policy_test.go",
+        "docs/evidence/controller-observed-gate-validation.json"
       ]
     },
     {

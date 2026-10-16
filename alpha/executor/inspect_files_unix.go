@@ -79,7 +79,7 @@ func inspectionRoot(path string, mode os.FileMode) (*os.Root, error) {
 		return nil, ErrObservation
 	}
 	stat, ok := before.Sys().(*syscall.Stat_t)
-	if !ok || int(stat.Uid) != os.Geteuid() {
+	if !ok || int(stat.Uid) != os.Geteuid() || before.Mode()&(os.ModeSetuid|os.ModeSetgid|os.ModeSticky) != 0 {
 		return nil, ErrObservation
 	}
 	root, e := os.OpenRoot(path)
@@ -109,7 +109,7 @@ func inspectionFile(root *os.Root, name string, mode os.FileMode, max int) ([]by
 		return nil, ErrObservation
 	}
 	stat, ok := before.Sys().(*syscall.Stat_t)
-	if !ok || int(stat.Uid) != os.Geteuid() {
+	if !ok || int(stat.Uid) != os.Geteuid() || stat.Nlink != 1 || before.Mode()&(os.ModeSetuid|os.ModeSetgid|os.ModeSticky) != 0 {
 		return nil, ErrObservation
 	}
 	f, e := root.OpenFile(name, os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
@@ -118,7 +118,11 @@ func inspectionFile(root *os.Root, name string, mode os.FileMode, max int) ([]by
 	}
 	defer f.Close()
 	after, e := f.Stat()
-	if e != nil || !os.SameFile(before, after) {
+	if e != nil || !os.SameFile(before, after) || !after.Mode().IsRegular() || after.Mode().Perm() != mode {
+		return nil, ErrObservation
+	}
+	actual, ok := after.Sys().(*syscall.Stat_t)
+	if !ok || int(actual.Uid) != os.Geteuid() || actual.Nlink != 1 || after.Mode()&(os.ModeSetuid|os.ModeSetgid|os.ModeSticky) != 0 {
 		return nil, ErrObservation
 	}
 	b, e := io.ReadAll(io.LimitReader(f, int64(max)+1))

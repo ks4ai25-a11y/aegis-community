@@ -1,0 +1,33 @@
+# ADR 054: Controller-observed preconditions at daemon create and start
+
+Status: implemented opt-in native mode; packaged deployment, controller allocation fencing and independent cleanup remain unfinished.
+
+## Decision
+
+Add `aegis-engine-authz serve-bound` alongside the explicitly unbound native experiment. The bound mode uses its own private, owner/engine/registry-scoped observer enrollment and the actual private controller Unix channel. Neither the broker nor the limited dispatcher receives that capability or the plugin-owned journal. The plugin opens no engine connection. Metadata/image reads remain available for provisioning; create/start fail closed until the complete controller engine/journal/selected-broker chain and a current registered revision 1.2 launch exist.
+
+For each create and each start, obtain a new challenge-correlated live observation, compare the exact container name, tool, pinned image/version/lock, duration, original absolute deadline, native guard architecture, engine and registry. Check the complete original source snapshot and exact guard bytes under the reserved workspace, using the same bounded filesystem implementation as the existing independent sandbox observer. Guard/manifest files must be owned, single-link regular files with exact modes, no special permission bits and no symlink substitution. Source inventory rejects symlinks, extra/missing files, changed hashes and budget violations. Semgrep additionally requires an operator-pinned rules snapshot digest sealed into this configuration; absence is refusal. No repository code, Git hooks, dependency installer or shell command executes during these checks.
+
+Read live controller state again after file traversal and require unchanged launch and engine/journal/broker binding digests, current lease/deadline and uncancelled context. This is a read-only observer capability: it cannot claim, renew, finish or release work. The handler propagates request cancellation and sets a four-second authorization context budget, within the existing private plugin transport limits. Before allow, the existing plugin journal still fsyncs the exact mutation intent. A later response failure preserves uncertainty and restart quarantine.
+
+The successful create descriptor is retained privately in memory and checked again before start. No caller-provided start body or replacement descriptor is accepted. Exact tracked removal remains available after a create even when a later start is refused because of cancellation, revocation, expiry, missing credentials, changed files or controller outage. Removal retains the existing exact successful DELETE 204 requirement and never releases controller admission.
+
+## Durable local configuration
+
+An unused plugin journal acquires an exclusive, synced `policy.json` seal binding the namespace/engine to a digest of the operator configuration: private channel/capability locations, owner/verifier/registry, lock bytes/location, optional rules digest, canonical work root, UID/GID and allowed pinned tools. Exact configuration replay is supported; changing it, dropping into unbound `serve`, or relabelling an already used unbound namespace is refused. Attempt manifests include this local policy digest, so deleting the policy file after an attempt makes the namespace inconsistent. Old unbound journals retain their original canonical representation. Missing/corrupt/linked/aliased policy files are not repaired. Older binaries reject the added policy file rather than silently ignoring it. An exact empty initialization does not remove a seal.
+
+The seal is local configuration persistence, not a controller signature or write capability. A private observation digest is also not a transferable authorization grant. Journal authority flags remain false.
+
+## Limits and required follow-up
+
+Controller state can change immediately after the final read; this does not provide an atomic transaction across SQLite and the daemon. Work permitted just before cancellation may still allocate/start and must remain included in possible allocations until independently reconciled. Filesystem syscalls rely on a responsive trusted local filesystem; a context deadline is not a kernel I/O interrupt. Physical checks observe reported host paths and bytes at a point in time; they do not attest the kernel's future mount inode, memory or exclusive host control. A privileged host, malicious daemon or same-UID host access remains inside the trusted computing base. Native guard architecture is deliberately required; cross-architecture deployment is not established.
+
+The current packaged TLS acceptance fixture still uses the earlier unbound plugin mode. Bound mode must next be packaged with exclusive private controller-channel access and tested on the disposable TLS daemon. No default Compose service or workstation daemon is reconfigured by this increment. The real channel tests below use synthetic Docker callback envelopes and non-executable synthetic guard bytes; they prove controller/plugin decisions, not actual bound-mode container execution. Existing separate native-daemon checks remain applicable to the original finite profile/protocol only.
+
+Durable controller allocation admission/fencing, trustworthy late-allocation exclusion, independently authenticated cleanup/reconciliation, recovery/replacement and atomic release remain unfinished. There is no release/reset RPC. Full v4 and public beta remain NO-GO.
+
+## Validation
+
+`tests/integration/scannerchannel/engine_gate_test.go` uses the actual controller, SQLite, private Unix channel, challenge-validating alpha client, owned source snapshot and plugin journal. It checks valid create/start/remove without lease renewal or admission release; create/start refusals for changed guard/source/manifest, extra files, symlinks/hardlinks, wrong workspace, changed tool lock, cancellation, worker/observer revocation, credential withdrawal, controller loss, lease expiry and cancelled contexts; configuration replay/downgrade refusal; unregistered names, command/deadline and file-mode mismatches. `alpha/enginejournal/policy_test.go` checks retained seals, no rebinding of historical attempts, deletion/torn/alias/link/permission refusals and conservative authority flags. The existing observer tests exercise the extracted file-check implementation and preserve its refusal codes. Public evidence records test statuses only; runtime metadata remains private.
+
+Local validation statuses and explicit scope limits are recorded in `docs/evidence/controller-observed-gate-validation.json`. Hosted results are attached to the corresponding implementation commit in the repository CI.

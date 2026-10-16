@@ -21,8 +21,8 @@ func run() error {
 		return e
 	}
 	// Paths and digests are operator configuration, never caller-selected RPC data.
-	if len(os.Args) != 9 || os.Args[1] != "serve" {
-		return fmt.Errorf("usage: aegis-engine-authz init JOURNAL ENGINE_DIGEST | serve SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK")
+	if !(len(os.Args) == 9 && os.Args[1] == "serve" || len(os.Args) == 15 && os.Args[1] == "serve-bound") {
+		return fmt.Errorf("usage: aegis-engine-authz init JOURNAL ENGINE_DIGEST | serve SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK | serve-bound SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK CONTROLLER_SOCKET OBSERVER_CREDENTIAL OWNER VERIFIER_ID REGISTRY_DIGEST RULES_DIGEST_OR_DASH")
 	}
 	uid, e := strconv.Atoi(os.Args[6])
 	if e != nil {
@@ -37,7 +37,15 @@ func run() error {
 		return e
 	}
 
-	policy, e := engineauthz.Open(engineauthz.Config{WorkRoot: os.Args[5], JournalRoot: os.Args[3], EngineDigest: os.Args[4], UID: uid, GID: gid, Images: images})
+	cfg := engineauthz.Config{WorkRoot: os.Args[5], JournalRoot: os.Args[3], EngineDigest: os.Args[4], UID: uid, GID: gid, Images: images}
+	if os.Args[1] == "serve-bound" {
+		rules := os.Args[14]
+		if rules == "-" {
+			rules = ""
+		}
+		cfg.Live = &engineauthz.LiveConfig{Socket: os.Args[9], Credential: os.Args[10], Owner: os.Args[11], Verifier: os.Args[12], Registry: os.Args[13], LockPath: os.Args[8], RulesDigest: rules}
+	}
+	policy, e := engineauthz.Open(cfg)
 	if e != nil {
 		return e
 	}

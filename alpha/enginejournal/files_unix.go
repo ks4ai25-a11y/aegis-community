@@ -232,7 +232,7 @@ func openJournal(path, engine string, create bool) (*Journal, error) {
 	if e != nil || ce != nil || !owned(st, 0600, false) || st.Size() != 0 || !owned(currentLock, 0600, false) || !os.SameFile(st, currentLock) || beforeLock != nil && !os.SameFile(beforeLock, st) || syscall.Flock(int(lock.Fd()), syscall.LOCK_EX|syscall.LOCK_NB) != nil {
 		return nil, ErrJournal
 	}
-	items, e := p.list(maxAttempts + 2)
+	items, e := p.list(maxAttempts + 3)
 	if e != nil {
 		return nil, e
 	}
@@ -261,12 +261,27 @@ func openJournal(path, engine string, create bool) (*Journal, error) {
 		return nil, ErrJournal
 	}
 	j := &Journal{files: p, engine: engine, namespace: ident.Digest, bytes: size}
-	items, e = p.list(maxAttempts + 2)
+	if _, pe := p.root.Lstat("policy.json"); pe == nil {
+		policy, n, e := read[localPolicy](p, "policy.json")
+		if e != nil || policy.Document.Schema != "1.0" || policy.Document.Namespace != j.namespace || policy.Document.Engine != j.engine || !hash.MatchString(policy.Document.Policy) {
+			return nil, ErrJournal
+		}
+		created, e := time.Parse(time.RFC3339Nano, policy.Document.Created)
+		initial, ie := time.Parse(time.RFC3339Nano, ident.Document.Created)
+		if e != nil || ie != nil || created.Before(initial) {
+			return nil, ErrJournal
+		}
+		j.policy = policy.Document.Policy
+		j.bytes += n
+	} else if !os.IsNotExist(pe) {
+		return nil, ErrJournal
+	}
+	items, e = p.list(maxAttempts + 3)
 	if e != nil {
 		return nil, e
 	}
 	for _, item := range items {
-		if item.Name() == ".lock" || item.Name() == "identity.json" {
+		if item.Name() == ".lock" || item.Name() == "identity.json" || item.Name() == "policy.json" {
 			continue
 		}
 		if !name.MatchString(item.Name()) {
@@ -318,7 +333,7 @@ func (j *Journal) load(p *privateRoot, containerName string) error {
 	}
 	m, n, e := read[manifest](p, "attempt.json")
 	j.bytes += n
-	if e != nil || m.Document.Schema != "1.0" || m.Document.Name != containerName || m.Document.Engine != j.engine || m.Document.Namespace != j.namespace || !hash.MatchString(m.Document.Descriptor) {
+	if e != nil || m.Document.Schema != "1.0" || m.Document.Name != containerName || m.Document.Engine != j.engine || m.Document.Namespace != j.namespace || m.Document.Policy != j.policy || !hash.MatchString(m.Document.Descriptor) {
 		return ErrJournal
 	}
 	created, e := time.Parse(time.RFC3339Nano, m.Document.Created)
