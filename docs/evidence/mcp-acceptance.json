@@ -1,0 +1,59 @@
+{
+ "schema_version": "1.0",
+ "test_scope": "local-mcp-bridge",
+ "started_at": "2026-10-16T16:29:51Z",
+ "checks": [
+  {
+   "id": "connector_issued_token_shown_once",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "bridge_initializes_with_read_only_tools",
+   "result": "PASS",
+   "detail": {
+    "tools": [
+     "aegis_system_status",
+     "aegis_list_sites",
+     "aegis_list_incidents",
+     "aegis_get_incident",
+     "aegis_get_assessment",
+     "aegis_get_mitigation_proposals",
+     "aegis_list_endpoints"
+    ]
+   }
+  },
+  {
+   "id": "bridge_reads_sites_with_untrusted_notice",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "bridge_reads_incident_evidence",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "bridge_refuses_path_identifiers",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "connector_refused_on_writes_and_sensitive_reads",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "revoked_connector_refused",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "connector_lifecycle_audited",
+   "result": "PASS",
+   "detail": null
+  }
+ ],
+ "result": "PASS",
+ "finished_at": "2026-10-16T16:29:51Z"
+}

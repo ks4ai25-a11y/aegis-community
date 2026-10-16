@@ -4,6 +4,7 @@ package api
 import (
 	"aegis.local/controller/internal/assess"
 	"aegis.local/controller/internal/auth"
+	"aegis.local/controller/internal/connector"
 	"aegis.local/controller/internal/detect"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/ingest"
@@ -28,20 +29,21 @@ import (
 )
 
 type Server struct {
-	S         *store.Store
-	A         *auth.Auth
-	P         *policy.Manager
-	I         *ingest.Ingestor
-	V         verify.Client
-	Q         *research.Queue
-	R         *repository.Registry
-	Scans     *scanqueue.Queue
-	Assets    string
-	AI        assess.Config
-	mutations sync.Mutex
-	assessing chan struct{}
-	assessed  sync.Map
-	streams   chan struct{}
+	S          *store.Store
+	A          *auth.Auth
+	P          *policy.Manager
+	I          *ingest.Ingestor
+	V          verify.Client
+	Q          *research.Queue
+	R          *repository.Registry
+	Connectors *connector.Registry
+	Scans      *scanqueue.Queue
+	Assets     string
+	AI         assess.Config
+	mutations  sync.Mutex
+	assessing  chan struct{}
+	assessed   sync.Map
+	streams    chan struct{}
 }
 
 func (s *Server) Handler() http.Handler {
@@ -134,8 +136,20 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		output(w, 200, map[string]string{"csrf_token": csrf})
 		return
 	}
-	actor, session, e := s.A.Session(r)
-	if e != nil {
+	var actor, session string
+	var e error
+	if h := r.Header.Get("Authorization"); h != "" {
+		// Connector credentials are read-only and limited to an explicit allowlist,
+		// checked before routing so no other handler is reachable with them.
+		if s.Connectors == nil || !connector.Allowed(r.Method, path) {
+			fail(w, 403, "FORBIDDEN", "Connector credentials can only read defence data")
+			return
+		}
+		if actor, _, e = s.Connectors.Authenticate(h); e != nil {
+			fail(w, 401, "NOT_AUTHENTICATED", "Connector credential invalid, expired or revoked")
+			return
+		}
+	} else if actor, session, e = s.A.Session(r); e != nil {
 		fail(w, 401, "NOT_AUTHENTICATED", "Sign in; state changes also require a valid CSRF token")
 		return
 	}
@@ -205,6 +219,34 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		default:
 			fail(w, 404, "RESOURCE_NOT_FOUND", "Endpoint not available in this alpha")
 		}
+	case path == "/connectors" && r.Method == "GET" && session != "":
+		items, e := s.Connectors.List(actor)
+		if e != nil {
+			fail(w, 500, "INTERNAL_ERROR", "Connectors unavailable")
+			return
+		}
+		output(w, 200, map[string]any{"items": items, "scope": connector.Scope})
+	case path == "/connectors" && r.Method == "POST" && session != "":
+		var in struct {
+			Name  string `json:"name"`
+			Hours int    `json:"lifetime_hours"`
+		}
+		if auth.Decode(r, &in) != nil {
+			fail(w, 400, "VALIDATION_FAILED", "Invalid connector request")
+			return
+		}
+		c, token, e := s.Connectors.Issue(actor, in.Name, time.Duration(in.Hours)*time.Hour)
+		if e != nil {
+			fail(w, 400, "VALIDATION_FAILED", e.Error())
+			return
+		}
+		output(w, 201, map[string]any{"connector": c, "token": token, "token_shown_once": true})
+	case strings.HasPrefix(path, "/connectors/") && strings.HasSuffix(path, "/revoke") && r.Method == "POST" && session != "":
+		if e := s.Connectors.Revoke(actor, strings.TrimSuffix(strings.TrimPrefix(path, "/connectors/"), "/revoke")); e != nil {
+			fail(w, 409, "CONFLICT", e.Error())
+			return
+		}
+		output(w, 200, map[string]string{"state": "revoked"})
 	case path == "/ai/status" && r.Method == "GET":
 		output(w, 200, s.AI.Public())
 	case strings.HasPrefix(path, "/incidents/") && strings.HasSuffix(path, "/proposals") && r.Method == "GET":

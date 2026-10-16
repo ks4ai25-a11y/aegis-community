@@ -76,6 +76,37 @@ export function Proposals({incident, onChanged}: {incident: string; onChanged: (
   </section>;
 }
 
+function Connectors() {
+  const [items, setItems] = useState<any[]>([]);
+  const [name, setName] = useState('Claude Desktop');
+  const [hours, setHours] = useState(168);
+  const [issued, setIssued] = useState<any>();
+  const [error, setError] = useState('');
+  const load = () => api('/connectors').then(v => setItems(v.items)).catch(e => setError(e.message));
+  useEffect(() => { load(); }, []);
+  const config = issued ? JSON.stringify({mcpServers: {aegis: {command: '/path/to/aegis-mcp', env: {AEGIS_URL: location.origin, AEGIS_CONNECTOR_TOKEN_FILE: '/path/to/aegis-connector-token'}}}}, null, 2) : '';
+  return <section className="card">
+    <div className="card-heading"><h2>Assistant connections (MCP)</h2><span className="badge">Read-only</span></div>
+    <p className="muted">Let a desktop AI app (Claude, Codex, Kimi or any MCP client) read sites, incidents, assessments and proposals through the local <span className="mono">aegis-mcp</span> bridge. A connection can never change policy, start jobs or read scanner channels. The app uses its own subscription; Aegis never receives its credentials.</p>
+    {error && <div role="alert" className="alert error">{error}</div>}
+    <div className="form-grid">
+      <label>Name<input value={name} maxLength={64} onChange={e => setName(e.target.value)}/></label>
+      <label>Lifetime (hours)<input type="number" min={1} max={720} value={hours} onChange={e => setHours(Number(e.target.value))}/></label>
+    </div>
+    <button className="button primary" disabled={!name} onClick={() => api('/connectors', {name, lifetime_hours: hours}).then(v => { setIssued(v); load(); }).catch(e => setError(e.message))}>Create connection</button>
+    {issued && <div className="note"><div>
+      <p><strong>Copy this token now; it is shown once.</strong> Save it to a file readable only by you (<span className="mono">chmod 600</span>).</p>
+      <pre className="mono">{issued.token}</pre>
+      <p>Then add the bridge to your app's MCP configuration:</p>
+      <pre className="mono">{config}</pre>
+    </div></div>}
+    <div className="table-wrap"><table><thead><tr><th>Name</th><th>State</th><th>Expires</th><th>Last used</th><th></th></tr></thead><tbody>
+      {items.map(c => <tr key={c.connector_id}><td>{c.name}</td><td><span className="badge">{c.state}</span></td><td>{new Date(c.expires_unix * 1000).toLocaleString()}</td><td>{c.last_used_unix ? new Date(c.last_used_unix * 1000).toLocaleString() : 'Never'}</td>
+        <td>{c.state === 'active' && <button className="button light" onClick={() => api('/connectors/' + encodeURIComponent(c.connector_id) + '/revoke', {}).then(load).catch(e => setError(e.message))}>Revoke</button>}</td></tr>)}
+    </tbody></table></div>
+  </section>;
+}
+
 export function AIPage() {
   const ai = useAIStatus();
   return <>
@@ -93,5 +124,6 @@ export function AIPage() {
       <pre className="mono">docker compose -f deploy/compose.demo.yaml -f deploy/compose.ai-local.yaml up -d{'\n'}docker compose -f deploy/compose.demo.yaml -f deploy/compose.ai-local.yaml exec ollama ollama pull llama3.2:3b</pre>
       <p className="muted">See docs/operators/ai-assessment.md for llama.cpp and other OpenAI-compatible servers.</p>
     </section>
+    <Connectors/>
   </>;
 }

@@ -1,4 +1,4 @@
-.PHONY: test generate check-generated build demo-up demo-verify scoped-verify repository-verify research-build
+.PHONY: mcp-build test generate check-generated build demo-up demo-verify scoped-verify repository-verify research-build
 
 test: check-generated
 	cd gateway && go test -race ./...
@@ -50,3 +50,6 @@ engine-authz-build:
 
 engine-relay-build:
 	cd alpha && CGO_ENABLED=0 go build -trimpath -buildvcs=false -o ../bin/aegis-engine-relay ./cmd/aegis-engine-relay
+
+mcp-build:
+	cd controller && CGO_ENABLED=0 go build -trimpath -buildvcs=false -o ../bin/aegis-mcp ./cmd/aegis-mcp

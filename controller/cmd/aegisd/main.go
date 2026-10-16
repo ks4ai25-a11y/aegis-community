@@ -5,6 +5,7 @@ import (
 	"aegis.local/controller/internal/api"
 	"aegis.local/controller/internal/assess"
 	"aegis.local/controller/internal/auth"
+	"aegis.local/controller/internal/connector"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/ingest"
 	"aegis.local/controller/internal/policy"
@@ -153,7 +154,7 @@ func main() {
 		fmt.Println(`{"event":"ai_configuration_rejected","fallback":"deterministic"}`)
 		ai = assess.Config{Provider: "none"}
 	}
-	app := &api.Server{S: s, A: a, P: m, I: i, V: v, Q: q, R: repos, Scans: sq, Assets: env("AEGIS_ASSETS", "/opt/aegis/console"), AI: ai}
+	app := &api.Server{S: s, A: a, P: m, I: i, V: v, Q: q, R: repos, Scans: sq, Assets: env("AEGIS_ASSETS", "/opt/aegis/console"), AI: ai, Connectors: &connector.Registry{S: s}}
 	server := &http.Server{Addr: env("AEGIS_LISTEN", "127.0.0.1:7410"), Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32768}
 	go func() {
 		<-ctx.Done()

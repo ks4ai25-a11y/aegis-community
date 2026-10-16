@@ -98,8 +98,18 @@ CREATE TRIGGER scanner_authorizers_state_monotonic BEFORE UPDATE OF state ON sca
 CREATE TRIGGER scanner_authorizers_no_delete BEFORE DELETE ON scanner_authorizers BEGIN SELECT RAISE(ABORT,'scanner authorizer enrollment is retained'); END;
 `
 
+// Migration 015: owner-issued, read-only connector credentials for local MCP
+// bridges and other assistants. Only a hash of the token is stored; scope is
+// immutable and revocation is one-way.
+const connectorCredentialSchema = `
+CREATE TABLE connector_credentials(id TEXT PRIMARY KEY,owner TEXT NOT NULL REFERENCES owners(id),name TEXT NOT NULL CHECK(length(name) BETWEEN 1 AND 64),token_hash TEXT UNIQUE NOT NULL,scope TEXT NOT NULL CHECK(scope='read_defence_v1'),state TEXT NOT NULL CHECK(state IN ('active','revoked')),created_at TEXT NOT NULL,expires INTEGER NOT NULL,last_used INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX connector_credentials_owner ON connector_credentials(owner,state,expires);
+CREATE TRIGGER connector_credentials_scope_immutable BEFORE UPDATE OF id,owner,name,token_hash,scope,created_at,expires ON connector_credentials BEGIN SELECT RAISE(ABORT,'connector credential scope is immutable'); END;
+CREATE TRIGGER connector_credentials_state_monotonic BEFORE UPDATE OF state ON connector_credentials WHEN OLD.state!='active' OR NEW.state!='revoked' BEGIN SELECT RAISE(ABORT,'connector credential cannot be reactivated'); END;
+`
+
 func migrationBodies() []string {
-	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema}
+	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema}
 }
 func migrate(db *sql.DB) error {
 	versions := migrationBodies()

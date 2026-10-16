@@ -184,6 +184,7 @@ func seedAuthorities(t *testing.T, s *store.Store) {
 		"INSERT INTO scanner_workers VALUES('worker','owner','worker-token-hash','active',2147483647,'2026-10-15T00:00:00Z')",
 		"INSERT INTO scanner_verifiers VALUES('verifier','owner','verifier-token-hash','active','engine','registry',2147483647,'2026-10-15T00:00:00Z')",
 		"INSERT INTO scanner_authorizers VALUES('authorizer','owner','authorizer-token-hash','active','engine','registry','policy',2147483647,'2026-10-15T00:00:00Z')",
+		"INSERT INTO connector_credentials(id,owner,name,token_hash,scope,state,created_at,expires) VALUES('connector','owner','Desktop assistant','connector-token-hash','read_defence_v1','active','2026-10-15T00:00:00Z',2147483647)",
 		"INSERT INTO scanner_jobs(id,owner,repository,app,map_digest,lock_digest,request_digest,idempotency_key,payload,state,created_at,expires) VALUES('scan','owner','repo','app_demo','map','lock','request','scan-key','{}','running','2026-10-15T00:00:00Z',2147483647)",
 		"INSERT INTO scanner_dispatch(slot,job,worker,token_hash,lease_until,deadline,state) VALUES(1,'scan','worker','old-capability-hash',2147483647,2147483647,'active')",
 	}
@@ -228,7 +229,7 @@ func TestOfflineRestoreInvalidatesAuthorityPreservesHistoryAndCleanupHold(t *tes
 			t.Fatal("restored authority survived", table, n, e)
 		}
 	}
-	for _, table := range []string{"scope_grants", "scanner_workers", "scanner_verifiers", "scanner_authorizers", "connections"} {
+	for _, table := range []string{"scope_grants", "scanner_workers", "scanner_verifiers", "scanner_authorizers", "connector_credentials", "connections"} {
 		var n int
 		if e = state.DB.QueryRow("SELECT count(*) FROM " + table + " WHERE state='active'").Scan(&n); e != nil || n != 0 {
 			t.Fatal("active restored role", table, n, e)
@@ -348,7 +349,10 @@ func TestVersionThirteenBundleRestoresWithoutRequiringAuthorizerTable(t *testing
 	if _, e := s.DB.Exec("DROP TABLE scanner_authorizers"); e != nil {
 		t.Fatal(e)
 	}
-	if _, e := s.DB.Exec("DELETE FROM migrations WHERE version=14"); e != nil {
+	if _, e := s.DB.Exec("DROP TABLE connector_credentials"); e != nil {
+		t.Fatal(e)
+	}
+	if _, e := s.DB.Exec("DELETE FROM migrations WHERE version>=14"); e != nil {
 		t.Fatal(e)
 	}
 	path, created := makeBundle(t, c, parent)

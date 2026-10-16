@@ -105,7 +105,7 @@ func TestScannerMigrationUpgradePreservesExistingVersions(t *testing.T) {
 		}
 	}
 	var version int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 14 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != len(migrationBodies()) {
 		t.Fatal(version, e)
 	}
 	if got, e := s.Get("upgrade-canary"); e != nil || got != "preserved" {
@@ -405,7 +405,7 @@ func TestFindingTriageMigrationPreservesVersionElevenState(t *testing.T) {
 		}
 	}
 	var version, n int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 14 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != len(migrationBodies()) {
 		t.Fatal(version, e)
 	}
 	if e = s.DB.QueryRow("SELECT count(*) FROM finding_triage").Scan(&n); e != nil || n != 0 {
@@ -450,7 +450,7 @@ func TestScannerVerifierMigrationPreservesVersionTwelveState(t *testing.T) {
 		}
 	}
 	var n int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&n); e != nil || n != 14 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&n); e != nil || n != len(migrationBodies()) {
 		t.Fatal(n, e)
 	}
 	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_verifiers").Scan(&n); e != nil || n != 0 {
@@ -513,5 +513,33 @@ func TestAuthorizerMigrationPreservesVersionThirteenEnrollmentsAndHolds(t *testi
 	var count int
 	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_authorizers").Scan(&count); e != nil || count != 0 {
 		t.Fatal("migration created authorizer authority", e)
+	}
+}
+
+func TestConnectorCredentialScopeImmutableAndRevocationOneWay(t *testing.T) {
+	s, e := Open(filepath.Join(t.TempDir(), "c.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	if _, e = s.DB.Exec("INSERT INTO owners VALUES('o','x','now')"); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = s.DB.Exec("INSERT INTO connector_credentials(id,owner,name,token_hash,scope,state,created_at,expires) VALUES('c','o','Claude','h','read_defence_v1','active','now',9)"); e != nil {
+		t.Fatal(e)
+	}
+	for _, bad := range []string{"UPDATE connector_credentials SET scope='admin'", "UPDATE connector_credentials SET expires=99999999999", "UPDATE connector_credentials SET token_hash='other'"} {
+		if _, e = s.DB.Exec(bad); e == nil {
+			t.Fatal("mutable", bad)
+		}
+	}
+	if _, e = s.DB.Exec("INSERT INTO connector_credentials(id,owner,name,token_hash,scope,state,created_at,expires) VALUES('d','o','x','h2','write_everything','active','now',9)"); e == nil {
+		t.Fatal("unknown scope accepted")
+	}
+	if _, e = s.DB.Exec("UPDATE connector_credentials SET state='revoked'"); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = s.DB.Exec("UPDATE connector_credentials SET state='active'"); e == nil {
+		t.Fatal("revoked credential reactivated")
 	}
 }
