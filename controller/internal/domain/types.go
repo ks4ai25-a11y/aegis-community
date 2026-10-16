@@ -74,6 +74,9 @@ type SitePolicy struct {
 	TLS       string     `json:"tls,omitempty"`
 	ACMEEmail string     `json:"acme_email,omitempty"`
 	RateLimit *RateLimit `json:"rate_limit,omitempty"`
+	// MaxBodyKiB caps request bodies (1–1024 KiB; default 1024). WAF inspection
+	// CPU grows with body size, so APIs with small bodies should set it low.
+	MaxBodyKiB int `json:"max_body_kib,omitempty"`
 }
 
 // RateLimit is an owner-approved per-client request limit for one site. Requests

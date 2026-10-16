@@ -143,6 +143,9 @@ func validateSite(s domain.SitePolicy) error {
 	default:
 		return fmt.Errorf("tls must be empty, \"acme\" or \"internal\"")
 	}
+	if s.MaxBodyKiB < 0 || s.MaxBodyKiB > 1024 {
+		return fmt.Errorf("max_body_kib must be 1–1024")
+	}
 	if l := s.RateLimit; l != nil && (l.Requests < 10 || l.Requests > 100000 || l.WindowSeconds < 1 || l.WindowSeconds > 3600) {
 		return fmt.Errorf("rate limit must allow 10–100000 requests per 1–3600 seconds")
 	}
@@ -290,6 +293,7 @@ type block struct {
 	exclusions                    []domain.Exclusion
 	tls, email                    string
 	limit                         *domain.RateLimit
+	bodyKiB                       int
 }
 
 func blocks(p domain.Policy, demoOrigin string) []block {
@@ -297,7 +301,7 @@ func blocks(p domain.Policy, demoOrigin string) []block {
 	for _, s := range p.Sites {
 		// Registered sites prefix their request IDs with the site ID so WAF and
 		// access records can be attributed without trusting any client header.
-		out = append(out, block{s.ID, s.ID + ".", s.Mode, s.Origin, s.Hostnames, s.CRS, s.Exclusions, s.TLS, s.ACMEEmail, s.RateLimit})
+		out = append(out, block{s.ID, s.ID + ".", s.Mode, s.Origin, s.Hostnames, s.CRS, s.Exclusions, s.TLS, s.ACMEEmail, s.RateLimit, s.MaxBodyKiB})
 	}
 	return out
 }
@@ -312,6 +316,13 @@ func route(b block, digest, indent string) string {
 	exclusions := ""
 	for i, x := range b.exclusions {
 		exclusions += fmt.Sprintf("SecRule REQUEST_METHOD \"@streq %s\" \"id:%d,phase:1,pass,nolog,chain\"\nSecRule REQUEST_URI \"@rx ^%s(?:[?]|$)\" \"chain\"\nSecRule &ARGS:%s \"@ge 0\" \"ctl:ruleRemoveTargetById=%d;ARGS:%s\"\n", x.Method, 10000+i, regexp.QuoteMeta(x.Path), x.Parameter, x.RuleID, x.Parameter)
+	}
+	// Unset keeps the original rendering byte-for-byte (recovery bundles compare it).
+	maxSize, bodyBytes, memory := "1MB", 1048576, ""
+	if b.bodyKiB > 0 {
+		maxSize, bodyBytes = fmt.Sprintf("%dKiB", b.bodyKiB), b.bodyKiB*1024
+		// Coraza requires the body limit to be at least the in-memory limit.
+		memory = fmt.Sprintf("\nSecRequestBodyInMemoryLimit %d", bodyBytes)
 	}
 	limit := ""
 	if b.limit != nil {
@@ -335,7 +346,7 @@ func route(b block, digest, indent string) string {
    header X-Aegis-Revision %s
    header X-Aegis-Mode %s%s
    request_body {
-    max_size 1MB
+    max_size %s
    }
    coraza_waf {
     load_owasp_crs
@@ -347,8 +358,8 @@ SecRuleEngine %s
 SecAuditEngine Off
 SecDebugLogLevel 0
 SecResponseBodyAccess Off
-SecRequestBodyLimit 1048576
-SecRequestBodyNoFilesLimit 1048576
+SecRequestBodyLimit %d
+SecRequestBodyNoFilesLimit %d%s
 SecRequestBodyLimitAction Reject
 SecAction "id:900000,phase:1,pass,nolog,setvar:tx.blocking_paranoia_level=%d,setvar:tx.detection_paranoia_level=%d,setvar:tx.inbound_anomaly_score_threshold=%d"
 %s
@@ -361,7 +372,7 @@ Include @owasp_crs/*.conf
      dial_timeout 3s
      response_header_timeout 15s }
    }
-  }`, b.prefix, b.prefix, digest, b.mode, limit, engine, b.crs.Blocking, b.crs.Executing, b.crs.Threshold, exclusions, b.origin)
+  }`, b.prefix, b.prefix, digest, b.mode, limit, maxSize, engine, bodyBytes, bodyBytes, memory, b.crs.Blocking, b.crs.Executing, b.crs.Threshold, exclusions, b.origin)
 	return indent + body
 }
 

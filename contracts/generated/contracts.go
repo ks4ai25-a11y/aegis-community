@@ -190,6 +190,7 @@ type PolicyRevisionV2SitesItem struct {
 	Tls           string                                    `json:"tls,omitempty"`
 	AcmeEmail     string                                    `json:"acme_email,omitempty"`
 	RateLimit     PolicyRevisionV2SitesItemRateLimit        `json:"rate_limit,omitempty"`
+	MaxBodyKib    int64                                     `json:"max_body_kib,omitempty"`
 }
 type PolicyRevisionV2SitesItemCrs struct {
 	BlockingParanoia        int64 `json:"blocking_paranoia"`

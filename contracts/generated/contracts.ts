@@ -188,6 +188,7 @@ export interface PolicyRevisionV2SitesItem {
   tls?: "acme" | "internal";
   acme_email?: string;
   rate_limit?: PolicyRevisionV2SitesItemRateLimit;
+  max_body_kib?: number;
 }
 export interface PolicyRevisionV2SitesItemCrs {
   blocking_paranoia: number;

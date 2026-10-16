@@ -173,6 +173,7 @@ class PolicyRevisionV2SitesItem(TypedDict):
     tls: NotRequired[str]
     acme_email: NotRequired[str]
     rate_limit: NotRequired[PolicyRevisionV2SitesItemRateLimit]
+    max_body_kib: NotRequired[int]
 class PolicyRevisionV2SitesItemCrs(TypedDict):
     blocking_paranoia: int
     executing_paranoia: int

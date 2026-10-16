@@ -284,6 +284,7 @@ func TestRenderedSitesValidateWithGateway(t *testing.T) {
 	acme := sitePolicy()
 	acme.Sites[0].TLS, acme.Sites[0].ACMEEmail = "acme", "ops@shop.example.com"
 	acme.Sites[0].RateLimit = &domain.RateLimit{Requests: 100, WindowSeconds: 60}
+	acme.Sites[0].MaxBodyKiB = 64
 	rendered = Render(acme, "demo-origin:8080", ":8080", filepath.Join(dir, "admin.sock"), filepath.Join(dir, "events.jsonl"))
 	for _, want := range []string{"https://shop.example.com, https://www.shop.example.com {", " tls ops@shop.example.com", "redir @site_shop_https https://{host}{uri} 308", "events 100", "auto_https disable_redirects"} {
 		if !strings.Contains(rendered, want) {
@@ -598,4 +599,24 @@ func TestRollbackUsesFreshDeadlineAfterSlowReload(t *testing.T) {
 		t.Fatal("rollback did not run on a fresh deadline", e, m.Frozen.Load(), applies.Load())
 	}
 	_ = old
+}
+
+func TestBodyLimitRendering(t *testing.T) {
+	base := Render(sitePolicy(), "o:1", ":8080", "/a", "/l")
+	if !strings.Contains(base, "max_size 1MB") || !strings.Contains(base, "SecRequestBodyLimit 1048576") {
+		t.Fatal("default body limit rendering changed")
+	}
+	p := sitePolicy()
+	p.Sites[0].MaxBodyKiB = 64
+	r := Render(p, "o:1", ":8080", "/a", "/l")
+	if !strings.Contains(r, "max_size 64KiB") || !strings.Contains(r, "SecRequestBodyLimit 65536") || !strings.Contains(r, "max_size 1MB") {
+		t.Fatal("site body limit not rendered")
+	}
+	for _, bad := range []int{-1, 1025} {
+		q := sitePolicy()
+		q.Sites[0].MaxBodyKiB = bad
+		if Validate(q) == nil {
+			t.Fatal("accepted", bad)
+		}
+	}
 }

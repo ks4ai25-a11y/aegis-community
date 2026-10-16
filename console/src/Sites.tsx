@@ -26,7 +26,7 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
   const [sites, setSites] = useState<Site[]>([]);
   const [current, setCurrent] = useState<any>();
   const [error, setError] = useState('');
-  const [form, setForm] = useState({id: '', name: '', hosts: '', origin: '', tls: '', email: '', limit: ''});
+  const [form, setForm] = useState({id: '', name: '', hosts: '', origin: '', tls: '', email: '', limit: '', body: ''});
   const [editing, setEditing] = useState<any>();
   const [preview, setPreview] = useState<any>();
   const [ack, setAck] = useState(false);
@@ -42,12 +42,14 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
   const hostnames = form.hosts.split(/[\s,]+/).map(h => h.trim().toLowerCase()).filter(Boolean);
   const ready = form.id && form.name && hostnames.length && form.origin;
   // Optional fields are omitted when unset so the candidate stays minimal.
-  function extras(f: {tls: string; email: string; limit: string}) {
+  function extras(f: {tls: string; email: string; limit: string; body?: string}) {
     const out: any = {};
     if (f.tls) out.tls = f.tls;
     if (f.tls === 'acme' && f.email.trim()) out.acme_email = f.email.trim();
     const n = Number(f.limit);
     if (f.limit && n > 0) out.rate_limit = {requests: n, window_seconds: 60};
+    const kib = Number(f.body);
+    if (f.body && kib > 0) out.max_body_kib = kib;
     return out;
   }
 
@@ -75,7 +77,7 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
           <td><span className={'badge ' + (s.mode === 'protect' ? 'blocked' : '')}>{s.mode}</span>{s.synthetic && <span className="badge">synthetic</span>}{(s as any).tls && <span className="badge">TLS {(s as any).tls}</span>}{(s as any).rate_limit && <span className="badge">{(s as any).rate_limit.requests}/min</span>}</td>
           <td className="actions">
             <button className="button light" onClick={() => onSelect(s.site_id)}>View activity<ArrowRight size={14}/></button>
-            {!s.synthetic && <button disabled={busy} className="button light" onClick={() => { const r = registered.find(x => x.site_id === s.site_id); setEditing({site_id: s.site_id, tls: r?.tls || '', email: r?.acme_email || '', limit: r?.rate_limit ? String(r.rate_limit.requests) : ''}); }}>Settings</button>}
+            {!s.synthetic && <button disabled={busy} className="button light" onClick={() => { const r = registered.find(x => x.site_id === s.site_id); setEditing({site_id: s.site_id, tls: r?.tls || '', email: r?.acme_email || '', limit: r?.rate_limit ? String(r.rate_limit.requests) : '', body: r?.max_body_kib ? String(r.max_body_kib) : ''}); }}>Settings</button>}
             {!s.synthetic && <button disabled={busy} className="button light" aria-label={'Remove ' + s.display_name} onClick={() => {
               if (window.confirm('Remove ' + s.display_name + ' from the gateway? Requests to its host names will receive 421 after activation.'))
                 stage(registered.filter(r => r.site_id !== s.site_id), 'Remove ' + s.site_id + ' from the gateway');
@@ -109,7 +111,7 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
       <div className="card-heading"><h2>Settings for {editing.site_id}</h2></div>
       <div className="form-grid"><TLSFields value={editing} onChange={v => setEditing({...editing, ...v})}/></div>
       <div className="actions-row">
-        <button disabled={busy} className="button primary" onClick={() => { const e = editing; setEditing(undefined); stage(registered.map(r => { if (r.site_id !== e.site_id) return r; const {tls, acme_email, rate_limit, ...rest} = r; return {...rest, ...extras(e)}; }), 'Update TLS and rate limit for ' + e.site_id); }}>Validate and preview</button>
+        <button disabled={busy} className="button primary" onClick={() => { const e = editing; setEditing(undefined); stage(registered.map(r => { if (r.site_id !== e.site_id) return r; const {tls, acme_email, rate_limit, max_body_kib, ...rest} = r; return {...rest, ...extras(e)}; }), 'Update TLS and rate limit for ' + e.site_id); }}>Validate and preview</button>
         <button className="button light" onClick={() => setEditing(undefined)}>Cancel</button>
       </div>
     </section>}
@@ -123,13 +125,13 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
       <button disabled={busy || !ack || preview.fixture_result !== 'PASS'} className="button primary" onClick={() => action(async () => {
         await activateCandidate('site_demo', preview, current.digest, reason);
         setPreview(undefined);
-        setForm({id: '', name: '', hosts: '', origin: '', tls: '', email: '', limit: ''});
+        setForm({id: '', name: '', hosts: '', origin: '', tls: '', email: '', limit: '', body: ''});
       }, 'Gateway activation confirmed.')}>Approve and activate<ShieldCheck size={16}/></button>
     </section>}
   </>;
 }
 
-function TLSFields({value, onChange}: {value: {tls: string; email: string; limit: string}; onChange: (v: any) => void}) {
+function TLSFields({value, onChange}: {value: {tls: string; email: string; limit: string; body?: string}; onChange: (v: any) => void}) {
   return <>
     <label>HTTPS<select value={value.tls} onChange={e => onChange({tls: e.target.value})}>
       <option value="">Off · plain HTTP on the shared listener</option>
@@ -138,5 +140,6 @@ function TLSFields({value, onChange}: {value: {tls: string; email: string; limit
     </select><small className="muted">ACME needs public DNS for every host name and the public overlay (ports 80/443).</small></label>
     {value.tls === 'acme' && <label>ACME contact email (optional)<input value={value.email} maxLength={320} onChange={e => onChange({email: e.target.value})}/></label>}
     <label>Rate limit (requests per minute per client)<input type="number" min={10} max={100000} placeholder="Off" value={value.limit} onChange={e => onChange({limit: e.target.value})}/><small className="muted">Over-limit requests receive 429 before the WAF and origin. Shared NAT clients count together.</small></label>
+    <label>Maximum request body (KiB)<input type="number" min={1} max={1024} placeholder="1024" value={value.body || ''} onChange={e => onChange({body: e.target.value})}/><small className="muted">WAF inspection costs about 7 ms of CPU per KiB of a long field. Set this low (for example 64) for APIs that never receive large bodies.</small></label>
   </>;
 }

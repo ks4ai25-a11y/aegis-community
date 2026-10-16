@@ -245,6 +245,11 @@
               "requests",
               "window_seconds"
             ]
+          },
+          "max_body_kib": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1024
           }
         },
         "required": [
