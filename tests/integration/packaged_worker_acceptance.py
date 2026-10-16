@@ -52,7 +52,7 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
  try:
   validate(json.loads(compose('config','--format','json').stdout),project,str(ROOT/'alpha/fixtures/scanners'));namespace_verified=True
   no_cli=helper(['which','docker'],entry='/bin/busybox',success=False);assert no_cli.returncode==1 and not no_cli.stdout
-  work_root=pathlib.Path(tempfile.mkdtemp(prefix='aegis-worker-runtime-')).resolve();assert work_root.name.startswith('aegis-worker-runtime-') and work_root.parent==pathlib.Path(tempfile.gettempdir()).resolve()
+  work_root=pathlib.Path(tempfile.mkdtemp(prefix='aegis-worker-runtime-',dir='/tmp' if authz_mode else None)).resolve();assert work_root.name.startswith('aegis-worker-runtime-') and work_root.parent==pathlib.Path('/tmp' if authz_mode else tempfile.gettempdir()).resolve()
   root_mount='type=bind,src='+str(work_root)+',dst='+str(work_root)
   helper(['chown','10001:10001','/target'],entry='/bin/busybox',user='0:0',caps=['CHOWN'],mounts=['type=bind,src='+str(work_root)+',dst=/target'])
   if authz_mode:

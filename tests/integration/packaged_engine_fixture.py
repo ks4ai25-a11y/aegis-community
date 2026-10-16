@@ -13,6 +13,10 @@ class EngineFixture:
  def __init__(self,work_root):
   require_ci();self.work=pathlib.Path(work_root);self.processes=[];self.logs=[];self.daemon=None;self.spec=None;self.installed=False;self.finished=False;self.proof=None
   self.root=pathlib.Path(tempfile.mkdtemp(prefix='aegis-packaged-engine-',dir='/tmp')).resolve();self.root.chmod(0o711)
+  self.programs=self.root/'programs';self.programs.mkdir(mode=0o755)
+  for name in ('aegis-engine-authz','aegis-engine-relay','aegis-research'):
+   shutil.copyfile(ROOT/'bin'/name,self.programs/name);(self.programs/name).chmod(0o755)
+  shutil.copyfile(ROOT/'tools/scanners.lock.json',self.programs/'scanners.lock.json');(self.programs/'scanners.lock.json').chmod(0o644)
   self.engine=pathlib.Path(os.environ['AEGIS_CI_ENGINE_ROOT']).resolve(strict=True)
   receipt=json.loads((self.engine/'prepared.json').read_text());lock=json.loads((ROOT/'tools/ci-engine.lock.json').read_text())
   if receipt['scope']!='disposable_github_linux_amd64_ci_only' or receipt['archive_digest']!=lock['sha256'] or receipt['version']!=lock['version']:raise RuntimeError('Pinned disposable CI engine required')
@@ -39,8 +43,8 @@ class EngineFixture:
   pidfile=parent/(label+'.pid');log=(self.root/(label+'.log')).open('xb');self.logs.append(log)
   # The private owned PID file records the child after dropping UID; no generic
   # process enumeration or ambient daemon selection is used for shutdown.
-  script='import os,sys;os.setgroups([]);os.setgid(10001);os.setuid(10001);f=os.open(sys.argv[1],os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600);os.write(f,str(os.getpid()).encode());os.fsync(f);os.close(f);os.execv(sys.argv[2],sys.argv[2:])'
-  process=subprocess.Popen(['sudo','python3','-c',script,str(pidfile),str(binary),*[str(a) for a in args]],env=self.env,stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True)
+  script='import os,sys;f=os.open(sys.argv[1],os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600);os.write(f,str(os.getpid()).encode());os.fsync(f);os.close(f);os.execv(sys.argv[2],sys.argv[2:])'
+  process=subprocess.Popen(self.as_user(['/usr/bin/python3','-c',script,pidfile,binary,*args]),env=self.env,stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True)
   self.processes.append((process,pidfile,binary));return process
  def process_stop(self,item):
   process,pidfile,binary=item
@@ -74,9 +78,10 @@ class EngineFixture:
    shutil.copyfile(self.tls/source,self.client_dir/target);(self.client_dir/target).chmod(0o600)
   for path in [self.client_dir,self.plugin_root,self.relay_root]:run(['sudo','chown','-R','10001:10001',path])
   self.journal=self.plugin_root/'journal';self.plugin_socket=self.plugin_root/'authz.sock'
-  run(self.as_user([ROOT/'bin/aegis-engine-authz','init',self.journal,self.engine_digest]),env=self.env)
-  self.process_start(ROOT/'bin/aegis-engine-authz',['serve',self.plugin_socket,self.journal,self.engine_digest,self.work,'10001','10001',ROOT/'tools/scanners.lock.json'],self.plugin_root,'plugin')
+  run(self.as_user([self.programs/'aegis-engine-authz','init',self.journal,self.engine_digest]),env=self.env)
+  plugin=self.process_start(self.programs/'aegis-engine-authz',['serve',self.plugin_socket,self.journal,self.engine_digest,self.work,'10001','10001',self.programs/'scanners.lock.json'],self.plugin_root,'plugin')
   for _ in range(60):
+   if plugin.poll() is not None:raise RuntimeError('Private UID plugin process exited before socket readiness')
    if subprocess.run(['sudo','test','-S',self.plugin_socket],stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
    time.sleep(.1)
   else:raise RuntimeError('Private plugin socket unavailable')
@@ -96,7 +101,7 @@ class EngineFixture:
    if status==200 and actual.get('ID')==info['ID']:break
    time.sleep(1)
   else:raise RuntimeError('Original engine TLS identity unavailable')
-  self.process_start(ROOT/'bin/aegis-engine-relay',[self.socket,'127.0.0.1:'+str(port)],self.relay_root,'relay')
+  self.process_start(self.programs/'aegis-engine-relay',[self.socket,'127.0.0.1:'+str(port)],self.relay_root,'relay')
   for _ in range(60):
    if subprocess.run(['sudo','test','-S',self.socket],stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
    time.sleep(.1)
@@ -109,7 +114,7 @@ class EngineFixture:
   # Stop only native relay/plugin and this dedicated daemon. All private keys,
   # journals and engine state remain in the nonce root until runner destruction.
   self.close()
-  observation=json.loads(run(self.as_user([ROOT/'bin/aegis-research','engine-journal-status',self.journal,self.engine_digest]),env=self.env).stdout)
+  observation=json.loads(run(self.as_user([self.programs/'aegis-research','engine-journal-status',self.journal,self.engine_digest]),env=self.env).stdout)
   if observation['attempts']!=1 or observation['unresolved_requests'] or observation['unfinished_attempts'] or observation['all_engine_writes_mediated'] or observation['cleanup_release_authorized']:raise RuntimeError('Independent plugin journal unconfirmed')
   self.finished=True
   self.proof={'schema_version':'1.0','separate_daemon':True,'raw_bootstrap_listener_removed':not self.bootstrap.exists(),'broker_has_raw_daemon_socket':False,'broker_has_daemon_socket_group':False,'end_to_end_tls_over_opaque_unix_relay':True,'relay_has_engine_credentials':False,'daemon_http2_setting':'GODEBUG=http2server=0','plugin_journal':observation,'controller_plugin_lease_binding_verified':False,'all_engine_writes_mediated':False,'cleanup_release_authorized':False,'public_beta':'NO-GO'}

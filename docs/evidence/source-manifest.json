@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:8f3364b1c925f579c3b02d9b7bf55930cca9c037855e052bbf6207affc4af325",
+  "source_tree_sha256": "sha256:bc3c80e776aff93ec320acf933888e5c928bef2ab92203d72190360d3e2c51b5",
   "files": [
     {
       "path": ".dockerignore",
@@ -2000,11 +2000,11 @@
     },
     {
       "path": "tests/integration/packaged_engine_fixture.py",
-      "sha256": "41b8cd21faac50ea4c524e391ab2ba4e84e5fed1a7fd261208071c77f0484416"
+      "sha256": "82d339938c820e9a9fc485de7d97ac5910e7cc96938fcc2c52d40fed89d07738"
     },
     {
       "path": "tests/integration/packaged_worker_acceptance.py",
-      "sha256": "5a1c429cbbf83e93c11fd332da4382a519c5b0610ff4d7ba23799647fe45152c"
+      "sha256": "d16138a0fec6465064d528249505a1b700356fc9cffc58817718caca3cda488b"
     },
     {
       "path": "tests/integration/recovery_application_acceptance.py",
