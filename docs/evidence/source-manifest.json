@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:84932bd8c9149216d858a0e745de689b5cfd9d920a979419a8f37c0469469dec",
+  "source_tree_sha256": "sha256:2a1cd740afd07b547cf4a37a3032238ce4c21ff6f818604ec7a674a1b98274f6",
   "files": [
     {
       "path": ".dockerignore",
@@ -2092,11 +2092,11 @@
     },
     {
       "path": "tests/integration/packaged_authorizer_fixture.py",
-      "sha256": "f0d9e2fdb71edfc880f50854e1efe8d127fbe6c2c016e61ac5eefd578b3457ad"
+      "sha256": "1d13e563dd45ad89bb2214232e1fa988740d3b8dddaae27a1dc057b3964f4894"
     },
     {
       "path": "tests/integration/packaged_engine_fixture.py",
-      "sha256": "9408f21a9defa7a635814df1a055bad2437204c10846caf6d711e938f0eb46b2"
+      "sha256": "72cc7c37083cd01c6d890000e31a816adb1c70760ccb4b5d227bbd74f53baf0f"
     },
     {
       "path": "tests/integration/packaged_worker_acceptance.py",

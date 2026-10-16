@@ -86,7 +86,9 @@ class BoundAuthorizer:
   if c['State']['Running']:self.raw(['stop','--time','10',self.name],30)
  def prove_failure_and_seal(self):
   self.stop()
-  status,_=self.engine.observer('/info')
+  # Match the existing standalone plugin-loss check's bounded allowance for
+  # the daemon's plugin transport retries. No mutation is retried.
+  status,_=self.engine.observer('/info',timeout=45)
   assert status==500
   # This exact used namespace cannot be served without its sealed configuration.
   name=self.name+'-downgrade'

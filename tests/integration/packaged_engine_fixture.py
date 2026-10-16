@@ -53,9 +53,9 @@ class EngineFixture:
   pid=run(['sudo','cat',pidfile]).stdout.decode().strip()
   if not re.fullmatch(r'[1-9][0-9]*',pid) or pathlib.Path(run(['sudo','readlink','/proc/'+pid+'/exe']).stdout.decode().strip())!=binary:raise RuntimeError('Owned engine helper process identity changed')
   run(['sudo','kill','-TERM',pid]);process.wait(timeout=15)
- def observer(self,path):
+ def observer(self,path,timeout=5):
   try:
-   with self.opener.open(self.endpoint+'/v1.55'+path,timeout=5) as response:return response.status,json.load(response)
+   with self.opener.open(self.endpoint+'/v1.55'+path,timeout=timeout) as response:return response.status,json.load(response)
   except urllib.error.HTTPError as e:return e.code,None
  def start(self):
   self.daemon_start(['--host=unix://'+str(self.bootstrap),'--group='+str(os.getegid())],'bootstrap')
