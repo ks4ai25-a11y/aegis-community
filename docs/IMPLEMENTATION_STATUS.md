@@ -272,3 +272,9 @@ Durable mutation admission, late-start fencing, independent engine reconciliatio
 **Exposure comparison (E3).** `/sites/{id}/exposure?repository_id=` classifies declared repository routes against observed templates as `both`, `declared_only`, `observed_only` or `unclassified`, shown on the Endpoints page.
 
 These increments complete large parts of the Community defence plane (E3–E7, F6, F7) but not the remaining H7 release gates. Public beta remains NO-GO.
+
+## Workspace registry identity and close barriers (ADR 057 prerequisite)
+
+Fresh-only native registry provisioning adds a private protocol-2.0 namespace bound to original path/UID/device/inode and a fresh nonce. Read-only existing-state barriers require the approved namespace and retain the global kernel lock through a synchronous callback. Creation acknowledgement and new Close operations share that lock; Close positively releases the lifecycle lease before confined workspace deletion and sync. Substitution, corrupt or missing metadata, active/pending creation and uncertain closure retain/refuse unknown state. Native CLI, race/fault and actual pre-barrier compatibility checks cover the filesystem component; the packaged controller-authorizer fixture now uses explicit namespace provisioning. See [operator instructions](operators/workspace-registry-barriers.md).
+
+The controller still does not admit/complete mutations or release cleanup. Original-engine reconciliation, role separation for release, protocol binding, actual late-allocation race coverage and migration 016 remain required. Full v4 and public beta remain NO-GO.

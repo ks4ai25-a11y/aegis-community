@@ -14,6 +14,12 @@ Migration 014 adds retained immutable authorizer enrollments, with no automatic 
 
 The implemented operator surface is described in [scanner authorizer enrollment](../../operators/scanner-authorizers.md). Only the private identity operation is available for this role. Existing observer capabilities remain read-only; no current serving command interprets authorizer enrollment as permission to allocate. The remaining protocol below is the implementation contract, not a claim that fencing or release has shipped.
 
+### Implemented workspace prerequisite
+
+Fresh-only native registry initialization now creates a private protocol-2.0 namespace bound to its original canonical path, UID and filesystem device/inode, with a fresh nonce. Existing registries cannot be promoted in place. The approved namespace digest is required by the new bound empty-registry callback API; read-only-opened kernel locking spans the entire synchronous callback. Unknown or replaced state is preserved and refused. New Close operations hold the same global creation lock, positively close the lifecycle lease before deleting the original workspace through a confined handle, and sync before success. A failed or uncertain close cannot turn an occupied workspace into a successful empty-registry observation.
+
+This is one reconciliation prerequisite, not controller release authority. Legacy registries and peers do not gain attestation from an empty directory. Mutation fencing, a distinct reconciliation capability, exact engine observations and atomic controller release remain required. See [workspace barriers](../../operators/workspace-registry-barriers.md).
+
 ### Mutation lifecycle
 
 1. The authorizer validates the exact immutable launch and physical inputs. In one controller transaction, admission rechecks scope, current enrollment and broker binding, active dispatch, original deadline, cancellation and a generation that is still open. Persist an intent before any positive daemon authorization reply. Bind it to the launch digest, exact create descriptor, operation, selected authorizer and generation.

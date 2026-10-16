@@ -31,7 +31,7 @@ class BoundAuthorizer:
   # The worker normally creates it only after claim, which is deliberately
   # later than authorizer readiness. Refuse an existing path; never repair or
   # clear another registry, and create it as the actual scanner UID.
-  run(self.engine.as_user(['/usr/bin/mkdir','-m','700',self.registry]),env=self.engine.env)
+  run(self.engine.as_user([self.engine.programs/'aegis-research','workspace-registry-init',self.registry]),env=self.engine.env)
   self.raw(['volume','create','--label','io.aegis.worker-proof='+self.nonce,self.volume]);self.volume_created=True
   assert json.loads(self.raw(['volume','inspect',self.volume]).stdout)[0]['Labels']['io.aegis.worker-proof']==self.nonce
   self.compose('run','--rm','--no-deps','--volume',self.volume+':/run/scanner','--entrypoint','aegisctl','init','scanner-verifier','enroll',self.verifier,'10',self.digest,self.registry_digest,'/run/scanner/observer.credential')
@@ -79,7 +79,8 @@ class BoundAuthorizer:
   # The probe is a native trusted CI client, not a shipped command or a tool.
   env={'GITHUB_ACTIONS':'true','AEGIS_PACKAGED_CONTROLLER_GATE_TEST':'1','AEGIS_GATE_PROBE_ENDPOINT':self.engine.endpoint,'AEGIS_GATE_PROBE_TLS':str(self.engine.client_dir),'AEGIS_GATE_PROBE_REGISTRY':str(self.registry),'AEGIS_GATE_PROBE_JOURNAL':str(self.journal),'AEGIS_GATE_PROBE_LOCK':str(self.engine.programs/'scanners.lock.json')}
   args=self.engine.as_user(['/usr/bin/env',*[k+'='+v for k,v in env.items()],binary,'-test.run=^TestRealPackagedGateRefusesUnregisteredLaunch$','-test.v'])
-  result=subprocess.run(args,env=self.engine.env,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=20)
+  try:result=subprocess.run(args,env=self.engine.env,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=20)
+  except subprocess.TimeoutExpired:raise RuntimeError('Private unregistered-launch probe exceeded its bound; fixture retained') from None
   # No runtime payloads or private configuration are copied into public logs.
   if result.returncode or b'--- PASS: TestRealPackagedGateRefusesUnregisteredLaunch' not in result.stdout:raise RuntimeError('Actual engine unregistered-launch probe failed or did not run')
  def stop(self):

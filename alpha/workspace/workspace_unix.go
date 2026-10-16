@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -34,9 +35,14 @@ type record struct {
 	Reservation string `json:"workspace_digest,omitempty"`
 }
 type Session struct {
-	Path   string
-	lease  *os.File
-	record record
+	registryNamespace                                        string
+	Path                                                     string
+	mu                                                       sync.Mutex
+	path, registryPath                                       string
+	registryInfo, registryLockInfo, workspaceInfo, leaseInfo os.FileInfo
+	cleanupPending                                           bool
+	lease                                                    *os.File
+	record                                                   record
 }
 type Recovery struct {
 	Removed  int `json:"removed"`
@@ -62,39 +68,8 @@ func privateDir(path string) error {
 	}
 	return nil
 }
-func registry(path string) (*os.File, error) {
-	if os.Geteuid() <= 0 {
-		return nil, fmt.Errorf("non-root operator required")
-	}
-	if !filepath.IsAbs(path) {
-		return nil, fmt.Errorf("absolute workspace registry required")
-	}
-	parent, e := filepath.EvalSymlinks(filepath.Dir(path))
-	if e != nil || parent != filepath.Dir(path) {
-		return nil, fmt.Errorf("canonical workspace registry parent required")
-	}
-	if e = os.Mkdir(path, 0700); e != nil && !os.IsExist(e) {
-		return nil, e
-	}
-	if e = privateDir(path); e != nil {
-		return nil, e
-	}
-	f, e := os.OpenFile(filepath.Join(path, ".registry-lock"), os.O_CREATE|os.O_RDWR|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0600)
-	if e != nil {
-		return nil, e
-	}
-	info, e := f.Stat()
-	if e != nil || !info.Mode().IsRegular() || info.Mode().Perm() != 0600 {
-		f.Close()
-		return nil, fmt.Errorf("invalid registry lock")
-	}
-	if e = syscall.Flock(int(f.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); e != nil {
-		f.Close()
-		return nil, fmt.Errorf("workspace registry busy")
-	}
-	return f, nil
-}
-func Begin(path string) (*Session, error) { return begin(path, nil) }
+func registry(path string) (*registryLease, error) { return openRegistry(path, true) }
+func Begin(path string) (*Session, error)          { return begin(path, nil) }
 
 // BeginReserved holds registry admission while authorization commits, before
 // the run directory exists. A failed acknowledgement creates no run workspace.
@@ -114,17 +89,17 @@ func begin(path string, authorize func(string) (string, error)) (*Session, error
 	// The supported operator CLI admits one run at a time. Even an orphan with
 	// a released lease blocks another scan until explicit recovery establishes
 	// absence of the exact container on its original engine.
-	directory, e := os.Open(path)
+	directory, e := lock.root.Open(".")
 	if e != nil {
 		return nil, e
 	}
-	entries, e := directory.ReadDir(2)
+	entries, e := directory.ReadDir(3)
 	directory.Close()
 	if e != nil && e != io.EOF {
 		return nil, e
 	}
 	for _, entry := range entries {
-		if entry.Name() != ".registry-lock" {
+		if entry.Name() != ".registry-lock" && !(entry.Name() == registryNamespaceFile && lock.namespace != "") {
 			return nil, ErrOccupied
 		}
 	}
@@ -140,42 +115,61 @@ func begin(path string, authorize func(string) (string, error)) (*Session, error
 			return nil, fmt.Errorf("workspace reservation rejected")
 		}
 	}
-	if e = os.Mkdir(p, 0700); e != nil {
+	if e = lock.check(); e != nil {
 		return nil, e
 	}
-	f, e := os.OpenFile(filepath.Join(p, "lease"), os.O_CREATE|os.O_EXCL|os.O_RDWR, 0600)
+	if e = lock.root.Mkdir(filepath.Base(p), 0700); e != nil {
+		return nil, e
+	}
+	f, e := lock.root.OpenFile(filepath.Base(p)+"/lease", os.O_CREATE|os.O_EXCL|os.O_RDWR|syscall.O_NOFOLLOW, 0600)
 	if e != nil {
-		os.RemoveAll(p)
+		lock.root.RemoveAll(filepath.Base(p))
 		return nil, e
 	}
 	if e = syscall.Flock(int(f.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); e != nil {
 		f.Close()
-		os.RemoveAll(p)
+		lock.root.RemoveAll(filepath.Base(p))
 		return nil, e
 	}
-	s := &Session{Path: p, lease: f, record: record{Version: "1.0", Created: time.Now().Unix(), Reservation: reservation}}
-	if e = s.persist(); e != nil {
-		s.Close()
+	workspaceInfo, e := lock.root.Lstat(filepath.Base(p))
+	if e != nil || !privateEntry(workspaceInfo, os.ModeDir|0700) {
+		f.Close()
+		return nil, fmt.Errorf("workspace identity unavailable")
+	}
+	leaseInfo, e := f.Stat()
+	if e != nil || !privateEntry(leaseInfo, 0600) || leaseInfo.Size() != 0 {
+		f.Close()
+		return nil, fmt.Errorf("workspace lease identity unavailable")
+	}
+	s := &Session{registryNamespace: lock.namespace, Path: p, path: p, registryPath: path, registryInfo: lock.rootInfo, registryLockInfo: lock.lockInfo, workspaceInfo: workspaceInfo, leaseInfo: leaseInfo, lease: f, record: record{Version: "1.0", Created: time.Now().Unix(), Reservation: reservation}}
+	dir, e := lock.root.OpenRoot(filepath.Base(p))
+	if e != nil {
+		s.closeLocked(lock)
+		return nil, e
+	}
+	defer dir.Close()
+	if e = s.persist(dir); e != nil {
+		s.closeLocked(lock)
 		return nil, e
 	}
 	// Persist the directory entry before any source bytes or container exist.
-	d, e := os.Open(path)
+	d, e := lock.root.Open(".")
 	if e == nil {
 		e = d.Sync()
 		d.Close()
 	}
 	if e != nil {
-		s.Close()
+		s.closeLocked(lock)
 		return nil, e
 	}
 	return s, nil
 }
-func (s *Session) persist() error {
+func (s *Session) persist(dir *os.Root) error {
 	b, e := json.Marshal(s.record)
 	if e != nil {
 		return e
 	}
-	f, e := os.OpenFile(filepath.Join(s.Path, "journal.new"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	f, e := dir.OpenFile("journal.new", os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
 	if e != nil {
 		return e
 	}
@@ -190,10 +184,10 @@ func (s *Session) persist() error {
 	if e != nil {
 		return e
 	}
-	if e = os.Rename(filepath.Join(s.Path, "journal.new"), filepath.Join(s.Path, "journal.json")); e != nil {
+	if e = dir.Rename("journal.new", "journal.json"); e != nil {
 		return e
 	}
-	d, e := os.Open(s.Path)
+	d, e := dir.Open(".")
 	if e != nil {
 		return e
 	}
@@ -203,27 +197,108 @@ func (s *Session) persist() error {
 
 // Bind is called and fsynced before Docker receives the run command.
 func (s *Session) Bind(name, engine string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.Path != s.path {
+		return fmt.Errorf("workspace path changed")
+	}
 	if s.lease == nil || s.record.Container != "" || !containerName.MatchString(name) || !engineDigest.MatchString(engine) {
 		return fmt.Errorf("invalid workspace container binding")
 	}
+	lock, e := openRegistry(s.registryPath, false)
+	if e != nil {
+		return e
+	}
+	defer lock.Close()
+	if s.registryNamespace != lock.namespace || !os.SameFile(s.registryInfo, lock.rootInfo) || !os.SameFile(s.registryLockInfo, lock.lockInfo) {
+		return fmt.Errorf("workspace registry identity changed")
+	}
+	if e = lock.check(); e != nil {
+		return e
+	}
+	dir, e := lock.root.OpenRoot(filepath.Base(s.path))
+	if e != nil {
+		return e
+	}
+	defer dir.Close()
+	info, e := dir.Stat(".")
+	if e != nil || !privateEntry(info, os.ModeDir|0700) || !os.SameFile(info, s.workspaceInfo) {
+		return fmt.Errorf("workspace identity changed")
+	}
+	info, e = dir.Lstat("lease")
+	if e != nil || !privateEntry(info, 0600) || info.Size() != 0 || !os.SameFile(info, s.leaseInfo) {
+		return fmt.Errorf("workspace lease identity changed")
+	}
 	s.record.Container = name
 	s.record.Engine = engine
-	return s.persist()
+	return s.persist(dir)
 }
 
 // Close removes only this session. Caller must first confirm container absence.
 func (s *Session) Close() error {
-	if s.lease == nil {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.lease == nil && !s.cleanupPending {
 		return nil
 	}
-	e := os.RemoveAll(s.Path)
-	s.lease.Close()
-	s.lease = nil
-	return e
+	lock, e := openRegistry(s.registryPath, false)
+	if e != nil {
+		return e
+	}
+	defer lock.Close()
+	return s.closeLocked(lock)
+}
+
+// closeLocked is also used by failed construction, which already holds the
+// registry lock. Close the lifecycle lease BEFORE deletion while admission is
+// excluded. Any uncertain lease close leaves the occupied directory intact.
+func (s *Session) closeLocked(lock *registryLease) error {
+	if s.registryNamespace != lock.namespace || s.Path != s.path || filepath.Dir(s.path) != lock.path || !sessionName.MatchString(filepath.Base(s.path)) || !os.SameFile(s.registryInfo, lock.rootInfo) || !os.SameFile(s.registryLockInfo, lock.lockInfo) {
+		return fmt.Errorf("workspace registry identity changed")
+	}
+	if e := lock.check(); e != nil {
+		return e
+	}
+	name := filepath.Base(s.path)
+	info, e := lock.root.Lstat(name)
+	if e != nil {
+		if os.IsNotExist(e) && s.cleanupPending && s.lease == nil {
+			if e = lock.sync(); e != nil {
+				return e
+			}
+			s.cleanupPending = false
+			return nil
+		}
+		return fmt.Errorf("workspace identity unavailable")
+	}
+	if !privateEntry(info, os.ModeDir|0700) || !os.SameFile(info, s.workspaceInfo) {
+		return fmt.Errorf("workspace identity changed")
+	}
+	if s.lease != nil {
+		info, e = lock.root.Lstat(name + "/lease")
+		if e != nil || !privateEntry(info, 0600) || info.Size() != 0 || !os.SameFile(info, s.leaseInfo) {
+			return fmt.Errorf("workspace lease identity changed")
+		}
+		if e = s.lease.Close(); e != nil {
+			return e
+		}
+		s.lease = nil
+		s.cleanupPending = true
+	}
+	if e = lock.root.RemoveAll(name); e != nil {
+		return e
+	}
+	if e = lock.sync(); e != nil {
+		return e
+	}
+	s.cleanupPending = false
+	return nil
 }
 
 // Preserve releases the kernel lease while retaining an unconfirmed execution.
 func (s *Session) Preserve() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if s.lease != nil {
 		s.lease.Close()
 		s.lease = nil
@@ -254,7 +329,7 @@ func Recover(ctx context.Context, path string, now time.Time, absent func(contex
 		if ctx.Err() != nil {
 			return out, ctx.Err()
 		}
-		if entry.Name() == ".registry-lock" {
+		if entry.Name() == ".registry-lock" || entry.Name() == registryNamespaceFile && lock.namespace != "" {
 			continue
 		}
 		if !sessionName.MatchString(entry.Name()) {
@@ -329,7 +404,10 @@ func Recover(ctx context.Context, path string, now time.Time, absent func(contex
 					return nil
 				}
 			}
-			if e = os.RemoveAll(p); e != nil {
+			if e = lock.check(); e != nil {
+				return e
+			}
+			if e = lock.root.RemoveAll(entry.Name()); e != nil {
 				return e
 			}
 			out.Removed++

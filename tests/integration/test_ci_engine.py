@@ -1,8 +1,20 @@
 import copy,hashlib,io,json,pathlib,sys,tarfile,tempfile,unittest
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[2]/'scripts'))
 from ci_engine import prepare,validate_lock,BINARIES
-from engine_authz_acceptance import public_create_failure
+from engine_authz_acceptance import public_create_failure,run as private_run
+import subprocess
 class CIEngine(unittest.TestCase):
+ def test_native_failure_and_timeout_do_not_publish_private_arguments(self):
+  with self.assertRaises(subprocess.CalledProcessError) as failed:
+   private_run([sys.executable,'-c','import sys;sys.stderr.write("private-output-canary");sys.exit(7)','private-argument-canary'])
+  self.assertNotIn('canary',str(failed.exception))
+  self.assertIn(b'private-output-canary',failed.exception.stderr)
+  self.assertEqual(failed.exception.returncode,7)
+  with self.assertRaises(subprocess.TimeoutExpired) as expired:
+   private_run([sys.executable,'-c','import time;time.sleep(5)','private-timeout-canary'],timeout=.05)
+  self.assertNotIn('canary',str(expired.exception))
+  for invalid in (None,True,0,181,float('nan')):
+   with self.subTest(limit=invalid),self.assertRaises(ValueError):private_run([sys.executable],timeout=invalid)
  def test_public_native_failure_output_excludes_runtime_data(self):
   stage='native create failed: connection reused=true request written=true intent recorded=false response recorded=false'
   self.assertEqual(public_create_failure('    real_test.go:123: '+stage),stage)

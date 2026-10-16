@@ -12,8 +12,18 @@ def require_ci():
  if os.environ.get('AEGIS_REAL_ENGINE_AUTHZ_TEST')!='1' or os.environ.get('GITHUB_ACTIONS')!='true' or platform.system()!='Linux' or platform.machine() not in ('x86_64','amd64') or os.geteuid()<=0:
   raise RuntimeError('Explicit disposable GitHub Linux AMD64 CI fixture only')
 
+class PrivateOperationError(subprocess.CalledProcessError):
+ def __str__(self):return 'Private native fixture operation failed; diagnostic payload retained privately'
+
+class PrivateOperationTimeout(subprocess.TimeoutExpired):
+ def __str__(self):return 'Private native fixture operation exceeded its time bound'
+
 def run(args,**kwargs):
- return subprocess.run([str(a) for a in args],check=True,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=180,**kwargs)
+ limit=kwargs.pop('timeout',180)
+ if isinstance(limit,bool) or not isinstance(limit,(int,float)) or not 0<limit<=180:raise ValueError('Bounded native fixture timeout required')
+ try:return subprocess.run([str(a) for a in args],check=True,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=limit,**kwargs)
+ except subprocess.CalledProcessError as e:raise PrivateOperationError(e.returncode,e.cmd,output=e.output,stderr=e.stderr) from None
+ except subprocess.TimeoutExpired as e:raise PrivateOperationTimeout(e.cmd,e.timeout,output=e.output,stderr=e.stderr) from None
 
 def public_create_failure(line):
  # Strict full-line allowlist: arbitrary client output is never sanitized into
