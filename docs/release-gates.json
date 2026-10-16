@@ -64,7 +64,8 @@
         "alpha/executor/tls_sdk_test.go",
         "docs/evidence/tls-broker-validation.json",
         "docs/architecture/adr/053-fresh-controller-launch-observations.md",
-        "tests/integration/scannerchannel/live_launch_test.go"
+        "tests/integration/scannerchannel/live_launch_test.go",
+        "docs/evidence/live-launch-validation.json"
       ]
     },
     {

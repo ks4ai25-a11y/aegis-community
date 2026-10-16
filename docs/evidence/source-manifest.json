@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:2b6692d3042da7b3c68e6ef8a46685dc2b52ac3076f267610457be85f1234202",
+  "source_tree_sha256": "sha256:031821854ffb529eb0c0b8aac39d1b6a08fe32ae9a77de858e046fcf0254d941",
   "files": [
     {
       "path": ".dockerignore",
@@ -1744,7 +1744,7 @@
     },
     {
       "path": "docs/architecture/adr/053-fresh-controller-launch-observations.md",
-      "sha256": "88513d8b525da5bb32669feed1e5c0c8599947f65aa633c5044aecb6f90dc6b7"
+      "sha256": "3ead1d3fee261508acf4f09a114ceb499603a54710d60e8dfbab8b6dbed6aa32"
     },
     {
       "path": "docs/operators/database-snapshots.md",
@@ -1808,7 +1808,7 @@
     },
     {
       "path": "docs/release-gates.json",
-      "sha256": "4e2f699c36577d143d2c40748520076e2ccb9f56ab9ad5a4232f0cb9a6913966"
+      "sha256": "bbceff048a76d3cb6bbdbc5b6e8c6fc8f6c5e3db36454dabf07293eb9d24af35"
     },
     {
       "path": "gateway/Dockerfile",

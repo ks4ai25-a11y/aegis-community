@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Read-only live controller observation; no daemon allocation authorization or independent cleanup proof",
+  "tested_source_commit": "023dae1b6643281599e2cc0bc78b1ed890763515",
+  "hosted_run": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38892561766",
+  "hosted_jobs": {
+    "source": "PASS",
+    "trusted-demo": "PASS",
+    "packaged-worker": "PASS",
+    "isolated-engine-authz": "PASS"
+  },
+  "repeated_tests": [
+    {
+      "scope": "controller_context_and_private_channel",
+      "unique_tests_and_subtests": 43,
+      "repeats": 3,
+      "pass_events": 129
+    },
+    {
+      "scope": "private_observer_client",
+      "unique_tests_and_subtests": 15,
+      "repeats": 3,
+      "pass_events": 45
+    }
+  ],
+  "private_unix_client_controller_interoperability": "PASS",
+  "synthetic_schema_samples": 4,
+  "tls_preflight_variant": "PASS",
+  "schema_authority_and_backend_refusals": 5,
+  "full_local_source_checks": "PASS",
+  "controller_and_alpha_static_analysis": "PASS",
+  "operator_and_matching_guard_builds": "PASS",
+  "controller_schema_migration_added": false,
+  "public_record_contains_runtime_metadata": false,
+  "daemon_consumes_observation": false,
+  "engine_write_authorized": false,
+  "cleanup_release_authorized": false,
+  "independent_security_signoff": false,
+  "public_beta": "NO-GO"
+}
