@@ -14,7 +14,9 @@
       "requirement": "Expected WAF detection and bypass coverage",
       "status": "partial",
       "evidence": [
-        "docs/evidence/demo-acceptance.json"
+        "docs/evidence/demo-acceptance.json",
+        "docs/evidence/multi-site-acceptance.json",
+        "docs/evidence/detector-acceptance.json"
       ]
     },
     {
@@ -30,7 +32,9 @@
       "requirement": "Default privacy and export",
       "status": "partial",
       "evidence": [
-        "docs/evidence/demo-acceptance.json"
+        "docs/evidence/demo-acceptance.json",
+        "docs/evidence/detector-acceptance.json",
+        "docs/evidence/mcp-acceptance.json"
       ]
     },
     {
@@ -38,7 +42,8 @@
       "requirement": "Policy rejection, rollback and expiry",
       "status": "partial",
       "evidence": [
-        "docs/evidence/demo-acceptance.json"
+        "docs/evidence/demo-acceptance.json",
+        "docs/architecture/adr/064-exclusion-expiry.md"
       ]
     },
     {
@@ -92,7 +97,9 @@
       "requirement": "Closed-loop positive and negative controls",
       "status": "partial",
       "evidence": [
-        "alpha/lab/tenant_test.go"
+        "alpha/lab/tenant_test.go",
+        "docs/evidence/ai-assessment-acceptance.json",
+        "docs/architecture/adr/063-live-policy-regression-canary.md"
       ]
     },
     {
@@ -117,7 +124,8 @@
       "status": "partial",
       "evidence": [
         "docs/KNOWN_LIMITATIONS.md",
-        "docs/IMPLEMENTATION_STATUS.md"
+        "docs/IMPLEMENTATION_STATUS.md",
+        "docs/user/getting-started.md"
       ]
     }
   ]
