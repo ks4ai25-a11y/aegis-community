@@ -16,6 +16,7 @@ import (
 var ErrConflict = errors.New("request conflicts with existing durable state")
 var ErrScope = errors.New("scope is inactive, expired, revoked or belongs to another owner")
 var ErrLease = errors.New("worker lease is no longer valid")
+var ErrRejected = errors.New("queued job rejected durably and skipped")
 var ErrFull = errors.New("research queue is full")
 
 type Queue struct {
@@ -323,28 +324,46 @@ func (q *Queue) Claim(worker string) (Lease, error) {
 	if e != nil {
 		return Lease{}, e
 	}
+	// A job that can never run is rejected durably so it cannot block every later job.
+	reject := func(code string, cause error) (Lease, error) {
+		at := q.now().UTC().Format(time.RFC3339Nano)
+		if _, e := tx.Exec("UPDATE research_jobs SET state='failed',error_code=?,finished_at=? WHERE id=? AND state='queued'", code, at, j.ID); e != nil {
+			return Lease{}, e
+		}
+		if e := store.AuditTx(tx, j.Owner, "research.rejected", j.ID, "failed", map[string]string{"error_code": code}); e != nil {
+			return Lease{}, e
+		}
+		if e := tx.Commit(); e != nil {
+			return Lease{}, e
+		}
+		return Lease{}, fmt.Errorf("%w: %w", ErrRejected, cause)
+	}
 	var payload, document, digest, requestDigest string
 	if e = tx.QueryRow("SELECT payload,request_digest FROM research_jobs WHERE id=?", j.ID).Scan(&payload, &requestDigest); e != nil {
 		return Lease{}, e
 	}
-	if e = tx.QueryRow("SELECT document,digest FROM scope_grants WHERE id=? AND owner=?", j.Scope, j.Owner).Scan(&document, &digest); e != nil {
+	if e = tx.QueryRow("SELECT document,digest FROM scope_grants WHERE id=? AND owner=?", j.Scope, j.Owner).Scan(&document, &digest); e == sql.ErrNoRows {
+		return reject("SCOPE_UNAVAILABLE", ErrScope)
+	} else if e != nil {
 		return Lease{}, e
 	}
 	var in Input
 	var g scope.Grant
 	if json.Unmarshal([]byte(payload), &in) != nil || json.Unmarshal([]byte(document), &g) != nil || domain.Digest(g) != digest || in.ScopeDigest != digest || scope.Validate(g, j.Owner, q.now()) != nil {
-		return Lease{}, ErrScope
+		return reject("SCOPE_UNAVAILABLE", ErrScope)
 	}
 	if domain.Digest(in) != requestDigest || in.Schema != "1.0" || in.App != j.App || in.Scope != j.Scope || in.Fixture != scope.Fixture || in.PolicyDigest != j.InputDigest {
-		return Lease{}, fmt.Errorf("job input integrity mismatch")
+		return reject("INPUT_INTEGRITY_MISMATCH", fmt.Errorf("job input integrity mismatch"))
 	}
 	var policyDocument string
-	if e = tx.QueryRow("SELECT document FROM policies WHERE digest=?", in.PolicyDigest).Scan(&policyDocument); e != nil {
+	if e = tx.QueryRow("SELECT document FROM policies WHERE digest=?", in.PolicyDigest).Scan(&policyDocument); e == sql.ErrNoRows {
+		return reject("POLICY_UNAVAILABLE", fmt.Errorf("job policy unavailable"))
+	} else if e != nil {
 		return Lease{}, e
 	}
 	var p domain.Policy
 	if json.Unmarshal([]byte(policyDocument), &p) != nil || domain.Digest(p) != j.InputDigest {
-		return Lease{}, fmt.Errorf("job policy identity unavailable")
+		return reject("POLICY_UNAVAILABLE", fmt.Errorf("job policy identity unavailable"))
 	}
 	res, e := tx.Exec("UPDATE scope_grants SET requests_used=requests_used+4 WHERE id=? AND owner=? AND state='active' AND expires>? AND requests_used=0", g.ID, j.Owner, now)
 	if e != nil {
@@ -352,7 +371,7 @@ func (q *Queue) Claim(worker string) (Lease, error) {
 	}
 	reserved, _ := res.RowsAffected()
 	if reserved != 1 {
-		return Lease{}, ErrScope
+		return reject("SCOPE_BUDGET_EXHAUSTED", ErrScope)
 	}
 	token := domain.ID()
 	res, e = tx.Exec("UPDATE research_jobs SET state='running',worker=?,lease_token=?,lease_until=?,attempts=attempts+1,started=? WHERE id=? AND state='queued'", worker, token, now+15, now, j.ID)

@@ -6,6 +6,7 @@ import (
 	"aegis.local/controller/internal/store"
 	"context"
 	"encoding/json"
+	"errors"
 	"net"
 	"net/http"
 	"os"
@@ -129,5 +130,63 @@ func TestApprovedCrashReconciliation(t *testing.T) {
 	s.Set("apply_journal", d)
 	if e = m.Reconcile(context.Background()); e != nil {
 		t.Fatal(e)
+	}
+}
+
+func TestBusyDeployerDoesNotFreeze(t *testing.T) {
+	s, e := store.Open(filepath.Join(t.TempDir(), "state.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	_, old, e := s.Active()
+	if e != nil {
+		t.Fatal(e)
+	}
+	p := domain.Initial()
+	p.Parent = old
+	p.Mode = "protect"
+	p.Metadata.Rationale = "Busy deployer fixture"
+	d := domain.Digest(p)
+	b, _ := json.Marshal(p)
+	if _, e = s.DB.Exec("INSERT INTO policies VALUES(?,?,?,?,?,?)", d, old, string(b), "PENDING_APPROVAL", domain.Now(), "owner"); e != nil {
+		t.Fatal(e)
+	}
+	scratch, e := os.MkdirTemp("/tmp", "aegis-policy-")
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer os.RemoveAll(scratch)
+	socket := filepath.Join(scratch, "helper.sock")
+	ln, e := net.Listen("unix", socket)
+	if e != nil {
+		t.Fatal(e)
+	}
+	srv := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/status":
+			json.NewEncoder(w).Encode(map[string]string{"digest": old})
+		case "/validate":
+			json.NewEncoder(w).Encode(map[string]string{"digest": d})
+		default:
+			w.WriteHeader(http.StatusTooManyRequests)
+			json.NewEncoder(w).Encode(map[string]string{"error": "deployment operation in progress"})
+		}
+	})}
+	go srv.Serve(ln)
+	defer srv.Close()
+	m := Manager{S: s, DeploySocket: socket}
+	if e = m.Apply(context.Background(), p, "owner"); !errors.Is(e, ErrDeployerBusy) {
+		t.Fatal("busy deployer must be reported definitively:", e)
+	}
+	if m.Frozen.Load() {
+		t.Fatal("definitive busy response froze policy changes")
+	}
+	var state string
+	if e = s.DB.QueryRow("SELECT state FROM policies WHERE digest=?", d).Scan(&state); e != nil || state != "PENDING_APPROVAL" {
+		t.Fatal(state, e)
+	}
+	if journal, _ := s.Get("apply_journal"); journal != "" {
+		t.Fatal("journal left behind", journal)
 	}
 }

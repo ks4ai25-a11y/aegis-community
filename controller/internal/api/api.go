@@ -501,7 +501,11 @@ func (s *Server) activate(w http.ResponseWriter, r *http.Request, actor, path st
 		}
 		d := domain.Digest(p)
 		b, _ := json.Marshal(p)
-		s.S.DB.Exec("INSERT OR IGNORE INTO policies VALUES(?,?,?,?,?,?)", d, active, string(b), "PENDING_APPROVAL", domain.Now(), actor)
+		// A rollback to a digest that previously failed is re-armed rather than ignored.
+		if _, e = s.S.DB.Exec("INSERT INTO policies VALUES(?,?,?,?,?,?) ON CONFLICT(digest) DO UPDATE SET state='PENDING_APPROVAL',parent=excluded.parent WHERE policies.state='FAILED'", d, active, string(b), "PENDING_APPROVAL", domain.Now(), actor); e != nil {
+			fail(w, 500, "INTERNAL_ERROR", "Rollback candidate could not be recorded")
+			return
+		}
 	} else if parts[1] == "activate" {
 		proof, e := s.S.Get("preview:" + parts[0])
 		if e != nil {

@@ -5,6 +5,7 @@ import (
 	"aegis.local/controller/internal/domain"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"sync/atomic"
 	"time"
@@ -27,7 +28,7 @@ func (w *Worker) Start(ctx context.Context) {
 			return
 		case <-ticker.C:
 			l, e := w.Q.Claim(w.ID)
-			if e == sql.ErrNoRows {
+			if e == sql.ErrNoRows || errors.Is(e, ErrRejected) {
 				continue
 			}
 			if e != nil {

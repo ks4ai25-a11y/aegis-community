@@ -68,6 +68,27 @@ func main() {
 		}
 		m.Frozen.Store(true)
 	}()
+	// A freeze is only lifted by a successful reconciliation against the gateway;
+	// keep retrying so a transient fault does not require a controller restart.
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if !m.Frozen.Load() {
+					continue
+				}
+				c, cn := context.WithTimeout(ctx, 10*time.Second)
+				if m.Reconcile(c) == nil {
+					fmt.Println(`{"event":"policy_freeze_reconciled"}`)
+				}
+				cn()
+			}
+		}
+	}()
 	q := &research.Queue{S: s}
 	v := verify.Client{Socket: env("VERIFIER_SOCKET", "/run/verifier/verifier.sock")}
 	worker := &research.Worker{Q: q, ID: "bundled-fixture-worker", Run: func(ctx context.Context, l research.Lease) (domain.Report, error) {

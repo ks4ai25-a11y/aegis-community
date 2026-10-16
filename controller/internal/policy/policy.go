@@ -6,6 +6,7 @@ import (
 	"aegis.local/controller/internal/store"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -334,6 +335,12 @@ func (m *Manager) Apply(ctx context.Context, p domain.Policy, actor string) erro
 	}
 
 	if e = m.Reload(ctx, p); e != nil {
+		if errors.Is(e, ErrDeployerBusy) {
+			// Nothing was applied, so no rollback (and no freeze) is needed.
+			m.S.DB.Exec("UPDATE policies SET state='PENDING_APPROVAL' WHERE digest=? AND state='APPLYING'", d)
+			m.S.Set("apply_journal", "")
+			return e
+		}
 		if re := m.Reload(ctx, old); re != nil {
 			m.Frozen.Store(true)
 			m.S.Set("apply_frozen", "true")
@@ -433,6 +440,9 @@ func (m *Manager) Reconcile(ctx context.Context) error {
 	return nil
 }
 
+// ErrDeployerBusy is definitive: the deployer refused before touching the gateway.
+var ErrDeployerBusy = errors.New("policy deployer busy; no gateway change attempted")
+
 // Remote exposes only typed policy operations; callers cannot submit Caddy JSON or paths.
 func (m *Manager) Remote(ctx context.Context, operation string, p domain.Policy) (string, error) {
 	expected := ""
@@ -469,6 +479,9 @@ func (m *Manager) Remote(ctx context.Context, operation string, p domain.Policy)
 	}
 	if err := json.NewDecoder(io.LimitReader(resp.Body, 4096)).Decode(&out); err != nil {
 		return "", fmt.Errorf("invalid deployer response")
+	}
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return "", ErrDeployerBusy
 	}
 	if resp.StatusCode != 200 {
 		return "", fmt.Errorf("deployer: %s", out.Error)

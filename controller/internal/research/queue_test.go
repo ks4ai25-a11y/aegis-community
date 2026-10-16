@@ -377,9 +377,16 @@ func TestClaimRejectsCorruptedJobAndPolicyBeforeBudgetReservation(t *testing.T) 
 			if e != nil || grant.RequestsRemaining != 4 {
 				t.Fatal("budget changed before immutable input validation", grant, e)
 			}
+			// The corrupted job is rejected durably so it cannot block later jobs.
 			job, e := q.Get("owner-a", j.ID)
-			if e != nil || job.State != "queued" || job.Attempts != 0 {
+			if e != nil || job.State != "failed" || job.Attempts != 0 || job.Error == "" {
 				t.Fatal(job, e)
+			}
+			if _, e = q.Claim("worker"); e != sql.ErrNoRows {
+				t.Fatal("rejected job claimed again", e)
+			}
+			if e = q.S.VerifyAudit(); e != nil {
+				t.Fatal(e)
 			}
 		})
 	}

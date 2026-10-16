@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 )
 
@@ -35,7 +34,9 @@ func main() {
 		panic(err)
 	}
 	m := &policy.Manager{Root: filepath.Join(root, "policies"), Binary: "/usr/local/bin/caddy", Socket: "/run/gateway/admin.sock", Origin: "demo-origin:8080", Listen: ":8080", Log: "/var/log/aegis/events.jsonl"}
-	var mu sync.Mutex
+	// One operation at a time. Callers wait briefly instead of failing: a 429 during
+	// an apply/rollback pair used to freeze the controller although nothing changed.
+	lock := make(chan struct{}, 1)
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		deny := func(status int, msg string) {
@@ -55,11 +56,19 @@ func main() {
 			return
 		}
 		p := in.Policy
-		if !mu.TryLock() {
+		wait := time.NewTimer(10 * time.Second)
+		select {
+		case lock <- struct{}{}:
+			wait.Stop()
+		case <-wait.C:
+			// Definitive: no gateway operation was attempted for this request.
 			deny(429, "deployment operation in progress")
 			return
+		case <-r.Context().Done():
+			wait.Stop()
+			return
 		}
-		defer mu.Unlock()
+		defer func() { <-lock }()
 		err = nil
 		ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
 		defer cancel()
