@@ -162,33 +162,44 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	case path == "/system/status" && r.Method == "GET":
 		s.status(w, r)
 	case path == "/sites" && r.Method == "GET":
-		output(w, 200, map[string]any{"items": []any{map[string]string{"site_id": "site_demo", "display_name": "Bundled demo", "hostname": "demo.example.test", "origin_url": "http://demo-origin:8080"}}, "cursor": nil})
-	case path == "/sites/site_demo/events" && r.Method == "GET":
-		s.events(w, r)
-	case path == "/sites/site_demo/events/stream" && r.Method == "GET":
-		s.stream(w, r)
-	case path == "/sites/site_demo/endpoints" && r.Method == "GET":
-		s.endpoints(w, r)
-	case path == "/sites/site_demo/incidents" && r.Method == "GET":
-		s.incidents(w, r)
-	case strings.HasPrefix(path, "/incidents/") && r.Method == "GET":
-		s.incident(w, strings.TrimPrefix(path, "/incidents/"))
-	case path == "/sites/site_demo/policy" && r.Method == "GET":
-		p, d, e := s.S.Active()
-		if e != nil {
-			fail(w, 500, "INTERNAL_ERROR", "Policy unavailable")
+		s.sites(w)
+	case strings.HasPrefix(path, "/sites/"):
+		site, rest, ok := s.siteRoute(path)
+		if !ok {
+			fail(w, 404, "RESOURCE_NOT_FOUND", "Site not registered in the active policy")
 			return
 		}
-		w.Header().Set("ETag", `"`+d+`"`)
-		output(w, 200, map[string]any{"digest": d, "policy": p})
-	case path == "/sites/site_demo/policies/validate" && r.Method == "POST":
-		s.preview(w, r, actor)
-	case path == "/sites/site_demo/policies" && r.Method == "POST":
-		s.draft(w, r, actor)
-	case path == "/sites/site_demo/policies/history" && r.Method == "GET":
-		s.history(w)
-	case strings.HasPrefix(path, "/sites/site_demo/policies/") && r.Method == "POST":
-		s.activate(w, r, actor, path)
+		switch {
+		case rest == "/events" && r.Method == "GET":
+			s.events(w, r, site)
+		case rest == "/events/stream" && r.Method == "GET":
+			s.stream(w, r, site)
+		case rest == "/endpoints" && r.Method == "GET":
+			s.endpoints(w, r, site)
+		case rest == "/incidents" && r.Method == "GET":
+			s.incidents(w, r, site)
+		case rest == "/policy" && r.Method == "GET":
+			// One gateway revision governs every site; it is returned whole.
+			p, d, e := s.S.Active()
+			if e != nil {
+				fail(w, 500, "INTERNAL_ERROR", "Policy unavailable")
+				return
+			}
+			w.Header().Set("ETag", `"`+d+`"`)
+			output(w, 200, map[string]any{"digest": d, "policy": p})
+		case rest == "/policies/validate" && r.Method == "POST":
+			s.preview(w, r, actor)
+		case rest == "/policies" && r.Method == "POST":
+			s.draft(w, r, actor)
+		case rest == "/policies/history" && r.Method == "GET":
+			s.history(w)
+		case strings.HasPrefix(rest, "/policies/") && r.Method == "POST":
+			s.activate(w, r, actor, path, strings.TrimPrefix(rest, "/policies/"))
+		default:
+			fail(w, 404, "RESOURCE_NOT_FOUND", "Endpoint not available in this alpha")
+		}
+	case strings.HasPrefix(path, "/incidents/") && r.Method == "GET":
+		s.incident(w, strings.TrimPrefix(path, "/incidents/"))
 	case path == "/verify/fixtures" && r.Method == "GET":
 		output(w, 200, map[string]any{"items": []any{map[string]string{"fixture_id": verify.Fixture, "fixture_digest": verify.FixtureDigest(), "scope": "bundled-synthetic-fixture"}}})
 	case (path == "/verify/jobs" || path == "/verifications") && r.Method == "POST":
@@ -245,6 +256,35 @@ func (s *Server) status(w http.ResponseWriter, r *http.Request) {
 	}
 	output(w, 200, map[string]any{"version": domain.Version, "release_maturity": "internal-alpha", "mode": p.Mode, "active_revision": d, "gateway_revision": g, "gateway_healthy": ge == nil && g == d, "apply_frozen": s.P.Frozen.Load(), "requests_retained": total, "counter_definition": "retained source records; WAF and access are separate records, not total requests", "open_incidents": incidents, "events_dropped_total": s.I.Dropped.Load(), "ingest_rejected_total": s.I.Rejected.Load(), "last_ingest_unix": s.I.Last.Load(), "database_bytes": size, "external_services_required": false})
 }
+
+// siteRoute splits /sites/{id}/rest and accepts only sites governed by the active policy.
+func (s *Server) siteRoute(path string) (site, rest string, ok bool) {
+	trimmed := strings.TrimPrefix(path, "/sites/")
+	site, rest, _ = strings.Cut(trimmed, "/")
+	rest = "/" + rest
+	p, _, e := s.S.Active()
+	if e != nil {
+		return "", "", false
+	}
+	for _, id := range p.SiteIDs() {
+		if id == site {
+			return site, rest, true
+		}
+	}
+	return "", "", false
+}
+func (s *Server) sites(w http.ResponseWriter) {
+	p, d, e := s.S.Active()
+	if e != nil {
+		fail(w, 500, "INTERNAL_ERROR", "Policy unavailable")
+		return
+	}
+	items := []any{map[string]any{"site_id": "site_demo", "display_name": "Bundled demo", "hostname": "demo.example.test", "hostnames": []string{"demo.example.test"}, "origin_url": "http://demo-origin:8080", "mode": p.Mode, "synthetic": true}}
+	for _, site := range p.Sites {
+		items = append(items, map[string]any{"site_id": site.ID, "display_name": site.Name, "hostname": site.Hostnames[0], "hostnames": site.Hostnames, "origin_url": "http://" + site.Origin, "mode": site.Mode, "synthetic": false})
+	}
+	output(w, 200, map[string]any{"items": items, "cursor": nil, "policy_digest": d})
+}
 func limit(r *http.Request) int {
 	n, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	if n <= 0 {
@@ -252,9 +292,9 @@ func limit(r *http.Request) int {
 	}
 	return min(n, 100)
 }
-func (s *Server) events(w http.ResponseWriter, r *http.Request) {
+func (s *Server) events(w http.ResponseWriter, r *http.Request, site string) {
 	cursor, _ := strconv.Atoi(r.URL.Query().Get("cursor"))
-	rows, e := s.S.DB.Query("SELECT seq,document FROM events WHERE seq>? ORDER BY seq LIMIT ?", cursor, limit(r))
+	rows, e := s.S.DB.Query("SELECT seq,document FROM events WHERE seq>? AND json_extract(document,'$.site_id')=? ORDER BY seq LIMIT ?", cursor, site, limit(r))
 	if e != nil {
 		fail(w, 500, "INTERNAL_ERROR", "Events unavailable")
 		return
@@ -271,7 +311,7 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 	}
 	output(w, 200, map[string]any{"items": items, "cursor": last})
 }
-func (s *Server) stream(w http.ResponseWriter, r *http.Request) {
+func (s *Server) stream(w http.ResponseWriter, r *http.Request, site string) {
 	select {
 	case s.streams <- struct{}{}:
 		defer func() { <-s.streams }()
@@ -301,15 +341,18 @@ func (s *Server) stream(w http.ResponseWriter, r *http.Request) {
 		case <-deadline:
 			return
 		case <-ticker.C:
-			rows, e := s.S.DB.Query("SELECT seq,document FROM events WHERE seq>? ORDER BY seq LIMIT 100", cursor)
+			rows, e := s.S.DB.Query("SELECT seq,document,json_extract(document,'$.site_id')=? FROM events WHERE seq>? ORDER BY seq LIMIT 100", site, cursor)
 			if e != nil {
 				return
 			}
 			for rows.Next() {
 				var seq int
 				var b string
-				rows.Scan(&seq, &b)
-				fmt.Fprintf(w, "id: %d\nevent: event\ndata: %s\n\n", seq, b)
+				var match bool
+				rows.Scan(&seq, &b, &match)
+				if match {
+					fmt.Fprintf(w, "id: %d\nevent: event\ndata: %s\n\n", seq, b)
+				}
 				cursor = seq
 			}
 			rows.Close()
@@ -318,8 +361,13 @@ func (s *Server) stream(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-func (s *Server) incidents(w http.ResponseWriter, r *http.Request) {
-	rows, e := s.S.DB.Query("SELECT id,summary,opened_at,state,severity,confidence FROM incidents ORDER BY opened_at DESC LIMIT ?", limit(r))
+
+// incidentSite derives an incident's site from its linked evidence; incidents whose
+// evidence aged out are listed under the bundled demo, where they originated.
+const incidentSite = "coalesce((SELECT json_extract(e.document,'$.site_id') FROM incident_events ie JOIN events e ON e.id=ie.event WHERE ie.incident=incidents.id LIMIT 1),'site_demo')"
+
+func (s *Server) incidents(w http.ResponseWriter, r *http.Request, site string) {
+	rows, e := s.S.DB.Query("SELECT id,summary,opened_at,state,severity,confidence FROM incidents WHERE "+incidentSite+"=? ORDER BY opened_at DESC LIMIT ?", site, limit(r))
 	if e != nil {
 		fail(w, 500, "INTERNAL_ERROR", "Incidents unavailable")
 		return
@@ -334,8 +382,8 @@ func (s *Server) incidents(w http.ResponseWriter, r *http.Request) {
 	output(w, 200, map[string]any{"items": items})
 }
 func (s *Server) incident(w http.ResponseWriter, id string) {
-	var sum, at, state, sev, conf string
-	if e := s.S.DB.QueryRow("SELECT summary,opened_at,state,severity,confidence FROM incidents WHERE id=?", id).Scan(&sum, &at, &state, &sev, &conf); e != nil {
+	var sum, at, state, sev, conf, site string
+	if e := s.S.DB.QueryRow("SELECT summary,opened_at,state,severity,confidence,"+incidentSite+" FROM incidents WHERE id=?", id).Scan(&sum, &at, &state, &sev, &conf, &site); e != nil {
 		fail(w, 404, "RESOURCE_NOT_FOUND", "Incident not found")
 		return
 	}
@@ -351,10 +399,10 @@ func (s *Server) incident(w http.ResponseWriter, id string) {
 		rows.Scan(&b)
 		events = append(events, json.RawMessage(b))
 	}
-	output(w, 200, map[string]any{"incident_id": id, "site_id": "site_demo", "summary": sum, "opened_at": at, "state": state, "severity": sev, "confidence": conf, "synthetic": true, "evidence": events, "unknowns": []string{"Pattern detection does not prove successful exploitation.", "Retained evidence may be incomplete after retention or telemetry loss.", "Source attribution and application authorization were not assessed."}})
+	output(w, 200, map[string]any{"incident_id": id, "site_id": site, "summary": sum, "opened_at": at, "state": state, "severity": sev, "confidence": conf, "synthetic": true, "evidence": events, "unknowns": []string{"Pattern detection does not prove successful exploitation.", "Retained evidence may be incomplete after retention or telemetry loss.", "Source attribution and application authorization were not assessed."}})
 }
-func (s *Server) endpoints(w http.ResponseWriter, r *http.Request) {
-	rows, e := s.S.DB.Query("SELECT document FROM events ORDER BY seq DESC LIMIT 50000")
+func (s *Server) endpoints(w http.ResponseWriter, r *http.Request, site string) {
+	rows, e := s.S.DB.Query("SELECT document FROM events WHERE json_extract(document,'$.source')='caddy-access' AND json_extract(document,'$.site_id')=? ORDER BY seq DESC LIMIT 50000", site)
 	if e != nil {
 		fail(w, 500, "INTERNAL_ERROR", "Inventory unavailable")
 		return
@@ -392,9 +440,13 @@ func (s *Server) preview(w http.ResponseWriter, r *http.Request, actor string) {
 		fail(w, 400, "VALIDATION_FAILED", "Invalid typed policy")
 		return
 	}
-	_, active, e := s.S.Active()
+	current, active, e := s.S.Active()
 	if e != nil || p.Parent != active {
 		fail(w, 409, "CONFLICT", "Refresh the active policy before previewing")
+		return
+	}
+	if e = policy.ProtectRequiresObservation(current, p); e != nil {
+		fail(w, 400, "VALIDATION_FAILED", e.Error())
 		return
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 45*time.Second)
@@ -437,8 +489,8 @@ func (s *Server) draft(w http.ResponseWriter, r *http.Request, actor string) {
 	}
 	output(w, 201, map[string]string{"digest": d, "state": "PENDING_APPROVAL"})
 }
-func (s *Server) activate(w http.ResponseWriter, r *http.Request, actor, path string) {
-	parts := strings.Split(strings.TrimPrefix(path, "/sites/site_demo/policies/"), "/")
+func (s *Server) activate(w http.ResponseWriter, r *http.Request, actor, path, operation string) {
+	parts := strings.Split(operation, "/")
 	if len(parts) != 2 {
 		fail(w, 404, "RESOURCE_NOT_FOUND", "Policy operation not found")
 		return

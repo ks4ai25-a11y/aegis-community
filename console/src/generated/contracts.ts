@@ -4,7 +4,7 @@ export interface PolicyRevisionV1 {
   site_id: "site_demo";
   parent_revision: string;
   requested_mode: "observe" | "protect";
-  crs: PolicyRevisionV1Crs;
+  crs: PolicyRevisionV2SitesItemCrs;
   exclusions: Array<PolicyRevisionV1ExclusionsItem>;
   metadata: PolicyRevisionV1Metadata;
 }
@@ -148,6 +148,51 @@ export interface VerificationReportV1ChecksItem {
   candidate_http_status: number;
   rule_ids: Array<string>;
   baseline_rule_ids?: Array<string>;
+}
+export interface PolicyRevisionV2 {
+  schema_version: "1.1";
+  site_id: "site_demo";
+  parent_revision: string;
+  requested_mode: "observe" | "protect";
+  crs: PolicyRevisionV2Crs;
+  exclusions: Array<PolicyRevisionV2ExclusionsItem>;
+  metadata: PolicyRevisionV2Metadata;
+  sites?: Array<PolicyRevisionV2SitesItem>;
+}
+export interface PolicyRevisionV2Crs {
+  blocking_paranoia: number;
+  executing_paranoia: number;
+  inbound_anomaly_threshold: number;
+}
+export interface PolicyRevisionV2ExclusionsItem {
+  rule_id: 942100 | 941100;
+  method: "GET" | "POST";
+  path: "/catalog" | "/test-pattern";
+  parameter: string;
+}
+export interface PolicyRevisionV2Metadata {
+  rationale: string;
+  requested_by: string;
+}
+export interface PolicyRevisionV2SitesItem {
+  site_id: string;
+  display_name: string;
+  hostnames: Array<string>;
+  origin: string;
+  requested_mode: "observe" | "protect";
+  crs: PolicyRevisionV2SitesItemCrs;
+  exclusions: Array<PolicyRevisionV2SitesItemExclusionsItem>;
+}
+export interface PolicyRevisionV2SitesItemCrs {
+  blocking_paranoia: number;
+  executing_paranoia: number;
+  inbound_anomaly_threshold: number;
+}
+export interface PolicyRevisionV2SitesItemExclusionsItem {
+  rule_id: number;
+  method: "GET" | "POST";
+  path: string;
+  parameter: string;
 }
 export interface FindingQueryV1 {
   job_id: string;

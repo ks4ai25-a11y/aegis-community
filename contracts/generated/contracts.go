@@ -6,7 +6,7 @@ type PolicyRevisionV1 struct {
 	SiteId         string                           `json:"site_id"`
 	ParentRevision string                           `json:"parent_revision"`
 	RequestedMode  string                           `json:"requested_mode"`
-	Crs            PolicyRevisionV1Crs              `json:"crs"`
+	Crs            PolicyRevisionV2SitesItemCrs     `json:"crs"`
 	Exclusions     []PolicyRevisionV1ExclusionsItem `json:"exclusions"`
 	Metadata       PolicyRevisionV1Metadata         `json:"metadata"`
 }
@@ -150,6 +150,51 @@ type VerificationReportV1ChecksItem struct {
 	CandidateHttpStatus int64    `json:"candidate_http_status"`
 	RuleIds             []string `json:"rule_ids"`
 	BaselineRuleIds     []string `json:"baseline_rule_ids,omitempty"`
+}
+type PolicyRevisionV2 struct {
+	SchemaVersion  string                           `json:"schema_version"`
+	SiteId         string                           `json:"site_id"`
+	ParentRevision string                           `json:"parent_revision"`
+	RequestedMode  string                           `json:"requested_mode"`
+	Crs            PolicyRevisionV2Crs              `json:"crs"`
+	Exclusions     []PolicyRevisionV2ExclusionsItem `json:"exclusions"`
+	Metadata       PolicyRevisionV2Metadata         `json:"metadata"`
+	Sites          []PolicyRevisionV2SitesItem      `json:"sites,omitempty"`
+}
+type PolicyRevisionV2Crs struct {
+	BlockingParanoia        int64 `json:"blocking_paranoia"`
+	ExecutingParanoia       int64 `json:"executing_paranoia"`
+	InboundAnomalyThreshold int64 `json:"inbound_anomaly_threshold"`
+}
+type PolicyRevisionV2ExclusionsItem struct {
+	RuleId    int64  `json:"rule_id"`
+	Method    string `json:"method"`
+	Path      string `json:"path"`
+	Parameter string `json:"parameter"`
+}
+type PolicyRevisionV2Metadata struct {
+	Rationale   string `json:"rationale"`
+	RequestedBy string `json:"requested_by"`
+}
+type PolicyRevisionV2SitesItem struct {
+	SiteId        string                                    `json:"site_id"`
+	DisplayName   string                                    `json:"display_name"`
+	Hostnames     []string                                  `json:"hostnames"`
+	Origin        string                                    `json:"origin"`
+	RequestedMode string                                    `json:"requested_mode"`
+	Crs           PolicyRevisionV2SitesItemCrs              `json:"crs"`
+	Exclusions    []PolicyRevisionV2SitesItemExclusionsItem `json:"exclusions"`
+}
+type PolicyRevisionV2SitesItemCrs struct {
+	BlockingParanoia        int64 `json:"blocking_paranoia"`
+	ExecutingParanoia       int64 `json:"executing_paranoia"`
+	InboundAnomalyThreshold int64 `json:"inbound_anomaly_threshold"`
+}
+type PolicyRevisionV2SitesItemExclusionsItem struct {
+	RuleId    int64  `json:"rule_id"`
+	Method    string `json:"method"`
+	Path      string `json:"path"`
+	Parameter string `json:"parameter"`
 }
 type FindingQueryV1 struct {
 	JobId    string `json:"job_id"`

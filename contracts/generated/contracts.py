@@ -6,7 +6,7 @@ class PolicyRevisionV1(TypedDict):
     site_id: str
     parent_revision: str
     requested_mode: str
-    crs: PolicyRevisionV1Crs
+    crs: PolicyRevisionV2SitesItemCrs
     exclusions: list[PolicyRevisionV1ExclusionsItem]
     metadata: PolicyRevisionV1Metadata
 class PolicyRevisionV1Crs(TypedDict):
@@ -138,6 +138,44 @@ class VerificationReportV1ChecksItem(TypedDict):
     candidate_http_status: int
     rule_ids: list[str]
     baseline_rule_ids: NotRequired[list[str]]
+class PolicyRevisionV2(TypedDict):
+    schema_version: str
+    site_id: str
+    parent_revision: str
+    requested_mode: str
+    crs: PolicyRevisionV2Crs
+    exclusions: list[PolicyRevisionV2ExclusionsItem]
+    metadata: PolicyRevisionV2Metadata
+    sites: NotRequired[list[PolicyRevisionV2SitesItem]]
+class PolicyRevisionV2Crs(TypedDict):
+    blocking_paranoia: int
+    executing_paranoia: int
+    inbound_anomaly_threshold: int
+class PolicyRevisionV2ExclusionsItem(TypedDict):
+    rule_id: int
+    method: str
+    path: str
+    parameter: str
+class PolicyRevisionV2Metadata(TypedDict):
+    rationale: str
+    requested_by: str
+class PolicyRevisionV2SitesItem(TypedDict):
+    site_id: str
+    display_name: str
+    hostnames: list[str]
+    origin: str
+    requested_mode: str
+    crs: PolicyRevisionV2SitesItemCrs
+    exclusions: list[PolicyRevisionV2SitesItemExclusionsItem]
+class PolicyRevisionV2SitesItemCrs(TypedDict):
+    blocking_paranoia: int
+    executing_paranoia: int
+    inbound_anomaly_threshold: int
+class PolicyRevisionV2SitesItemExclusionsItem(TypedDict):
+    rule_id: int
+    method: str
+    path: str
+    parameter: str
 class FindingQueryV1(TypedDict):
     job_id: str
     category: NotRequired[str]

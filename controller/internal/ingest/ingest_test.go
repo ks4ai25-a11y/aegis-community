@@ -38,3 +38,23 @@ func FuzzNormalize(f *testing.F) {
 		}
 	})
 }
+
+func TestSiteAttributionFromGatewayRequestID(t *testing.T) {
+	cases := map[string]struct {
+		site      string
+		synthetic bool
+	}{
+		"0f2d3c4b-1a2b-4c3d-8e9f-001122334455":           {"site_demo", true},
+		"site_shop.0f2d3c4b-1a2b-4c3d-8e9f-001122334455": {"site_shop", false},
+		"site_demo.0f2d3c4b-1a2b-4c3d-8e9f-001122334455": {"site_demo", true},
+		"site_SHOP.0f2d3c4b-1a2b-4c3d-8e9f-001122334455": {"site_demo", true},
+		"site_shop.not-a-uuid!":                          {"site_demo", true},
+		"evil site_shop.0f2d3c4b":                        {"site_demo", true},
+	}
+	for id, want := range cases {
+		site, synthetic := SiteOf(id)
+		if site != want.site || synthetic != want.synthetic {
+			t.Error(id, site, synthetic)
+		}
+	}
+}

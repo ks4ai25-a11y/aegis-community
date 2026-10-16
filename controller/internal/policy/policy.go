@@ -15,6 +15,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -23,31 +24,51 @@ import (
 
 var parameter = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{0,31}$`)
 
-func Validate(p domain.Policy) error {
-	if p.Schema != "1.0" || p.Site != "site_demo" {
-		return fmt.Errorf("unsupported policy schema or site")
-	}
-	if p.Mode != "observe" && p.Mode != "protect" {
-		return fmt.Errorf("mode must be observe or protect")
-	}
-	if p.CRS.Blocking < 1 || p.CRS.Blocking > 4 || p.CRS.Executing < p.CRS.Blocking || p.CRS.Executing > 4 || p.CRS.Threshold < 5 || p.CRS.Threshold > 20 {
+var (
+	siteID      = regexp.MustCompile(`^site_[a-z0-9_]{1,32}$`)
+	hostname    = regexp.MustCompile(`^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$`)
+	origin      = regexp.MustCompile(`^([a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?):([0-9]{1,5})$`)
+	exactRoute  = regexp.MustCompile(`^/[A-Za-z0-9._~-]+(?:/[A-Za-z0-9._~-]+){0,15}$`)
+	displayName = regexp.MustCompile(`^[A-Za-z0-9 ._()-]{1,64}$`)
+)
+
+// Hosts the bundled demo answers on; registered sites cannot claim them.
+var demoHosts = []string{"localhost", "127.0.0.1", "demo.example.test"}
+
+// Service names inside the Aegis deployment that must never be used as an origin.
+var reservedOrigins = map[string]bool{"controller": true, "policy-deployer": true, "gateway": true, "fixture-worker": true, "localhost": true, "metadata.google.internal": true}
+
+func validateCRS(c domain.CRS) error {
+	if c.Blocking < 1 || c.Blocking > 4 || c.Executing < c.Blocking || c.Executing > 4 || c.Threshold < 5 || c.Threshold > 20 {
 		return fmt.Errorf("CRS settings outside supported bounds")
 	}
-	if len(p.Metadata.Rationale) < 5 || len(p.Metadata.Rationale) > 512 {
-		return fmt.Errorf("provide a rationale of 5–512 characters")
-	}
-	if len(p.Exclusions) > 8 {
+	return nil
+}
+
+func validateExclusions(xs []domain.Exclusion, demo bool) error {
+	if len(xs) > 8 {
 		return fmt.Errorf("at most eight scoped exclusions")
 	}
-	for _, x := range p.Exclusions {
-		if x.RuleID != 942100 && x.RuleID != 941100 {
-			return fmt.Errorf("only reviewed rule IDs 942100 and 941100 are supported")
+	for _, x := range xs {
+		if demo {
+			if x.RuleID != 942100 && x.RuleID != 941100 {
+				return fmt.Errorf("only reviewed rule IDs 942100 and 941100 are supported")
+			}
+			if x.Path != "/catalog" && x.Path != "/test-pattern" {
+				return fmt.Errorf("unsupported exclusion route")
+			}
+		} else {
+			// Detection rules only (protocol enforcement through attack families);
+			// anomaly-scoring/blocking evaluation rules cannot be excluded.
+			if x.RuleID < 920000 || x.RuleID > 944999 {
+				return fmt.Errorf("exclusions may target CRS detection rules 920000–944999 only")
+			}
+			if !exactRoute.MatchString(x.Path) {
+				return fmt.Errorf("exclusions require an exact, non-root route")
+			}
 		}
 		if x.Method != "GET" && x.Method != "POST" {
 			return fmt.Errorf("unsupported method")
-		}
-		if x.Path != "/catalog" && x.Path != "/test-pattern" {
-			return fmt.Errorf("unsupported exclusion route")
 		}
 		if !parameter.MatchString(x.Parameter) {
 			return fmt.Errorf("invalid parameter target")
@@ -55,47 +76,153 @@ func Validate(p domain.Policy) error {
 	}
 	return nil
 }
-func Render(p domain.Policy, origin, listen, admin, log string) string {
+
+// ValidOrigin accepts host:port for a private origin reachable from the gateway
+// network. Loopback, link-local/metadata and Aegis service names are refused.
+func ValidOrigin(o string) error {
+	m := origin.FindStringSubmatch(o)
+	if m == nil {
+		return fmt.Errorf("origin must be host:port")
+	}
+	host := m[1]
+	port, e := strconv.Atoi(m[2])
+	if e != nil || port < 1 || port > 65535 {
+		return fmt.Errorf("origin port out of range")
+	}
+	if reservedOrigins[host] || strings.HasSuffix(host, ".localhost") {
+		return fmt.Errorf("origin is reserved")
+	}
+	if ip := net.ParseIP(host); ip != nil {
+		if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsUnspecified() || ip.IsMulticast() || ip.To4() == nil {
+			return fmt.Errorf("origin address is not allowed")
+		}
+	}
+	return nil
+}
+
+func validateSite(s domain.SitePolicy) error {
+	if !siteID.MatchString(s.ID) || s.ID == "site_demo" {
+		return fmt.Errorf("site_id must match site_[a-z0-9_] and not be site_demo")
+	}
+	if !displayName.MatchString(s.Name) {
+		return fmt.Errorf("display name must be 1–64 plain characters")
+	}
+	if len(s.Hostnames) < 1 || len(s.Hostnames) > 8 {
+		return fmt.Errorf("each site needs 1–8 host names")
+	}
+	for _, h := range s.Hostnames {
+		if len(h) > 253 || !hostname.MatchString(h) {
+			return fmt.Errorf("invalid host name %q", h)
+		}
+	}
+	if e := ValidOrigin(s.Origin); e != nil {
+		return e
+	}
+	if s.Mode != "observe" && s.Mode != "protect" {
+		return fmt.Errorf("mode must be observe or protect")
+	}
+	if e := validateCRS(s.CRS); e != nil {
+		return e
+	}
+	return validateExclusions(s.Exclusions, false)
+}
+
+func Validate(p domain.Policy) error {
+	if (p.Schema != "1.0" && p.Schema != "1.1") || p.Site != "site_demo" {
+		return fmt.Errorf("unsupported policy schema or site")
+	}
+	if p.Schema == "1.0" && p.Sites != nil {
+		return fmt.Errorf("registered sites require schema 1.1")
+	}
+	if p.Mode != "observe" && p.Mode != "protect" {
+		return fmt.Errorf("mode must be observe or protect")
+	}
+	if e := validateCRS(p.CRS); e != nil {
+		return e
+	}
+	if len(p.Metadata.Rationale) < 5 || len(p.Metadata.Rationale) > 512 {
+		return fmt.Errorf("provide a rationale of 5–512 characters")
+	}
+	if e := validateExclusions(p.Exclusions, true); e != nil {
+		return e
+	}
+	if len(p.Sites) > 16 {
+		return fmt.Errorf("at most sixteen registered sites")
+	}
+	ids := map[string]bool{}
+	hosts := map[string]bool{}
+	for _, h := range demoHosts {
+		hosts[h] = true
+	}
+	for _, s := range p.Sites {
+		if e := validateSite(s); e != nil {
+			return fmt.Errorf("%s: %w", s.ID, e)
+		}
+		if ids[s.ID] {
+			return fmt.Errorf("duplicate site %s", s.ID)
+		}
+		ids[s.ID] = true
+		for _, h := range s.Hostnames {
+			if hosts[h] {
+				return fmt.Errorf("host name %s is claimed twice", h)
+			}
+			hosts[h] = true
+		}
+	}
+	return nil
+}
+
+// ProtectRequiresObservation refuses Protect for a site that was not already
+// governed (in Observe or Protect) by the parent revision, so blocking never
+// starts on traffic Aegis has not yet observed.
+func ProtectRequiresObservation(parent, candidate domain.Policy) error {
+	for _, s := range candidate.Sites {
+		if s.Mode != "protect" {
+			continue
+		}
+		if _, ok := parent.FindSite(s.ID); !ok {
+			return fmt.Errorf("%s: register a new site in observe mode before enabling protect", s.ID)
+		}
+	}
+	return nil
+}
+
+type block struct {
+	matcher, prefix, mode, origin, hosts string
+	crs                                  domain.CRS
+	exclusions                           []domain.Exclusion
+}
+
+func blocks(p domain.Policy, demoOrigin string) []block {
+	out := []block{{"owned", "", p.Mode, demoOrigin, strings.Join(demoHosts, " "), p.CRS, p.Exclusions}}
+	for _, s := range p.Sites {
+		// Registered sites prefix their request IDs with the site ID so WAF and
+		// access records can be attributed without trusting any client header.
+		out = append(out, block{s.ID, s.ID + ".", s.Mode, s.Origin, strings.Join(s.Hostnames, " "), s.CRS, s.Exclusions})
+	}
+	return out
+}
+
+func renderRoute(b block, digest string) string {
 	engine := "DetectionOnly"
-	if p.Mode == "protect" {
+	if b.mode == "protect" {
 		engine = "On"
 	}
-	digest := domain.Digest(p)
 	exclusions := ""
-	for i, x := range p.Exclusions {
+	for i, x := range b.exclusions {
 		exclusions += fmt.Sprintf("SecRule REQUEST_METHOD \"@streq %s\" \"id:%d,phase:1,pass,nolog,chain\"\nSecRule REQUEST_URI \"@rx ^%s(?:[?]|$)\" \"chain\"\nSecRule &ARGS:%s \"@ge 0\" \"ctl:ruleRemoveTargetById=%d;ARGS:%s\"\n", x.Method, 10000+i, regexp.QuoteMeta(x.Path), x.Parameter, x.RuleID, x.Parameter)
 	}
 	// route blocks make ordering explicit: trusted identity and hard limits precede WAF.
-	return fmt.Sprintf(`{
- auto_https off
- admin unix/%s
- log default {
-  level INFO
-  output aegis {
-   path %s
-  }
-  format json
- }
- servers {
-  max_header_size 32KB
-  protocols h1 h2c
-  timeouts {
-   read_header 5s
-   read_body 15s
-   idle 60s }
- }
-}
-http://%s {
- @owned host localhost 127.0.0.1 demo.example.test
- handle @owned {
+	return fmt.Sprintf(` @%s host %s
+ handle @%s {
   route {
    request_header -X-Forwarded-For
    request_header -Forwarded
    request_header -X-Real-IP
    request_header -X-Request-ID
    request_header -X-Aegis-Request-ID
-   request_header X-Aegis-Request-ID {http.request.uuid}
-   header X-Aegis-Request-ID {http.request.uuid}
+   request_header X-Aegis-Request-ID %s{http.request.uuid}
+   header X-Aegis-Request-ID %s{http.request.uuid}
    header X-Aegis-Revision %s
    header X-Aegis-Mode %s
    request_body {
@@ -127,14 +254,49 @@ Include @owasp_crs/*.conf
    }
   }
  }
- handle {
+`, b.matcher, b.hosts, b.matcher, b.prefix, b.prefix, digest, b.mode, engine, b.crs.Blocking, b.crs.Executing, b.crs.Threshold, exclusions, b.origin)
+}
+
+func Render(p domain.Policy, origin, listen, admin, log string) string {
+	digest := domain.Digest(p)
+	routes := ""
+	errors := ""
+	for _, b := range blocks(p, origin) {
+		routes += renderRoute(b, digest)
+		if b.prefix != "" {
+			errors += fmt.Sprintf("  @%s_error host %s\n  handle @%s_error {\n   header X-Aegis-Request-ID %s{http.request.uuid}\n   header X-Aegis-Revision %s\n   header X-Aegis-Mode %s\n   respond \"Request could not be processed\" {http.error.status_code}\n  }\n", b.matcher, b.hosts, b.matcher, b.prefix, digest, b.mode)
+		}
+	}
+	return fmt.Sprintf(`{
+ auto_https off
+ admin unix/%s
+ log default {
+  level INFO
+  output aegis {
+   path %s
+  }
+  format json
+ }
+ servers {
+  max_header_size 32KB
+  protocols h1 h2c
+  timeouts {
+   read_header 5s
+   read_body 15s
+   idle 60s }
+ }
+}
+http://%s {
+%s handle {
   respond "Unknown host" 421
  }
  handle_errors {
-  header X-Aegis-Request-ID {http.request.uuid}
-  header X-Aegis-Revision %s
-  header X-Aegis-Mode %s
-  respond "Request could not be processed" {http.error.status_code}
+%s  handle {
+   header X-Aegis-Request-ID {http.request.uuid}
+   header X-Aegis-Revision %s
+   header X-Aegis-Mode %s
+   respond "Request could not be processed" {http.error.status_code}
+  }
  }
  log {
   output aegis {
@@ -143,7 +305,7 @@ Include @owasp_crs/*.conf
   format json
  }
 }
-`, admin, log, listen, digest, p.Mode, engine, p.CRS.Blocking, p.CRS.Executing, p.CRS.Threshold, exclusions, origin, digest, p.Mode, log)
+`, admin, log, listen, routes, errors, digest, p.Mode, log)
 }
 func Atomic(path string, b []byte) error {
 	if e := os.MkdirAll(filepath.Dir(path), 0700); e != nil {

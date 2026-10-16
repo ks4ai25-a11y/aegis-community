@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -41,6 +42,18 @@ type Raw struct {
 	Privacy     string  `json:"privacy_version"`
 }
 
+var sitePrefix = regexp.MustCompile(`^(site_[a-z0-9_]{1,32})\.[0-9a-fA-F-]{8,64}$`)
+
+// SiteOf attributes a record using the gateway-assigned request ID. The gateway
+// strips client-supplied IDs; registered sites prefix theirs with the site ID.
+// Only the bundled demo is synthetic traffic.
+func SiteOf(request string) (site string, synthetic bool) {
+	if m := sitePrefix.FindStringSubmatch(request); m != nil && m[1] != "site_demo" {
+		return m[1], false
+	}
+	return "site_demo", true
+}
+
 func Normalize(b []byte) (domain.Event, error) {
 	var r Raw
 	if len(b) > 8192 {
@@ -62,7 +75,8 @@ func Normalize(b []byte) (domain.Event, error) {
 	if at.After(time.Now().Add(time.Minute)) {
 		return domain.Event{}, fmt.Errorf("future record")
 	}
-	ev := domain.Event{ID: domain.ID(), Schema: "1.0", At: at.Format(time.RFC3339Nano), Site: "site_demo", Request: r.Request, Revision: r.Revision, Type: "access", Decision: "unknown", Method: r.Method, Route: r.Route, Status: r.Status, Rules: []string{}, Collection: r.Collection, Privacy: r.Privacy, Source: r.Source, Dropped: r.Dropped, Synthetic: true}
+	site, synthetic := SiteOf(r.Request)
+	ev := domain.Event{ID: domain.ID(), Schema: "1.0", At: at.Format(time.RFC3339Nano), Site: site, Request: r.Request, Revision: r.Revision, Type: "access", Decision: "unknown", Method: r.Method, Route: r.Route, Status: r.Status, Rules: []string{}, Collection: r.Collection, Privacy: r.Privacy, Source: r.Source, Dropped: r.Dropped, Synthetic: synthetic}
 	if r.Source == "coraza" {
 		ev.Type = "waf_match"
 		if r.Rule != "" {
@@ -159,6 +173,7 @@ func (i *Ingestor) read() {
 	i.S.Set("events_dropped_total", strconv.FormatUint(i.Dropped.Load(), 10))
 	i.S.Set("ingest_rejected_total", strconv.FormatUint(i.Rejected.Load(), 10))
 	i.S.DB.Exec("DELETE FROM cursors WHERE source NOT IN (SELECT source FROM cursors ORDER BY rowid DESC LIMIT 16)")
+	i.retain()
 }
 func (i *Ingestor) persist(ev domain.Event, key string) error {
 	st, e := os.Stat(i.S.Path)
@@ -185,8 +200,14 @@ func (i *Ingestor) persist(ev domain.Event, key string) error {
 	n, _ := res.RowsAffected()
 	if n > 0 && ev.Type == "waf_match" && len(ev.Rules) > 0 {
 		// Actual match observations are grouped by the rule and minute, with no exploit claim.
-		incident := domain.Hash([]byte(ev.At[:16] + ":" + ev.Rules[0]))
-		_, e = tx.Exec("INSERT OR IGNORE INTO incidents(id,summary,opened_at,state,severity,confidence) VALUES(?,?,?,'open','medium','high')", incident, "Synthetic request matched CRS rule "+ev.Rules[0], ev.At)
+		key := ev.At[:16] + ":" + ev.Rules[0]
+		summary := "Synthetic request matched CRS rule " + ev.Rules[0]
+		if !ev.Synthetic {
+			key = ev.Site + ":" + key
+			summary = "Request to " + ev.Site + " matched CRS rule " + ev.Rules[0]
+		}
+		incident := domain.Hash([]byte(key))
+		_, e = tx.Exec("INSERT OR IGNORE INTO incidents(id,summary,opened_at,state,severity,confidence) VALUES(?,?,?,'open','medium','high')", incident, summary, ev.At)
 		if e == nil {
 			_, e = tx.Exec("INSERT OR IGNORE INTO incident_events VALUES(?,?)", incident, ev.ID)
 		}
@@ -194,11 +215,13 @@ func (i *Ingestor) persist(ev domain.Event, key string) error {
 	if e != nil {
 		return e
 	}
-	_, e = tx.Exec("DELETE FROM events WHERE seq NOT IN (SELECT seq FROM events ORDER BY seq DESC LIMIT 50000) OR at < ?", time.Now().Add(-7*24*time.Hour).UTC().Format(time.RFC3339Nano))
-	if e != nil {
-		return e
-	}
 	return tx.Commit()
+}
+
+// retain applies the event cap and age limit once per read cycle instead of on
+// every insert, which scanned the whole table for each event.
+func (i *Ingestor) retain() {
+	i.S.DB.Exec("DELETE FROM events WHERE seq <= (SELECT coalesce(max(seq),0)-50000 FROM events) OR at < ?", time.Now().Add(-7*24*time.Hour).UTC().Format(time.RFC3339Nano))
 }
 
 // Oversized records are drained without retaining their bytes. Partial final records

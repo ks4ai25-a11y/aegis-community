@@ -47,10 +47,45 @@ type Policy struct {
 	CRS        CRS         `json:"crs"`
 	Exclusions []Exclusion `json:"exclusions"`
 	Metadata   Metadata    `json:"metadata"`
+	// Sites lists owner-registered applications behind the same gateway (schema 1.1).
+	// The top-level fields continue to govern the bundled site_demo block, so 1.0
+	// documents and their digests are unchanged.
+	Sites []SitePolicy `json:"sites,omitempty"`
+}
+
+// SitePolicy is one owner-registered application: its host names, private origin
+// and its own WAF settings. Origins are reached only from the gateway network.
+type SitePolicy struct {
+	ID         string      `json:"site_id"`
+	Name       string      `json:"display_name"`
+	Hostnames  []string    `json:"hostnames"`
+	Origin     string      `json:"origin"`
+	Mode       string      `json:"requested_mode"`
+	CRS        CRS         `json:"crs"`
+	Exclusions []Exclusion `json:"exclusions"`
+}
+
+// SiteIDs returns every site governed by p, starting with the bundled demo.
+func (p Policy) SiteIDs() []string {
+	ids := []string{p.Site}
+	for _, s := range p.Sites {
+		ids = append(ids, s.ID)
+	}
+	return ids
+}
+
+// FindSite returns the registered site, or false for site_demo/unknown ids.
+func (p Policy) FindSite(id string) (SitePolicy, bool) {
+	for _, s := range p.Sites {
+		if s.ID == id {
+			return s, true
+		}
+	}
+	return SitePolicy{}, false
 }
 
 func Initial() Policy {
-	return Policy{"1.0", "site_demo", "", "observe", CRS{1, 1, 5}, []Exclusion{}, Metadata{"Initial Observe policy", "system"}}
+	return Policy{"1.0", "site_demo", "", "observe", CRS{1, 1, 5}, []Exclusion{}, Metadata{"Initial Observe policy", "system"}, nil}
 }
 
 type Event struct {

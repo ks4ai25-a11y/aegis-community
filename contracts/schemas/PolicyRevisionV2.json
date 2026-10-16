@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/PolicyRevisionV2.json",
+  "title": "PolicyRevisionV2",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.1"
+    },
+    "site_id": {
+      "type": "string",
+      "const": "site_demo"
+    },
+    "parent_revision": {
+      "type": "string",
+      "pattern": "^(|sha256:[0-9a-f]{64})$"
+    },
+    "requested_mode": {
+      "type": "string",
+      "enum": [
+        "observe",
+        "protect"
+      ]
+    },
+    "crs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "blocking_paranoia": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "executing_paranoia": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "inbound_anomaly_threshold": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 20
+        }
+      },
+      "required": [
+        "blocking_paranoia",
+        "executing_paranoia",
+        "inbound_anomaly_threshold"
+      ]
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rule_id": {
+            "type": "integer",
+            "enum": [
+              942100,
+              941100
+            ]
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "enum": [
+              "/catalog",
+              "/test-pattern"
+            ]
+          },
+          "parameter": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_]{0,31}$"
+          }
+        },
+        "required": [
+          "rule_id",
+          "method",
+          "path",
+          "parameter"
+        ]
+      },
+      "maxItems": 8
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rationale": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 512
+        },
+        "requested_by": {
+          "type": "string",
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "rationale",
+        "requested_by"
+      ]
+    },
+    "sites": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "site_id": {
+            "type": "string",
+            "pattern": "^site_[a-z0-9_]{1,32}$"
+          },
+          "display_name": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9 ._()-]{1,64}$"
+          },
+          "hostnames": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 253
+            },
+            "minItems": 1,
+            "maxItems": 8,
+            "uniqueItems": true
+          },
+          "origin": {
+            "type": "string",
+            "maxLength": 260
+          },
+          "requested_mode": {
+            "type": "string",
+            "enum": [
+              "observe",
+              "protect"
+            ]
+          },
+          "crs": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "blocking_paranoia": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4
+              },
+              "executing_paranoia": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4
+              },
+              "inbound_anomaly_threshold": {
+                "type": "integer",
+                "minimum": 5,
+                "maximum": 20
+              }
+            },
+            "required": [
+              "blocking_paranoia",
+              "executing_paranoia",
+              "inbound_anomaly_threshold"
+            ]
+          },
+          "exclusions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "rule_id": {
+                  "type": "integer",
+                  "minimum": 920000,
+                  "maximum": 944999
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "POST"
+                  ]
+                },
+                "path": {
+                  "type": "string",
+                  "pattern": "^/[A-Za-z0-9._~-]+(?:/[A-Za-z0-9._~-]+){0,15}$"
+                },
+                "parameter": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z][a-zA-Z0-9_]{0,31}$"
+                }
+              },
+              "required": [
+                "rule_id",
+                "method",
+                "path",
+                "parameter"
+              ]
+            },
+            "maxItems": 8
+          }
+        },
+        "required": [
+          "site_id",
+          "display_name",
+          "hostnames",
+          "origin",
+          "requested_mode",
+          "crs",
+          "exclusions"
+        ]
+      },
+      "maxItems": 16
+    }
+  },
+  "required": [
+    "schema_version",
+    "site_id",
+    "parent_revision",
+    "requested_mode",
+    "crs",
+    "exclusions",
+    "metadata"
+  ]
+}

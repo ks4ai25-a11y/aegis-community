@@ -1387,6 +1387,9 @@
       "PolicyRevisionV1": {
         "$ref": "schemas/PolicyRevisionV1.json"
       },
+      "PolicyRevisionV2": {
+        "$ref": "schemas/PolicyRevisionV2.json"
+      },
       "RecoveryBundleEnvelopeV1": {
         "$ref": "schemas/RecoveryBundleEnvelopeV1.json"
       },
