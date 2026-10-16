@@ -2,6 +2,7 @@
 package main
 
 import (
+	"aegis.local/controller/internal/diagnostics"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/evidence"
 	"aegis.local/controller/internal/policy"
@@ -15,12 +16,13 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		die("usage: aegisctl scanner-engine bind ENGINE_DIGEST REGISTRY_DIGEST | scanner-engine bind-journal JOURNAL_ROOT_DIGEST JOURNAL_NAMESPACE_DIGEST | scanner-engine bind-broker WORKER_ID | --version | init | doctor | policy validate FILE | audit verify | backup create ABSOLUTE_FILE [--json] | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE | scanner-launch export JOB TOOL ABSOLUTE_PRIVATE_FILE | scanner-verifier enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST PRIVATE_FILE | scanner-verifier revoke ID | scanner-verifier probe PRIVATE_FILE | scanner-authorizer enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST POLICY_DIGEST PRIVATE_FILE | scanner-authorizer revoke ID | scanner-authorizer probe PRIVATE_FILE")
+		die("usage: aegisctl scanner-engine bind ENGINE_DIGEST REGISTRY_DIGEST | scanner-engine bind-journal JOURNAL_ROOT_DIGEST JOURNAL_NAMESPACE_DIGEST | scanner-engine bind-broker WORKER_ID | --version | init | doctor | diagnostics [--json] | policy validate FILE | audit verify | backup create ABSOLUTE_FILE [--json] | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE | scanner-launch export JOB TOOL ABSOLUTE_PRIVATE_FILE | scanner-verifier enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST PRIVATE_FILE | scanner-verifier revoke ID | scanner-verifier probe PRIVATE_FILE | scanner-authorizer enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST POLICY_DIGEST PRIVATE_FILE | scanner-authorizer revoke ID | scanner-authorizer probe PRIVATE_FILE")
 	}
 	args := os.Args[1:]
 	root := os.Getenv("AEGIS_DATA")
@@ -208,6 +210,23 @@ func main() {
 			die(e.Error())
 		}
 		fmt.Printf("Worker %s enrolled for owner %s until %s; credential written privately\n", worker.ID, worker.Owner, worker.Expires)
+	case "diagnostics":
+		if len(args) > 2 || (len(args) == 2 && args[1] != "--json") {
+			die("usage: diagnostics [--json]")
+		}
+		s, e := store.OpenSnapshotSource(context.Background(), filepath.Join(root, "aegis.db"))
+		if e != nil {
+			die("database unavailable for read-only diagnostics: " + e.Error())
+		}
+		defer s.DB.Close()
+		b := diagnostics.Collect(s)
+		if len(args) == 2 {
+			json.NewEncoder(os.Stdout).Encode(b)
+			return
+		}
+		out, _ := json.MarshalIndent(b, "", "  ")
+		fmt.Println(string(out))
+		fmt.Fprintln(os.Stderr, "Contains versions, health, counters and counts only; excluded: "+strings.Join(diagnostics.Excluded, ", ")+".")
 	case "doctor":
 		s, e := store.Open(filepath.Join(root, "aegis.db"))
 		if e != nil {

@@ -40,5 +40,6 @@
   }
  ],
  "result": "PASS",
- "finished_at": "2026-10-16T17:54:33Z"
+ "finished_at": "2026-10-16T17:54:33Z",
+ "environment_note": "Run on a local stack whose controller image was built from a working tree that also contained another agent's uncommitted scanner migration 016; the remediation code path does not use that schema."
 }
