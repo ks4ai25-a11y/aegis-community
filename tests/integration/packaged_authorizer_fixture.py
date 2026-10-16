@@ -27,6 +27,11 @@ class BoundAuthorizer:
   for mount in self.mounts:cmd+=['--mount',mount]
   return cmd+[self.image,*args]
  def start(self):
+  # Provision the empty registry before Docker resolves the read-only bind.
+  # The worker normally creates it only after claim, which is deliberately
+  # later than authorizer readiness. Refuse an existing path; never repair or
+  # clear another registry, and create it as the actual scanner UID.
+  run(self.engine.as_user(['/usr/bin/mkdir','-m','700',self.registry]),env=self.engine.env)
   self.raw(['volume','create','--label','io.aegis.worker-proof='+self.nonce,self.volume]);self.volume_created=True
   assert json.loads(self.raw(['volume','inspect',self.volume]).stdout)[0]['Labels']['io.aegis.worker-proof']==self.nonce
   self.compose('run','--rm','--no-deps','--volume',self.volume+':/run/scanner','--entrypoint','aegisctl','init','scanner-verifier','enroll',self.verifier,'10',self.digest,self.registry_digest,'/run/scanner/observer.credential')

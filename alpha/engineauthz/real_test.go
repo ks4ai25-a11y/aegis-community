@@ -19,11 +19,13 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptrace"
 	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -67,6 +69,7 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
+	var createAttempt string
 	request := func(role, method, path string, body []byte) (int, []byte) {
 		t.Helper()
 		r, e := http.NewRequestWithContext(ctx, method, endpoint+"/v1.55"+path, bytes.NewReader(body))
@@ -76,8 +79,23 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 		if body != nil {
 			r.Header.Set("Content-Type", "application/json")
 		}
+		// Diagnose the native create stall without logging request identities,
+		// paths, journal contents or engine payloads. Never retry a mutation.
+		var reused, written atomic.Bool
+		if createAttempt != "" {
+			r = r.WithContext(httptrace.WithClientTrace(r.Context(), &httptrace.ClientTrace{
+				GotConn:      func(c httptrace.GotConnInfo) { reused.Store(c.Reused) },
+				WroteRequest: func(c httptrace.WroteRequestInfo) { written.Store(c.Err == nil) },
+			}))
+		}
 		res, e := clients[role].Do(r)
 		if e != nil {
+			if createAttempt != "" {
+				_, pendingErr := os.Lstat(filepath.Join(root, "plugin-journal", createAttempt, "create.pending.json"))
+				_, confirmedErr := os.Lstat(filepath.Join(root, "plugin-journal", createAttempt, "create.response.json"))
+				// These booleans identify failed test stages, not cleanup authority.
+				t.Fatalf("native create failed: connection reused=%t request written=%t intent recorded=%t response recorded=%t", reused.Load(), written.Load(), pendingErr == nil, confirmedErr == nil)
+			}
 			t.Fatal("isolated engine request failed", e)
 		}
 		defer res.Body.Close()
@@ -219,7 +237,9 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 	}
 	profile.HostConfig.Mounts[0].ReadOnly = true
 	checks = append(checks, "observer writes and unsafe scanner profiles denied")
+	createAttempt = name
 	status, createdBody := request("broker", "POST", "/containers/create?name="+name, b)
+	createAttempt = ""
 	if status != 201 {
 		t.Fatalf("fixed scanner create denied: %d %s", status, createdBody)
 	}
