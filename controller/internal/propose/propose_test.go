@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func seed(t *testing.T, site, route, target string, rule string) (*store.Store, string) {
@@ -41,7 +42,9 @@ func TestDemoProposalsAreValidCandidates(t *testing.T) {
 		}
 	}
 	x := r.Proposals[0]
-	if x.Kind != "exclusion" || len(x.Candidate.Exclusions) != 1 || x.Candidate.Exclusions[0] != (domain.Exclusion{RuleID: 942100, Method: "GET", Path: "/catalog", Parameter: "query"}) || x.Candidate.Mode != "observe" {
+	got := x.Candidate.Exclusions[0]
+	expires, _ := time.Parse(time.RFC3339, got.ExpiresAt)
+	if x.Kind != "exclusion" || len(x.Candidate.Exclusions) != 1 || got.RuleID != 942100 || got.Path != "/catalog" || got.Parameter != "query" || time.Until(expires) < 29*24*time.Hour || x.Candidate.Mode != "observe" {
 		t.Fatal(x)
 	}
 	if r.Proposals[1].Kind != "protect" || r.Proposals[1].Candidate.Mode != "protect" || len(r.Proposals[1].Candidate.Exclusions) != 0 {

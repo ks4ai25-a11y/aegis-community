@@ -629,6 +629,10 @@ func (s *Server) preview(w http.ResponseWriter, r *http.Request, actor string) {
 		fail(w, 409, "CONFLICT", "Refresh the active policy before previewing")
 		return
 	}
+	if e = policy.FutureExpiries(p, time.Now()); e != nil {
+		fail(w, 400, "VALIDATION_FAILED", e.Error())
+		return
+	}
 	if e = policy.ProtectRequiresObservation(current, p); e != nil {
 		fail(w, 400, "VALIDATION_FAILED", e.Error())
 		return

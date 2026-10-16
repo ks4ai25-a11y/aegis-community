@@ -8,6 +8,7 @@ import (
 	"aegis.local/controller/internal/canary"
 	"aegis.local/controller/internal/connector"
 	"aegis.local/controller/internal/domain"
+	"aegis.local/controller/internal/expiry"
 	"aegis.local/controller/internal/ingest"
 	"aegis.local/controller/internal/policy"
 	"aegis.local/controller/internal/repository"
@@ -177,6 +178,31 @@ func main() {
 			}
 			cn()
 			timer.Reset(15 * time.Minute)
+		}
+	}()
+	// Owner-approved exclusion expiry: a stricter revision is activated only after it passes the fixture.
+	expirer := &expiry.Worker{S: s, Verify: v.Run, Apply: m.Apply}
+	go func() {
+		ticker := time.NewTicker(time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				c, cn := context.WithTimeout(ctx, 60*time.Second)
+				o := expirer.Tick(c)
+				cn()
+				if o.Applied != "" {
+					fmt.Printf("{\"event\":\"policy_exclusion_expired\",\"revision\":%q}\n", o.Applied)
+					select {
+					case canaryNow <- struct{}{}:
+					default:
+					}
+				} else if o.Incident != "" {
+					fmt.Println(`{"event":"policy_expiry_held"}`)
+				}
+			}
 		}
 	}()
 	app := &api.Server{CanaryNow: canaryNow, S: s, A: a, P: m, I: i, V: v, Q: q, R: repos, Scans: sq, Assets: env("AEGIS_ASSETS", "/opt/aegis/console"), AI: ai, Connectors: &connector.Registry{S: s}}

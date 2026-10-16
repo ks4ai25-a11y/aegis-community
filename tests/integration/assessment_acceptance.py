@@ -54,6 +54,7 @@ try:
     kinds = {p["kind"]: p for p in proposals["proposals"]}
     assert set(kinds) == {"exclusion", "protect"}, proposals
     x = kinds["exclusion"]["candidate_policy"]["exclusions"]
+    assert len(x) == 1 and x[0].pop("expires_at", "") > time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), x
     assert x == [{"rule_id": 942100, "method": "GET", "path": "/test-pattern", "parameter": "query"}], x
     check("proposals_generated", {"kinds": sorted(kinds)})
     # The exclusion would remove the bundled negative control, so the isolated fixture must refuse it.

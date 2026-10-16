@@ -75,6 +75,11 @@ func validateExclusions(xs []domain.Exclusion, demo bool) error {
 		if !parameter.MatchString(x.Parameter) {
 			return fmt.Errorf("invalid parameter target")
 		}
+		if x.ExpiresAt != "" {
+			if t, e := time.Parse(time.RFC3339, x.ExpiresAt); e != nil || t.UTC().Format(time.RFC3339) != x.ExpiresAt {
+				return fmt.Errorf("expires_at must be a UTC RFC 3339 time such as 2026-11-01T00:00:00Z")
+			}
+		}
 	}
 	return nil
 }
@@ -211,6 +216,54 @@ func validateProxies(cidrs []string) error {
 			return fmt.Errorf("duplicate trusted proxy %s", c)
 		}
 		seen[c] = true
+	}
+	return nil
+}
+
+// Expired returns the policy with exclusions past their expiry removed, and
+// whether anything was removed.
+func Expired(p domain.Policy, now time.Time) (domain.Policy, bool) {
+	keep := func(xs []domain.Exclusion) ([]domain.Exclusion, bool) {
+		out, changed := []domain.Exclusion{}, false
+		for _, x := range xs {
+			if t, e := time.Parse(time.RFC3339, x.ExpiresAt); x.ExpiresAt != "" && e == nil && !now.Before(t) {
+				changed = true
+				continue
+			}
+			out = append(out, x)
+		}
+		return out, changed
+	}
+	b, _ := json.Marshal(p)
+	var c domain.Policy
+	json.Unmarshal(b, &c)
+	var changed bool
+	c.Exclusions, changed = keep(c.Exclusions)
+	for i := range c.Sites {
+		var ch bool
+		c.Sites[i].Exclusions, ch = keep(c.Sites[i].Exclusions)
+		changed = changed || ch
+	}
+	return c, changed
+}
+
+// FutureExpiries refuses a candidate that introduces an already-expired exclusion.
+func FutureExpiries(p domain.Policy, now time.Time) error {
+	check := func(xs []domain.Exclusion) error {
+		for _, x := range xs {
+			if t, e := time.Parse(time.RFC3339, x.ExpiresAt); x.ExpiresAt != "" && e == nil && !now.Before(t) {
+				return fmt.Errorf("exclusion for rule %d on %s already expired", x.RuleID, x.Path)
+			}
+		}
+		return nil
+	}
+	if e := check(p.Exclusions); e != nil {
+		return e
+	}
+	for _, s := range p.Sites {
+		if e := check(s.Exclusions); e != nil {
+			return e
+		}
 	}
 	return nil
 }

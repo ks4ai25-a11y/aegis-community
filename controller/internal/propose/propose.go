@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const Schema = "1.0"
@@ -136,7 +137,9 @@ func Propose(s *store.Store, incident string) (Result, error) {
 			excluded = true
 			break
 		}
-		p := base(fmt.Sprintf("Exclude parameter %s from CRS rule %d on %s %s (proposed from incident)", m.parameter, m.rule, m.method, m.route))
+		p := base(fmt.Sprintf("Exclude parameter %s from CRS rule %d on %s %s for 30 days (proposed from incident)", m.parameter, m.rule, m.method, m.route))
+		// Proposed exclusions are temporary by default; the owner can renew them.
+		x.ExpiresAt = time.Now().UTC().Add(30 * 24 * time.Hour).Truncate(time.Second).Format(time.RFC3339)
 		setExclusions(&p, site, append(append([]domain.Exclusion{}, exclusions...), x))
 		if e := policy.Validate(p); e != nil {
 			res.NotProposed = append(res.NotProposed, fmt.Sprintf("Exclusion for rule %d on %s %s cannot be expressed safely: %s.", m.rule, m.method, m.route, e))
@@ -147,7 +150,7 @@ func Propose(s *store.Store, incident string) (Result, error) {
 			Title:        fmt.Sprintf("Exclude %s from rule %d on %s %s", m.parameter, m.rule, m.method, m.route),
 			Rationale:    "Use only if the matching requests are legitimate. The exclusion removes this one parameter from this one rule on this exact route; every other rule still inspects it.",
 			Impact:       "Requests whose only match was this rule on this parameter stop raising this observation and are not blocked by it in Protect.",
-			SideEffects:  []string{"A real attack carried in this parameter would no longer be detected by this rule.", "The isolated fixture preview fails if the exclusion would remove the bundled negative control."},
+			SideEffects:  []string{"A real attack carried in this parameter would no longer be detected by this rule.", "The isolated fixture preview fails if the exclusion would remove the bundled negative control.", "It expires after 30 days; Aegis then removes it automatically if the stricter revision passes the fixture."},
 			EvidenceRefs: refs, Tests: []string{"Validate and preview the candidate: the pinned gateway must accept it and the bundled benign and negative controls must still pass.", "Replay the legitimate request that triggered the incident in a staging copy of the application."},
 			Candidate: p}))
 		excluded = true
@@ -190,7 +193,7 @@ func clone(p domain.Policy) domain.Policy {
 
 func contains(xs []domain.Exclusion, x domain.Exclusion) bool {
 	for _, y := range xs {
-		if y == x {
+		if y.RuleID == x.RuleID && y.Method == x.Method && y.Path == x.Path && y.Parameter == x.Parameter {
 			return true
 		}
 	}

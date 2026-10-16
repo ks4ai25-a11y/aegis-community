@@ -34,6 +34,9 @@ type Exclusion struct {
 	Method    string `json:"method"`
 	Path      string `json:"path"`
 	Parameter string `json:"parameter"`
+	// ExpiresAt (RFC 3339, optional) removes the exclusion automatically: the
+	// controller activates a stricter revision once it passes the fixture.
+	ExpiresAt string `json:"expires_at,omitempty"`
 }
 type Metadata struct {
 	Rationale   string `json:"rationale"`
