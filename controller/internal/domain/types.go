@@ -126,6 +126,8 @@ type Event struct {
 	PathKey   string `json:"path_key,omitempty"`
 	// Target names the matched request argument (ARGS:name), never its value.
 	Target string `json:"target,omitempty"`
+	// Canary marks Aegis's own DET-07 probe traffic, which detectors ignore.
+	Canary bool `json:"canary,omitempty"`
 }
 type Check struct {
 	ID              string   `json:"id"`

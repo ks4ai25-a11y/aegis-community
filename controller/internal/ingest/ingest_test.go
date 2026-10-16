@@ -1,8 +1,13 @@
 package ingest
 
 import (
+	"aegis.local/controller/internal/canary"
+	"aegis.local/controller/internal/detect"
+	"aegis.local/controller/internal/domain"
+	"aegis.local/controller/internal/store"
 	"bufio"
 	"io"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -56,5 +61,27 @@ func TestSiteAttributionFromGatewayRequestID(t *testing.T) {
 		if site != want.site || synthetic != want.synthetic {
 			t.Error(id, site, synthetic)
 		}
+	}
+}
+
+func TestCanaryTrafficSkipsIncidentsAndDetectors(t *testing.T) {
+	s, e := store.Open(filepath.Join(t.TempDir(), "i.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	marks := &canary.Marks{}
+	marks.Add("canary-request")
+	i := &Ingestor{S: s, Detect: detect.New(detect.Defaults()), Canary: marks}
+	ev := domain.Event{ID: "e1", Schema: "1.0", At: "2026-10-16T12:00:00Z", Site: "site_demo", Request: "canary-request", Type: "waf_match", Rules: []string{"942100"}, Source: "coraza"}
+	if e = i.persist(ev, "k1"); e != nil {
+		t.Fatal(e)
+	}
+	var n int
+	s.DB.QueryRow("SELECT count(*) FROM incidents").Scan(&n)
+	var doc string
+	s.DB.QueryRow("SELECT document FROM events WHERE id='e1'").Scan(&doc)
+	if n != 0 || !strings.Contains(doc, `"canary":true`) {
+		t.Fatal(n, doc)
 	}
 }

@@ -235,6 +235,10 @@ func Deterministic(d Dossier) Assessment {
 	case "DET-06":
 		a.Hypotheses = append(a.Hypotheses, Hypothesis{"An administrative or diagnostic route is reachable through the gateway.", "high", refs})
 		a.Recommendations = append(a.Recommendations, Recommendation{"Confirm this route requires authentication and is meant to be public; otherwise restrict it at the application.", "investigate", "low"})
+	case "DET-07":
+		a.Hypotheses = append(a.Hypotheses, Hypothesis{"The active revision no longer produces the expected outcome for the bundled synthetic controls.", "high", refs}, Hypothesis{"The gateway or demo origin is degraded and the canary result is not representative.", "medium", refs})
+		a.Recommendations = append(a.Recommendations, Recommendation{"Check gateway health and the active revision, then roll back to the last revision whose canary passed if the regression is confirmed.", "rollback", "medium"})
+		a.Tests = append(a.Tests, "Re-run the canary from the Overview page after rollback or repair.")
 	default:
 		a.Hypotheses = append(a.Hypotheses, Hypothesis{"The detector observed a pattern that requires manual review.", "low", refs})
 	}

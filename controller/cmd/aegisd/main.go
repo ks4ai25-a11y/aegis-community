@@ -5,6 +5,7 @@ import (
 	"aegis.local/controller/internal/api"
 	"aegis.local/controller/internal/assess"
 	"aegis.local/controller/internal/auth"
+	"aegis.local/controller/internal/canary"
 	"aegis.local/controller/internal/connector"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/ingest"
@@ -23,6 +24,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -52,7 +54,8 @@ func main() {
 		fmt.Println(string(b))
 	}
 	m := &policy.Manager{S: s, Root: filepath.Join(root, "policies"), Binary: env("CADDY_BIN", "/usr/local/bin/caddy"), Socket: env("GATEWAY_SOCKET", "/run/gateway/admin.sock"), DeploySocket: env("DEPLOYER_SOCKET", "/run/deployer/deployer.sock"), Origin: "demo-origin:8080", Listen: ":8080", Log: env("GATEWAY_LOG", "/var/log/aegis/events.jsonl")}
-	i := &ingest.Ingestor{S: s, Path: m.Log}
+	marks := &canary.Marks{}
+	i := &ingest.Ingestor{S: s, Path: m.Log, Canary: marks}
 	go i.Run(ctx)
 	go func() {
 		for n := 0; n < 20; n++ {
@@ -154,7 +157,29 @@ func main() {
 		fmt.Println(`{"event":"ai_configuration_rejected","fallback":"deterministic"}`)
 		ai = assess.Config{Provider: "none"}
 	}
-	app := &api.Server{S: s, A: a, P: m, I: i, V: v, Q: q, R: repos, Scans: sq, Assets: env("AEGIS_ASSETS", "/opt/aegis/console"), AI: ai, Connectors: &connector.Registry{S: s}}
+	// DET-07: probe the live gateway after start-up, after each activation and every 15 minutes.
+	canaryNow := make(chan struct{}, 1)
+	probe := &canary.Canary{S: s, Gateway: env("AEGIS_GATEWAY_URL", "http://gateway:8080"), Marks: marks}
+	go func() {
+		timer := time.NewTimer(30 * time.Second)
+		defer timer.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-canaryNow:
+				time.Sleep(3 * time.Second)
+			case <-timer.C:
+			}
+			c, cn := context.WithTimeout(ctx, 30*time.Second)
+			if r := probe.Run(c); r.Outcome != "PASS" {
+				fmt.Printf("{\"event\":\"canary_%s\",\"revision\":%q}\n", strings.ToLower(r.Outcome), r.Revision)
+			}
+			cn()
+			timer.Reset(15 * time.Minute)
+		}
+	}()
+	app := &api.Server{CanaryNow: canaryNow, S: s, A: a, P: m, I: i, V: v, Q: q, R: repos, Scans: sq, Assets: env("AEGIS_ASSETS", "/opt/aegis/console"), AI: ai, Connectors: &connector.Registry{S: s}}
 	server := &http.Server{Addr: env("AEGIS_LISTEN", "127.0.0.1:7410"), Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32768}
 	go func() {
 		<-ctx.Done()

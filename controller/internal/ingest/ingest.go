@@ -2,6 +2,7 @@
 package ingest
 
 import (
+	"aegis.local/controller/internal/canary"
 	"aegis.local/controller/internal/detect"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/store"
@@ -22,6 +23,7 @@ import (
 type Ingestor struct {
 	S        *store.Store
 	Detect   *detect.Engine
+	Canary   *canary.Marks
 	Path     string
 	Dropped  atomic.Uint64
 	Rejected atomic.Uint64
@@ -206,6 +208,9 @@ func (i *Ingestor) persist(ev domain.Event, key string) error {
 	if size > 256<<20 {
 		return fmt.Errorf("database cap reached")
 	}
+	if i.Canary != nil && i.Canary.Has(ev.Request) {
+		ev.Canary = true
+	}
 	tx, e := i.S.DB.Begin()
 	if e != nil {
 		return e
@@ -217,7 +222,7 @@ func (i *Ingestor) persist(ev domain.Event, key string) error {
 		return e
 	}
 	n, _ := res.RowsAffected()
-	if n > 0 && ev.Type == "waf_match" && len(ev.Rules) > 0 {
+	if n > 0 && !ev.Canary && ev.Type == "waf_match" && len(ev.Rules) > 0 {
 		// Actual match observations are grouped by the rule and minute, with no exploit claim.
 		key := ev.At[:16] + ":" + ev.Rules[0]
 		summary := "Synthetic request matched CRS rule " + ev.Rules[0]
@@ -235,7 +240,7 @@ func (i *Ingestor) persist(ev domain.Event, key string) error {
 	if e != nil {
 		return e
 	}
-	if n > 0 && i.Detect != nil {
+	if n > 0 && !ev.Canary && i.Detect != nil {
 		for _, sig := range i.Detect.Observe(ev) {
 			incident := domain.Hash([]byte(fmt.Sprintf("%s|%s|%s|%d", sig.Detector, sig.Site, sig.Key, sig.Bucket)))
 			notes := detectorNotes(sig.Detector, sig.Site, sig.Window, sig.Threshold, sig.Observed, sig.Assumption)

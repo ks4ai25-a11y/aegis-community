@@ -4,6 +4,7 @@ package api
 import (
 	"aegis.local/controller/internal/assess"
 	"aegis.local/controller/internal/auth"
+	"aegis.local/controller/internal/canary"
 	"aegis.local/controller/internal/connector"
 	"aegis.local/controller/internal/detect"
 	"aegis.local/controller/internal/domain"
@@ -41,10 +42,12 @@ type Server struct {
 	Scans      *scanqueue.Queue
 	Assets     string
 	AI         assess.Config
-	mutations  sync.Mutex
-	assessing  chan struct{}
-	assessed   sync.Map
-	streams    chan struct{}
+	// CanaryNow, when set, asks the DET-07 canary to check the new revision.
+	CanaryNow chan struct{}
+	mutations sync.Mutex
+	assessing chan struct{}
+	assessed  sync.Map
+	streams   chan struct{}
 }
 
 func (s *Server) Handler() http.Handler {
@@ -324,7 +327,14 @@ func (s *Server) status(w http.ResponseWriter, r *http.Request) {
 	if st, e := os.Stat(s.S.Path); e == nil {
 		size = st.Size()
 	}
-	output(w, 200, map[string]any{"version": domain.Version, "release_maturity": "internal-alpha", "mode": p.Mode, "active_revision": d, "gateway_revision": g, "gateway_healthy": ge == nil && g == d, "apply_frozen": s.P.Frozen.Load(), "requests_retained": total, "counter_definition": "retained source records; WAF and access are separate records, not total requests", "open_incidents": incidents, "events_dropped_total": s.I.Dropped.Load(), "ingest_rejected_total": s.I.Rejected.Load(), "last_ingest_unix": s.I.Last.Load(), "detector_state_evicted": evicted, "detector_version": detect.Version, "database_bytes": size, "external_services_required": false})
+	output(w, 200, map[string]any{"version": domain.Version, "release_maturity": "internal-alpha", "mode": p.Mode, "active_revision": d, "gateway_revision": g, "gateway_healthy": ge == nil && g == d, "apply_frozen": s.P.Frozen.Load(), "requests_retained": total, "counter_definition": "retained source records; WAF and access are separate records, not total requests", "open_incidents": incidents, "events_dropped_total": s.I.Dropped.Load(), "ingest_rejected_total": s.I.Rejected.Load(), "last_ingest_unix": s.I.Last.Load(), "detector_state_evicted": evicted, "detector_version": detect.Version, "canary": canaryStatus(s.S), "database_bytes": size, "external_services_required": false})
+}
+
+func canaryStatus(st *store.Store) any {
+	if r, ok := canary.Last(st); ok {
+		return r
+	}
+	return nil
 }
 
 // siteRoute splits /sites/{id}/rest and accepts only sites governed by the active policy.
@@ -753,6 +763,12 @@ func (s *Server) activate(w http.ResponseWriter, r *http.Request, actor, path, o
 	if e = s.P.Apply(ctx, p, actor); e != nil {
 		fail(w, 409, "CONFLICT", e.Error())
 		return
+	}
+	if s.CanaryNow != nil {
+		select {
+		case s.CanaryNow <- struct{}{}:
+		default:
+		}
 	}
 	response := map[string]string{"state": "ACTIVE", "digest": domain.Digest(p)}
 	b, _ := json.Marshal(response)

@@ -21,7 +21,7 @@ func dossier() Dossier {
 }
 
 func TestDeterministicCoversEveryDetector(t *testing.T) {
-	for _, id := range []string{"DET-01", "DET-02", "DET-03", "DET-04", "DET-05", "DET-06", "DET-99"} {
+	for _, id := range []string{"DET-01", "DET-02", "DET-03", "DET-04", "DET-05", "DET-06", "DET-07", "DET-99"} {
 		d := dossier()
 		d.Incident.Detector = map[string]any{"detector_id": id}
 		a := Deterministic(d)
