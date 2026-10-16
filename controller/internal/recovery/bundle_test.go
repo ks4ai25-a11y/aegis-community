@@ -183,6 +183,7 @@ func seedAuthorities(t *testing.T, s *store.Store) {
 		"INSERT INTO application_maps VALUES('repo','map','{}','2026-10-15T00:00:00Z')",
 		"INSERT INTO scanner_workers VALUES('worker','owner','worker-token-hash','active',2147483647,'2026-10-15T00:00:00Z')",
 		"INSERT INTO scanner_verifiers VALUES('verifier','owner','verifier-token-hash','active','engine','registry',2147483647,'2026-10-15T00:00:00Z')",
+		"INSERT INTO scanner_authorizers VALUES('authorizer','owner','authorizer-token-hash','active','engine','registry','policy',2147483647,'2026-10-15T00:00:00Z')",
 		"INSERT INTO scanner_jobs(id,owner,repository,app,map_digest,lock_digest,request_digest,idempotency_key,payload,state,created_at,expires) VALUES('scan','owner','repo','app_demo','map','lock','request','scan-key','{}','running','2026-10-15T00:00:00Z',2147483647)",
 		"INSERT INTO scanner_dispatch(slot,job,worker,token_hash,lease_until,deadline,state) VALUES(1,'scan','worker','old-capability-hash',2147483647,2147483647,'active')",
 	}
@@ -227,7 +228,7 @@ func TestOfflineRestoreInvalidatesAuthorityPreservesHistoryAndCleanupHold(t *tes
 			t.Fatal("restored authority survived", table, n, e)
 		}
 	}
-	for _, table := range []string{"scope_grants", "scanner_workers", "scanner_verifiers", "connections"} {
+	for _, table := range []string{"scope_grants", "scanner_workers", "scanner_verifiers", "scanner_authorizers", "connections"} {
 		var n int
 		if e = state.DB.QueryRow("SELECT count(*) FROM " + table + " WHERE state='active'").Scan(&n); e != nil || n != 0 {
 			t.Fatal("active restored role", table, n, e)
@@ -337,5 +338,68 @@ func TestIncompleteRestoredDataCannotStartOrBecomeSnapshotSource(t *testing.T) {
 	if reopened, e := store.OpenSnapshotSource(context.Background(), s.Path); e == nil {
 		reopened.DB.Close()
 		t.Fatal("incomplete state snapshotted")
+	}
+}
+
+func TestVersionThirteenBundleRestoresWithoutRequiringAuthorizerTable(t *testing.T) {
+	c, s, parent := fixture(t)
+	seedAuthorities(t, s)
+	// Construct the exact previously supported prefix in a disposable fixture.
+	if _, e := s.DB.Exec("DROP TABLE scanner_authorizers"); e != nil {
+		t.Fatal(e)
+	}
+	if _, e := s.DB.Exec("DELETE FROM migrations WHERE version=14"); e != nil {
+		t.Fatal(e)
+	}
+	path, created := makeBundle(t, c, parent)
+	if _, e := Verify(context.Background(), c, path); e != nil {
+		t.Fatal("legacy bundle refused", e)
+	}
+	destination := filepath.Join(parent, "restored-v13")
+	if _, e := Restore(context.Background(), c, path, destination, created.Bundle); e != nil {
+		t.Fatal("legacy restore failed", e)
+	}
+	state, e := store.OpenSnapshotSource(context.Background(), filepath.Join(destination, "data/aegis.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	var version int
+	if e = state.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 13 {
+		t.Fatal("offline restore upgraded legacy bytes", e)
+	}
+	state.DB.Close()
+	upgraded, e := store.Open(filepath.Join(destination, "data/aegis.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer upgraded.DB.Close()
+	var n int
+	if e = upgraded.DB.QueryRow("SELECT count(*) FROM scanner_authorizers").Scan(&n); e != nil || n != 0 {
+		t.Fatal("legacy upgrade gained authorizer authority", e)
+	}
+	if e = upgraded.DB.QueryRow("SELECT count(*) FROM scanner_verifiers WHERE state='active'").Scan(&n); e != nil || n != 0 {
+		t.Fatal("legacy observer authority survived", e)
+	}
+	var held string
+	if e = upgraded.DB.QueryRow("SELECT state FROM scanner_dispatch").Scan(&held); e != nil || held != "cleanup_required" {
+		t.Fatal("legacy cleanup hold lost", e)
+	}
+}
+
+func TestRecoveryRefusesAuthorizerTableOutsideDeclaredMigration(t *testing.T) {
+	for _, kind := range []string{"undeclared-table", "missing-table"} {
+		t.Run(kind, func(t *testing.T) {
+			c, s, parent := fixture(t)
+			statement := "DELETE FROM migrations WHERE version=14"
+			if kind == "missing-table" {
+				statement = "DROP TABLE scanner_authorizers"
+			}
+			if _, e := s.DB.Exec(statement); e != nil {
+				t.Fatal(e)
+			}
+			if _, e := Create(context.Background(), c, filepath.Join(parent, "refused-bundle")); e == nil {
+				t.Fatal("mismatched authorizer schema accepted")
+			}
+		})
 	}
 }

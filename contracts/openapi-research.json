@@ -1417,6 +1417,9 @@
       "ResearchJobV1": {
         "$ref": "schemas/ResearchJobV1.json"
       },
+      "ScannerAuthorizerIdentityV1": {
+        "$ref": "schemas/ScannerAuthorizerIdentityV1.json"
+      },
       "ScannerBrokerDispatchOutcomeV1": {
         "$ref": "schemas/ScannerBrokerDispatchOutcomeV1.json"
       },

@@ -154,6 +154,20 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 			return ErrRecovery
 		}
 	}
+	// Version-13 bundles have no authorizer table. Do not upgrade a captured
+	// database during offline restore; revoke the new role when it is present
+	// in a verified version-14 bundle, and preserve older bundle compatibility.
+	var version int
+	if e = tx.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version); e != nil {
+		return ErrRecovery
+	}
+	if version == 14 {
+		if _, e = tx.ExecContext(ctx, "UPDATE scanner_authorizers SET state='revoked' WHERE state='active'"); e != nil {
+			return ErrRecovery
+		}
+	} else if version != 13 {
+		return ErrRecovery
+	}
 	now := domain.Now()
 	if _, e = tx.ExecContext(ctx, "UPDATE research_jobs SET state='cancelled',cancel_requested=1,lease_token='',worker='',lease_until=0,finished_at=?,error_code='RESTORE_AUTHORITY_INVALIDATED' WHERE state IN ('queued','running')", now); e != nil {
 		return ErrRecovery

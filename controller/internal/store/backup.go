@@ -88,12 +88,14 @@ func OpenSnapshotSource(ctx context.Context, path string) (*Store, error) {
 }
 
 func validateSnapshotHistory(ctx context.Context, db *sql.DB) error {
-	rows, e := db.QueryContext(ctx, "SELECT version,checksum FROM migrations ORDER BY version LIMIT 14")
+	versions := migrationBodies()
+	// Read one beyond the supported prefix so a future version cannot hide
+	// behind a fixed row limit when another migration is added.
+	rows, e := db.QueryContext(ctx, "SELECT version,checksum FROM migrations ORDER BY version LIMIT ?", len(versions)+1)
 	if e != nil {
 		return ErrBackup
 	}
 	defer rows.Close()
-	versions := migrationBodies()
 	count := 0
 	for rows.Next() {
 		var version int

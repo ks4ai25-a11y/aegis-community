@@ -18,10 +18,10 @@ import (
 // Probe is a local diagnostic. Credentials are read from a private file, never
 // argv, owner cookies, query strings, logs or arbitrary TCP destinations.
 func identityBytes(ctx context.Context, socket, credential, operation string) ([]byte, error) {
-	if operation != "identity" && operation != "verifier/identity" {
+	if operation != "identity" && operation != "verifier/identity" && operation != "authorizer/identity" {
 		return nil, fmt.Errorf("unsupported identity operation")
 	}
-	if operation == "verifier/identity" && validateVerifierParent(credential) != nil {
+	if operation != "identity" && validateVerifierParent(credential) != nil {
 		return nil, fmt.Errorf("private verifier credential parent required")
 	}
 	f, e := openCredential(credential)

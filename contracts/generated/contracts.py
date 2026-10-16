@@ -1161,6 +1161,17 @@ class FindingTriageHistoryV1DocumentItemsItemDocument(TypedDict):
     rationale: str
     previous_digest: str
     updated_at: str
+class ScannerAuthorizerIdentityV1(TypedDict):
+    schema_version: str
+    role: str
+    authorizer_id: str
+    owner_id: str
+    engine_digest: str
+    registry_digest: str
+    policy_digest: str
+    state: str
+    expires_at: str
+    created_at: str
 class ScannerVerifierIdentityV1(TypedDict):
     schema_version: str
     role: str

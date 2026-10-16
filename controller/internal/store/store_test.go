@@ -105,7 +105,7 @@ func TestScannerMigrationUpgradePreservesExistingVersions(t *testing.T) {
 		}
 	}
 	var version int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 13 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 14 {
 		t.Fatal(version, e)
 	}
 	if got, e := s.Get("upgrade-canary"); e != nil || got != "preserved" {
@@ -405,7 +405,7 @@ func TestFindingTriageMigrationPreservesVersionElevenState(t *testing.T) {
 		}
 	}
 	var version, n int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 13 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&version); e != nil || version != 14 {
 		t.Fatal(version, e)
 	}
 	if e = s.DB.QueryRow("SELECT count(*) FROM finding_triage").Scan(&n); e != nil || n != 0 {
@@ -450,7 +450,7 @@ func TestScannerVerifierMigrationPreservesVersionTwelveState(t *testing.T) {
 		}
 	}
 	var n int
-	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&n); e != nil || n != 13 {
+	if e = s.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&n); e != nil || n != 14 {
 		t.Fatal(n, e)
 	}
 	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_verifiers").Scan(&n); e != nil || n != 0 {
@@ -461,5 +461,57 @@ func TestScannerVerifierMigrationPreservesVersionTwelveState(t *testing.T) {
 	}
 	if value, e := s.Get("verifier-upgrade-canary"); e != nil || value != "preserved" {
 		t.Fatal(value, e)
+	}
+}
+
+func TestAuthorizerMigrationPreservesVersionThirteenEnrollmentsAndHolds(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "v13.db")
+	db, e := sql.Open("sqlite", path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	previous := migrationBodies()[:13]
+	for i, body := range previous {
+		if _, e = db.Exec(body); e != nil {
+			t.Fatal(e)
+		}
+		if _, e = db.Exec("INSERT INTO migrations VALUES(?,?)", i+1, domain.Hash([]byte(body))); e != nil {
+			t.Fatal(e)
+		}
+	}
+	for _, statement := range []string{
+		"INSERT INTO owners VALUES('retained-owner','test','2026-10-16T00:00:00Z')",
+		"INSERT INTO scanner_verifiers VALUES('retained-observer','retained-owner','observer-hash','active','engine','registry',2147483647,'2026-10-16T00:00:00Z')",
+		"INSERT INTO repositories VALUES('repo','retained-owner','app_demo','fixture','map','2026-10-16T00:00:00Z')",
+		"INSERT INTO application_maps VALUES('repo','map','{}','2026-10-16T00:00:00Z')",
+		"INSERT INTO scanner_jobs(id,owner,repository,app,map_digest,lock_digest,request_digest,idempotency_key,payload,state,created_at,expires) VALUES('retained-job','retained-owner','repo','app_demo','map','lock','request','key','{}','tool_error','2026-10-16T00:00:00Z',2147483647)",
+		"INSERT INTO scanner_dispatch(slot,job,worker,token_hash,lease_until,deadline,state) VALUES(1,'retained-job','worker','token',1,2,'cleanup_required')",
+	} {
+		if _, e = db.Exec(statement); e != nil {
+			t.Fatal(e)
+		}
+	}
+	db.Close()
+	s, e := Open(path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	for i, body := range previous {
+		var checksum string
+		if e = s.DB.QueryRow("SELECT checksum FROM migrations WHERE version=?", i+1).Scan(&checksum); e != nil || checksum != domain.Hash([]byte(body)) {
+			t.Fatal("prior migration changed", i, e)
+		}
+	}
+	var state string
+	if e = s.DB.QueryRow("SELECT state FROM scanner_verifiers WHERE id='retained-observer'").Scan(&state); e != nil || state != "active" {
+		t.Fatal("observer scope changed", e)
+	}
+	if e = s.DB.QueryRow("SELECT state FROM scanner_dispatch").Scan(&state); e != nil || state != "cleanup_required" {
+		t.Fatal("hold changed", e)
+	}
+	var count int
+	if e = s.DB.QueryRow("SELECT count(*) FROM scanner_authorizers").Scan(&count); e != nil || count != 0 {
+		t.Fatal("migration created authorizer authority", e)
 	}
 }

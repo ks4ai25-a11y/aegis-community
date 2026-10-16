@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "role": "scanner-engine-authorizer",
+  "authorizer_id": "synthetic-authorizer",
+  "owner_id": "synthetic-owner",
+  "engine_digest": "sha256:4cdc83eb03cc830add0aae46bc5e0819f6705ac92400088d9e7ba52a5206c522",
+  "registry_digest": "sha256:48baceab6cefb414b79b13945e497b8eeeb4e8472ae1c5f6199bb521eb37fd5b",
+  "policy_digest": "sha256:f0b955da26c93d508fe17ceea491db7a5384dc7ae0b9639633866ea0d00d1169",
+  "state": "active",
+  "expires_at": "2026-10-17T00:01:00Z",
+  "created_at": "2026-10-17T00:00:00Z"
+}

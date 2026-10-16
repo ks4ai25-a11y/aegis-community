@@ -88,8 +88,18 @@ CREATE TRIGGER scanner_verifiers_state_monotonic BEFORE UPDATE OF state ON scann
 CREATE TRIGGER scanner_verifiers_no_delete BEFORE DELETE ON scanner_verifiers BEGIN SELECT RAISE(ABORT,'scanner verifier enrollment is retained'); END;
 `
 
+// Distinct from read-only verifier enrollment. Admission operations are added
+// separately; an enrolled identity alone never settles or releases a job.
+const scannerAuthorizerSchema = `
+CREATE TABLE scanner_authorizers(id TEXT PRIMARY KEY,owner TEXT NOT NULL REFERENCES owners(id),token_hash TEXT UNIQUE NOT NULL,state TEXT NOT NULL CHECK(state IN ('active','revoked')),engine_digest TEXT NOT NULL,registry_digest TEXT NOT NULL,policy_digest TEXT NOT NULL,expires INTEGER NOT NULL,created_at TEXT NOT NULL);
+CREATE INDEX scanner_authorizers_owner ON scanner_authorizers(owner,state,expires);
+CREATE TRIGGER scanner_authorizers_scope_immutable BEFORE UPDATE OF id,owner,token_hash,engine_digest,registry_digest,policy_digest,expires,created_at ON scanner_authorizers BEGIN SELECT RAISE(ABORT,'scanner authorizer scope is immutable'); END;
+CREATE TRIGGER scanner_authorizers_state_monotonic BEFORE UPDATE OF state ON scanner_authorizers WHEN OLD.state!='active' OR NEW.state!='revoked' BEGIN SELECT RAISE(ABORT,'scanner authorizer cannot be reactivated'); END;
+CREATE TRIGGER scanner_authorizers_no_delete BEFORE DELETE ON scanner_authorizers BEGIN SELECT RAISE(ABORT,'scanner authorizer enrollment is retained'); END;
+`
+
 func migrationBodies() []string {
-	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema}
+	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema}
 }
 func migrate(db *sql.DB) error {
 	versions := migrationBodies()

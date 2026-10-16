@@ -1,6 +1,6 @@
 # ADR 057: Scanner mutation admission and confirmed cleanup release
 
-Status: design for implementation. No release endpoint, new capability or migration is enabled by this document. Scanner admission remains held after a dispatched job.
+Status: partially implemented. Migration 014 and separate authorizer enrollment/private identity probing are implemented. Durable mutation admission, independent reconciliation and release remain unfinished. Scanner admission remains held after a dispatched job.
 
 ## Problem
 
@@ -10,7 +10,9 @@ The permanent `cleanup_required` hold prevents repeated scanning. Removing it af
 
 Release needs a controller-owned mutation ledger, a distinct authorizer capability and independent engine reconciliation. Keep worker, broker, authorizer and observer roles separate. Existing `scanner-verifier` enrollment remains read-only; extending its permission would silently change a deployed capability. A new narrowly scoped authorizer enrollment must bind owner, engine, registry and serving policy, expire and revoke monotonically, and be separately provisioned. Never accept worker credentials on this channel.
 
-Reserve migration 014 for this work. Preserve all earlier migration bodies and checksums. Before enabling a schema change, update backup/recovery validation, contract generation, restore revocation and supported-version checks together. Restoration must revoke new authorizer capabilities and preserve unresolved mutations and cleanup holds.
+Migration 014 adds retained immutable authorizer enrollments, with no automatic enrollment or mutation permission. Backup/recovery validation, identity contracts, version-13/14 compatibility and restore revocation advance together. All earlier migration bodies and checksums remain unchanged. The allocation ledger needs a separately coordinated migration; restoration must preserve unresolved mutations and cleanup holds.
+
+The implemented operator surface is described in [scanner authorizer enrollment](../../operators/scanner-authorizers.md). Only the private identity operation is available for this role. Existing observer capabilities remain read-only; no current serving command interprets authorizer enrollment as permission to allocate. The remaining protocol below is the implementation contract, not a claim that fencing or release has shipped.
 
 ### Mutation lifecycle
 

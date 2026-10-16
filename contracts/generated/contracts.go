@@ -1298,6 +1298,18 @@ type FindingTriageHistoryV1DocumentItemsItemDocument struct {
 	PreviousDigest string `json:"previous_digest"`
 	UpdatedAt      string `json:"updated_at"`
 }
+type ScannerAuthorizerIdentityV1 struct {
+	SchemaVersion  string `json:"schema_version"`
+	Role           string `json:"role"`
+	AuthorizerId   string `json:"authorizer_id"`
+	OwnerId        string `json:"owner_id"`
+	EngineDigest   string `json:"engine_digest"`
+	RegistryDigest string `json:"registry_digest"`
+	PolicyDigest   string `json:"policy_digest"`
+	State          string `json:"state"`
+	ExpiresAt      string `json:"expires_at"`
+	CreatedAt      string `json:"created_at"`
+}
 type ScannerVerifierIdentityV1 struct {
 	SchemaVersion  string `json:"schema_version"`
 	Role           string `json:"role"`

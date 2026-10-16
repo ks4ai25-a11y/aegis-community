@@ -5,6 +5,7 @@ test: check-generated
 	cd controller && go test -race ./...
 	python3 tests/integration/database_snapshot_acceptance.py
 	python3 tests/integration/recovery_bundle_acceptance.py
+	python3 tests/integration/authorizer_enrollment_acceptance.py
 	python3 -m unittest discover -s tests/integration -p test_recovery_isolation.py
 	python3 -m unittest discover -s tests/integration -p test_ci_engine.py
 	cd alpha && go test -race ./...

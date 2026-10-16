@@ -1296,6 +1296,18 @@ export interface FindingTriageHistoryV1DocumentItemsItemDocument {
   previous_digest: string;
   updated_at: string;
 }
+export interface ScannerAuthorizerIdentityV1 {
+  schema_version: "1.0";
+  role: "scanner-engine-authorizer";
+  authorizer_id: string;
+  owner_id: string;
+  engine_digest: string;
+  registry_digest: string;
+  policy_digest: string;
+  state: "active";
+  expires_at: string;
+  created_at: string;
+}
 export interface ScannerVerifierIdentityV1 {
   schema_version: "1.0";
   role: "scanner-cleanup-observer";
