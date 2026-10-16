@@ -146,7 +146,7 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 		"UPDATE scanner_verifiers SET state='revoked' WHERE state='active'",
 		"UPDATE scanner_dispatch SET state='cleanup_required',lease_until=0",
 		"UPDATE jobs SET state='cancelled' WHERE state IN ('queued','running')",
-		"DELETE FROM settings WHERE key LIKE 'preview:%' OR key='apply_journal' OR key='scanner_engine_binding'",
+		"DELETE FROM settings WHERE key LIKE 'preview:%' OR key='apply_journal' OR key='scanner_engine_binding' OR key='scanner_engine_journal_binding'",
 		"UPDATE policies SET state='RESTORE_REVIEW_REQUIRED' WHERE state IN ('PENDING_APPROVAL','APPLYING')",
 	}
 	for _, statement := range statements {

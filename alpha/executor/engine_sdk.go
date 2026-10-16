@@ -292,12 +292,22 @@ func (c Config) runEngineSDK(runCtx context.Context, endpoint, engine, nameValue
 	}
 	out.exit = -1
 	out.err = errEngine
-	j, e := enginejournal.Open(c.EngineJournalRoot, engine)
+	open := enginejournal.Open
+	if c.ExpectedJournalNamespace != "" || c.ExpectedJournalRootDigest != "" {
+		if !observationHash.MatchString(c.ExpectedJournalNamespace) || c.ExpectedJournalRootDigest != source.Hash([]byte("aegis-scanner-engine-journal-root-v1\n"+c.EngineJournalRoot+"\n"+strconv.Itoa(os.Geteuid()))) {
+			return
+		}
+		open = enginejournal.OpenExisting
+	}
+	j, e := open(c.EngineJournalRoot, engine)
 	if e != nil {
 		out.err = e
 		return
 	}
 	defer j.Close()
+	if c.ExpectedJournalNamespace != "" && j.Observe().Namespace != c.ExpectedJournalNamespace {
+		return
+	}
 	descriptor, _ := json.Marshal(options)
 	attempt, e := j.Begin(nameValue, source.Hash(descriptor))
 	if e != nil {

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerEngineJournalInputV1.json",
+  "title": "ScannerEngineJournalInputV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "engine_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "journal_root_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "journal_namespace_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "controller_binding_verified": {
+      "type": "boolean",
+      "const": false
+    },
+    "cleanup_release_authorized": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "engine_digest",
+    "journal_root_digest",
+    "journal_namespace_digest",
+    "controller_binding_verified",
+    "cleanup_release_authorized"
+  ]
+}

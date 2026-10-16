@@ -51,7 +51,9 @@
         "docs/evidence/cli-free-worker-acceptance.json",
         "docs/evidence/packaged-worker-acceptance.json",
         "docs/evidence/engine-binding-acceptance.json",
-        "docs/evidence/engine-bound-worker-acceptance.json"
+        "docs/evidence/engine-bound-worker-acceptance.json",
+        "docs/evidence/journal-binding-acceptance.json",
+        "docs/evidence/journal-bound-worker-acceptance.json"
       ]
     },
     {

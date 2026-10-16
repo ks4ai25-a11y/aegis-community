@@ -96,6 +96,36 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   still_queued,_=request(base,'/scans/'+job['job_id'],cookie=cookie);assert still_queued['job']['state']=='queued'
   assert helper(['test','-e',str(work_root/'engine-journal')],entry='/bin/busybox',mounts=[root_mount],success=False).returncode==1
   confirmed=True;check('operator_binding_is_immutable_and_changed_registry_refuses_before_claim')
+  confirmed=False
+  missing_journal=helper(arguments,mounts=mounts,extra=['--group-add',group,'--env','TMPDIR='+str(work_root)],success=False)
+  missing_journal_report=json.loads(missing_journal.stdout);assert missing_journal.returncode!=0 and missing_journal_report['state']=='not_claimed' and not missing_journal_report['receipts']
+  still_queued,_=request(base,'/scans/'+job['job_id'],cookie=cookie);assert still_queued['job']['state']=='queued'
+  confirmed=True;check('bound_worker_refuses_missing_journal_provisioning_before_claim')
+  journal_mounts=[root_mount,'type=bind,src='+engine_socket+',dst=/run/engine/docker.sock,readonly']
+  partial=work_root/'partial-empty-journal';helper(['mkdir','-m','700',str(partial)],entry='/bin/busybox',mounts=[root_mount])
+  partial_init=helper(['engine-journal-init',str(partial)],mounts=journal_mounts,extra=['--group-add',group],success=False);assert partial_init.returncode!=0
+  assert not helper(['ls','-A',str(partial)],entry='/bin/busybox',mounts=[root_mount]).stdout.strip()
+  check('existing_partial_journal_is_refused_without_creating_lock_or_identity')
+  journal_input=json.loads(helper(['engine-journal-init',str(work_root/'engine-journal')],mounts=journal_mounts,extra=['--group-add',group]).stdout)
+  assert journal_input['engine_digest']==preflight['engine_digest'] and journal_input['controller_binding_verified'] is False and journal_input['cleanup_release_authorized'] is False
+  assert json.loads(helper(['engine-journal-init',str(work_root/'engine-journal')],mounts=journal_mounts,extra=['--group-add',group]).stdout)==journal_input
+  journal_binding=json.loads(compose('exec','-T','controller','aegisctl','scanner-engine','bind-journal',journal_input['journal_root_digest'],journal_input['journal_namespace_digest']).stdout)
+  assert journal_binding['document']['engine_binding_digest']==binding['binding_digest'] and journal_binding['document']['journal_namespace_digest']==journal_input['journal_namespace_digest']
+  assert json.loads(compose('exec','-T','controller','aegisctl','scanner-engine','bind-journal',journal_input['journal_root_digest'],journal_input['journal_namespace_digest']).stdout)==journal_binding
+  assert compose('exec','-T','controller','aegisctl','scanner-engine','bind-journal',journal_input['journal_root_digest'],'sha256:'+'0'*64,success=False).returncode!=0
+  # Only empty, never-attempted nonce-owned test directories are moved here.
+  # This exercises substitution; there is no operator namespace reset command.
+  helper(['mv',str(work_root/'engine-journal'),str(work_root/'approved-empty-journal')],entry='/bin/busybox',mounts=[root_mount])
+  fresh=json.loads(helper(['engine-journal-init',str(work_root/'engine-journal')],mounts=journal_mounts,extra=['--group-add',group]).stdout);assert fresh['journal_root_digest']==journal_input['journal_root_digest'] and fresh['journal_namespace_digest']!=journal_input['journal_namespace_digest']
+  confirmed=False
+  substituted=helper(arguments,mounts=mounts,extra=['--group-add',group,'--env','TMPDIR='+str(work_root)],success=False)
+  substituted_report=json.loads(substituted.stdout);assert substituted.returncode!=0 and substituted_report['state']=='not_claimed' and not substituted_report['receipts']
+  still_queued,_=request(base,'/scans/'+job['job_id'],cookie=cookie);assert still_queued['job']['state']=='queued'
+  empty=json.loads(helper(['engine-journal-status',str(work_root/'engine-journal'),preflight['engine_digest']],mounts=[root_mount]).stdout);assert empty['attempts']==0
+  confirmed=True
+  helper(['mv',str(work_root/'engine-journal'),str(work_root/'substituted-empty-journal')],entry='/bin/busybox',mounts=[root_mount])
+  helper(['mv',str(work_root/'approved-empty-journal'),str(work_root/'engine-journal')],entry='/bin/busybox',mounts=[root_mount])
+  check('immutable_journal_binding_refuses_a_fresh_namespace_at_the_approved_path')
   profile_env={**env,'AEGIS_SCANNER_ENGINE_GID':group,'AEGIS_SCANNER_WORK_ROOT':str(work_root),'AEGIS_SCANNER_ASSET_ROOT':str(ROOT/'alpha/fixtures/scanners'),'AEGIS_SCANNER_ENGINE_SOCKET':engine_socket,'AEGIS_SCANNER_OWNER':owner}
   resolved=subprocess.run(['docker','--host',endpoint,'compose','-p',project,'-f',str(ROOT/'deploy/compose.demo.yaml'),'-f',str(ROOT/'deploy/compose.scanner-worker.yaml'),'--profile','operator-scanner','config','--format','json'],env=profile_env,cwd=ROOT,capture_output=True,text=True,timeout=30)
   assert resolved.returncode==0
@@ -123,12 +153,15 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   plans=[]
   for tool in tools:
    launch_file=export_directory+'/'+tool+'.json';compose('exec','-T','controller','aegisctl','scanner-launch','export',job['job_id'],tool,launch_file)
-   launch=json.loads(compose('exec','-T','controller','cat',launch_file).stdout);plan=launch['document']['plan'];assert re.fullmatch(r'aegis-scan-[0-9a-f]{32}',plan['container_id'])
+   launch=json.loads(compose('exec','-T','controller','cat',launch_file).stdout);plan=launch['document']['plan'];assert launch['document']['schema_version']=='1.2' and plan['engine_journal_binding_digest']==journal_binding['journal_binding_digest'] and plan['engine_journal_namespace_digest']==journal_input['journal_namespace_digest'];assert re.fullmatch(r'aegis-scan-[0-9a-f]{32}',plan['container_id'])
    assert not raw(['ps','--all','--filter','name=^/'+plan['container_id']+'$','--format','{{.Names}}']).stdout.strip();plans.append(plan)
   plan=plans[0]
   journal=json.loads(helper(['engine-journal-status',str(work_root/'engine-journal'),plan['engine_digest']],mounts=[root_mount]).stdout)
-  assert journal['attempts']==len(tools) and journal['unfinished_attempts']==0 and journal['unresolved_requests']==0 and journal['cleanup_release_authorized'] is False
+  assert journal['namespace_digest']==journal_input['journal_namespace_digest'] and journal['attempts']==len(tools) and journal['unfinished_attempts']==0 and journal['unresolved_requests']==0 and journal['cleanup_release_authorized'] is False
   confirmed=True;check('exact_child_absence_and_settled_journal_remain_non_authoritative')
+  initialized_again=helper(['engine-journal-init',str(work_root/'engine-journal')],mounts=journal_mounts,extra=['--group-add',group],success=False);assert initialized_again.returncode!=0
+  assert json.loads(helper(['engine-journal-status',str(work_root/'engine-journal'),plan['engine_digest']],mounts=[root_mount]).stdout)==journal
+  check('used_bound_journal_cannot_be_reinitialized_or_reset')
   second,_=request(base,'/scans',request_body,cookie,csrf,202,key=secrets.token_hex(16))
   confirmed=False
   blocked=helper(arguments,mounts=mounts,extra=['--group-add',group,'--env','TMPDIR='+str(work_root)],success=False);assert blocked.returncode!=0
@@ -137,7 +170,7 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   after=json.loads(helper(['engine-journal-status',str(work_root/'engine-journal'),plan['engine_digest']],mounts=[root_mount]).stdout);assert after==journal
   confirmed=True
   check('second_job_remains_queued_behind_independent_cleanup_hold')
-  evidence={'schema_version':'1.0','status':'PASS','scope':'Isolated packaged nonroot bound worker executes a real static fixture only after immutable operator engine/registry provisioning; no independent cleanup release or production broker claim','recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'worker_image':image,'preflight':preflight,'operator_provisioning_input':provisioning,'operator_binding':binding,'result':suite,'tool_ids':tools,'catalogue':catalogue,'journal':journal,'container_hardening_verified':True,'child_absence_observed':True,'controller_cleanup_admission':'HELD','all_engine_writes_mediated':False,'independent_security_signoff':False}
+  evidence={'schema_version':'1.0','status':'PASS','scope':'Isolated packaged nonroot bound worker executes a real static fixture only after immutable operator engine/registry provisioning; no independent cleanup release or production broker claim','recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'worker_image':image,'preflight':preflight,'operator_provisioning_input':provisioning,'operator_binding':binding,'journal_provisioning_input':journal_input,'journal_binding':journal_binding,'bound_launch_example':launch,'result':suite,'tool_ids':tools,'catalogue':catalogue,'journal':journal,'container_hardening_verified':True,'child_absence_observed':True,'controller_cleanup_admission':'HELD','all_engine_writes_mediated':False,'independent_security_signoff':False}
  finally:
   if not started or confirmed:
    raw(['rm','--force',worker_name],success=False)
@@ -161,4 +194,4 @@ if evidence is not None:
  assert not raw(['network','ls','--filter','label=com.docker.compose.project='+project,'--format','{{.ID}}']).stdout.strip()
  assert work_root is not None and not work_root.exists()
  evidence['owned_fixture_resources_cleaned']=True
- path=pathlib.Path(os.environ.get('AEGIS_PACKAGED_WORKER_EVIDENCE',str(ROOT/'docs/evidence/engine-bound-worker-acceptance.json')));path.write_text(json.dumps(evidence,indent=2)+'\n');print('packaged_worker_checks: '+str(len(checks)),flush=True)
+ path=pathlib.Path(os.environ.get('AEGIS_PACKAGED_WORKER_EVIDENCE',str(ROOT/'docs/evidence/journal-bound-worker-acceptance.json')));path.write_text(json.dumps(evidence,indent=2)+'\n');print('packaged_worker_checks: '+str(len(checks)),flush=True)

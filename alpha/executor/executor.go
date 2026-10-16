@@ -29,17 +29,19 @@ type Tool struct {
 	Image   string `json:"image"`
 }
 type Config struct {
-	EngineJournalRoot  string
-	LockPath           string
-	ExpectedLockDigest string
-	RulesPath          string
-	ScratchParent      string
-	Docker             string
-	GuardDir           string
-	Deadline           time.Time
-	DurationSeconds    int
-	BeforeStart        func(string, string) error
-	BeforeLaunch       func(Execution, string, string) error
+	ExpectedJournalNamespace  string
+	ExpectedJournalRootDigest string
+	EngineJournalRoot         string
+	LockPath                  string
+	ExpectedLockDigest        string
+	RulesPath                 string
+	ScratchParent             string
+	Docker                    string
+	GuardDir                  string
+	Deadline                  time.Time
+	DurationSeconds           int
+	BeforeStart               func(string, string) error
+	BeforeLaunch              func(Execution, string, string) error
 }
 type Execution = scanevidence.Execution
 

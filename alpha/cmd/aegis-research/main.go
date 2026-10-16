@@ -28,6 +28,21 @@ func main() {
 		usage()
 	}
 	switch os.Args[1] {
+	case "engine-journal-init":
+		if len(os.Args) != 3 {
+			die(fmt.Errorf("usage: aegis-research engine-journal-init CANONICAL_JOURNAL_ROOT"))
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		engine, e := executor.ConfiguredEngineDigest(ctx)
+		if e != nil {
+			die(fmt.Errorf("explicit local engine identity unavailable"))
+		}
+		observation, e := enginejournal.InitializeEmpty(os.Args[2], engine)
+		if e != nil {
+			die(fmt.Errorf("journal initialization requires an empty validated namespace; preserve existing records"))
+		}
+		json.NewEncoder(os.Stdout).Encode(map[string]any{"schema_version": "1.0", "engine_digest": engine, "journal_namespace_digest": observation.Namespace, "journal_root_digest": source.Hash([]byte("aegis-scanner-engine-journal-root-v1\n" + os.Args[2] + "\n" + fmt.Sprint(os.Geteuid()))), "controller_binding_verified": false, "cleanup_release_authorized": false})
 	case "engine-binding-input":
 		if len(os.Args) != 3 {
 			die(fmt.Errorf("usage: aegis-research engine-binding-input CANONICAL_REGISTRY"))
@@ -62,7 +77,7 @@ func main() {
 
 	case "engine-journal-status":
 		if len(os.Args) != 4 {
-			die(fmt.Errorf("usage: aegis-research engine-binding-input CANONICAL_REGISTRY | worker-once-bound SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT JOURNAL_ROOT | engine-preflight SCANNER CANONICAL_AEGIS_SOURCE_ROOT | engine-journal-status CANONICAL_JOURNAL_ROOT ENGINE_DIGEST"))
+			die(fmt.Errorf("usage: aegis-research engine-journal-status CANONICAL_JOURNAL_ROOT ENGINE_DIGEST"))
 		}
 		out, e := enginejournal.ReadObservation(os.Args[2], os.Args[3])
 		if e != nil {
@@ -226,7 +241,7 @@ func main() {
 			os.Exit(1)
 		}
 	case "--help":
-		fmt.Println("aegis-research engine-journal-status CANONICAL_JOURNAL_ROOT ENGINE_DIGEST | scan-offline-journaled SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT CANONICAL_JOURNAL_ROOT | worker-once-journaled SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT CANONICAL_JOURNAL_ROOT | verifier-context SOCKET CREDENTIAL_FILE OWNER VERIFIER_ID ENGINE_DIGEST REGISTRY_DIGEST CANONICAL_AEGIS_SOURCE_ROOT JOB | observe-sandbox PRIVATE_LAUNCH_FILE CANONICAL_REGISTRY CANONICAL_AEGIS_SOURCE_ROOT [APPROVED_RULES_DIGEST] | worker-once SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT | recover-workspaces | scan-offline SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT | inventory CANONICAL_REPO | invocation SCANNER | parse SCANNER VERSION IMAGE_DIGEST INPUT_DIGEST | tenant-verify VARIANT")
+		fmt.Println("aegis-research engine-journal-init CANONICAL_JOURNAL_ROOT | engine-binding-input CANONICAL_REGISTRY | worker-once-bound SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT JOURNAL_ROOT | engine-journal-status CANONICAL_JOURNAL_ROOT ENGINE_DIGEST | scan-offline-journaled SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT CANONICAL_JOURNAL_ROOT | worker-once-journaled SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT CANONICAL_JOURNAL_ROOT | verifier-context SOCKET CREDENTIAL_FILE OWNER VERIFIER_ID ENGINE_DIGEST REGISTRY_DIGEST CANONICAL_AEGIS_SOURCE_ROOT JOB | observe-sandbox PRIVATE_LAUNCH_FILE CANONICAL_REGISTRY CANONICAL_AEGIS_SOURCE_ROOT [APPROVED_RULES_DIGEST] | worker-once SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT | recover-workspaces | scan-offline SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT | inventory CANONICAL_REPO | invocation SCANNER | parse SCANNER VERSION IMAGE_DIGEST INPUT_DIGEST | tenant-verify VARIANT")
 		return
 	case "tenant-verify":
 		if len(os.Args) != 3 {
@@ -277,7 +292,7 @@ func main() {
 	}
 }
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: aegis-research engine-binding-input CANONICAL_REGISTRY | worker-once-bound SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT JOURNAL_ROOT | engine-preflight SCANNER CANONICAL_AEGIS_SOURCE_ROOT | engine-journal-status CANONICAL_JOURNAL_ROOT ENGINE_DIGEST | verifier-context SOCKET CREDENTIAL_FILE OWNER VERIFIER_ID ENGINE_DIGEST REGISTRY_DIGEST CANONICAL_AEGIS_SOURCE_ROOT JOB | observe-sandbox PRIVATE_LAUNCH_FILE CANONICAL_REGISTRY CANONICAL_AEGIS_SOURCE_ROOT [APPROVED_RULES_DIGEST] | scan-offline-journaled SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT JOURNAL_ROOT | worker-once-journaled SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT JOURNAL_ROOT | inventory CANONICAL_REPO | invocation SCANNER\nInventory never executes source. Invocation prints an unexecuted adapter blueprint; pinned compatibility validation is required.")
+	fmt.Fprintln(os.Stderr, "usage: aegis-research engine-journal-init CANONICAL_JOURNAL_ROOT | engine-binding-input CANONICAL_REGISTRY | worker-once-bound SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT JOURNAL_ROOT | engine-preflight SCANNER CANONICAL_AEGIS_SOURCE_ROOT | engine-journal-status CANONICAL_JOURNAL_ROOT ENGINE_DIGEST | verifier-context SOCKET CREDENTIAL_FILE OWNER VERIFIER_ID ENGINE_DIGEST REGISTRY_DIGEST CANONICAL_AEGIS_SOURCE_ROOT JOB | observe-sandbox PRIVATE_LAUNCH_FILE CANONICAL_REGISTRY CANONICAL_AEGIS_SOURCE_ROOT [APPROVED_RULES_DIGEST] | scan-offline-journaled SCANNER CANONICAL_REPO AEGIS_SOURCE_ROOT JOURNAL_ROOT | worker-once-journaled SOCKET CREDENTIAL_FILE OWNER CANONICAL_AEGIS_SOURCE_ROOT CANONICAL_ASSET_ROOT JOURNAL_ROOT | inventory CANONICAL_REPO | invocation SCANNER\nInventory never executes source. Invocation prints an unexecuted adapter blueprint; pinned compatibility validation is required.")
 	os.Exit(2)
 }
 func die(e error) { fmt.Fprintln(os.Stderr, e); os.Exit(1) }

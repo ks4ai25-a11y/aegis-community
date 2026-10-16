@@ -242,7 +242,10 @@
             "properties": {
               "schema_version": {
                 "type": "string",
-                "const": "1.1"
+                "enum": [
+                  "1.1",
+                  "1.2"
+                ]
               },
               "owner_id": {
                 "type": "string",
@@ -337,6 +340,14 @@
                       "amd64",
                       "arm64"
                     ]
+                  },
+                  "engine_journal_binding_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "engine_journal_namespace_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
                   }
                 },
                 "required": [
@@ -385,6 +396,47 @@
               "deadline",
               "guard_set_digest",
               "guard_protocol"
+            ],
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "schema_version": {
+                      "const": "1.2"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "plan": {
+                      "required": [
+                        "engine_journal_binding_digest",
+                        "engine_journal_namespace_digest"
+                      ]
+                    }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "plan": {
+                      "not": {
+                        "anyOf": [
+                          {
+                            "required": [
+                              "engine_journal_binding_digest"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "engine_journal_namespace_digest"
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
             ]
           }
         },

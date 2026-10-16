@@ -299,6 +299,26 @@ type ScannerEngineBindingInputV1 struct {
 	ControllerBindingVerified bool   `json:"controller_binding_verified"`
 	CleanupReleaseAuthorized  bool   `json:"cleanup_release_authorized"`
 }
+type ScannerEngineJournalBindingV1 struct {
+	JournalBindingDigest string                                `json:"journal_binding_digest"`
+	Document             ScannerEngineJournalBindingV1Document `json:"document"`
+}
+type ScannerEngineJournalBindingV1Document struct {
+	SchemaVersion          string `json:"schema_version"`
+	OwnerId                string `json:"owner_id"`
+	EngineBindingDigest    string `json:"engine_binding_digest"`
+	JournalRootDigest      string `json:"journal_root_digest"`
+	JournalNamespaceDigest string `json:"journal_namespace_digest"`
+	CreatedAt              string `json:"created_at"`
+}
+type ScannerEngineJournalInputV1 struct {
+	SchemaVersion             string `json:"schema_version"`
+	EngineDigest              string `json:"engine_digest"`
+	JournalRootDigest         string `json:"journal_root_digest"`
+	JournalNamespaceDigest    string `json:"journal_namespace_digest"`
+	ControllerBindingVerified bool   `json:"controller_binding_verified"`
+	CleanupReleaseAuthorized  bool   `json:"cleanup_release_authorized"`
+}
 type ScannerEnginePreflightV1 struct {
 	SchemaVersion            string `json:"schema_version"`
 	Backend                  string `json:"backend"`
@@ -1007,6 +1027,84 @@ type ScannerLaunchRecordV2DocumentPlan struct {
 	GuardBinaryDigest string `json:"guard_binary_digest"`
 	GuardArchitecture string `json:"guard_architecture"`
 }
+type ScannerLaunchPlanV3 struct {
+	ToolId                       string `json:"tool_id"`
+	ContainerId                  string `json:"container_id"`
+	EngineDigest                 string `json:"engine_digest"`
+	WorkspaceId                  string `json:"workspace_id"`
+	RegistryDigest               string `json:"registry_digest"`
+	SnapshotDigest               string `json:"snapshot_digest"`
+	GuardBinaryDigest            string `json:"guard_binary_digest"`
+	GuardArchitecture            string `json:"guard_architecture"`
+	EngineJournalBindingDigest   string `json:"engine_journal_binding_digest"`
+	EngineJournalNamespaceDigest string `json:"engine_journal_namespace_digest"`
+}
+type ScannerLaunchV3 struct {
+	SchemaVersion        string                            `json:"schema_version"`
+	OwnerId              string                            `json:"owner_id"`
+	JobId                string                            `json:"job_id"`
+	RequestDigest        string                            `json:"request_digest"`
+	AppId                string                            `json:"app_id"`
+	RepositoryId         string                            `json:"repository_id"`
+	MapDigest            string                            `json:"map_digest"`
+	ToolLockDigest       string                            `json:"tool_lock_digest"`
+	ToolVersion          string                            `json:"tool_version"`
+	ToolImageDigest      string                            `json:"tool_image_digest"`
+	SandboxProfile       string                            `json:"sandbox_profile"`
+	DurationLimitSeconds int64                             `json:"duration_limit_seconds"`
+	Plan                 ScannerLaunchRecordV3DocumentPlan `json:"plan"`
+	CreatedAt            string                            `json:"created_at"`
+	Deadline             string                            `json:"deadline"`
+	GuardSetDigest       string                            `json:"guard_set_digest"`
+	GuardProtocol        string                            `json:"guard_protocol"`
+}
+type ScannerLaunchV3Plan struct {
+	ToolId                       string `json:"tool_id"`
+	ContainerId                  string `json:"container_id"`
+	EngineDigest                 string `json:"engine_digest"`
+	WorkspaceId                  string `json:"workspace_id"`
+	RegistryDigest               string `json:"registry_digest"`
+	SnapshotDigest               string `json:"snapshot_digest"`
+	GuardBinaryDigest            string `json:"guard_binary_digest"`
+	GuardArchitecture            string `json:"guard_architecture"`
+	EngineJournalBindingDigest   string `json:"engine_journal_binding_digest"`
+	EngineJournalNamespaceDigest string `json:"engine_journal_namespace_digest"`
+}
+type ScannerLaunchRecordV3 struct {
+	LaunchDigest string                        `json:"launch_digest"`
+	Document     ScannerLaunchRecordV3Document `json:"document"`
+}
+type ScannerLaunchRecordV3Document struct {
+	SchemaVersion        string                            `json:"schema_version"`
+	OwnerId              string                            `json:"owner_id"`
+	JobId                string                            `json:"job_id"`
+	RequestDigest        string                            `json:"request_digest"`
+	AppId                string                            `json:"app_id"`
+	RepositoryId         string                            `json:"repository_id"`
+	MapDigest            string                            `json:"map_digest"`
+	ToolLockDigest       string                            `json:"tool_lock_digest"`
+	ToolVersion          string                            `json:"tool_version"`
+	ToolImageDigest      string                            `json:"tool_image_digest"`
+	SandboxProfile       string                            `json:"sandbox_profile"`
+	DurationLimitSeconds int64                             `json:"duration_limit_seconds"`
+	Plan                 ScannerLaunchRecordV3DocumentPlan `json:"plan"`
+	CreatedAt            string                            `json:"created_at"`
+	Deadline             string                            `json:"deadline"`
+	GuardSetDigest       string                            `json:"guard_set_digest"`
+	GuardProtocol        string                            `json:"guard_protocol"`
+}
+type ScannerLaunchRecordV3DocumentPlan struct {
+	ToolId                       string `json:"tool_id"`
+	ContainerId                  string `json:"container_id"`
+	EngineDigest                 string `json:"engine_digest"`
+	WorkspaceId                  string `json:"workspace_id"`
+	RegistryDigest               string `json:"registry_digest"`
+	SnapshotDigest               string `json:"snapshot_digest"`
+	GuardBinaryDigest            string `json:"guard_binary_digest"`
+	GuardArchitecture            string `json:"guard_architecture"`
+	EngineJournalBindingDigest   string `json:"engine_journal_binding_digest"`
+	EngineJournalNamespaceDigest string `json:"engine_journal_namespace_digest"`
+}
 type ScannerSandboxObservationV1 struct {
 	SchemaVersion                 string   `json:"schema_version"`
 	ObservedAt                    string   `json:"observed_at"`
@@ -1222,14 +1320,16 @@ type ScannerCleanupContextV1LaunchesItemDocument struct {
 	GuardProtocol        string                                                        `json:"guard_protocol"`
 }
 type ScannerCleanupContextV1LaunchesItemDocumentPlan struct {
-	ToolId            string `json:"tool_id"`
-	ContainerId       string `json:"container_id"`
-	EngineDigest      string `json:"engine_digest"`
-	WorkspaceId       string `json:"workspace_id"`
-	RegistryDigest    string `json:"registry_digest"`
-	SnapshotDigest    string `json:"snapshot_digest"`
-	GuardBinaryDigest string `json:"guard_binary_digest"`
-	GuardArchitecture string `json:"guard_architecture"`
+	ToolId                       string `json:"tool_id"`
+	ContainerId                  string `json:"container_id"`
+	EngineDigest                 string `json:"engine_digest"`
+	WorkspaceId                  string `json:"workspace_id"`
+	RegistryDigest               string `json:"registry_digest"`
+	SnapshotDigest               string `json:"snapshot_digest"`
+	GuardBinaryDigest            string `json:"guard_binary_digest"`
+	GuardArchitecture            string `json:"guard_architecture"`
+	EngineJournalBindingDigest   string `json:"engine_journal_binding_digest,omitempty"`
+	EngineJournalNamespaceDigest string `json:"engine_journal_namespace_digest,omitempty"`
 }
 type ScannerCleanupContextRecordV1 struct {
 	ContextDigest string                                `json:"context_digest"`
@@ -1312,14 +1412,16 @@ type ScannerCleanupContextRecordV1DocumentLaunchesItemDocument struct {
 	GuardProtocol        string                                                        `json:"guard_protocol"`
 }
 type ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan struct {
-	ToolId            string `json:"tool_id"`
-	ContainerId       string `json:"container_id"`
-	EngineDigest      string `json:"engine_digest"`
-	WorkspaceId       string `json:"workspace_id"`
-	RegistryDigest    string `json:"registry_digest"`
-	SnapshotDigest    string `json:"snapshot_digest"`
-	GuardBinaryDigest string `json:"guard_binary_digest"`
-	GuardArchitecture string `json:"guard_architecture"`
+	ToolId                       string `json:"tool_id"`
+	ContainerId                  string `json:"container_id"`
+	EngineDigest                 string `json:"engine_digest"`
+	WorkspaceId                  string `json:"workspace_id"`
+	RegistryDigest               string `json:"registry_digest"`
+	SnapshotDigest               string `json:"snapshot_digest"`
+	GuardBinaryDigest            string `json:"guard_binary_digest"`
+	GuardArchitecture            string `json:"guard_architecture"`
+	EngineJournalBindingDigest   string `json:"engine_journal_binding_digest,omitempty"`
+	EngineJournalNamespaceDigest string `json:"engine_journal_namespace_digest,omitempty"`
 }
 type DatabaseSnapshotReceiptV1 struct {
 	SchemaVersion                string `json:"schema_version"`

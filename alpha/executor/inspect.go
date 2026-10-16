@@ -131,7 +131,7 @@ func inspectionPlan(x SandboxExpectation) (time.Time, error) {
 	b, e := json.Marshal(d)
 	deadline, de := time.Parse(time.RFC3339Nano, d.Deadline)
 	created, ce := time.Parse(time.RFC3339Nano, d.Created)
-	if e != nil || len(b) > 4096 || source.Hash(b) != x.Launch.Digest || d.Schema != "1.1" || d.GuardProtocol != scanevidence.GuardProtocol || !observationHash.MatchString(d.GuardSet) || !observationHash.MatchString(p.Guard) || !observationHash.MatchString(p.Engine) || !observationHash.MatchString(p.Registry) || !observationHash.MatchString(p.Snapshot) || !observationHash.MatchString(d.Map) || !scannerName.MatchString(p.Container) || !observationWorkspace.MatchString(p.Workspace) || d.Profile != "repo_offline-network-none-v1" || d.Duration < 1 || d.Duration > 120 || de != nil || ce != nil || !deadline.After(created) || (p.Architecture != "arm64" && p.Architecture != "amd64") {
+	if e != nil || len(b) > 4096 || source.Hash(b) != x.Launch.Digest || !scanevidence.GuardedLaunchRevision(d) || d.GuardProtocol != scanevidence.GuardProtocol || !observationHash.MatchString(d.GuardSet) || !observationHash.MatchString(p.Guard) || !observationHash.MatchString(p.Engine) || !observationHash.MatchString(p.Registry) || !observationHash.MatchString(p.Snapshot) || !observationHash.MatchString(d.Map) || !scannerName.MatchString(p.Container) || !observationWorkspace.MatchString(p.Workspace) || d.Profile != "repo_offline-network-none-v1" || d.Duration < 1 || d.Duration > 120 || de != nil || ce != nil || !deadline.After(created) || (p.Architecture != "arm64" && p.Architecture != "amd64") {
 		return time.Time{}, ErrObservation
 	}
 	if _, e = scanevidence.BuildInvocation(p.Tool); e != nil {

@@ -200,6 +200,7 @@ func seedAuthorities(t *testing.T, s *store.Store) {
 	}
 	s.Set("preview:"+domain.Digest(p), "prior-proof")
 	s.Set("scanner_engine_binding", "prior-host-authority")
+	s.Set("scanner_engine_journal_binding", "prior-journal-authority")
 }
 func TestOfflineRestoreInvalidatesAuthorityPreservesHistoryAndCleanupHold(t *testing.T) {
 	c, s, parent := fixture(t)
@@ -233,6 +234,9 @@ func TestOfflineRestoreInvalidatesAuthorityPreservesHistoryAndCleanupHold(t *tes
 	}
 	if _, e = state.Get("scanner_engine_binding"); e != sql.ErrNoRows {
 		t.Fatal("restored engine authority survived", e)
+	}
+	if _, e = state.Get("scanner_engine_journal_binding"); e != sql.ErrNoRows {
+		t.Fatal("restored journal authority survived", e)
 	}
 	var dispatch, job string
 	if e = state.DB.QueryRow("SELECT state FROM scanner_dispatch").Scan(&dispatch); e != nil || dispatch != "cleanup_required" {

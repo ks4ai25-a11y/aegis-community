@@ -4,6 +4,7 @@
 package worker
 
 import (
+	"aegis.local/alpha/enginejournal"
 	"aegis.local/alpha/executor"
 	"aegis.local/alpha/workerchannel"
 	"aegis.local/alpha/workspace"
@@ -111,12 +112,21 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 	}
 	registryDigest := source.Hash([]byte("aegis-scanner-workspace-registry-v1\n" + registry + "\n" + fmt.Sprint(os.Geteuid())))
 	var binding scanevidence.EngineBindingRecord
+	var journalBinding scanevidence.JournalBindingRecord
 	if cfg.RequireEngineBinding {
 		if cfg.EngineJournalRoot == "" {
 			return out, ErrRun
 		}
 		binding, e = client.EngineBinding(ctx)
 		if e != nil || binding.Document.Registry != registryDigest {
+			return out, ErrRun
+		}
+		journalBinding, e = client.JournalBinding(ctx, binding)
+		if e != nil || journalBinding.Document.Root != source.Hash([]byte("aegis-scanner-engine-journal-root-v1\n"+cfg.EngineJournalRoot+"\n"+fmt.Sprint(os.Geteuid()))) {
+			return out, ErrRun
+		}
+		observation, e := enginejournal.ReadObservation(cfg.EngineJournalRoot, binding.Document.Engine)
+		if e != nil || observation.Namespace != journalBinding.Document.Namespace || observation.Unfinished != 0 || observation.Unresolved != 0 {
 			return out, ErrRun
 		}
 		engine, e := executor.ConfiguredEngineDigest(ctx)
@@ -173,7 +183,7 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 				return ErrRun
 			}
 			failure = "SCANNER_EXECUTION_FAILED"
-			ex := executor.Config{EngineJournalRoot: cfg.EngineJournalRoot, LockPath: filepath.Join(cfg.SourceRoot, "tools/scanners.lock.json"), ExpectedLockDigest: l.Job.LockDigest, RulesPath: filepath.Join(cfg.SourceRoot, "alpha/rules"), GuardDir: filepath.Join(cfg.SourceRoot, "bin"), ScratchParent: session.Path, DurationSeconds: l.Job.Input.Duration, Deadline: l.Deadline, BeforeLaunch: func(prepared executor.Execution, name, engine string) error {
+			ex := executor.Config{ExpectedJournalNamespace: journalBinding.Document.Namespace, ExpectedJournalRootDigest: journalBinding.Document.Root, EngineJournalRoot: cfg.EngineJournalRoot, LockPath: filepath.Join(cfg.SourceRoot, "tools/scanners.lock.json"), ExpectedLockDigest: l.Job.LockDigest, RulesPath: filepath.Join(cfg.SourceRoot, "alpha/rules"), GuardDir: filepath.Join(cfg.SourceRoot, "bin"), ScratchParent: session.Path, DurationSeconds: l.Job.Input.Duration, Deadline: l.Deadline, BeforeLaunch: func(prepared executor.Execution, name, engine string) error {
 				if client.Guard(run, l) != nil {
 					return ErrRun
 				}
@@ -183,7 +193,7 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 				if e := session.Bind(name, engine); e != nil {
 					return ErrRun
 				}
-				_, e := client.RegisterLaunch(run, l, scanevidence.LaunchPlan{Tool: tool, Container: name, Engine: engine, Workspace: filepath.Base(session.Path), Registry: registryDigest, Snapshot: prepared.Snapshot.Digest, Guard: prepared.GuardDigest, Architecture: l.Guards.Architecture(prepared.GuardDigest)}, prepared.Version, prepared.Image)
+				_, e := client.RegisterLaunch(run, l, scanevidence.LaunchPlan{JournalBinding: journalBinding.Digest, JournalNamespace: journalBinding.Document.Namespace, Tool: tool, Container: name, Engine: engine, Workspace: filepath.Base(session.Path), Registry: registryDigest, Snapshot: prepared.Snapshot.Digest, Guard: prepared.GuardDigest, Architecture: l.Guards.Architecture(prepared.GuardDigest)}, prepared.Version, prepared.Image)
 				return e
 			}}
 			result, runErr := ex.Run(run, tool, l.Job.Input.App, l.Job.Input.Repository, snapshot)

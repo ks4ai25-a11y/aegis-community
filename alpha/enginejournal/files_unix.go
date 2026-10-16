@@ -135,6 +135,38 @@ func read[T any](p *privateRoot, path string) (envelope[T], int, error) {
 	}
 	return out, len(b), nil
 }
+
+// OpenExisting acquires the lifetime lock and never allocates a missing namespace.
+func OpenExisting(path, engine string) (*Journal, error) { return openJournal(path, engine, false) }
+
+// InitializeEmpty creates a new private namespace, or validates an existing
+// empty one without repairing missing locks/identity. Partial state is retained.
+func InitializeEmpty(path, engine string) (Observation, error) {
+	if os.Geteuid() <= 0 || !hash.MatchString(engine) || !filepath.IsAbs(path) || filepath.Clean(path) != path {
+		return Observation{}, ErrJournal
+	}
+	parent, e := filepath.EvalSymlinks(filepath.Dir(path))
+	if e != nil || parent != filepath.Dir(path) {
+		return Observation{}, ErrJournal
+	}
+	created := false
+	if e = os.Mkdir(path, 0700); e == nil {
+		created = true
+	} else if !os.IsExist(e) {
+		return Observation{}, ErrJournal
+	}
+	j, e := openJournal(path, engine, created)
+	if e != nil {
+		return Observation{}, e
+	}
+	defer j.Close()
+	out := j.Observe()
+	if out.Attempts != 0 || out.Unfinished != 0 || out.Unresolved != 0 {
+		return Observation{}, ErrJournal
+	}
+	return out, nil
+}
+
 func Open(path, engine string) (*Journal, error) {
 	return openJournal(path, engine, true)
 }

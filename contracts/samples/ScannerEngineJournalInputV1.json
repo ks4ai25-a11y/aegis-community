@@ -1,0 +1,8 @@
+{
+  "cleanup_release_authorized": false,
+  "controller_binding_verified": false,
+  "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+  "journal_namespace_digest": "sha256:8da309e8a08fe71be646990c1245fc16b5a90bda28b27ca4b3fc46dd4f28e4e7",
+  "journal_root_digest": "sha256:87a6f998ad1633811df69cfd6a902314cec30c8b75e37d0a6ff6d1917678ef76",
+  "schema_version": "1.0"
+}

@@ -1,0 +1,11 @@
+{
+  "journal_binding_digest": "sha256:4441273ac9f65753a091436fcae6cb8d4a5c25733ff240de901133391c856737",
+  "document": {
+    "schema_version": "1.0",
+    "owner_id": "01a142de-fc70-7b7a-b260-e001333d466e",
+    "engine_binding_digest": "sha256:41dfb4ae96d5800232e77c2aefcd054619dd8b84938d903ae9dd9429153014b3",
+    "journal_root_digest": "sha256:87a6f998ad1633811df69cfd6a902314cec30c8b75e37d0a6ff6d1917678ef76",
+    "journal_namespace_digest": "sha256:8da309e8a08fe71be646990c1245fc16b5a90bda28b27ca4b3fc46dd4f28e4e7",
+    "created_at": "2026-10-16T04:01:21.606356136Z"
+  }
+}

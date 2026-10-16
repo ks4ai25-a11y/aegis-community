@@ -19,7 +19,7 @@ const maxLaunchBytes = 4096
 
 func decodeLaunch(doc, digest, owner, job, request, tool, container, workspace, created string) (scanevidence.LaunchRecord, error) {
 	var d scanevidence.Launch
-	if len(doc) > maxLaunchBytes || domain.Hash([]byte(doc)) != digest || json.Unmarshal([]byte(doc), &d) != nil || (d.Schema != "1.0" && d.Schema != "1.1") || d.Owner != owner || d.Job != job || d.Request != request || d.Plan.Tool != tool || d.Plan.Container != container || d.Plan.Workspace != workspace || d.Created != created || !containerID.MatchString(container) || !workspaceID.MatchString(workspace) || !digestPattern.MatchString(d.Plan.Engine) || !digestPattern.MatchString(d.Plan.Registry) || !digestPattern.MatchString(d.Plan.Snapshot) {
+	if len(doc) > maxLaunchBytes || domain.Hash([]byte(doc)) != digest || json.Unmarshal([]byte(doc), &d) != nil || (d.Schema != "1.0" && !scanevidence.GuardedLaunchRevision(d)) || d.Owner != owner || d.Job != job || d.Request != request || d.Plan.Tool != tool || d.Plan.Container != container || d.Plan.Workspace != workspace || d.Created != created || !containerID.MatchString(container) || !workspaceID.MatchString(workspace) || !digestPattern.MatchString(d.Plan.Engine) || !digestPattern.MatchString(d.Plan.Registry) || !digestPattern.MatchString(d.Plan.Snapshot) {
 		return scanevidence.LaunchRecord{}, ErrConflict
 	}
 	stamp, e := time.Parse(time.RFC3339Nano, created)
@@ -30,10 +30,10 @@ func decodeLaunch(doc, digest, owner, job, request, tool, container, workspace, 
 	if e != nil || !deadline.After(stamp) {
 		return scanevidence.LaunchRecord{}, ErrConflict
 	}
-	if d.Schema == "1.1" && (!digestPattern.MatchString(d.GuardSet) || d.GuardProtocol != scanevidence.GuardProtocol || !digestPattern.MatchString(d.Plan.Guard) || (d.Plan.Architecture != "amd64" && d.Plan.Architecture != "arm64")) {
+	if (d.Schema == "1.1" || d.Schema == "1.2") && (!digestPattern.MatchString(d.GuardSet) || d.GuardProtocol != scanevidence.GuardProtocol || !digestPattern.MatchString(d.Plan.Guard) || (d.Plan.Architecture != "amd64" && d.Plan.Architecture != "arm64")) {
 		return scanevidence.LaunchRecord{}, ErrConflict
 	}
-	if d.Schema == "1.0" && (d.GuardSet != "" || d.GuardProtocol != "" || d.Plan.Guard != "" || d.Plan.Architecture != "") {
+	if d.Schema == "1.0" && (d.GuardSet != "" || d.GuardProtocol != "" || d.Plan.Guard != "" || d.Plan.Architecture != "" || d.Plan.JournalBinding != "" || d.Plan.JournalNamespace != "") {
 		return scanevidence.LaunchRecord{}, ErrConflict
 	}
 	return scanevidence.LaunchRecord{Digest: digest, Document: d}, nil
@@ -88,6 +88,20 @@ func (q *Queue) RegisterLaunch(l Lease, p scanevidence.LaunchPlan) (scanevidence
 	if bindErr == nil && (binding.Document.Engine != p.Engine || binding.Document.Registry != p.Registry) {
 		return scanevidence.LaunchRecord{}, ErrConflict
 	}
+	journal, journalErr := q.journalBindingTx(tx, j.Owner, binding)
+	if journalErr != nil && journalErr != sql.ErrNoRows {
+		return scanevidence.LaunchRecord{}, journalErr
+	}
+	if journalErr == nil && (p.JournalBinding != journal.Digest || p.JournalNamespace != journal.Document.Namespace) {
+		return scanevidence.LaunchRecord{}, ErrConflict
+	}
+	if journalErr == sql.ErrNoRows && (p.JournalBinding != "" || p.JournalNamespace != "") {
+		return scanevidence.LaunchRecord{}, ErrConflict
+	}
+	revision := "1.1"
+	if p.JournalBinding != "" {
+		revision = "1.2"
+	}
 	if !q.Guards.Valid() || q.Guards.Architecture(p.Guard) != p.Architecture || p.Architecture == "" {
 		return scanevidence.LaunchRecord{}, ErrInput
 	}
@@ -120,7 +134,7 @@ func (q *Queue) RegisterLaunch(l Lease, p scanevidence.LaunchPlan) (scanevidence
 	}
 	old, e := launchTx(tx, j, p.Tool)
 	if e == nil {
-		if old.Document.Schema != "1.1" || old.Document.GuardSet != q.Guards.Digest || old.Document.GuardProtocol != scanevidence.GuardProtocol || old.Document.Plan != p || old.Document.Version != pin.Version || old.Document.Image != pin.Image {
+		if old.Document.Schema != revision || old.Document.GuardSet != q.Guards.Digest || old.Document.GuardProtocol != scanevidence.GuardProtocol || old.Document.Plan != p || old.Document.Version != pin.Version || old.Document.Image != pin.Image {
 			return scanevidence.LaunchRecord{}, ErrConflict
 		}
 		return old, nil
@@ -170,7 +184,7 @@ func (q *Queue) RegisterLaunch(l Lease, p scanevidence.LaunchPlan) (scanevidence
 	if e = matchWorkspaceTx(tx, j, p, stamp); e != nil {
 		return scanevidence.LaunchRecord{}, e
 	}
-	d := scanevidence.Launch{Schema: "1.1", GuardSet: q.Guards.Digest, GuardProtocol: scanevidence.GuardProtocol, Owner: j.Owner, Job: j.ID, Request: j.RequestDigest, App: j.Input.App, Repository: j.Input.Repository, Map: j.Input.MapDigest, Lock: j.LockDigest, Version: pin.Version, Image: pin.Image, Profile: "repo_offline-network-none-v1", Duration: j.Input.Duration, Plan: p, Created: stamp, Deadline: time.Unix(deadline, 0).UTC().Format(time.RFC3339)}
+	d := scanevidence.Launch{Schema: revision, GuardSet: q.Guards.Digest, GuardProtocol: scanevidence.GuardProtocol, Owner: j.Owner, Job: j.ID, Request: j.RequestDigest, App: j.Input.App, Repository: j.Input.Repository, Map: j.Input.MapDigest, Lock: j.LockDigest, Version: pin.Version, Image: pin.Image, Profile: "repo_offline-network-none-v1", Duration: j.Input.Duration, Plan: p, Created: stamp, Deadline: time.Unix(deadline, 0).UTC().Format(time.RFC3339)}
 	b, e := json.Marshal(d)
 	if e != nil || len(b) > maxLaunchBytes {
 		return scanevidence.LaunchRecord{}, ErrInput
@@ -179,7 +193,7 @@ func (q *Queue) RegisterLaunch(l Lease, p scanevidence.LaunchPlan) (scanevidence
 	if _, e = tx.Exec("INSERT INTO scanner_launches VALUES(?,?,?,?,?,?,?,?,?)", j.ID, p.Tool, j.Owner, j.RequestDigest, p.Container, p.Workspace, hash, string(b), stamp); e != nil {
 		return scanevidence.LaunchRecord{}, e
 	}
-	if e = store.AuditTx(tx, j.Owner, "scanner.launch", j.ID, "authorized", map[string]any{"tool_id": p.Tool, "launch_digest": hash, "request_digest": j.RequestDigest, "container_id": p.Container, "engine_digest": p.Engine, "workspace_id": p.Workspace, "registry_digest": p.Registry, "cleanup_confirmed": false, "guard_set_digest": q.Guards.Digest, "guard_binary_digest": p.Guard, "guard_architecture": p.Architecture, "guard_protocol": scanevidence.GuardProtocol}); e != nil {
+	if e = store.AuditTx(tx, j.Owner, "scanner.launch", j.ID, "authorized", map[string]any{"tool_id": p.Tool, "launch_digest": hash, "request_digest": j.RequestDigest, "container_id": p.Container, "engine_digest": p.Engine, "workspace_id": p.Workspace, "registry_digest": p.Registry, "cleanup_confirmed": false, "guard_set_digest": q.Guards.Digest, "guard_binary_digest": p.Guard, "guard_architecture": p.Architecture, "guard_protocol": scanevidence.GuardProtocol, "engine_journal_binding_digest": p.JournalBinding, "engine_journal_namespace_digest": p.JournalNamespace}); e != nil {
 		return scanevidence.LaunchRecord{}, e
 	}
 	if e = tx.Commit(); e != nil {
@@ -271,7 +285,7 @@ func matchLaunchTx(tx *sql.Tx, j Job, r scanevidence.Execution) error {
 		return ErrConflict
 	}
 	// Execution.Started is captured during preflight, before registration.
-	if d.Schema != "1.1" || d.Plan.Guard != r.GuardDigest || started.After(stamp) || d.Plan.Container != r.Container || d.Plan.Snapshot != r.Snapshot.Digest || d.Version != r.Version || d.Image != r.Image || d.Profile != r.Profile || d.Lock != r.LockDigest || d.Duration != r.DurationLimit {
+	if !scanevidence.GuardedLaunchRevision(d) || d.Plan.Guard != r.GuardDigest || started.After(stamp) || d.Plan.Container != r.Container || d.Plan.Snapshot != r.Snapshot.Digest || d.Version != r.Version || d.Image != r.Image || d.Profile != r.Profile || d.Lock != r.LockDigest || d.Duration != r.DurationLimit {
 		return ErrInput
 	}
 	return nil

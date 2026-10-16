@@ -1,0 +1,33 @@
+{
+  "launch_digest": "sha256:1d38ec42ca08866eae871452aec3ba809d63b26b1c3ca1b243ba28d01a9a7b60",
+  "document": {
+    "schema_version": "1.2",
+    "owner_id": "01a142de-fc70-7b7a-b260-e001333d466e",
+    "job_id": "01a142df-009a-7b7c-80f4-c701c0b77c04",
+    "request_digest": "sha256:b2f6651cc9e1af7eeacd7b4435f75fc291474b0592f80e7f850fcf8af175c843",
+    "app_id": "app_demo",
+    "repository_id": "01a142df-0083-7445-8352-2ef6b57fbdf0",
+    "map_digest": "sha256:4eeffaf9e51310019689a09a1311495ffbbe298b252ba7c755c8b160bc54023b",
+    "tool_lock_digest": "sha256:f9238b74f9264029adfdfad7fcbdd836f910b75bf99c1c6599045eed3e4ba7b0",
+    "tool_version": "0.75.0",
+    "tool_image_digest": "sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa",
+    "sandbox_profile": "repo_offline-network-none-v1",
+    "duration_limit_seconds": 30,
+    "plan": {
+      "engine_journal_binding_digest": "sha256:4441273ac9f65753a091436fcae6cb8d4a5c25733ff240de901133391c856737",
+      "engine_journal_namespace_digest": "sha256:8da309e8a08fe71be646990c1245fc16b5a90bda28b27ca4b3fc46dd4f28e4e7",
+      "tool_id": "trivy",
+      "container_id": "aegis-scan-3286147f8a21eea1ac791379b4d2293d",
+      "engine_digest": "sha256:17bdebbc6df8e857ace9579cdf5a63101a21e39fca9baaca1f8abcda01d34f64",
+      "workspace_id": "run-6df12ebe8c2832cea9764ad970740ade",
+      "registry_digest": "sha256:d60a03a34bff46366f6e4a8c344e28cb3061833c9cda4f3a4faede25f0d1a00e",
+      "snapshot_digest": "sha256:23a4ac1d70607379b3822c18857b015cef1be847c0d33822cd55fff124b9b10f",
+      "guard_binary_digest": "sha256:ef8b2e297eb55bc1262be5c7f3955d8439ff42be556880fff298e56f7e67d5fa",
+      "guard_architecture": "arm64"
+    },
+    "created_at": "2026-10-16T04:01:33.717378502Z",
+    "deadline": "2026-10-16T04:05:55Z",
+    "guard_set_digest": "sha256:76902e726a58a165578d87cfecc52c8009bcbff2e18422cc16986a03a791a0b4",
+    "guard_protocol": "absolute-deadline-v1"
+  }
+}

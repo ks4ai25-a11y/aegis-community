@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Controller-approved journal root/namespace and existing-only locked execution; no all-write mediation or independent cleanup release",
+  "race_tests": {
+    "controller": {
+      "test_cases": 25,
+      "repeats": 3,
+      "test_pass_events": 75
+    },
+    "worker_and_executor": {
+      "test_cases": 67,
+      "repeats": 3,
+      "test_pass_events": 201
+    }
+  },
+  "full_source_tests": "make test PASS",
+  "vet": "controller and alpha PASS",
+  "actual_schema_valid_payloads": 5,
+  "historical_revision_schema_variant": 1,
+  "schema_refusal_variants": 7,
+  "guard_builds": {
+    "scanner-guard-linux-arm64": "sha256:ef8b2e297eb55bc1262be5c7f3955d8439ff42be556880fff298e56f7e67d5fa",
+    "scanner-guard-linux-amd64": "sha256:acf2fb2e7e4e418dbfe884cbd546b5c1695a59b625c42b9383fc3dd92ba7fcb9"
+  },
+  "actual_final_image": "sha256:8e9767f8adba9c1590847a803da5bf34c5c38074eb3e560ee46390bfd23059ec",
+  "packaged_evidence": "journal-bound-worker-acceptance.json",
+  "packaged_checks": 14,
+  "tool_count": 6,
+  "launch_document_revision": "1.2",
+  "controller_database_schema": 13,
+  "migration_added": false,
+  "initialization_repairs_existing_state": false,
+  "namespace_substitution_refused_before_claim": true,
+  "missing_bound_state_recreated": false,
+  "all_engine_writes_mediated": false,
+  "cleanup_release_authorized": false,
+  "independent_security_review": false,
+  "public_beta": "NO-GO"
+}

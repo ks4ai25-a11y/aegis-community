@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:1d0a04960c31864e62dbbd2ee66ae384ed37e83dac3d7b29de7add2cf7c7ab43",
+  "source_tree_sha256": "sha256:f02c3e7f1efc7b66994ac73de7fc8b8e38c6b9553f511ea4ced7afdd776d0efb",
   "files": [
     {
       "path": ".dockerignore",
@@ -32,7 +32,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "00c4a23681b8a92851c27cb6ad5792e85abd813020cca0a1ab7c3045d70dcbb9"
+      "sha256": "056f465bedbd622c60df266ca7f573853bb969e7f7185c9755aae535c22d0236"
     },
     {
       "path": "SECURITY.md",
@@ -48,7 +48,7 @@
     },
     {
       "path": "alpha/cmd/aegis-research/main.go",
-      "sha256": "d005b61f082da4f50e0ad1c8753313e66c61889d790f2b8f42d09ab127615e5e"
+      "sha256": "e7365fea1fdeac5e6aa8d1fd55cbd8a9a2e32de2a80c42d52b94f4ffdfdf9b77"
     },
     {
       "path": "alpha/cmd/scanner-guard/main.go",
@@ -59,12 +59,16 @@
       "sha256": "035e200ef8f41ea68390b3b9eb067c000a9c4eefb6df34382f498819240dfda5"
     },
     {
+      "path": "alpha/enginejournal/existing_test.go",
+      "sha256": "4e5b8c93cfbb7ffd13e92b6a3a3f9f93b269e5a5ff904c8c17709a1ece58d391"
+    },
+    {
       "path": "alpha/enginejournal/files_other.go",
-      "sha256": "feafa9447d67865d2093984bf532cd8019eee6b2b2d4d2681debdc552d395b8e"
+      "sha256": "b9c1135404a247f0c7ba8adb584a7ba60ee3e644af8754688631e6c475a0300c"
     },
     {
       "path": "alpha/enginejournal/files_unix.go",
-      "sha256": "6ea765739793fa284dc5046bb309281fb1fa45382d37fa874deca54a5246eccc"
+      "sha256": "d8b84216be680bdacf10a0ca8a1b21789eeea38ebbf03a2511a93b9b5511eaf3"
     },
     {
       "path": "alpha/enginejournal/journal.go",
@@ -80,7 +84,7 @@
     },
     {
       "path": "alpha/executor/engine_sdk.go",
-      "sha256": "04ffd9be607b14f5206e562628b5f034ec3eaefa03d9786e5cebd4155f58c5d7"
+      "sha256": "98016af1f70f0b206296700f18e0621229540351ba2ea8cbeb2acc4dc4b3133f"
     },
     {
       "path": "alpha/executor/engine_sdk_real_test.go",
@@ -92,7 +96,7 @@
     },
     {
       "path": "alpha/executor/executor.go",
-      "sha256": "9a083b75775a23eda270845623f715f3b91ae75a8524002e044bc412269f50c8"
+      "sha256": "5ba243e5eedd00eff9594d0df5d6c618d02841f74879ff656a39ba7da4da2646"
     },
     {
       "path": "alpha/executor/executor_test.go",
@@ -104,7 +108,7 @@
     },
     {
       "path": "alpha/executor/inspect.go",
-      "sha256": "5174a7adabd4834484df74e7345275cd45b4b946610f85f9b30f50d8ff24aa28"
+      "sha256": "91c18fed70278eaeee700a87d180968dc1723da14da6c77c953fd52c4584a9cd"
     },
     {
       "path": "alpha/executor/inspect_files_other.go",
@@ -125,6 +129,10 @@
     {
       "path": "alpha/executor/inspect_test.go",
       "sha256": "e103e122ce993f74d1cf6de01a72972d3f8a12ec854cc17741660d17705047ec"
+    },
+    {
+      "path": "alpha/executor/journal_binding_test.go",
+      "sha256": "62fa0d3e481f1838b37488ac9638e623c45aed06fcb9d8de711f607fd20b16c8"
     },
     {
       "path": "alpha/executor/metadata_sdk.go",
@@ -232,11 +240,11 @@
     },
     {
       "path": "alpha/worker/engine_binding_test.go",
-      "sha256": "16e9b9e39a9349f42a6a49d840707b747d47cdd0720d095b7218a33730d6ad84"
+      "sha256": "d6000bd5fe17db499c17e18e23fcd6e60a97c5c47e6d15b97b8c0afad737ec22"
     },
     {
       "path": "alpha/worker/run.go",
-      "sha256": "63a958e2e15bea2d7e1c59aaba22ce3a240c1195e02b0d04300d2c3352b9f763"
+      "sha256": "20a28ea51d247a02a74ad8db4c9c606ef113daaf4e53efc2666decb93abfe27d"
     },
     {
       "path": "alpha/worker/run_test.go",
@@ -244,7 +252,7 @@
     },
     {
       "path": "alpha/workerchannel/client.go",
-      "sha256": "b3695e82733b865cdcccae2b8bdaa776ba2e8c934449a9780c00794b279796aa"
+      "sha256": "e141d28c7efabf04f02e916dca94023f1a5a51201acef9a3d39b0fc485c064e9"
     },
     {
       "path": "alpha/workerchannel/client_test.go",
@@ -252,7 +260,7 @@
     },
     {
       "path": "alpha/workerchannel/engine_binding.go",
-      "sha256": "45167a63348419e3db1d0c96cdf49dc540eb17fbe3fe40fbd9d59955993e4725"
+      "sha256": "1a5369187f41858adedbe5d6f37ddc026ebf03439b70cb3ab3cef61a7004687c"
     },
     {
       "path": "alpha/workerchannel/engine_binding_test.go",
@@ -265,6 +273,14 @@
     {
       "path": "alpha/workerchannel/finalize_test.go",
       "sha256": "04b9a79d897fcc6daebbbe5557a7abcb9da586b5d894244c6467fe39aa4a320e"
+    },
+    {
+      "path": "alpha/workerchannel/journal_binding_test.go",
+      "sha256": "e8c37e8738085765e0b06364e1dc28d81a7050a16e29d7cd5176c6b75572bc1f"
+    },
+    {
+      "path": "alpha/workerchannel/journal_launch_test.go",
+      "sha256": "3ecdda34e249f591d5289849081e765bf4891b8f08427aa45f2634896f69802d"
     },
     {
       "path": "alpha/workerchannel/json.go",
@@ -280,7 +296,7 @@
     },
     {
       "path": "alpha/workerchannel/launch.go",
-      "sha256": "85bfae71bc2323f521c9ab93153954d4dcdacc178158d6679faa35e341a2fc19"
+      "sha256": "6782ef3db45f554eab06d339da426fe1a988e7e21bd7d4ca7ca8042f441f309f"
     },
     {
       "path": "alpha/workerchannel/launch_test.go",
@@ -392,7 +408,7 @@
     },
     {
       "path": "console/src/generated/contracts.ts",
-      "sha256": "47d5de296b971fccb53977fd765fc456517cd4f3f40970f881299a430a18354c"
+      "sha256": "75a3554b956c48ac8eff56d46940bebe6ea2635e8834cd9ae7dcb3df1d0c9dbc"
     },
     {
       "path": "console/src/generated/research-client.ts",
@@ -452,15 +468,15 @@
     },
     {
       "path": "contracts/generated/contracts.go",
-      "sha256": "dcd3155f6a38439a92ee2055a5ca3adbcbe7bc8818e485b4b6f765bf39023591"
+      "sha256": "54f607194ac554a9926649ad0fe5ef6bd4560e9577c81c2a5386fdcce27e7c59"
     },
     {
       "path": "contracts/generated/contracts.py",
-      "sha256": "f7446959376c71fa2a163fa997649d995344388c6f2d55e4a7b037ae12f6923a"
+      "sha256": "a937e6fb3fe75e8ef60afee78405a8c368b34a6439406fd6d550f85b0e8dd811"
     },
     {
       "path": "contracts/generated/contracts.ts",
-      "sha256": "47d5de296b971fccb53977fd765fc456517cd4f3f40970f881299a430a18354c"
+      "sha256": "75a3554b956c48ac8eff56d46940bebe6ea2635e8834cd9ae7dcb3df1d0c9dbc"
     },
     {
       "path": "contracts/generated/research_client.go",
@@ -480,7 +496,7 @@
     },
     {
       "path": "contracts/openapi-research.json",
-      "sha256": "ce0d5e2a56b30ba386449de00cf03f2b3e9f0669cd98b309cde1b65e928f12f1"
+      "sha256": "9dd5f5ebc7c4fbec3648a3035ca9bc2345599867c876e80c0a3d2a5cc1c2330d"
     },
     {
       "path": "contracts/samples/ApplicationMapV1.json",
@@ -547,6 +563,14 @@
       "sha256": "f2bde7a82365469c2197113441a59bd91047c5b541c0532c8f91f55b630779bd"
     },
     {
+      "path": "contracts/samples/ScannerEngineJournalBindingV1.json",
+      "sha256": "5ffc7290e5a6d5bcd65463145e69625aee57df8e9391af7201c3fba7e7f855ab"
+    },
+    {
+      "path": "contracts/samples/ScannerEngineJournalInputV1.json",
+      "sha256": "73a4555c5a9b3d77f8b51c0a13ad13df1f07292f1d0db9c73aa64a428a688eb0"
+    },
+    {
       "path": "contracts/samples/ScannerEnginePreflightV1.json",
       "sha256": "db6dd106bfef044a6768657d021f4bb1f9ec39c8794cebd23fdacc0b12137862"
     },
@@ -589,6 +613,10 @@
     {
       "path": "contracts/samples/ScannerLaunchRecordV2.json",
       "sha256": "e97821b7f5590102a7eee059cb7866ff1deab48bbc51a8942ad24e10a41835fe"
+    },
+    {
+      "path": "contracts/samples/ScannerLaunchRecordV3.json",
+      "sha256": "10c2a30d7533a1010044147e95e12be7fcc1b7f1a2591da4477e0d6751e48dba"
     },
     {
       "path": "contracts/samples/ScannerLaunchV1.json",
@@ -748,11 +776,11 @@
     },
     {
       "path": "contracts/schemas/ScannerCleanupContextRecordV1.json",
-      "sha256": "d76c8e940fa81ed4adc40669b26de4b8001a0d53b6871cb4c36d00d7a33d13a2"
+      "sha256": "a94dc4f4bb25e3262ce215634eb495a48e51e24abab9e5f2a9082463f2fd984b"
     },
     {
       "path": "contracts/schemas/ScannerCleanupContextV1.json",
-      "sha256": "7429d486c7645c59ac93d39a24df8d1a3cda650a325f184923942315f19ffdf5"
+      "sha256": "fa27d313ee38f18d8515157f507d883e41a93dd0bd19751131718ef3f7fab1bc"
     },
     {
       "path": "contracts/schemas/ScannerEngineBindingInputV1.json",
@@ -761,6 +789,14 @@
     {
       "path": "contracts/schemas/ScannerEngineBindingV1.json",
       "sha256": "f7e3b059d61c7ea9bdbf962dd726b042503f1fb1a5f752b647758bc72571fc7f"
+    },
+    {
+      "path": "contracts/schemas/ScannerEngineJournalBindingV1.json",
+      "sha256": "58756320df248d4c6cd609d1469b85a5bfad15032eefb11b507448f736174754"
+    },
+    {
+      "path": "contracts/schemas/ScannerEngineJournalInputV1.json",
+      "sha256": "7328dc1994f7087f9d0eb745304e5835d553aa736e8e7f61a5090aef0ab6e92c"
     },
     {
       "path": "contracts/schemas/ScannerEnginePreflightV1.json",
@@ -799,6 +835,10 @@
       "sha256": "620b39bbdc7b29e64812c38a06895454ac39f0599097ed5cdbde6ddecdaf54c0"
     },
     {
+      "path": "contracts/schemas/ScannerLaunchPlanV3.json",
+      "sha256": "e6143ff825548ae50437730b11db61934eac80b7e84cc2d8fe8ab39dce467148"
+    },
+    {
       "path": "contracts/schemas/ScannerLaunchRecordV1.json",
       "sha256": "eb894b6dc5e67d84190fad19c3f7c02b5e4af3df9026a924495357a891662800"
     },
@@ -807,12 +847,20 @@
       "sha256": "e3af1ce97c0db5b7283291ae0f38f150bd5968049ca921bf48b77b0713561c36"
     },
     {
+      "path": "contracts/schemas/ScannerLaunchRecordV3.json",
+      "sha256": "661572b97e4fd0b0e2804c244f3054e301f3033f28ad12be2f0b92e0f8902bc2"
+    },
+    {
       "path": "contracts/schemas/ScannerLaunchV1.json",
       "sha256": "9fdbb1d132d4e5f6dd0b094e72c0859a3fa14fc93ca3a56b3e47430574f5f46d"
     },
     {
       "path": "contracts/schemas/ScannerLaunchV2.json",
       "sha256": "d2493a1b3f2bcf408e7ecdc89c7c19a656d43069237c74751e3870e110287aac"
+    },
+    {
+      "path": "contracts/schemas/ScannerLaunchV3.json",
+      "sha256": "9643d734eb2ca0c56feb24a0ab6bc9dd0640d1fc289aebc3e0a3166eac27be8c"
     },
     {
       "path": "contracts/schemas/ScannerSandboxObservationV1.json",
@@ -884,7 +932,7 @@
     },
     {
       "path": "controller/cmd/aegisctl/main.go",
-      "sha256": "4982ed01b18fe122b37c659b2874c4d097a693cb7fa07b5c7b5ea66149ac804d"
+      "sha256": "845ea6b66f133df344836b25a1e185099389625db8920bd98c53e66803d33331"
     },
     {
       "path": "controller/cmd/aegisctl/main_test.go",
@@ -996,7 +1044,7 @@
     },
     {
       "path": "controller/internal/recovery/bundle_test.go",
-      "sha256": "79a9ff219cc5fd72fede6fb72cb1748b0577fc301c6cbf9faa0e9ee20668b0be"
+      "sha256": "5174d14cef30247fccd6e7fc92d9874c64c190f578dee739ac4678df8a8d3833"
     },
     {
       "path": "controller/internal/recovery/files_other.go",
@@ -1008,7 +1056,7 @@
     },
     {
       "path": "controller/internal/recovery/restore.go",
-      "sha256": "badf7aaa3f744ef0eed8b7fcc358c735d34d7ce3c02f2f935339c213e9a30e3d"
+      "sha256": "517fcbd9374226b8dfb2239cbe736ef1a8a2a88f82daebbf80fe0eb7bcd75e49"
     },
     {
       "path": "controller/internal/repository/repository.go",
@@ -1115,8 +1163,16 @@
       "sha256": "700700175fc0caef17765ffa19b91a928f94964520503b9e45267ddb68c166ef"
     },
     {
+      "path": "controller/internal/scanqueue/journal_binding.go",
+      "sha256": "9167411c73a1b3843d5b4e280728a69df1efab7873fb9c15df8a05902f11b6b2"
+    },
+    {
+      "path": "controller/internal/scanqueue/journal_binding_test.go",
+      "sha256": "410e64128d3e76abced7ba7c450423e06d4c94cfeaf426989ebf0ddc8f4da483"
+    },
+    {
       "path": "controller/internal/scanqueue/launch.go",
-      "sha256": "ba194cf9ecc839b2651e1a29b38586ad58f4ca5064d6980c30c22d180b06911b"
+      "sha256": "dd1fe66e7835ba76bb943516f6860878d3288628cf28308300e016040e0503d1"
     },
     {
       "path": "controller/internal/scanqueue/launch_test.go",
@@ -1211,6 +1267,10 @@
       "sha256": "3ab9f0055ad539b9aae558adfea1b3df666baf18641af3bc15353ae11d4c23e1"
     },
     {
+      "path": "controller/internal/scantransport/journal_binding_test.go",
+      "sha256": "3623c9a9218b61c4ba9f4c9863da75630301b1b650f18fc3e68d329aaf02e83f"
+    },
+    {
       "path": "controller/internal/scantransport/launch.go",
       "sha256": "ab562ab82f684d701435908785285abec0e35dfcc53333bc482a0053e04525f2"
     },
@@ -1232,7 +1292,7 @@
     },
     {
       "path": "controller/internal/scantransport/server.go",
-      "sha256": "5e84753225b34246d0b2e5e3855db9f4512ba38d8c67aced8a056ccb95653eeb"
+      "sha256": "e0b18abd8ddafe8dd197b0012c7baa4a952fe890c1ab062a792a4b4b57acea1e"
     },
     {
       "path": "controller/internal/scantransport/server_test.go",
@@ -1340,11 +1400,11 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "32343bec6c5d34de4309f8b3189082d499be201d75e2b873f5d31fd500110177"
+      "sha256": "61b11cd2fa8a72e90dfb5b76dbb726e5a1ab4b4acbe0292e7a891a516752f61d"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
-      "sha256": "752e09c197ab9ea311cd862b04fd304e6daf0e1f6a1d234c0291707d81e69e39"
+      "sha256": "25060b7385d6409b7c5c32750abb3d842599915d101826e37f2d9bc15a198b15"
     },
     {
       "path": "docs/architecture/adr/011-v4-research-plane.md",
@@ -1499,6 +1559,10 @@
       "sha256": "381dbb087aa2cdd3caa8f7b8e2aca671db827278dcfe3d8b4b7dfda04d4d7bec"
     },
     {
+      "path": "docs/architecture/adr/049-controller-bound-engine-journal-namespace.md",
+      "sha256": "1033fcf8189ffd1388ea79919afb64f2206a55417ad12e8ad6a4976f3c0c815a"
+    },
+    {
       "path": "docs/operators/database-snapshots.md",
       "sha256": "3c62f228aa2828f135f5293c85d3da33a1e25464022bcbe6bd9344de9e3c6e85"
     },
@@ -1512,7 +1576,7 @@
     },
     {
       "path": "docs/operators/journaled-scanner-engine.md",
-      "sha256": "f2a3c5ab73d691920eb505cf9f7793c2e19b4a37e2be21d4ce6925f7f4123ff8"
+      "sha256": "a1491cb91e07f9520579de7b16d3e2ad267de25dee08498c2414066f7b22ac93"
     },
     {
       "path": "docs/operators/local-demo-upgrades.md",
@@ -1524,11 +1588,11 @@
     },
     {
       "path": "docs/operators/packaged-scanner-worker.md",
-      "sha256": "087727ea0f7c6927c3da176745400a48e80a9115530333c0b4ffd2f11f2a5ad2"
+      "sha256": "57de331467bf77d7387d45f27f74e2271e233533f30a108b1fa475a8a0b10529"
     },
     {
       "path": "docs/operators/recovery-bundles.md",
-      "sha256": "5817e17caa6933fc08bc3f26a29144a111d3dbbf56384d703dce2f5bd5f0077b"
+      "sha256": "5be99cad5ff28369bd8fd4a295606ef9c3dfc0b1e17775c3f77ea08b8033d0b0"
     },
     {
       "path": "docs/operators/repositories.md",
@@ -1544,7 +1608,7 @@
     },
     {
       "path": "docs/release-gates.json",
-      "sha256": "5348080660b57d6eb6e5f31818c762403e84d22071ac0f66bdf4ac335094b92c"
+      "sha256": "821724d8eb9e151f0614b04e7328556f2c39785a35d50ec4cc60e0f19d9525b7"
     },
     {
       "path": "gateway/Dockerfile",
@@ -1580,7 +1644,7 @@
     },
     {
       "path": "scripts/generate_contracts.py",
-      "sha256": "91b6e8b406b55c6e9e5895bf266660df8238e25ec925fda4fce12a089052c5d4"
+      "sha256": "1d28790c383fdc9495043ff52991a1eeecfb10534afc1b39a5573e52e93aded0"
     },
     {
       "path": "scripts/generate_research_api.py",
@@ -1616,7 +1680,7 @@
     },
     {
       "path": "shared/source/scanevidence/cleanup.go",
-      "sha256": "ffb25d62552f7491a5021fa67e891c4ff021e661507a9430508977fe3c5c3a64"
+      "sha256": "8b5ee2105e512747a4f3a635381d8d8542c498ede7e0c027cc28f162bd0405f6"
     },
     {
       "path": "shared/source/scanevidence/decode.go",
@@ -1628,7 +1692,7 @@
     },
     {
       "path": "shared/source/scanevidence/engine_binding.go",
-      "sha256": "2cf50be1068ad6a574f7a7f4c1517ffa33bb5099d0289fa3c4937d6d5d692699"
+      "sha256": "9ea19e41ba608ec892a3cd80aab0ac18c914d907b7cc18e24700b007c4ef9761"
     },
     {
       "path": "shared/source/scanevidence/guard.go",
@@ -1643,12 +1707,16 @@
       "sha256": "2ea210642db0c6084bf42280d6643ee19dc8b8f3110907beab4d8acdcc118a7a"
     },
     {
+      "path": "shared/source/scanevidence/journal_binding_test.go",
+      "sha256": "c86fefbb11ee5aad58b1a1968f92af23155226cf1dd371ca1f761b1031714839"
+    },
+    {
       "path": "shared/source/scanevidence/json_boundary.go",
       "sha256": "3b11666c55a84bbbee3e0458002c522c18475fc6e3dd5ee3d6007b5016bf6a7c"
     },
     {
       "path": "shared/source/scanevidence/launch.go",
-      "sha256": "5b004962384f1c423e3352da7c1a557e97290457f6a705b2fd38bf3f73434c4e"
+      "sha256": "565d41da13df7d3e8281c2702d759c62c02e9d6466c3eb2f41e5aa16ff1173f9"
     },
     {
       "path": "shared/source/scanevidence/launch_test.go",
@@ -1736,7 +1804,7 @@
     },
     {
       "path": "tests/integration/packaged_worker_acceptance.py",
-      "sha256": "f661aa4d5faa9bd11e64d0928ae33fe6eb287482e2737a8ce6ed0b130992548f"
+      "sha256": "aae67bccd2a86b6923570c8c5d7185f5a8c63f6c16dc63714a6570e65d1b928d"
     },
     {
       "path": "tests/integration/recovery_application_acceptance.py",

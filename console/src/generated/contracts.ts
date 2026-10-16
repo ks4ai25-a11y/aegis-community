@@ -297,6 +297,26 @@ export interface ScannerEngineBindingInputV1 {
   controller_binding_verified: false;
   cleanup_release_authorized: false;
 }
+export interface ScannerEngineJournalBindingV1 {
+  journal_binding_digest: string;
+  document: ScannerEngineJournalBindingV1Document;
+}
+export interface ScannerEngineJournalBindingV1Document {
+  schema_version: "1.0";
+  owner_id: string;
+  engine_binding_digest: string;
+  journal_root_digest: string;
+  journal_namespace_digest: string;
+  created_at: string;
+}
+export interface ScannerEngineJournalInputV1 {
+  schema_version: "1.0";
+  engine_digest: string;
+  journal_root_digest: string;
+  journal_namespace_digest: string;
+  controller_binding_verified: false;
+  cleanup_release_authorized: false;
+}
 export interface ScannerEnginePreflightV1 {
   schema_version: "1.0";
   backend: "unix-sdk-1.55";
@@ -1005,6 +1025,84 @@ export interface ScannerLaunchRecordV2DocumentPlan {
   guard_binary_digest: string;
   guard_architecture: "amd64" | "arm64";
 }
+export interface ScannerLaunchPlanV3 {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+  engine_journal_binding_digest: string;
+  engine_journal_namespace_digest: string;
+}
+export interface ScannerLaunchV3 {
+  schema_version: "1.2";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerLaunchRecordV3DocumentPlan;
+  created_at: string;
+  deadline: string;
+  guard_set_digest: string;
+  guard_protocol: "absolute-deadline-v1";
+}
+export interface ScannerLaunchV3Plan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+  engine_journal_binding_digest: string;
+  engine_journal_namespace_digest: string;
+}
+export interface ScannerLaunchRecordV3 {
+  launch_digest: string;
+  document: ScannerLaunchRecordV3Document;
+}
+export interface ScannerLaunchRecordV3Document {
+  schema_version: "1.2";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerLaunchRecordV3DocumentPlan;
+  created_at: string;
+  deadline: string;
+  guard_set_digest: string;
+  guard_protocol: "absolute-deadline-v1";
+}
+export interface ScannerLaunchRecordV3DocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+  engine_journal_binding_digest: string;
+  engine_journal_namespace_digest: string;
+}
 export interface ScannerSandboxObservationV1 {
   schema_version: "1.0";
   observed_at: string;
@@ -1201,7 +1299,7 @@ export interface ScannerCleanupContextV1LaunchesItem {
   document: ScannerCleanupContextRecordV1DocumentLaunchesItemDocument;
 }
 export interface ScannerCleanupContextV1LaunchesItemDocument {
-  schema_version: "1.1";
+  schema_version: "1.1" | "1.2";
   owner_id: string;
   job_id: string;
   request_digest: string;
@@ -1228,6 +1326,8 @@ export interface ScannerCleanupContextV1LaunchesItemDocumentPlan {
   snapshot_digest: string;
   guard_binary_digest: string;
   guard_architecture: "amd64" | "arm64";
+  engine_journal_binding_digest?: string;
+  engine_journal_namespace_digest?: string;
 }
 export interface ScannerCleanupContextRecordV1 {
   context_digest: string;
@@ -1291,7 +1391,7 @@ export interface ScannerCleanupContextRecordV1DocumentLaunchesItem {
   document: ScannerCleanupContextRecordV1DocumentLaunchesItemDocument;
 }
 export interface ScannerCleanupContextRecordV1DocumentLaunchesItemDocument {
-  schema_version: "1.1";
+  schema_version: "1.1" | "1.2";
   owner_id: string;
   job_id: string;
   request_digest: string;
@@ -1318,6 +1418,8 @@ export interface ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan {
   snapshot_digest: string;
   guard_binary_digest: string;
   guard_architecture: "amd64" | "arm64";
+  engine_journal_binding_digest?: string;
+  engine_journal_namespace_digest?: string;
 }
 export interface DatabaseSnapshotReceiptV1 {
   schema_version: "1.0";

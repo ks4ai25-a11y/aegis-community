@@ -4,6 +4,7 @@
 package worker
 
 import (
+	"aegis.local/alpha/enginejournal"
 	"aegis.local/source"
 	"aegis.local/source/scanevidence"
 	"context"
@@ -19,7 +20,7 @@ import (
 )
 
 func TestBoundWorkerChecksOperatorRegistryBeforeClaimAndEngineAccess(t *testing.T) {
-	for _, kind := range []string{"valid-idle", "missing", "registry", "wrong-engine", "no-journal"} {
+	for _, kind := range []string{"valid-idle", "missing", "registry", "wrong-engine", "no-journal", "missing-journal-binding", "missing-journal-dir", "changed-journal", "wrong-journal-root", "pending-journal"} {
 		t.Run(kind, func(t *testing.T) {
 			root, e := os.MkdirTemp("/tmp", "aeb-")
 			if e != nil {
@@ -71,6 +72,30 @@ func TestBoundWorkerChecksOperatorRegistryBeforeClaimAndEngineAccess(t *testing.
 			d := scanevidence.EngineBinding{Schema: "1.0", Owner: "owner-a", Engine: engineDigest, Registry: registry, Created: time.Now().Add(-time.Minute).UTC().Format(time.RFC3339Nano)}
 			b, _ := json.Marshal(d)
 			binding := scanevidence.EngineBindingRecord{Digest: source.Hash(b), Document: d}
+			journalPath := filepath.Join(root, "journal")
+			journal, e := enginejournal.Open(journalPath, engineDigest)
+			if e != nil {
+				t.Fatal(e)
+			}
+			observed := journal.Observe()
+			if kind == "pending-journal" {
+				if _, e = journal.Begin("aegis-scan-"+strings.Repeat("a", 32), source.Hash([]byte("fixture"))); e != nil {
+					t.Fatal(e)
+				}
+			}
+			journal.Close()
+			jd := scanevidence.JournalBinding{Schema: "1.0", Owner: "owner-a", EngineBinding: binding.Digest, Root: source.Hash([]byte("aegis-scanner-engine-journal-root-v1\n" + journalPath + "\n" + fmt.Sprint(os.Geteuid()))), Namespace: observed.Namespace, Created: time.Now().UTC().Format(time.RFC3339Nano)}
+			if kind == "changed-journal" {
+				jd.Namespace = source.Hash([]byte("other"))
+			}
+			if kind == "wrong-journal-root" {
+				jd.Root = source.Hash([]byte("other"))
+			}
+			raw, _ := json.Marshal(jd)
+			journalBinding := scanevidence.JournalBindingRecord{Digest: source.Hash(raw), Document: jd}
+			if kind == "missing-journal-dir" {
+				os.RemoveAll(journalPath)
+			}
 			calls := make(chan string, 4)
 			server := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				calls <- r.URL.Path
@@ -82,6 +107,13 @@ func TestBoundWorkerChecksOperatorRegistryBeforeClaimAndEngineAccess(t *testing.
 						return
 					}
 					json.NewEncoder(w).Encode(binding)
+				case "/internal/v1/scanner/engine-journal-binding":
+					if kind == "missing-journal-binding" {
+						w.WriteHeader(404)
+						w.Write([]byte(`{}`))
+						return
+					}
+					json.NewEncoder(w).Encode(journalBinding)
 				case "/internal/v1/scanner/claim":
 					w.WriteHeader(204)
 				default:
@@ -104,9 +136,12 @@ func TestBoundWorkerChecksOperatorRegistryBeforeClaimAndEngineAccess(t *testing.
 				t.Fatal("unprovisioned claim", report, e)
 			}
 			count := len(calls)
-			expected := 1
+			expected := 2
+			if kind == "missing" || kind == "registry" {
+				expected = 1
+			}
 			if kind == "valid-idle" {
-				expected = 2
+				expected = 3
 			}
 			if kind == "no-journal" {
 				expected = 0

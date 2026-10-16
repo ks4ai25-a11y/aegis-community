@@ -58,6 +58,24 @@ The initial binding requires no active or held scanner dispatch. Exact repeats r
 
 The profile uses `worker-once-bound`: missing binding, a changed registry or a mismatched/unavailable engine refuses before claim or source allocation. The controller also checks configured scope on reservations and launches from older clients. Scope binding does not prove independent engine mediation or cleanup. Legacy native commands in an unconfigured database retain their experimental behavior.
 
+Leave the `engine-journal` directory absent on first initialization. An existing bare or partial directory is refused; only a complete initialized namespace with zero attempts can be reused. Initialize it under the packaged UID and selected engine, then approve its proposed root and namespace hashes:
+
+```sh
+docker compose -p aegis-community -f deploy/compose.demo.yaml \
+  -f deploy/compose.scanner-worker.yaml --profile operator-scanner \
+  run --rm --no-deps scanner-worker engine-journal-init \
+  "$AEGIS_SCANNER_WORK_ROOT/engine-journal"
+```
+
+```text
+docker compose -p aegis-community -f deploy/compose.demo.yaml exec -T controller \
+  aegisctl scanner-engine bind-journal JOURNAL_ROOT_DIGEST JOURNAL_NAMESPACE_DIGEST
+```
+
+The printed initialization input is metadata with authority flags false. Review its engine digest against the first approval. Both the base engine binding and journal binding must exist before claim. Initial journal approval also refuses an active/held dispatch; existing exact repeats do not release admission. A used journal cannot be initialized/reset through this command. Keep its root path, UID and namespace stable. Never move/delete an attempted journal or select a fresh one to force another scan.
+
+The worker refuses a substituted namespace, missing/corrupt/busy journal or unresolved lifecycle before claim. The executor checks the same approval again under the lifetime lock and never recreates missing bound state. New immutable launch documents use revision 1.2, preserving both journal hashes. The controller refuses legacy launch requests that omit this configured scope.
+
 Run once after provisioning:
 
 ```sh

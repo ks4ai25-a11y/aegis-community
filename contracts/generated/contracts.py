@@ -271,6 +271,23 @@ class ScannerEngineBindingInputV1(TypedDict):
     registry_digest: str
     controller_binding_verified: bool
     cleanup_release_authorized: bool
+class ScannerEngineJournalBindingV1(TypedDict):
+    journal_binding_digest: str
+    document: ScannerEngineJournalBindingV1Document
+class ScannerEngineJournalBindingV1Document(TypedDict):
+    schema_version: str
+    owner_id: str
+    engine_binding_digest: str
+    journal_root_digest: str
+    journal_namespace_digest: str
+    created_at: str
+class ScannerEngineJournalInputV1(TypedDict):
+    schema_version: str
+    engine_digest: str
+    journal_root_digest: str
+    journal_namespace_digest: str
+    controller_binding_verified: bool
+    cleanup_release_authorized: bool
 class ScannerEnginePreflightV1(TypedDict):
     schema_version: str
     backend: str
@@ -903,6 +920,78 @@ class ScannerLaunchRecordV2DocumentPlan(TypedDict):
     snapshot_digest: str
     guard_binary_digest: str
     guard_architecture: str
+class ScannerLaunchPlanV3(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+    guard_binary_digest: str
+    guard_architecture: str
+    engine_journal_binding_digest: str
+    engine_journal_namespace_digest: str
+class ScannerLaunchV3(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    tool_version: str
+    tool_image_digest: str
+    sandbox_profile: str
+    duration_limit_seconds: int
+    plan: ScannerLaunchRecordV3DocumentPlan
+    created_at: str
+    deadline: str
+    guard_set_digest: str
+    guard_protocol: str
+class ScannerLaunchV3Plan(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+    guard_binary_digest: str
+    guard_architecture: str
+    engine_journal_binding_digest: str
+    engine_journal_namespace_digest: str
+class ScannerLaunchRecordV3(TypedDict):
+    launch_digest: str
+    document: ScannerLaunchRecordV3Document
+class ScannerLaunchRecordV3Document(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    tool_version: str
+    tool_image_digest: str
+    sandbox_profile: str
+    duration_limit_seconds: int
+    plan: ScannerLaunchRecordV3DocumentPlan
+    created_at: str
+    deadline: str
+    guard_set_digest: str
+    guard_protocol: str
+class ScannerLaunchRecordV3DocumentPlan(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+    guard_binary_digest: str
+    guard_architecture: str
+    engine_journal_binding_digest: str
+    engine_journal_namespace_digest: str
 class ScannerSandboxObservationV1(TypedDict):
     schema_version: str
     observed_at: str
@@ -1105,6 +1194,8 @@ class ScannerCleanupContextV1LaunchesItemDocumentPlan(TypedDict):
     snapshot_digest: str
     guard_binary_digest: str
     guard_architecture: str
+    engine_journal_binding_digest: NotRequired[str]
+    engine_journal_namespace_digest: NotRequired[str]
 class ScannerCleanupContextRecordV1(TypedDict):
     context_digest: str
     document: ScannerCleanupContextRecordV1Document
@@ -1187,6 +1278,8 @@ class ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan(TypedDict):
     snapshot_digest: str
     guard_binary_digest: str
     guard_architecture: str
+    engine_journal_binding_digest: NotRequired[str]
+    engine_journal_namespace_digest: NotRequired[str]
 class DatabaseSnapshotReceiptV1(TypedDict):
     schema_version: str
     status: str

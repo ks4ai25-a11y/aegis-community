@@ -80,13 +80,22 @@ func (s *Server) Handler() http.Handler {
 			s.launch(w, r, worker)
 		case "/internal/v1/scanner/receipt":
 			s.receipt(w, r, worker)
-		case "/internal/v1/scanner/identity", "/internal/v1/scanner/claim", "/internal/v1/scanner/engine-binding":
+		case "/internal/v1/scanner/identity", "/internal/v1/scanner/claim", "/internal/v1/scanner/engine-binding", "/internal/v1/scanner/engine-journal-binding":
 			if decode(r, &struct{}{}, nil) != nil {
 				failure(w, 400, "INVALID_WORKER_REQUEST")
 				return
 			}
 			if path == "/internal/v1/scanner/identity" {
 				reply(w, 200, worker)
+				return
+			}
+			if path == "/internal/v1/scanner/engine-journal-binding" {
+				bound, err := s.Q.JournalBindingForWorker(worker.ID, worker.Owner)
+				if err != nil {
+					queueError(w, err)
+					return
+				}
+				reply(w, 200, bound)
 				return
 			}
 			if path == "/internal/v1/scanner/engine-binding" {

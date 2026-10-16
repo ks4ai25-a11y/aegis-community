@@ -1426,6 +1426,12 @@
       "ScannerEngineBindingV1": {
         "$ref": "schemas/ScannerEngineBindingV1.json"
       },
+      "ScannerEngineJournalBindingV1": {
+        "$ref": "schemas/ScannerEngineJournalBindingV1.json"
+      },
+      "ScannerEngineJournalInputV1": {
+        "$ref": "schemas/ScannerEngineJournalInputV1.json"
+      },
       "ScannerEnginePreflightV1": {
         "$ref": "schemas/ScannerEnginePreflightV1.json"
       },
@@ -1453,17 +1459,26 @@
       "ScannerLaunchPlanV2": {
         "$ref": "schemas/ScannerLaunchPlanV2.json"
       },
+      "ScannerLaunchPlanV3": {
+        "$ref": "schemas/ScannerLaunchPlanV3.json"
+      },
       "ScannerLaunchRecordV1": {
         "$ref": "schemas/ScannerLaunchRecordV1.json"
       },
       "ScannerLaunchRecordV2": {
         "$ref": "schemas/ScannerLaunchRecordV2.json"
       },
+      "ScannerLaunchRecordV3": {
+        "$ref": "schemas/ScannerLaunchRecordV3.json"
+      },
       "ScannerLaunchV1": {
         "$ref": "schemas/ScannerLaunchV1.json"
       },
       "ScannerLaunchV2": {
         "$ref": "schemas/ScannerLaunchV2.json"
+      },
+      "ScannerLaunchV3": {
+        "$ref": "schemas/ScannerLaunchV3.json"
       },
       "ScannerSandboxObservationV1": {
         "$ref": "schemas/ScannerSandboxObservationV1.json"

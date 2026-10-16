@@ -9,14 +9,16 @@ import (
 // LaunchPlan identifies a proposed fixed scanner attempt. Registry is a digest
 // of an operator-provisioned private namespace, never a filesystem path.
 type LaunchPlan struct {
-	Tool         string `json:"tool_id"`
-	Container    string `json:"container_id"`
-	Engine       string `json:"engine_digest"`
-	Workspace    string `json:"workspace_id"`
-	Registry     string `json:"registry_digest"`
-	Snapshot     string `json:"snapshot_digest"`
-	Guard        string `json:"guard_binary_digest,omitempty"`
-	Architecture string `json:"guard_architecture,omitempty"`
+	JournalBinding   string `json:"engine_journal_binding_digest,omitempty"`
+	JournalNamespace string `json:"engine_journal_namespace_digest,omitempty"`
+	Tool             string `json:"tool_id"`
+	Container        string `json:"container_id"`
+	Engine           string `json:"engine_digest"`
+	Workspace        string `json:"workspace_id"`
+	Registry         string `json:"registry_digest"`
+	Snapshot         string `json:"snapshot_digest"`
+	Guard            string `json:"guard_binary_digest,omitempty"`
+	Architecture     string `json:"guard_architecture,omitempty"`
 }
 type Launch struct {
 	Schema        string     `json:"schema_version"`
@@ -70,4 +72,10 @@ func EncodeLaunchSubmission(in LaunchSubmission) ([]byte, error) {
 		return nil, ErrReceipt
 	}
 	return b, nil
+}
+
+// GuardedLaunchRevision rejects mixed revision fields, including downgrades
+// that would silently discard journal scope from a newer launch record.
+func GuardedLaunchRevision(l Launch) bool {
+	return l.Schema == "1.1" && l.Plan.JournalBinding == "" && l.Plan.JournalNamespace == "" || l.Schema == "1.2" && hash.MatchString(l.Plan.JournalBinding) && hash.MatchString(l.Plan.JournalNamespace)
 }
