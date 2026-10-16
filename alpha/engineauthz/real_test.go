@@ -254,6 +254,19 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 	if json.Unmarshal(stdout, &report) != nil || len(report.Results) != 1 || report.Results[0].TestID != "B307" {
 		t.Fatal("actual Bandit evidence missing")
 	}
+	// AutoRemove is asynchronous after next-exit. Wait for it before an exact
+	// DELETE; otherwise Docker may return 409 while its removal is in progress.
+	removed := sdk.ContainerWait(ctx, id, client.ContainerWaitOptions{Condition: container.WaitConditionRemoved})
+	select {
+	case <-removed.Result:
+	case <-removed.Error:
+		status, _ = request("observer", "GET", "/containers/"+id+"/json", nil)
+		if status != 404 {
+			t.Fatal("removed-state wait unconfirmed", status)
+		}
+	case <-ctx.Done():
+		t.Fatal("removed-state deadline")
+	}
 	status, _ = request("broker", "DELETE", "/containers/"+id+"?force=1&v=1", nil)
 	if status != 204 && status != 404 {
 		t.Fatal("remove unconfirmed", status)

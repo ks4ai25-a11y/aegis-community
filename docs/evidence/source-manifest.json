@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:5e9533ecf8e43582172a4be3a22c68f7b4930b5dbb99031ce47f1472b91c9263",
+  "source_tree_sha256": "sha256:a0fd029d5c04805a45ee28bf4d7e139c54bc7d3ad207b79f175dd14ba6836f01",
   "files": [
     {
       "path": ".dockerignore",
@@ -88,15 +88,15 @@
     },
     {
       "path": "alpha/engineauthz/policy.go",
-      "sha256": "c80931d5b163604d2c8dc64734c44235ff43bfa15abba83f11a7bcc9825913a7"
+      "sha256": "86ddb24a39f71c8e406421f6fe71b49806e05c7131acb8ef8d9609280eb5d1a1"
     },
     {
       "path": "alpha/engineauthz/policy_test.go",
-      "sha256": "8343fe6d3ba91a69e5981621f06fe7e75f5f20c7a30cc749594dd05306fdfaa6"
+      "sha256": "2f248ebd20b75fed2ee574d0896a94f37a651762ba022d6dc821bae0ffb92fbc"
     },
     {
       "path": "alpha/engineauthz/real_test.go",
-      "sha256": "1848dbf3c349edab39e64fe11485aaa499b30fe4d17a5033a82efbf24c3ca21c"
+      "sha256": "75dcb00a005482b0a23020c703f5353aa1a0b56233ba550ba2fc372a25880c20"
     },
     {
       "path": "alpha/engineauthz/server.go",
@@ -1656,7 +1656,7 @@
     },
     {
       "path": "docs/architecture/adr/051-isolated-daemon-authorization-adapter.md",
-      "sha256": "cf56b8016a7b3d61be245b41874ccc53515cec85861e36c363a7e48e3ee1c65c"
+      "sha256": "0aa9d23f6d35b7b555162d2932a25125cec5ffd69c18f4197a20bb6e0bea958e"
     },
     {
       "path": "docs/operators/database-snapshots.md",

@@ -195,7 +195,7 @@ func (p *Policy) create(r Request, u *url.URL, now time.Time) bool {
 		return false
 	}
 	deadline, e := time.Parse(time.RFC3339Nano, c.Cmd[2])
-	if e != nil || deadline.UTC().Format(time.RFC3339Nano) != c.Cmd[2] || !deadline.After(now) || deadline.After(now.Add(121*time.Second)) {
+	if e != nil || len(c.Cmd[2]) > 35 || deadline.UTC().Format(time.RFC3339Nano) != c.Cmd[2] || !deadline.After(now) || deadline.After(now.Add(15*time.Minute)) {
 		return false
 	}
 	pid, e := strconv.Atoi(c.Labels["io.aegis.operator_pid"])

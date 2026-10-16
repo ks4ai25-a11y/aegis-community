@@ -232,7 +232,7 @@ func TestContainerProfileRefusalsBeforeAnyIntent(t *testing.T) {
 			c.Cmd[2] = time.Now().Add(-time.Second).UTC().Format(time.RFC3339Nano)
 		},
 		"deadline-later": func(c *container.CreateRequest) {
-			c.Cmd[2] = time.Now().Add(10 * time.Minute).UTC().Format(time.RFC3339Nano)
+			c.Cmd[2] = time.Now().Add(16 * time.Minute).UTC().Format(time.RFC3339Nano)
 		},
 		"duration":       func(c *container.CreateRequest) { c.Cmd[1] = "121" },
 		"operator-label": func(c *container.CreateRequest) { c.Labels["io.aegis.operator_pid"] = "01" },
