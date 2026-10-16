@@ -15,6 +15,12 @@ def require_ci():
 def run(args,**kwargs):
  return subprocess.run([str(a) for a in args],check=True,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=180,**kwargs)
 
+def public_create_failure(line):
+ # Strict full-line allowlist: arbitrary client output is never sanitized into
+ # an apparently safe prefix. Reject appended paths, secrets and ANSI escapes.
+ match=re.fullmatch(r'[ \t]*real_test.go:[0-9]+: (native create failed: connection reused=(?:true|false) request written=(?:true|false) intent recorded=(?:true|false) response recorded=(?:true|false))',line)
+ return match[1] if match else None
+
 def certificate(tlsdir,role,cn,server=False):
  key=tlsdir/(role+'.key');csr=tlsdir/(role+'.csr');crt=tlsdir/(role+'.pem');ext=tlsdir/(role+'.ext')
  run(['openssl','genpkey','-algorithm','EC','-pkeyopt','ec_paramgen_curve:P-256','-out',key])
@@ -100,8 +106,16 @@ def main():
   except (OSError,urllib.error.URLError):pass
   else:raise RuntimeError('Anonymous engine connection accepted')
   test_env=dict(env,AEGIS_AUTHZ_TEST_ROOT=str(fixture),AEGIS_AUTHZ_TEST_ENDPOINT=endpoint)
-  result=run(['go','test','-count=1','-run','^TestRealDaemonAuthorizationAndStaticScanner$','-v','./engineauthz'],cwd=ROOT/'alpha',env=test_env)
-  sys.stdout.write(result.stdout.decode())
+  result=subprocess.run(['go','test','-count=1','-run','^TestRealDaemonAuthorizationAndStaticScanner$','-v','./engineauthz'],cwd=ROOT/'alpha',env=test_env,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=180)
+  # Complete client/daemon diagnostics stay private, including on failure.
+  # Go errors and subprocess exceptions can include runtime paths/endpoints.
+  (fixture/'client-test.log').write_bytes(result.stdout+b'\n'+result.stderr)
+  if result.returncode or b'--- PASS: TestRealDaemonAuthorizationAndStaticScanner' not in result.stdout:
+   for line in result.stdout.decode(errors='replace').splitlines():
+    stage=public_create_failure(line)
+    if stage:print(stage,file=sys.stderr)
+   raise RuntimeError('Native engine authorization test failed or did not run')
+  print('native_authorization_and_static_scanner: PASS',flush=True)
   # Prove plugin-unavailable fails closed on a harmless read. The daemon has
   # no bypass socket and the client has no alternate authority or admin cert.
   plugin.terminate();plugin.wait(timeout=10);plugin=None
@@ -116,15 +130,10 @@ def main():
   acceptance=json.loads((fixture/'acceptance.json').read_text());acceptance['checks']+=['anonymous TLS refused','bootstrap raw listener removed','plugin unavailable fails closed','daemon stopped and plugin journal settled']
   acceptance['journal']=status;acceptance['ci_engine_version']=prepared['version'];acceptance['ci_engine_archive_digest']=prepared['archive_digest'];acceptance['publisher_signature_verified']=False
   output=ROOT/'docs/evidence/engine-authz-ci-acceptance.json';output.write_text(json.dumps(acceptance,indent=2)+'\n')
-  print(json.dumps(acceptance,sort_keys=True))
+  for name in acceptance['checks']:print(name+': PASS',flush=True)
  finally:
   # Retain all private state on success/failure until this disposable runner is
   # destroyed. Cleanup never means deleting an unresolved journal namespace.
-  if sys.exc_info()[0] is not None:
-   for label in ('bootstrap.log','authorized.log','plugin.log'):
-    path=fixture/label
-    if path.is_file():
-     print(label+': '+path.read_bytes()[-8000:].decode(errors='replace'),file=sys.stderr)
   try:stop(daemon)
   finally:
    if plugin is not None and plugin.poll() is None:plugin.terminate();plugin.wait(timeout=10)
@@ -135,8 +144,5 @@ if __name__=='__main__':
  except Exception as error:
   # Avoid leaking certificate/key or credential bytes through subprocess error
   # output. The runner's private fixture logs are retained for local diagnosis.
-  print('Isolated daemon authorization acceptance failed: '+type(error).__name__+': '+str(error),file=sys.stderr)
-  if isinstance(error,subprocess.CalledProcessError):
-   for value in (error.stdout,error.stderr):
-    if value:print(value[-16000:].decode(errors='replace'),file=sys.stderr)
+  print('Isolated daemon authorization acceptance failed: '+type(error).__name__+'; private fixture retained',file=sys.stderr)
   raise SystemExit(1)

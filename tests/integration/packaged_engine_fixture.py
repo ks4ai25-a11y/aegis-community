@@ -128,10 +128,8 @@ class EngineFixture:
   self.proof={'schema_version':'1.0','separate_daemon':True,'unique_containerd_namespaces':True,'raw_bootstrap_listener_removed':not self.bootstrap.exists(),'broker_has_raw_daemon_socket':False,'broker_has_daemon_socket_group':False,'end_to_end_tls_over_opaque_unix_relay':True,'relay_has_engine_credentials':False,'daemon_http2_setting':'GODEBUG=http2server=0','plugin_journal':observation,'controller_live_preconditions_verified':self.bound is not None,'controller_plugin_lease_binding_verified':False,'all_engine_writes_mediated':False,'cleanup_release_authorized':False,'public_beta':'NO-GO'}
   return self.proof
  def close(self):
-  if sys.exc_info()[0] is not None:
-   for name in ('bootstrap.log','authorized.log','plugin.log','relay.log'):
-    path=self.root/name
-    if path.is_file():print(name+': '+path.read_bytes()[-8000:].decode(errors='replace'),file=sys.stderr)
+  # Private daemon logs may contain allocation identities and host paths.
+  # Retain them in the owned fixture; never copy them into public CI output.
   try:
    if self.bound is not None:self.bound.stop()
    for item in reversed(self.processes):self.process_stop(item)

@@ -231,10 +231,13 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   if not started or confirmed:
    raw(['rm','--force',worker_name],success=False)
    for name in helpers:raw(['rm','--force',name],success=False)
+   # Even a stopped standalone authorizer retains the Compose socket volume.
+   # After confirmed engine settlement, remove this exact nonce-owned holder
+   # before Compose removes its volumes. Unknown work takes the retain branch.
+   if authz_engine is not None and authz_engine.bound is not None:authz_engine.bound.cleanup()
    if namespace_verified:compose('down','--volumes','--remove-orphans',success=False)
    raw(['volume','rm',secret_volume],success=False)
    if broker is not None:broker.cleanup_volumes()
-   if authz_engine is not None and authz_engine.bound is not None:authz_engine.bound.cleanup()
    if work_root is not None:
     helper(['chown','-R',str(os.geteuid())+':'+str(os.getegid()),'/target'],entry='/bin/busybox',user='0:0',caps=['CHOWN','DAC_OVERRIDE'],mounts=['type=bind,src='+str(work_root)+',dst=/target'])
     import shutil

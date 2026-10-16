@@ -1,7 +1,18 @@
 import copy,hashlib,io,json,pathlib,sys,tarfile,tempfile,unittest
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[2]/'scripts'))
 from ci_engine import prepare,validate_lock,BINARIES
+from engine_authz_acceptance import public_create_failure
 class CIEngine(unittest.TestCase):
+ def test_public_native_failure_output_excludes_runtime_data(self):
+  stage='native create failed: connection reused=true request written=true intent recorded=false response recorded=false'
+  self.assertEqual(public_create_failure('    real_test.go:123: '+stage),stage)
+  for line in ('real_test.go:123: '+stage+' secret-canary',
+               'real_test.go:123: '+stage+'\x1b[31m',
+               'real_test.go:123: '+stage.replace('true','/private/runtime',1),
+               'real_test.go:123: Post https://127.0.0.1:12345/private-canary',
+               '/private/source/real_test.go:123: '+stage,
+               'authorization daemon allocation private-canary'):
+   with self.subTest(line=line):self.assertIsNone(public_create_failure(line))
  def fixture(self,parent,fault=''):
   archive=parent/'archive.tgz';members=[]
   with tarfile.open(archive,'w:gz') as output:
