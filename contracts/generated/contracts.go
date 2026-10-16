@@ -160,6 +160,7 @@ type PolicyRevisionV2 struct {
 	Exclusions     []PolicyRevisionV2ExclusionsItem `json:"exclusions"`
 	Metadata       PolicyRevisionV2Metadata         `json:"metadata"`
 	Sites          []PolicyRevisionV2SitesItem      `json:"sites,omitempty"`
+	TrustedProxies []string                         `json:"trusted_proxies,omitempty"`
 }
 type PolicyRevisionV2Crs struct {
 	BlockingParanoia        int64 `json:"blocking_paranoia"`

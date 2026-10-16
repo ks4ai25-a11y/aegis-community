@@ -64,5 +64,5 @@ Set **Rate limit (requests per minute per client)** to return 429 to clients tha
 
 ## Current limits
 
-- Client identity is the connecting address. Behind a CDN or load balancer, all clients share one rate-limit key until trusted proxy ranges are supported.
+- Behind a CDN or load balancer, add its ranges under **Sites → Trusted proxies** so Aegis uses the forwarded client address. Without them, `X-Forwarded-For` is ignored and every client behind the proxy shares one rate-limit key.
 - A generic WAF does not enforce your application's authorization or tenant ownership.

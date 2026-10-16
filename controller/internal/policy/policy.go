@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/netip"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -147,8 +148,11 @@ func Validate(p domain.Policy) error {
 	if (p.Schema != "1.0" && p.Schema != "1.1") || p.Site != "site_demo" {
 		return fmt.Errorf("unsupported policy schema or site")
 	}
-	if p.Schema == "1.0" && p.Sites != nil {
-		return fmt.Errorf("registered sites require schema 1.1")
+	if p.Schema == "1.0" && (p.Sites != nil || p.TrustedProxies != nil) {
+		return fmt.Errorf("registered sites and trusted proxies require schema 1.1")
+	}
+	if e := validateProxies(p.TrustedProxies); e != nil {
+		return e
 	}
 	if p.Mode != "observe" && p.Mode != "protect" {
 		return fmt.Errorf("mode must be observe or protect")
@@ -184,6 +188,29 @@ func Validate(p domain.Policy) error {
 			}
 			hosts[h] = true
 		}
+	}
+	return nil
+}
+
+// validateProxies accepts canonical CIDR prefixes only. A range that trusts
+// everyone (or the whole IPv4/IPv6 space) would let any client choose its address.
+func validateProxies(cidrs []string) error {
+	if len(cidrs) > 64 {
+		return fmt.Errorf("at most 64 trusted proxy ranges")
+	}
+	seen := map[string]bool{}
+	for _, c := range cidrs {
+		prefix, e := netip.ParsePrefix(c)
+		if e != nil || prefix.Masked().String() != c {
+			return fmt.Errorf("trusted proxy %q must be a canonical CIDR such as 10.0.0.0/8", c)
+		}
+		if (prefix.Addr().Is4() && prefix.Bits() < 8) || (prefix.Addr().Is6() && prefix.Bits() < 16) {
+			return fmt.Errorf("trusted proxy range %s is too broad", c)
+		}
+		if seen[c] {
+			return fmt.Errorf("duplicate trusted proxy %s", c)
+		}
+		seen[c] = true
 	}
 	return nil
 }
@@ -238,7 +265,7 @@ func route(b block, digest, indent string) string {
 		limit = fmt.Sprintf(`
    rate_limit {
     zone %s {
-     key {http.request.remote.host}
+     key {http.vars.client_ip}
      events %d
      window %ds
     }
@@ -344,6 +371,12 @@ func render(p domain.Policy, origin, listen, admin, log string, withTLS bool) st
 		}
 	}
 	global, protocols := " auto_https off\n", "h1 h2c"
+	proxies := ""
+	if len(p.TrustedProxies) > 0 {
+		// Only these peers may supply X-Forwarded-For; the leftmost untrusted
+		// address becomes the client address used for pseudonyms and rate limits.
+		proxies = "\n  trusted_proxies static " + strings.Join(p.TrustedProxies, " ") + "\n  client_ip_headers X-Forwarded-For\n  trusted_proxies_strict"
+	}
 	if anyTLS {
 		// Certificates are managed only for the TLS site blocks; their HTTP names
 		// redirect to HTTPS on the shared listener and ACME HTTP-01 uses it too.
@@ -363,7 +396,7 @@ func render(p domain.Policy, origin, listen, admin, log string, withTLS bool) st
  }
  servers {
   max_header_size 32KB
-  protocols %s
+  protocols %s%s
   timeouts {
    read_header 5s
    read_body 15s
@@ -383,7 +416,7 @@ http://%s {
   }
  }
 `+logBlock+`}
-%s`, global, admin, log, protocols, listen, routes, errs, digest, p.Mode, log, secure)
+%s`, global, admin, log, protocols, proxies, listen, routes, errs, digest, p.Mode, log, secure)
 }
 
 func Atomic(path string, b []byte) error {

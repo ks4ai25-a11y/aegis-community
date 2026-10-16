@@ -147,6 +147,7 @@ class PolicyRevisionV2(TypedDict):
     exclusions: list[PolicyRevisionV2ExclusionsItem]
     metadata: PolicyRevisionV2Metadata
     sites: NotRequired[list[PolicyRevisionV2SitesItem]]
+    trusted_proxies: NotRequired[list[str]]
 class PolicyRevisionV2Crs(TypedDict):
     blocking_paranoia: int
     executing_paranoia: int

@@ -250,6 +250,15 @@
         ]
       },
       "maxItems": 16
+    },
+    "trusted_proxies": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 43
+      },
+      "maxItems": 64,
+      "uniqueItems": true
     }
   },
   "required": [

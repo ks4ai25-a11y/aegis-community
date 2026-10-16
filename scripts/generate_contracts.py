@@ -31,6 +31,7 @@ site_policy=obj({'site_id':string(pattern=r'^site_[a-z0-9_]{1,32}$'),'display_na
 policy_v2=json.loads(json.dumps(policy))
 policy_v2['properties']['schema_version']=string(const='1.1')
 policy_v2['properties']['sites']=array(site_policy,maxItems=16)
+policy_v2['properties']['trusted_proxies']=array(string(maxLength=43),maxItems=64,uniqueItems=True)
 schemas['PolicyRevisionV2']=policy_v2
 
 schemas.update({'FindingQueryV1':finding_query,'FindingEntryV1':finding_entry,'FindingPageV1':finding_page})

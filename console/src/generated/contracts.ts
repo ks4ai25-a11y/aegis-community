@@ -158,6 +158,7 @@ export interface PolicyRevisionV2 {
   exclusions: Array<PolicyRevisionV2ExclusionsItem>;
   metadata: PolicyRevisionV2Metadata;
   sites?: Array<PolicyRevisionV2SitesItem>;
+  trusted_proxies?: Array<string>;
 }
 export interface PolicyRevisionV2Crs {
   blocking_paranoia: number;

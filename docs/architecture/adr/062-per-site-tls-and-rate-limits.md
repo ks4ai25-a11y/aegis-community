@@ -1,6 +1,6 @@
 # ADR 062: Per-site HTTPS and approved per-client rate limits
 
-Status: implemented; validated with the real gateway binary and on the hardened container. Trusted proxy ranges (correct client addresses behind a CDN) remain open.
+Status: implemented; validated with the real gateway binary and on the hardened container, including trusted proxy ranges.
 
 ## Problem
 
@@ -18,10 +18,10 @@ Rate limits use the pinned `github.com/mholt/caddy-ratelimit` module (Apache-2.0
 
 ## Consequences
 
-- Client keys are the TCP peer address. Behind a CDN or load balancer all clients share one key until trusted proxy ranges are supported; the console states this.
+- Policy-level `trusted_proxies` (schema 1.1, up to 64 canonical CIDRs, nothing broader than /8 IPv4 or /16 IPv6) render Caddy `trusted_proxies static`, `client_ip_headers X-Forwarded-For` and `trusted_proxies_strict`. The resolved client address keys rate limits (`{http.vars.client_ip}`) and pseudonyms. Without trusted ranges, client-supplied `X-Forwarded-For` is ignored.
 - ACME requires public DNS for every host name and reachability on port 80.
 - Recovery bundles render the production configuration, so TLS sites are captured and verified consistently.
 
 ## Validation
 
-Policy tests cover TLS/email/rate-limit validation, byte-identical TLS-free rendering and offline `caddy validate` of an ACME + rate-limit site. A real-gateway test serves a TLS site from the internal CA, checks the site-prefixed request ID, the 308 redirect, 429 enforcement and that the plain-HTTP demo host is routed, not redirected. `tests/integration/multi_site_acceptance.py` repeats the rate-limit and HTTPS checks on the hardened container (`docs/evidence/multi-site-acceptance.json`). Proposal tests cover DET-04 rate-limit proposals.
+Policy tests cover TLS/email/rate-limit validation, byte-identical TLS-free rendering and offline `caddy validate` of an ACME + rate-limit site. A real-gateway test serves a TLS site from the internal CA, checks the site-prefixed request ID, the 308 redirect, 429 enforcement and that the plain-HTTP demo host is routed, not redirected. `tests/integration/multi_site_acceptance.py` repeats the rate-limit and HTTPS checks on the hardened container (`docs/evidence/multi-site-acceptance.json`). Proposal tests cover DET-04 rate-limit proposals. A real-gateway test shows distinct forwarded clients receive separate allowances behind a trusted proxy and that an untrusted `X-Forwarded-For` cannot obtain a fresh allowance.

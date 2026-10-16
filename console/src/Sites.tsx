@@ -51,9 +51,12 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
     return out;
   }
 
-  function stage(sites: any[], why: string) {
+  const [proxies, setProxies] = useState('');
+  useEffect(() => { setProxies((current?.policy.trusted_proxies || []).join('\n')); }, [current]);
+  function stage(sites: any[], why: string, trusted?: string[]) {
     if (!current) return;
-    const candidate = withSites(current.policy, sites, current.digest, why);
+    const candidate: any = withSites(current.policy, sites, current.digest, why);
+    if (trusted !== undefined) { candidate.schema_version = '1.1'; if (trusted.length) candidate.trusted_proxies = trusted; else delete candidate.trusted_proxies; }
     setReason(why);
     setAck(false);
     return action(async () => setPreview(await previewCandidate('site_demo', candidate)));
@@ -96,6 +99,12 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
       </button>
     </section>
 
+    <section className="card">
+      <div className="card-heading"><h2>Trusted proxies</h2></div>
+      <p className="muted">If a CDN or load balancer sits in front of Aegis, list its address ranges (one CIDR per line). Only these peers may set X-Forwarded-For; otherwise every client behind them shares one rate-limit key and pseudonym.</p>
+      <label>Ranges<textarea rows={3} className="mono" value={proxies} placeholder={"10.0.0.0/8\n2001:db8::/32"} onChange={e => setProxies(e.target.value)}/></label>
+      <button disabled={busy || !current} className="button light" onClick={() => stage(registered, 'Update trusted proxy ranges', proxies.split(/\s+/).map(x => x.trim()).filter(Boolean))}>Validate and preview</button>
+    </section>
     {editing && <section className="card">
       <div className="card-heading"><h2>Settings for {editing.site_id}</h2></div>
       <div className="form-grid"><TLSFields value={editing} onChange={v => setEditing({...editing, ...v})}/></div>

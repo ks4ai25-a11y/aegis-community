@@ -419,3 +419,93 @@ func TestTLSRedirectAndRateLimitWithRealGateway(t *testing.T) {
 		t.Fatal("demo HTTP listener changed", demo.StatusCode)
 	}
 }
+
+func TestTrustedProxyValidation(t *testing.T) {
+	p := sitePolicy()
+	p.TrustedProxies = []string{"10.0.0.0/8", "2001:db8::/32", "203.0.113.0/24"}
+	if e := Validate(p); e != nil {
+		t.Fatal(e)
+	}
+	for _, bad := range [][]string{{"0.0.0.0/0"}, {"::/0"}, {"1.0.0.0/7"}, {"10.0.0.1/8"}, {"10.0.0.0/8", "10.0.0.0/8"}, {"not-a-cidr"}, {"10.0.0.0/8\n}"}} {
+		q := sitePolicy()
+		q.TrustedProxies = bad
+		if Validate(q) == nil {
+			t.Error("accepted", bad)
+		}
+	}
+	q := domain.Initial()
+	q.Metadata.Rationale = "legacy schema"
+	q.TrustedProxies = []string{"10.0.0.0/8"}
+	if Validate(q) == nil {
+		t.Fatal("trusted proxies accepted in schema 1.0")
+	}
+}
+
+func TestRateLimitKeyFollowsTrustedProxiesOnly(t *testing.T) {
+	bin, _ := filepath.Abs("../../../bin/caddy")
+	if out, e := exec.Command(bin, "list-modules").Output(); e != nil || !strings.Contains(string(out), "http.handlers.rate_limit") {
+		t.Skip("gateway binary with rate limiting not built")
+	}
+	origin := http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })}
+	ol, _ := net.Listen("tcp", "127.0.0.1:0")
+	go origin.Serve(ol)
+	defer origin.Close()
+	run := func(trusted []string) func(xff string) int {
+		dir, _ := os.MkdirTemp("/tmp", "aegis-proxy-")
+		t.Cleanup(func() { os.RemoveAll(dir) })
+		port := freePort(t)
+		p := sitePolicy()
+		p.Sites[0].Hostnames = []string{"shop.example.test"}
+		p.Sites[0].Origin = ol.Addr().String()
+		p.Sites[0].RateLimit = &domain.RateLimit{Requests: 10, WindowSeconds: 60}
+		p.TrustedProxies = trusted
+		path := filepath.Join(dir, "Caddyfile")
+		os.WriteFile(path, []byte(Render(p, "127.0.0.1:1", fmt.Sprintf(":%d", port), filepath.Join(dir, "a.sock"), filepath.Join(dir, "e.jsonl"))), 0600)
+		cmd := exec.Command(bin, "run", "--config", path, "--adapter", "caddyfile")
+		cmd.Env = append(os.Environ(), "XDG_DATA_HOME="+dir, "XDG_CONFIG_HOME="+dir, "HOME="+dir)
+		if e := cmd.Start(); e != nil {
+			t.Fatal(e)
+		}
+		t.Cleanup(func() { cmd.Process.Signal(os.Interrupt); cmd.Wait() })
+		client := &http.Client{Timeout: 3 * time.Second}
+		send := func(xff string) int {
+			req, _ := http.NewRequest("GET", fmt.Sprintf("http://127.0.0.1:%d/catalog", port), nil)
+			req.Host = "shop.example.test"
+			if xff != "" {
+				req.Header.Set("X-Forwarded-For", xff)
+			}
+			r, e := client.Do(req)
+			if e != nil {
+				return 0
+			}
+			r.Body.Close()
+			return r.StatusCode
+		}
+		for i := 0; i < 50 && send("") == 0; i++ {
+			time.Sleep(100 * time.Millisecond)
+		}
+		return send
+	}
+	count := func(send func(string) int, xff string, n int) (limited int) {
+		for i := 0; i < n; i++ {
+			if send(xff) == 429 {
+				limited++
+			}
+		}
+		return
+	}
+	// Trusted loopback proxy: each forwarded client has its own allowance.
+	send := run([]string{"127.0.0.0/8"})
+	if a, b := count(send, "198.51.100.1", 9), count(send, "198.51.100.2", 9); a != 0 || b != 0 {
+		t.Fatal("distinct forwarded clients shared a limit", a, b)
+	}
+	if count(send, "198.51.100.1", 5) == 0 {
+		t.Fatal("forwarded client not limited")
+	}
+	// No trusted proxies: a spoofed header cannot buy a fresh allowance.
+	send = run(nil)
+	count(send, "", 9)
+	if count(send, "198.51.100.77", 5) == 0 {
+		t.Fatal("untrusted X-Forwarded-For bypassed the rate limit")
+	}
+}

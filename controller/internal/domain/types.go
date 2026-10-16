@@ -51,6 +51,9 @@ type Policy struct {
 	// The top-level fields continue to govern the bundled site_demo block, so 1.0
 	// documents and their digests are unchanged.
 	Sites []SitePolicy `json:"sites,omitempty"`
+	// TrustedProxies are CIDR ranges (a CDN or load balancer) whose
+	// X-Forwarded-For header Aegis believes for the client address (schema 1.1).
+	TrustedProxies []string `json:"trusted_proxies,omitempty"`
 }
 
 // SitePolicy is one owner-registered application: its host names, private origin
@@ -97,7 +100,7 @@ func (p Policy) FindSite(id string) (SitePolicy, bool) {
 }
 
 func Initial() Policy {
-	return Policy{"1.0", "site_demo", "", "observe", CRS{1, 1, 5}, []Exclusion{}, Metadata{"Initial Observe policy", "system"}, nil}
+	return Policy{"1.0", "site_demo", "", "observe", CRS{1, 1, 5}, []Exclusion{}, Metadata{"Initial Observe policy", "system"}, nil, nil}
 }
 
 type Event struct {
