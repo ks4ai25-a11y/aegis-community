@@ -19,3 +19,13 @@ func Create(toolID, image, nameValue, sourceDir, rulesDir, guardDir string, seco
 	}
 	return container.CreateRequest{Config: &container.Config{Image: image, Entrypoint: []string{"/aegis/scanner-guard"}, Cmd: []string{toolID, strconv.Itoa(seconds), deadline.UTC().Format(time.RFC3339Nano)}, User: uid + ":" + gid, Env: []string{"HOME=/tmp", "SEMGREP_SEND_METRICS=off"}, AttachStdout: true, AttachStderr: true, Tty: false, Labels: map[string]string{"io.aegis.scan": nameValue, "io.aegis.operator_pid": strconv.Itoa(processID)}}, HostConfig: &container.HostConfig{AutoRemove: true, ReadonlyRootfs: true, NetworkMode: "none", IpcMode: "private", CapDrop: []string{"ALL"}, SecurityOpt: []string{"no-new-privileges"}, LogConfig: container.LogConfig{Type: "none"}, Mounts: mounts, Tmpfs: map[string]string{"/tmp": fmt.Sprint("rw,noexec,nosuid,size=96m,uid=", uid, ",gid=", gid)}, Resources: container.Resources{PidsLimit: &pids, Memory: 768 << 20, MemorySwap: 768 << 20, NanoCPUs: 1e9}}}
 }
+
+// CreateTracked disables daemon auto-removal so the authorization response
+// callback can observe the explicit successful DELETE (204). Docker's callback
+// may run before error responses are serialized, so a later client-side 404
+// cannot be used by this independent journal to confirm a removal.
+func CreateTracked(toolID, image, nameValue, sourceDir, rulesDir, guardDir string, seconds int, deadline time.Time, userID, groupID, processID int) container.CreateRequest {
+	p := Create(toolID, image, nameValue, sourceDir, rulesDir, guardDir, seconds, deadline, userID, groupID, processID)
+	p.HostConfig.AutoRemove = false
+	return p
+}

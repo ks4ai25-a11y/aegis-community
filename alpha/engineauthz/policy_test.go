@@ -46,7 +46,7 @@ func fixture(t *testing.T) (*Policy, Config, Request) {
 		t.Fatal(e)
 	}
 	t.Cleanup(p.Close)
-	profile := engineprofile.Create("bandit", testImage, testName, filepath.Join(work, "source"), "", filepath.Join(work, "guard"), 120, time.Now().UTC().Add(120*time.Second), cfg.UID, cfg.GID, 123)
+	profile := engineprofile.CreateTracked("bandit", testImage, testName, filepath.Join(work, "source"), "", filepath.Join(work, "guard"), 120, time.Now().UTC().Add(120*time.Second), cfg.UID, cfg.GID, 123)
 	b, _ := json.Marshal(profile)
 	return p, cfg, Request{User: Broker, UserAuthNMethod: "TLS", RequestMethod: "POST", RequestURI: api + "/containers/create?name=" + testName, RequestBody: b, RequestHeaders: map[string]string{"Content-Type": "application/json"}}
 }
@@ -98,7 +98,7 @@ func TestLifecycleRequiresExactIntentAndResponse(t *testing.T) {
 	must(t, p.AuthorizeRequest(remove), false)
 }
 func TestUnansweredOrFailedMutationsPersistQuarantine(t *testing.T) {
-	for _, phase := range []string{"no-response", "bad-create-id", "create-error", "truncated-create", "start-error", "remove-error", "remove-404"} {
+	for _, phase := range []string{"no-response", "bad-create-id", "create-error", "truncated-create", "start-error", "remove-error", "remove-404", "callback-unwritten"} {
 		t.Run(phase, func(t *testing.T) {
 			p, cfg, r := fixture(t)
 			must(t, p.AuthorizeRequest(r), true)
@@ -127,22 +127,21 @@ func TestUnansweredOrFailedMutationsPersistQuarantine(t *testing.T) {
 				if phase == "remove-404" {
 					r.ResponseStatusCode = 404
 					r.ResponseBody = []byte(`{"message":"No such container"}`)
-					must(t, p.AuthorizeResponse(r), true)
+					must(t, p.AuthorizeResponse(r), false)
+				} else if phase == "callback-unwritten" {
+					r.ResponseStatusCode = 200
+					must(t, p.AuthorizeResponse(r), false)
 				} else {
 					must(t, p.AuthorizeResponse(r), false)
 				}
 			}
 			p.Close()
 			q, e := Open(cfg)
-			if phase == "remove-404" {
-				if e != nil {
-					t.Fatal(e)
-				}
-				q.Close()
-			} else if e == nil {
+			if e == nil {
 				q.Close()
 				t.Fatal("unresolved restart accepted")
 			}
+
 			if _, e := enginejournal.InitializeEmpty(cfg.JournalRoot, cfg.EngineDigest); e == nil {
 				t.Fatal("used journal reinitialized")
 			}
@@ -201,7 +200,7 @@ func TestContainerProfileRefusalsBeforeAnyIntent(t *testing.T) {
 	mutations := map[string]func(*container.CreateRequest){
 		"privileged":     func(c *container.CreateRequest) { c.HostConfig.Privileged = true },
 		"rw-root":        func(c *container.CreateRequest) { c.HostConfig.ReadonlyRootfs = false },
-		"auto-remove":    func(c *container.CreateRequest) { c.HostConfig.AutoRemove = false },
+		"auto-remove":    func(c *container.CreateRequest) { c.HostConfig.AutoRemove = true },
 		"root-user":      func(c *container.CreateRequest) { c.User = "0:0" },
 		"other-user":     func(c *container.CreateRequest) { c.User = "10002:10002" },
 		"network":        func(c *container.CreateRequest) { c.HostConfig.NetworkMode = "host" },

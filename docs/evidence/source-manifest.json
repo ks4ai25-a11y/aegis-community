@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:a0fd029d5c04805a45ee28bf4d7e139c54bc7d3ad207b79f175dd14ba6836f01",
+  "source_tree_sha256": "sha256:15d8769ced240a6297e9229c8449baf30edcc12b9e8363f3079fd32a9188c1f9",
   "files": [
     {
       "path": ".dockerignore",
@@ -88,15 +88,15 @@
     },
     {
       "path": "alpha/engineauthz/policy.go",
-      "sha256": "86ddb24a39f71c8e406421f6fe71b49806e05c7131acb8ef8d9609280eb5d1a1"
+      "sha256": "9134a16f97156576c7938ade46e62e7980be188c2e58e744d3b96557151beba2"
     },
     {
       "path": "alpha/engineauthz/policy_test.go",
-      "sha256": "2f248ebd20b75fed2ee574d0896a94f37a651762ba022d6dc821bae0ffb92fbc"
+      "sha256": "b775f7f5bbb051efa910bbbcd89d58f13c7d6c8561f6188b333835f7617c537c"
     },
     {
       "path": "alpha/engineauthz/real_test.go",
-      "sha256": "75dcb00a005482b0a23020c703f5353aa1a0b56233ba550ba2fc372a25880c20"
+      "sha256": "c4c640d17b0cf9a134282d1fd1a3258bd874968ebe96bcb890f5ade68adf5da2"
     },
     {
       "path": "alpha/engineauthz/server.go",
@@ -124,7 +124,7 @@
     },
     {
       "path": "alpha/engineprofile/profile.go",
-      "sha256": "1ca1e6d7433600ca0ce9e94e09a4f5ae28d68ead24b6b05e92a5b36c895d97c0"
+      "sha256": "ea9babbd2c79a93edbc22ac50f80aea563e887b9eee19aad25e9d5de1ee4db26"
     },
     {
       "path": "alpha/executor/engine.go",
@@ -1656,7 +1656,7 @@
     },
     {
       "path": "docs/architecture/adr/051-isolated-daemon-authorization-adapter.md",
-      "sha256": "0aa9d23f6d35b7b555162d2932a25125cec5ffd69c18f4197a20bb6e0bea958e"
+      "sha256": "954aebb44df4cd89f9829a15bcabd48a6386077563a517db7dbd64881d138880"
     },
     {
       "path": "docs/operators/database-snapshots.md",
@@ -1672,7 +1672,7 @@
     },
     {
       "path": "docs/operators/isolated-engine-authorization.md",
-      "sha256": "01cd130a7ee10600a6407959c3794eb35cc2d342cb7e9cb9eeb391dc3b4059cf"
+      "sha256": "dfe5b356ec1bbd688af4f65ae4d21c32d8b950dd7147dbdc7c80da7a9d538c67"
     },
     {
       "path": "docs/operators/journaled-scanner-engine.md",

@@ -214,7 +214,7 @@ func (p *Policy) create(r Request, u *url.URL, now time.Time) bool {
 	if len(paths) == 3 {
 		rules = paths[2]
 	}
-	expected := engineprofile.Create(c.Cmd[0], image, name, paths[0], rules, paths[1], seconds, deadline, p.config.UID, p.config.GID, pid)
+	expected := engineprofile.CreateTracked(c.Cmd[0], image, name, paths[0], rules, paths[1], seconds, deadline, p.config.UID, p.config.GID, pid)
 	// Compare exact JSON object shapes as well as typed values: nulls, aliased or
 	// additional keys and omitted safety fields cannot acquire zero-value meaning.
 	var actual, prototype any
@@ -309,9 +309,10 @@ func (p *Policy) AuthorizeResponse(r Request) Decision {
 			return deny()
 		}
 		id = created.ID
-	} else if len(r.ResponseBody) != 0 && !(p.operation == "remove" && r.ResponseStatusCode == 404) {
+	} else if len(r.ResponseBody) != 0 || p.operation == "remove" && r.ResponseStatusCode != 204 {
 		return deny()
 	}
+
 	if p.ticket.Confirm(r.ResponseStatusCode, id) != nil {
 		return deny()
 	}

@@ -157,7 +157,7 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 		t.Fatal(e)
 	}
 	name := "aegis-scan-" + hex.EncodeToString(nonce)
-	profile := engineprofile.Create("bandit", images["bandit"], name, snapshot.Path, "", guard, 120, time.Now().Add(120*time.Second), os.Geteuid(), os.Getegid(), os.Getpid())
+	profile := engineprofile.CreateTracked("bandit", images["bandit"], name, snapshot.Path, "", guard, 120, time.Now().Add(120*time.Second), os.Geteuid(), os.Getegid(), os.Getpid())
 	b, _ := json.Marshal(profile)
 	status, _ = request("observer", "POST", "/containers/create?name="+name, b)
 	if status != 403 {
@@ -254,21 +254,8 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 	if json.Unmarshal(stdout, &report) != nil || len(report.Results) != 1 || report.Results[0].TestID != "B307" {
 		t.Fatal("actual Bandit evidence missing")
 	}
-	// AutoRemove is asynchronous after next-exit. Wait for it before an exact
-	// DELETE; otherwise Docker may return 409 while its removal is in progress.
-	removed := sdk.ContainerWait(ctx, id, client.ContainerWaitOptions{Condition: container.WaitConditionRemoved})
-	select {
-	case <-removed.Result:
-	case <-removed.Error:
-		status, _ = request("observer", "GET", "/containers/"+id+"/json", nil)
-		if status != 404 {
-			t.Fatal("removed-state wait unconfirmed", status)
-		}
-	case <-ctx.Done():
-		t.Fatal("removed-state deadline")
-	}
 	status, _ = request("broker", "DELETE", "/containers/"+id+"?force=1&v=1", nil)
-	if status != 204 && status != 404 {
+	if status != 204 {
 		t.Fatal("remove unconfirmed", status)
 	}
 	status, _ = request("observer", "GET", "/containers/"+id+"/json", nil)
