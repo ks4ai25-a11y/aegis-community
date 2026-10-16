@@ -1,0 +1,18 @@
+{
+ "schema_version": "1.0",
+ "test_scope": "local-fresh-installation-walkthrough",
+ "recorded_at": "2026-10-16T18:22:54Z",
+ "source_commit": "ef08da02cd1a8e594fc90abe186fb2e62cc2e299",
+ "environment": "Separate Compose project (aegis-fresh) with empty volumes on one developer machine; not an independent third-party installation (GATE-1 remains pending).",
+ "checks": [
+  {"id": "quickstart_builds_starts_and_prints_bootstrap_token", "result": "PASS"},
+  {"id": "browser_owner_enrollment_with_one_time_token", "result": "PASS"},
+  {"id": "demo_traffic_produces_crs_942100_incident", "result": "PASS"},
+  {"id": "deterministic_assessment_renders", "result": "PASS"},
+  {"id": "protect_proposal_preview_passes_isolated_fixture", "result": "PASS", "detail": "baseline 200/200, candidate 200/403"},
+  {"id": "summary_rule_949110_no_longer_opens_incident", "result": "PASS", "detail": "fixed during walkthrough in ef08da0"},
+  {"id": "incident_evidence_includes_access_record", "result": "PASS", "detail": "fixed during walkthrough in ef08da0"}
+ ],
+ "findings_fixed": ["duplicate anomaly-rule incidents", "missing access evidence in dossiers", "assessment plurals", "documented enrollment button label"],
+ "result": "PASS"
+}
