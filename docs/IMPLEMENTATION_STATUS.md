@@ -232,3 +232,7 @@ A separate opt-in native Docker authorization plugin now restricts verified TLS 
 ## Selected broker TLS transport (ADR 052)
 
 An additional disabled profile connects the selected packaged broker to the restricted daemon through end-to-end TLS over a credential-free private Unix relay. The broker receives no raw engine socket or supplemental daemon group; the limited dispatcher still receives no engine credential. Public CA/client certificate identity is included in immutable engine binding and reread before each cooperating SDK RPC, including reused connections. TLS mode uses explicit tracked removal, refuses plaintext/CLI fallback and retains cleanup holds. Controller-authenticated plugin leases, independent source/guard verification, approved certificate recovery/rotation, independent reconciliation/release and full v4/H7 acceptance remain unfinished. Public beta remains NO-GO.
+
+## Fresh controller launch observations (ADR 053)
+
+The private observer channel now supports a challenge-bound read of an exact revision 1.2 launch under the current engine/journal/broker chain and live job/worker lease. The client validates nested scope, challenge, freshness and expiry without receiving or renewing a lease. Current revision 1.2 cleanup-context reads and TLS preflight schema parity are corrected. This is a read-only precondition: the daemon plugin does not consume it yet, and durable allocation authorization, independent byte checks and cleanup release remain unfinished. Public beta remains NO-GO.

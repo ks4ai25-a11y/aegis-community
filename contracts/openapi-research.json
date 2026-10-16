@@ -1486,6 +1486,15 @@
       "ScannerLaunchV3": {
         "$ref": "schemas/ScannerLaunchV3.json"
       },
+      "ScannerLiveLaunchContextV1": {
+        "$ref": "schemas/ScannerLiveLaunchContextV1.json"
+      },
+      "ScannerLiveLaunchRecordV1": {
+        "$ref": "schemas/ScannerLiveLaunchRecordV1.json"
+      },
+      "ScannerLiveLaunchRequestV1": {
+        "$ref": "schemas/ScannerLiveLaunchRequestV1.json"
+      },
       "ScannerSandboxObservationV1": {
         "$ref": "schemas/ScannerSandboxObservationV1.json"
       },

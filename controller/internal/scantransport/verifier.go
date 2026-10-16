@@ -27,6 +27,30 @@ func (s *Server) verifier(w http.ResponseWriter, r *http.Request, token string) 
 			return
 		}
 		reply(w, 200, v)
+	case "/internal/v1/scanner/verifier/live-launch":
+		var in struct {
+			Container string `json:"container_name"`
+			Challenge string `json:"challenge"`
+		}
+		if decode(r, &in, map[string]bool{"container_name": true, "challenge": true}) != nil {
+			failure(w, 400, "INVALID_VERIFIER_REQUEST")
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+		out, e := s.Q.LiveLaunch(ctx, v, in.Container, in.Challenge)
+		switch {
+		case errors.Is(e, scannerauth.ErrDenied):
+			failure(w, 401, "VERIFIER_AUTH_REQUIRED")
+		case errors.Is(e, scanqueue.ErrContextScope):
+			failure(w, 404, "SCAN_UNAVAILABLE")
+		case errors.Is(e, scanqueue.ErrContextUnbound):
+			failure(w, 409, "LIVE_LAUNCH_UNBOUND")
+		case e != nil:
+			queueError(w, e)
+		default:
+			reply(w, 200, out)
+		}
 	case "/internal/v1/scanner/verifier/context":
 		var in struct {
 			Job string `json:"job_id"`

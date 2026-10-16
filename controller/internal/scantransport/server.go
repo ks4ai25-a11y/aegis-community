@@ -54,7 +54,7 @@ func (s *Server) Handler() http.Handler {
 			failure(w, 429, "WORKER_BUSY")
 			return
 		}
-		if r.Method != "POST" || r.URL.RawQuery != "" || r.URL.ForceQuery || len(r.Header.Values("Origin")) > 0 || len(r.Header.Values("Cookie")) > 0 {
+		if r.Method != "POST" || r.URL.RawPath != "" || r.URL.RawQuery != "" || r.URL.ForceQuery || len(r.Header.Values("Origin")) > 0 || len(r.Header.Values("Cookie")) > 0 {
 			failure(w, 403, "WORKER_CHANNEL_REQUIRED")
 			return
 		}

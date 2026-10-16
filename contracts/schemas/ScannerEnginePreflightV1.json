@@ -11,7 +11,10 @@
     },
     "backend": {
       "type": "string",
-      "const": "unix-sdk-1.55"
+      "enum": [
+        "unix-sdk-1.55",
+        "mtls-unix-sdk-1.55"
+      ]
     },
     "engine_digest": {
       "type": "string",

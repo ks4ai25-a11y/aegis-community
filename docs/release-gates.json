@@ -62,7 +62,9 @@
         "docs/evidence/engine-authz-acceptance.json",
         "docs/architecture/adr/052-selected-broker-mutual-tls-engine.md",
         "alpha/executor/tls_sdk_test.go",
-        "docs/evidence/tls-broker-validation.json"
+        "docs/evidence/tls-broker-validation.json",
+        "docs/architecture/adr/053-fresh-controller-launch-observations.md",
+        "tests/integration/scannerchannel/live_launch_test.go"
       ]
     },
     {

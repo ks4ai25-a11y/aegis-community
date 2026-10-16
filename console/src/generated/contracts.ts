@@ -281,7 +281,7 @@ export interface FindingPageV1ItemsItemOwnerReviewDocument {
 }
 export interface ScannerEngineBindingV1 {
   binding_digest: string;
-  document: ScannerEngineBindingV1Document;
+  document: ScannerLiveLaunchRecordV1DocumentEngineBindingDocument;
 }
 export interface ScannerEngineBindingV1Document {
   schema_version: "1.0";
@@ -299,7 +299,7 @@ export interface ScannerEngineBindingInputV1 {
 }
 export interface ScannerEngineJournalBindingV1 {
   journal_binding_digest: string;
-  document: ScannerEngineJournalBindingV1Document;
+  document: ScannerLiveLaunchRecordV1DocumentJournalBindingDocument;
 }
 export interface ScannerEngineJournalBindingV1Document {
   schema_version: "1.0";
@@ -319,7 +319,7 @@ export interface ScannerEngineJournalInputV1 {
 }
 export interface ScannerEngineBrokerBindingV1 {
   broker_binding_digest: string;
-  document: ScannerEngineBrokerBindingV1Document;
+  document: ScannerLiveLaunchRecordV1DocumentBrokerBindingDocument;
 }
 export interface ScannerEngineBrokerBindingV1Document {
   schema_version: "1.0";
@@ -340,7 +340,7 @@ export interface ScannerBrokerDispatchOutcomeV1 {
 }
 export interface ScannerEnginePreflightV1 {
   schema_version: "1.0";
-  backend: "unix-sdk-1.55";
+  backend: "unix-sdk-1.55" | "mtls-unix-sdk-1.55";
   engine_digest: string;
   architecture: "amd64" | "arm64";
   tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
@@ -1071,7 +1071,7 @@ export interface ScannerLaunchV3 {
   tool_image_digest: string;
   sandbox_profile: "repo_offline-network-none-v1";
   duration_limit_seconds: number;
-  plan: ScannerLaunchRecordV3DocumentPlan;
+  plan: ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItemDocumentPlan;
   created_at: string;
   deadline: string;
   guard_set_digest: string;
@@ -1091,7 +1091,7 @@ export interface ScannerLaunchV3Plan {
 }
 export interface ScannerLaunchRecordV3 {
   launch_digest: string;
-  document: ScannerLaunchRecordV3Document;
+  document: ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItemDocument;
 }
 export interface ScannerLaunchRecordV3Document {
   schema_version: "1.2";
@@ -1106,7 +1106,7 @@ export interface ScannerLaunchRecordV3Document {
   tool_image_digest: string;
   sandbox_profile: "repo_offline-network-none-v1";
   duration_limit_seconds: number;
-  plan: ScannerLaunchRecordV3DocumentPlan;
+  plan: ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItemDocumentPlan;
   created_at: string;
   deadline: string;
   guard_set_digest: string;
@@ -1283,7 +1283,7 @@ export interface ScannerCleanupContextV1 {
   engine_digest: string;
   registry_digest: string;
   tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
-  workspaces: Array<ScannerCleanupContextRecordV1DocumentWorkspacesItem>;
+  workspaces: Array<ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItem>;
   launches: Array<ScannerCleanupContextRecordV1DocumentLaunchesItem>;
   observed_at: string;
   controller_metadata_only: true;
@@ -1294,7 +1294,7 @@ export interface ScannerCleanupContextV1 {
 }
 export interface ScannerCleanupContextV1WorkspacesItem {
   workspace_digest: string;
-  document: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocument;
+  document: ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItemDocument;
 }
 export interface ScannerCleanupContextV1WorkspacesItemDocument {
   schema_version: "1.0";
@@ -1305,7 +1305,7 @@ export interface ScannerCleanupContextV1WorkspacesItemDocument {
   repository_id: string;
   map_digest: string;
   tool_lock_digest: string;
-  plan: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocumentPlan;
+  plan: ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItemDocumentPlan;
   created_at: string;
   deadline: string;
 }
@@ -1375,7 +1375,7 @@ export interface ScannerCleanupContextRecordV1Document {
   engine_digest: string;
   registry_digest: string;
   tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
-  workspaces: Array<ScannerCleanupContextRecordV1DocumentWorkspacesItem>;
+  workspaces: Array<ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItem>;
   launches: Array<ScannerCleanupContextRecordV1DocumentLaunchesItem>;
   observed_at: string;
   controller_metadata_only: true;
@@ -1386,7 +1386,7 @@ export interface ScannerCleanupContextRecordV1Document {
 }
 export interface ScannerCleanupContextRecordV1DocumentWorkspacesItem {
   workspace_digest: string;
-  document: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocument;
+  document: ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItemDocument;
 }
 export interface ScannerCleanupContextRecordV1DocumentWorkspacesItemDocument {
   schema_version: "1.0";
@@ -1397,7 +1397,7 @@ export interface ScannerCleanupContextRecordV1DocumentWorkspacesItemDocument {
   repository_id: string;
   map_digest: string;
   tool_lock_digest: string;
-  plan: ScannerCleanupContextRecordV1DocumentWorkspacesItemDocumentPlan;
+  plan: ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItemDocumentPlan;
   created_at: string;
   deadline: string;
 }
@@ -1441,6 +1441,292 @@ export interface ScannerCleanupContextRecordV1DocumentLaunchesItemDocumentPlan {
   guard_architecture: "amd64" | "arm64";
   engine_journal_binding_digest?: string;
   engine_journal_namespace_digest?: string;
+}
+export interface ScannerLiveLaunchRequestV1 {
+  container_name: string;
+  challenge: string;
+}
+export interface ScannerLiveLaunchContextV1 {
+  schema_version: "1.0";
+  challenge: string;
+  container_name: string;
+  context: ScannerLiveLaunchRecordV1DocumentContext;
+  engine_binding: ScannerLiveLaunchRecordV1DocumentEngineBinding;
+  journal_binding: ScannerLiveLaunchRecordV1DocumentJournalBinding;
+  broker_binding: ScannerLiveLaunchRecordV1DocumentBrokerBinding;
+  live_lease_observed: true;
+  controller_metadata_only: true;
+  engine_write_authorized: false;
+  cleanup_release_authorized: false;
+}
+export interface ScannerLiveLaunchContextV1Context {
+  context_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentContextDocument;
+}
+export interface ScannerLiveLaunchContextV1ContextDocument {
+  schema_version: "1.0";
+  verifier_id: string;
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  job_created_at: string;
+  worker_id: string;
+  job_state: "running";
+  cancel_requested: false;
+  dispatch_state: "active";
+  deadline: string;
+  lease_expires_at: string;
+  guard_set_digest: string;
+  engine_digest: string;
+  registry_digest: string;
+  tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
+  workspaces: Array<ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItem>;
+  launches: Array<ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItem>;
+  observed_at: string;
+  controller_metadata_only: true;
+  cleanup_required: true;
+  cleanup_confirmed: false;
+  active_workspace_leases_excluded: false;
+  late_start_excluded: false;
+}
+export interface ScannerLiveLaunchContextV1ContextDocumentWorkspacesItem {
+  workspace_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItemDocument;
+}
+export interface ScannerLiveLaunchContextV1ContextDocumentWorkspacesItemDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  plan: ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+}
+export interface ScannerLiveLaunchContextV1ContextDocumentWorkspacesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}
+export interface ScannerLiveLaunchContextV1ContextDocumentLaunchesItem {
+  launch_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItemDocument;
+}
+export interface ScannerLiveLaunchContextV1ContextDocumentLaunchesItemDocument {
+  schema_version: "1.2";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+  guard_set_digest: string;
+  guard_protocol: "absolute-deadline-v1";
+}
+export interface ScannerLiveLaunchContextV1ContextDocumentLaunchesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+  engine_journal_binding_digest: string;
+  engine_journal_namespace_digest: string;
+}
+export interface ScannerLiveLaunchContextV1EngineBinding {
+  binding_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentEngineBindingDocument;
+}
+export interface ScannerLiveLaunchContextV1EngineBindingDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  engine_digest: string;
+  registry_digest: string;
+  created_at: string;
+}
+export interface ScannerLiveLaunchContextV1JournalBinding {
+  journal_binding_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentJournalBindingDocument;
+}
+export interface ScannerLiveLaunchContextV1JournalBindingDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  engine_binding_digest: string;
+  journal_root_digest: string;
+  journal_namespace_digest: string;
+  created_at: string;
+}
+export interface ScannerLiveLaunchContextV1BrokerBinding {
+  broker_binding_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentBrokerBindingDocument;
+}
+export interface ScannerLiveLaunchContextV1BrokerBindingDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  worker_id: string;
+  journal_binding_digest: string;
+  created_at: string;
+}
+export interface ScannerLiveLaunchRecordV1 {
+  observation_digest: string;
+  document: ScannerLiveLaunchRecordV1Document;
+}
+export interface ScannerLiveLaunchRecordV1Document {
+  schema_version: "1.0";
+  challenge: string;
+  container_name: string;
+  context: ScannerLiveLaunchRecordV1DocumentContext;
+  engine_binding: ScannerLiveLaunchRecordV1DocumentEngineBinding;
+  journal_binding: ScannerLiveLaunchRecordV1DocumentJournalBinding;
+  broker_binding: ScannerLiveLaunchRecordV1DocumentBrokerBinding;
+  live_lease_observed: true;
+  controller_metadata_only: true;
+  engine_write_authorized: false;
+  cleanup_release_authorized: false;
+}
+export interface ScannerLiveLaunchRecordV1DocumentContext {
+  context_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentContextDocument;
+}
+export interface ScannerLiveLaunchRecordV1DocumentContextDocument {
+  schema_version: "1.0";
+  verifier_id: string;
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  job_created_at: string;
+  worker_id: string;
+  job_state: "running";
+  cancel_requested: false;
+  dispatch_state: "active";
+  deadline: string;
+  lease_expires_at: string;
+  guard_set_digest: string;
+  engine_digest: string;
+  registry_digest: string;
+  tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
+  workspaces: Array<ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItem>;
+  launches: Array<ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItem>;
+  observed_at: string;
+  controller_metadata_only: true;
+  cleanup_required: true;
+  cleanup_confirmed: false;
+  active_workspace_leases_excluded: false;
+  late_start_excluded: false;
+}
+export interface ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItem {
+  workspace_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItemDocument;
+}
+export interface ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItemDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  plan: ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+}
+export interface ScannerLiveLaunchRecordV1DocumentContextDocumentWorkspacesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}
+export interface ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItem {
+  launch_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItemDocument;
+}
+export interface ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItemDocument {
+  schema_version: "1.2";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+  guard_set_digest: string;
+  guard_protocol: "absolute-deadline-v1";
+}
+export interface ScannerLiveLaunchRecordV1DocumentContextDocumentLaunchesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+  engine_journal_binding_digest: string;
+  engine_journal_namespace_digest: string;
+}
+export interface ScannerLiveLaunchRecordV1DocumentEngineBinding {
+  binding_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentEngineBindingDocument;
+}
+export interface ScannerLiveLaunchRecordV1DocumentEngineBindingDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  engine_digest: string;
+  registry_digest: string;
+  created_at: string;
+}
+export interface ScannerLiveLaunchRecordV1DocumentJournalBinding {
+  journal_binding_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentJournalBindingDocument;
+}
+export interface ScannerLiveLaunchRecordV1DocumentJournalBindingDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  engine_binding_digest: string;
+  journal_root_digest: string;
+  journal_namespace_digest: string;
+  created_at: string;
+}
+export interface ScannerLiveLaunchRecordV1DocumentBrokerBinding {
+  broker_binding_digest: string;
+  document: ScannerLiveLaunchRecordV1DocumentBrokerBindingDocument;
+}
+export interface ScannerLiveLaunchRecordV1DocumentBrokerBindingDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  worker_id: string;
+  journal_binding_digest: string;
+  created_at: string;
 }
 export interface DatabaseSnapshotReceiptV1 {
   schema_version: "1.0";

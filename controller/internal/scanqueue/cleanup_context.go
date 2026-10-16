@@ -22,8 +22,11 @@ func (q *Queue) CleanupContext(ctx context.Context, v scanevidence.VerifierIdent
 		return scanevidence.CleanupContextRecord{}, e
 	}
 	defer tx.Rollback()
+	return q.cleanupContextTx(ctx, tx, v, id)
+}
+func (q *Queue) cleanupContextTx(ctx context.Context, tx *sql.Tx, v scanevidence.VerifierIdentity, id string) (scanevidence.CleanupContextRecord, error) {
 	now := q.now().UTC()
-	if e = scannerauth.AuthorizeVerifierTx(tx, v, now.Unix()); e != nil {
+	if e := scannerauth.AuthorizeVerifierTx(tx, v, now.Unix()); e != nil {
 		return scanevidence.CleanupContextRecord{}, e
 	}
 	j, e := read(tx.QueryRowContext(ctx, "SELECT "+columns+" FROM scanner_jobs WHERE id=? AND owner=?", id, v.Owner))
@@ -92,7 +95,7 @@ func (q *Queue) CleanupContext(ctx context.Context, v scanevidence.VerifierIdent
 		if l.Document.Plan.Registry != v.Registry || l.Document.Plan.Engine != v.Engine {
 			return scanevidence.CleanupContextRecord{}, ErrContextScope
 		}
-		if l.Document.Schema != "1.1" {
+		if !scanevidence.GuardedLaunchRevision(l.Document) {
 			return scanevidence.CleanupContextRecord{}, ErrContextUnbound
 		}
 		if e = matchWorkspaceTx(tx, j, l.Document.Plan, l.Document.Created); e != nil {

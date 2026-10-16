@@ -39,3 +39,5 @@ The real-tool/native private-channel tests do not prove that a dedicated backgro
 ## Schema 13 upgrade
 
 Use a private consistent database backup before initializing the new image. Migration 13 adds only the verifier-enrollment ledger, scope immutability and monotonic revocation triggers; migration checksums 1–12 are preserved. Align the named init, controller, deployer and verifier services to the rebuilt shared image. Shared source changes can change guard hashes even when entrypoint behavior stays the same; compare both native and packaged guard builds and upgrade worker packages together. Historical records keep their original hashes and are not reinterpreted as fresh authority.
+
+A separate [live-launch observation](live-launch-observations.md) can read a fully bound currently active launch using a fresh challenge. It remains metadata only and supplies no engine or cleanup authority. Revision 1.2 cleanup contexts preserve their original journal fields.

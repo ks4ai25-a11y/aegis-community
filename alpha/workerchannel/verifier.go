@@ -4,6 +4,8 @@ package workerchannel
 import (
 	"aegis.local/source/scanevidence"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"regexp"
 	"time"
@@ -11,6 +13,7 @@ import (
 
 // VerifierClient deliberately does not expose worker Claim/Guard/Finish.
 // Its responses identify controller metadata, never resource cleanup.
+var liveContainerPattern = regexp.MustCompile(`^aegis-scan-[0-9a-f]{32}$`)
 var verifierIDPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$`)
 
 type VerifierClient struct {
@@ -70,6 +73,42 @@ func (c *VerifierClient) Context(ctx context.Context, job string) (scanevidence.
 	observed, e := time.Parse(time.RFC3339Nano, out.Document.Observed)
 	if e != nil || observed.Before(started.Add(-2*time.Second)) || observed.After(time.Now().Add(2*time.Second)) || scanevidence.ValidateCleanupContext(out, c.client.owner, c.id, job, c.engine, c.registry, c.client.lock) != nil {
 		return scanevidence.CleanupContextRecord{}, errors.New("verifier context binding rejected")
+	}
+	return out, nil
+}
+
+// LiveLaunch reads current metadata for an exact proposed name. It cannot renew
+// a lease or authorize an engine operation and deliberately exposes no token.
+func (c *VerifierClient) LiveLaunch(ctx context.Context, name string) (scanevidence.LiveLaunchRecord, error) {
+	if !liveContainerPattern.MatchString(name) {
+		return scanevidence.LiveLaunchRecord{}, errors.New("invalid scanner name")
+	}
+	bounded, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	started := time.Now()
+	nonce := make([]byte, 16)
+	if _, e := rand.Read(nonce); e != nil {
+		return scanevidence.LiveLaunchRecord{}, e
+	}
+	challenge := hex.EncodeToString(nonce)
+	if _, e := c.Identity(bounded); e != nil {
+		return scanevidence.LiveLaunchRecord{}, e
+	}
+	if e := c.configuration(); e != nil {
+		return scanevidence.LiveLaunchRecord{}, e
+	}
+	var out scanevidence.LiveLaunchRecord
+	if e := c.client.call(bounded, "verifier/live-launch", struct {
+		Container string `json:"container_name"`
+		Challenge string `json:"challenge"`
+	}{name, challenge}, &out, 64<<10); e != nil {
+		return out, e
+	}
+	stamp, e := time.Parse(time.RFC3339Nano, out.Document.Context.Document.Observed)
+	lease, le := time.Parse(time.RFC3339, out.Document.Context.Document.LeaseUntil)
+	deadline, de := time.Parse(time.RFC3339, out.Document.Context.Document.Deadline)
+	if e != nil || le != nil || de != nil || stamp.Before(started.Add(-2*time.Second)) || stamp.After(time.Now().Add(2*time.Second)) || !lease.After(time.Now()) || !deadline.After(time.Now()) || scanevidence.ValidateLiveLaunch(out, c.client.owner, c.id, name, challenge, c.engine, c.registry, c.client.lock) != nil {
+		return scanevidence.LiveLaunchRecord{}, errors.New("live launch observation binding rejected")
 	}
 	return out, nil
 }
