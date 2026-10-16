@@ -671,6 +671,7 @@ func (m *Manager) Apply(ctx context.Context, p domain.Policy, actor string) erro
 		if re := m.Reload(ctx, old); re != nil {
 			m.Frozen.Store(true)
 			m.S.Set("apply_frozen", "true")
+			logFreeze("apply_and_rollback_unconfirmed", e, re)
 			return fmt.Errorf("APPLY_STATUS_UNKNOWN: reload and recovery could not be confirmed")
 		}
 		m.S.DB.Exec("UPDATE policies SET state='FAILED' WHERE digest=?", d)
@@ -817,4 +818,16 @@ func (m *Manager) Remote(ctx context.Context, operation string, p domain.Policy)
 		return "", fmt.Errorf("invalid deployer digest")
 	}
 	return out.Digest, nil
+}
+
+// logFreeze records why policy changes were frozen so operators can act on it.
+func logFreeze(reason string, errs ...error) {
+	msgs := []string{}
+	for _, e := range errs {
+		if e != nil {
+			msgs = append(msgs, e.Error())
+		}
+	}
+	b, _ := json.Marshal(map[string]any{"event": "policy_frozen", "reason": reason, "errors": msgs})
+	fmt.Println(string(b))
 }

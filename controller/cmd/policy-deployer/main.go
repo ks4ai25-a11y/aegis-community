@@ -100,6 +100,9 @@ func main() {
 			return
 		}
 		if err != nil {
+			// Operators need the cause; errors here carry no secrets or request data.
+			b, _ := json.Marshal(map[string]string{"event": "deployer_operation_failed", "operation": r.URL.Path, "error": err.Error()})
+			fmt.Println(string(b))
 			deny(503, "gateway operation could not be confirmed")
 			return
 		}
