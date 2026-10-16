@@ -4,6 +4,7 @@ package executor
 import (
 	"aegis.local/alpha/enginejournal"
 	"aegis.local/alpha/engineprofile"
+	"aegis.local/alpha/enginetls"
 	"aegis.local/source"
 	"context"
 	"encoding/binary"
@@ -158,9 +159,16 @@ type engineTransport struct {
 	base     *http.Transport
 	request  client.RequestHook
 	response client.ResponseHook
+	identity *enginetls.Identity
 }
 
 func (t *engineTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	if t.identity != nil && t.identity.Check() != nil {
+		if r.Body != nil {
+			r.Body.Close()
+		}
+		return nil, errEngine
+	}
 	if e := t.request(r); e != nil {
 		if r.Body != nil {
 			r.Body.Close()
@@ -178,6 +186,8 @@ type scannerEngineClient struct {
 	*client.Client
 	http      *http.Client
 	transport *http.Transport
+	scheme    string
+	identity  *enginetls.Identity
 }
 
 func (c *scannerEngineClient) Close() error {
@@ -188,7 +198,7 @@ func (c *scannerEngineClient) Close() error {
 // Use the ordinary HTTP transport's bounded upgrade support for attach. The
 // SDK's raw-hijack fallback does not retain our context-aware custom transport.
 func (c *scannerEngineClient) attach(ctx context.Context, id string) (io.ReadCloser, error) {
-	r, e := http.NewRequestWithContext(ctx, "POST", "http://docker/v"+engineAPIVersion+"/containers/"+id+"/attach?stream=1&stdout=1&stderr=1", nil)
+	r, e := http.NewRequestWithContext(ctx, "POST", c.scheme+"://docker/v"+engineAPIVersion+"/containers/"+id+"/attach?stream=1&stdout=1&stderr=1", nil)
 	if e != nil {
 		return nil, errEngine
 	}
@@ -214,16 +224,29 @@ func newRestrictedEngineSDK(endpoint string, req client.RequestHook, resp client
 		return nil, errEngine
 	}
 	u, _ := url.Parse(raw)
-	tr := &http.Transport{Proxy: nil, MaxConnsPerHost: 4, MaxIdleConnsPerHost: 2, ResponseHeaderTimeout: 5 * time.Second, MaxResponseHeaderBytes: 65536, DisableCompression: true, DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+	protocols := new(http.Protocols)
+	protocols.SetHTTP1(true)
+	tr := &http.Transport{Protocols: protocols, Proxy: nil, MaxConnsPerHost: 4, MaxIdleConnsPerHost: 2, ResponseHeaderTimeout: 5 * time.Second, MaxResponseHeaderBytes: 65536, DisableCompression: true, DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 		return (&net.Dialer{Timeout: 2 * time.Second}).DialContext(ctx, "unix", u.Path)
 	}}
-	hc := &http.Client{Transport: &engineTransport{tr, req, resp}, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
-	sdk, e := client.New(client.WithHost(raw), client.WithHTTPClient(hc), client.WithScheme("http"), client.WithAPIVersion(engineAPIVersion), client.WithUserAgent("aegis-scanner-tracked/1"))
+	scheme := "http"
+	var identity *enginetls.Identity
+	if directory := os.Getenv("AEGIS_SCANNER_ENGINE_TLS_DIR"); directory != "" {
+		identity, e = enginetls.Load(directory, enginetls.Broker)
+		if e != nil {
+			return nil, errEngine
+		}
+		tr.TLSClientConfig = identity.TLS
+		scheme = "https"
+		tr.TLSHandshakeTimeout = 3 * time.Second
+	}
+	hc := &http.Client{Transport: &engineTransport{base: tr, request: req, response: resp, identity: identity}, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	sdk, e := client.New(client.WithHost(raw), client.WithHTTPClient(hc), client.WithScheme(scheme), client.WithAPIVersion(engineAPIVersion), client.WithUserAgent("aegis-scanner-tracked/1"))
 	if e != nil {
 		tr.CloseIdleConnections()
 		return nil, e
 	}
-	return &scannerEngineClient{sdk, hc, tr}, nil
+	return &scannerEngineClient{Client: sdk, http: hc, transport: tr, scheme: scheme, identity: identity}, nil
 }
 func copyEngineStreams(r io.Reader, stdout, stderr io.Writer) error {
 	header := make([]byte, 8)
@@ -303,18 +326,26 @@ func (c Config) runEngineSDK(runCtx context.Context, endpoint, engine, nameValue
 	if c.ExpectedJournalNamespace != "" && j.Observe().Namespace != c.ExpectedJournalNamespace {
 		return
 	}
-	descriptor, _ := json.Marshal(options)
-	attempt, e := j.Begin(nameValue, source.Hash(descriptor))
-	if e != nil {
-		out.err = e
-		return
-	}
 	var containerID string
 	cli, e := newEngineSDK(endpoint, nameValue, &containerID)
 	if e != nil {
 		return
 	}
 	defer cli.Close()
+	if cli.identity != nil {
+		if c.engineTLSIdentity == "" || cli.identity.Digest != c.engineTLSIdentity || options.HostConfig == nil {
+			return
+		}
+		options.HostConfig.AutoRemove = false
+	} else if c.engineTLSIdentity != "" {
+		return
+	}
+	descriptor, _ := json.Marshal(options)
+	attempt, e := j.Begin(nameValue, source.Hash(descriptor))
+	if e != nil {
+		out.err = e
+		return
+	}
 	ticket, e := attempt.Begin("create", "")
 	if e != nil {
 		out.err = e
@@ -336,7 +367,7 @@ func (c Config) runEngineSDK(runCtx context.Context, endpoint, engine, nameValue
 	defer func() {
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cleanupCancel()
-		if out.exit >= 0 {
+		if out.exit >= 0 && (options.HostConfig == nil || options.HostConfig.AutoRemove) {
 			// AutoRemove is asynchronous after next-exit. Observe its completion
 			// before sending DELETE, which otherwise races it and returns 409.
 			// This is a read; it cannot settle an unanswered mutation intent.
@@ -357,7 +388,7 @@ func (c Config) runEngineSDK(runCtx context.Context, endpoint, engine, nameValue
 		ctx := context.WithValue(cleanupCtx, captureKey{}, cap)
 		_, removeErr := cli.ContainerRemove(ctx, containerID, client.ContainerRemoveOptions{Force: true, RemoveVolumes: true})
 		status := 204
-		if observed(cap, 404) {
+		if observed(cap, 404) && cli.identity == nil {
 			status = 404
 		} else if removeErr != nil || !observed(cap, 204) {
 			cap.mu.Lock()

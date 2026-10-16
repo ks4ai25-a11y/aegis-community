@@ -154,6 +154,9 @@ func (c Config) InspectSandbox(ctx context.Context, x SandboxExpectation) (out S
 		"Container absence or matching metadata never confirms cleanup or releases controller admission.",
 	}}
 	fail := func(code string) (SandboxObservation, error) { out.Code = code; return out, ErrObservation }
+	if os.Getenv("AEGIS_SCANNER_ENGINE_TLS_DIR") != "" {
+		return fail("TLS_SANDBOX_OBSERVER_UNAVAILABLE")
+	}
 	deadline, e := inspectionPlan(x)
 	if e != nil || os.Geteuid() <= 0 || os.Getegid() < 0 {
 		return fail("PLAN_OR_PLATFORM_INVALID")

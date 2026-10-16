@@ -182,6 +182,12 @@ func TestPrincipalPathAndReadBoundaries(t *testing.T) {
 		x.User = user
 		must(t, p.AuthorizeRequest(x), true)
 	}
+	for _, user := range []string{Broker, Observer} {
+		x := call("GET", "/containers/"+testName+"/json")
+		x.User = user
+		must(t, p.AuthorizeRequest(x), true)
+	}
+	must(t, p.AuthorizeRequest(call("GET", "/containers/aegis-scan-"+strings.Repeat("b", 32)+"/json")), false)
 	f, _ := json.Marshal(map[string]map[string]bool{"name": {"^/" + testName + "$": true}})
 	x := call("GET", "/containers/json?"+url.Values{"all": {"1"}, "filters": {string(f)}}.Encode())
 	x.User = Observer

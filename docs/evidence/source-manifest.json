@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:1f9b29e35d40a21a4e35d8d4011caf27222145392e911a701ece6c08bb08c29a",
+  "source_tree_sha256": "sha256:8f3364b1c925f579c3b02d9b7bf55930cca9c037855e052bbf6207affc4af325",
   "files": [
     {
       "path": ".dockerignore",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "b10afd89de89fa3a5c5f5f1abcf9c2d44313871dd8a55e5ce2433467b95ac8f0"
+      "sha256": "50aab59fa1840b035c6d4d190e5e04326097862213b334ee908cc2a3c8afe0c8"
     },
     {
       "path": ".gitignore",
@@ -28,11 +28,11 @@
     },
     {
       "path": "Makefile",
-      "sha256": "f9af2339e4e2502c64fba740561e46bcfd017f19673adcd2e3b7ee239226f09a"
+      "sha256": "c2dbe497cfdf7fc8d5d2b026bd54f17314447e643b765d8fcd2c13032bb71825"
     },
     {
       "path": "README.md",
-      "sha256": "2ce8eec5427f724b394db502c06e3f782c4f876131836186b32e7a8322608ede"
+      "sha256": "0d9feb6010d821ad1831e6add10fb79c76e805d1833be4a50bd13db0a0b46ced"
     },
     {
       "path": "SECURITY.md",
@@ -44,11 +44,15 @@
     },
     {
       "path": "alpha/Dockerfile",
-      "sha256": "f3470552871741324da8a721b79dce259b9fe9e2361190fba020356bd988fa9a"
+      "sha256": "76cb40a7856277421c0b1035d23ab42f3af5b0b448e034f9aef24f436a364c27"
     },
     {
       "path": "alpha/cmd/aegis-engine-authz/main.go",
       "sha256": "9c8180b276e48fe20b6c1f9c0111869357c79e1c6235af604bd74ad1c7479d30"
+    },
+    {
+      "path": "alpha/cmd/aegis-engine-relay/main.go",
+      "sha256": "84feccd219e3b87a5f8d9d96a038914a1f8d3224d1f7fe6a351737ede6937368"
     },
     {
       "path": "alpha/cmd/aegis-research/main.go",
@@ -88,11 +92,11 @@
     },
     {
       "path": "alpha/engineauthz/policy.go",
-      "sha256": "9134a16f97156576c7938ade46e62e7980be188c2e58e744d3b96557151beba2"
+      "sha256": "21d1d1fd7a72096d7cede9276ced8e61c9442ca8670c8d31b08241adab95b9b8"
     },
     {
       "path": "alpha/engineauthz/policy_test.go",
-      "sha256": "b775f7f5bbb051efa910bbbcd89d58f13c7d6c8561f6188b333835f7617c537c"
+      "sha256": "6074908bb195ab5da1609c646407361f4ac811fdc82362b4618fc303ca53492b"
     },
     {
       "path": "alpha/engineauthz/real_test.go",
@@ -127,12 +131,36 @@
       "sha256": "ea9babbd2c79a93edbc22ac50f80aea563e887b9eee19aad25e9d5de1ee4db26"
     },
     {
+      "path": "alpha/enginerelay/relay.go",
+      "sha256": "e4f6ebf1cb0d7ead58e2ea3df247a337ceccf799bd61e335b2e97c5141174420"
+    },
+    {
+      "path": "alpha/enginerelay/relay_test.go",
+      "sha256": "419dd16bf8cf45cdac98535939a4424c00090a5a15c67c89aebabd70427a5f2d"
+    },
+    {
+      "path": "alpha/enginetls/client.go",
+      "sha256": "cf6030964b59c5348c0af4893095900a78350389cad577969df624a91b10656a"
+    },
+    {
+      "path": "alpha/enginetls/client_test.go",
+      "sha256": "8ded226641de8a6a7f1810f5b1cbc62bd10e2e79dcce969db9b3355b838e96f8"
+    },
+    {
+      "path": "alpha/enginetls/files_other.go",
+      "sha256": "103959b6747b4c6babdc7b7a25a0149cebf2e049946c2f28d8850623e98e8b45"
+    },
+    {
+      "path": "alpha/enginetls/files_unix.go",
+      "sha256": "6ceaa6400b6e9251e045e4bbdf3519272fb1fdcced9ba8e2b0e28c902ce58be5"
+    },
+    {
       "path": "alpha/executor/engine.go",
-      "sha256": "7517225e7e37b4784850a312349b07d46b747d171f60b7f9a847eb6a984d75c7"
+      "sha256": "d8b09737bdc75a7934dd65bf7835a7f3f451911c305bd0502111aaf007e110aa"
     },
     {
       "path": "alpha/executor/engine_sdk.go",
-      "sha256": "506909bd77f25edde4def927e7b27098fa055e91921d6d350d56f093495b1281"
+      "sha256": "180c300e2ac7750bbe11c1f18f30c478994cb550f9c0075bafa3fafc0c5c4a3e"
     },
     {
       "path": "alpha/executor/engine_sdk_real_test.go",
@@ -144,7 +172,7 @@
     },
     {
       "path": "alpha/executor/executor.go",
-      "sha256": "5ba243e5eedd00eff9594d0df5d6c618d02841f74879ff656a39ba7da4da2646"
+      "sha256": "591a848afc7e520cdf5de745090957d1e1325d8055dedbc6905affaa447e52d2"
     },
     {
       "path": "alpha/executor/executor_test.go",
@@ -156,7 +184,7 @@
     },
     {
       "path": "alpha/executor/inspect.go",
-      "sha256": "91c18fed70278eaeee700a87d180968dc1723da14da6c77c953fd52c4584a9cd"
+      "sha256": "9afc297294ec9344b304b8f8fd81fa7d7fead48386523a10a2affb6d279947fb"
     },
     {
       "path": "alpha/executor/inspect_files_other.go",
@@ -184,11 +212,15 @@
     },
     {
       "path": "alpha/executor/metadata_sdk.go",
-      "sha256": "8495373c868b4846b0b7aa0f03b06871235187f0bfcc17b4e70a9862e8255f48"
+      "sha256": "73d75890c640a8cd7697721d54ad4a31223c55290c97fe83c304ae7cb690c647"
     },
     {
       "path": "alpha/executor/metadata_sdk_test.go",
       "sha256": "d9d96e790a732026a27d5722b10cab29fb120630dd429b28ac7f0568f4c3daad"
+    },
+    {
+      "path": "alpha/executor/tls_sdk_test.go",
+      "sha256": "70b9dcd19a49d3774354086751e6a90115ab05ba4ff4275a5791269b15704d15"
     },
     {
       "path": "alpha/fixtures/scanners/safe/package-lock.json",
@@ -233,6 +265,10 @@
     {
       "path": "alpha/go.sum",
       "sha256": "712a2f690e367f1aa552582792b4c0a5a4debb4e475764fb4dffaa59cc64a8e7"
+    },
+    {
+      "path": "alpha/internal/testpki/pki.go",
+      "sha256": "1661c20210555ae7b4a35f0da31ad4f8d127e98b886979c53def92e2753f72f5"
     },
     {
       "path": "alpha/inventory/inventory.go",
@@ -1479,6 +1515,10 @@
       "sha256": "527a667ce1e8a9bd5a9a18203f08e7d541fa435235c8a06503fa2852353c3c25"
     },
     {
+      "path": "deploy/compose.scanner-broker-tls.yaml",
+      "sha256": "00fe5bfc071734aa450353ec148372b15b33194ccc373a2ecff808f945723d3c"
+    },
+    {
       "path": "deploy/compose.scanner-broker.yaml",
       "sha256": "80d2af49869dd3e25bff345e374d06d2adefa0f6b519bff9600bd2e209aa2050"
     },
@@ -1488,7 +1528,7 @@
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "a3448211eaf1c71874d17eae5ca5fa1eb52c7589e485d52232e7d00639409506"
+      "sha256": "19852d0f969d521b189ee6d366327e62032913fae6f34cf02a9adf0a6eb43bdc"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
@@ -1659,6 +1699,10 @@
       "sha256": "46ee367896ca64ec609fefa6868bc62bacba76a7a2ed439ebe8083a1244361f6"
     },
     {
+      "path": "docs/architecture/adr/052-selected-broker-mutual-tls-engine.md",
+      "sha256": "6a514d14fcf22a2c1e907546fc5eb4c48df33d619ff3d9c5aedc4b63dbdd77d1"
+    },
+    {
       "path": "docs/operators/database-snapshots.md",
       "sha256": "3c62f228aa2828f135f5293c85d3da33a1e25464022bcbe6bd9344de9e3c6e85"
     },
@@ -1711,8 +1755,12 @@
       "sha256": "fc133f8c459a4b8f8c3a90f14d06c584a319fb39fc100ea778cc2db853b0cf99"
     },
     {
+      "path": "docs/operators/tls-scanner-broker.md",
+      "sha256": "9e3b5d9b7b7da31a69b07253d2d5e385c9701b836eaa640b2bef9a988ca36a00"
+    },
+    {
       "path": "docs/release-gates.json",
-      "sha256": "4afc3cc2db812f2d7b3f1cce3225bd9b238b83fd8cc97aebd8817b13be837782"
+      "sha256": "0c3042218142df55045ee627ea82136fc7ba1a4a106686adad5670383d6ee730"
     },
     {
       "path": "gateway/Dockerfile",
@@ -1916,7 +1964,7 @@
     },
     {
       "path": "tests/integration/broker_fixture.py",
-      "sha256": "c9877af74d9113ce5989eb60d04fcfcb7823a795ae64a56b4a62353128b58041"
+      "sha256": "f97bfd119f8a56a492fc188dad17632845f78d95db583e58badfd9e6c8569c39"
     },
     {
       "path": "tests/integration/contract_acceptance.py",
@@ -1936,7 +1984,7 @@
     },
     {
       "path": "tests/integration/engine_authz_acceptance.py",
-      "sha256": "1652f4e55088303792fcc8c14a6cfdc909a5ad2fca5623fa8d88235bd31c6bdf"
+      "sha256": "01098d5665ec5d450f8893a9067e3940605ce03ca922f99c9dd2f3106d156f18"
     },
     {
       "path": "tests/integration/finding_catalogue_acceptance.py",
@@ -1951,8 +1999,12 @@
       "sha256": "6073b1174ba1fe16936f0201d5231302f14f30d7ec853814439954272dff8372"
     },
     {
+      "path": "tests/integration/packaged_engine_fixture.py",
+      "sha256": "41b8cd21faac50ea4c524e391ab2ba4e84e5fed1a7fd261208071c77f0484416"
+    },
+    {
       "path": "tests/integration/packaged_worker_acceptance.py",
-      "sha256": "bf5f15df1a69921559fe388adee90140fa16fd8840517ea552ad5ae7d63ad6c6"
+      "sha256": "5a1c429cbbf83e93c11fd332da4382a519c5b0610ff4d7ba23799647fe45152c"
     },
     {
       "path": "tests/integration/recovery_application_acceptance.py",

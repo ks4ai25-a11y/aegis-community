@@ -1,0 +1,27 @@
+# ADR 052: Selected broker transport to the restricted scanner daemon
+
+Status: experimental transport and packaged reference fixture; independent cleanup release unavailable.
+
+## Decision
+
+Connect the existing controller-selected broker to the ADR 051 daemon authorization policy through end-to-end mutual TLS over a private Unix byte relay. The broker remains network none. Its socket mount is the relay, not a raw Docker socket. The host relay connects only to one explicit loopback IPv4 TCP port, parses no HTTP and holds no engine credential, source, controller capability or journal. It bounds concurrent connections to eight, dial time to two seconds and streams to sixteen minutes; cancellation closes both sides and joins forwarding work. Its Unix listener uses the existing owned mode-0700/0600 private listener and lifetime lock.
+
+The broker's `AEGIS_SCANNER_ENGINE_TLS_DIR` selects this explicit transport. It contains exactly the required CA/client certificate/private key files, each an owned non-linked regular mode-0600 file bounded to 16 KiB under an owned canonical mode-0700 directory. File opens reject symlinks, FIFOs, hardlinks and path replacement. The CA must be self-signed and permitted to sign certificates; the single client leaf must validate for client authentication and have the fixed broker common name. The SDK requires TLS 1.3, the fixed `aegis-scanner-engine` server name and HTTP/1 only. It uses the original bounded Unix dialer, no ambient Docker TLS configuration, proxy, redirect, API negotiation or plaintext fallback. Malformed/absent configured identity refuses before a controller claim.
+
+Every RPC, including reused keep-alive connections, rereads the private identity and checks validity and the original certificate digest. Client handshakes recheck the same identity. Replacement, withdrawal or expiry refuses later cooperating SDK requests. An in-flight request or existing output stream may already have been authorized; this is not independent revocation or termination proof. The relay cannot impersonate the engine without its private server key.
+
+## Binding and lifecycle
+
+The TLS engine digest uses a separate domain and binds the local relay endpoint, original daemon ID and public CA/client DER identity. Private key bytes are not hashed into public metadata. All existing immutable controller engine/registry/journal/broker checks continue to run before claiming. A certificate or transport change cannot silently inherit an old approved engine identity. Replacement/recovery remains unavailable rather than resetting a held admission.
+
+The executor retains the exact preflight TLS identity through launch, checks it again before allocating a mutation attempt and journals the actual explicit-removal options. TLS execution uses the common `CreateTracked` profile: daemon auto-removal is disabled, then an explicit successful DELETE 204 and exact name-filtered absence settle the broker journal. A client-only 404 cannot settle TLS removal, matching the independent plugin journal's stricter callback evidence. The original raw Unix experiment retains auto-removal behavior. TLS mode refuses the old Docker CLI execution, recovery absence and sandbox-observer paths instead of silently sending plaintext or treating the changed profile as an old observed sandbox. Independent TLS observer/cleanup authority remains unfinished.
+
+## Packaged reference boundary
+
+The new disabled `operator-broker-tls` Compose profile mounts only the opaque relay and private broker TLS identity in addition to the previously selected broker's private controller channel, worker/dispatch credentials, approved assets and work root. It grants no supplemental daemon group. The minimal dispatch client still mounts only its limited capability and broker socket; it receives no engine or TLS credential.
+
+An explicitly gated GitHub Linux AMD64 fixture starts an additional checksum-pinned daemon with a new data/exec root. It removes its bootstrap Unix listener before TLS-only restart and disables native HTTP/2 gRPC on that daemon. The native plugin and relay run as UID/GID 10001; daemon CA/server keys and plugin journal are outside broker mounts. The fixture runs the actual hardened broker/dispatch images against the real controller queue and pinned guarded Bandit, verifies owned T0 results, original restricted-engine child absence, both settled journals, changed/missing provisioning refusal and the retained second-job cleanup hold. Only its own helper processes/daemon are stopped; unresolved state is preserved. The orchestration daemon and workstation remain unchanged.
+
+## Limits and remaining work
+
+The plugin still trusts the broker role to propose fixed profiles and source/guard paths. It does not independently authenticate the controller launch/lease, original guard bytes or source digest. Exclusive host deployment, certificate rotation/revocation, active-lease exclusion, delayed allocation reconciliation, independent cleanup verification and release remain unfinished. Native-process/host administrators and the daemon/plugin remain trusted. This does not provide the disposable VM boundary required for arbitrary repository/patch execution. The raw operator experiments remain explicitly separate from this opt-in TLS profile. All-engine-write mediation and cleanup-release flags remain false; full v4 and public beta remain NO-GO.

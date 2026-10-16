@@ -144,7 +144,7 @@ func (p *Policy) read(r Request, u *url.URL) bool {
 				return true
 			}
 		}
-		if p.id != "" && u.Path == api+"/containers/"+p.id+"/json" {
+		if p.id != "" && (u.Path == api+"/containers/"+p.id+"/json" || u.Path == api+"/containers/"+p.name+"/json") {
 			return true
 		}
 	}

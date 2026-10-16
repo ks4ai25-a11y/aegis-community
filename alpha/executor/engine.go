@@ -36,6 +36,16 @@ func dockerEnv() []string {
 // Resolve once, then bind every operation to the same local endpoint. No
 // remote engine may receive private host-source mount paths.
 func (c Config) engine(ctx context.Context) (string, string, error) {
+	if os.Getenv("AEGIS_SCANNER_ENGINE_TLS_DIR") != "" {
+		if os.Getenv("DOCKER_CONTEXT") != "" {
+			return "", "", errEngine
+		}
+		endpoint, e := localEndpoint(os.Getenv("DOCKER_HOST"))
+		if e != nil {
+			return "", "", errEngine
+		}
+		return "", endpoint, nil
+	}
 	docker := c.Docker
 	if docker == "" {
 		docker = "docker"
@@ -73,6 +83,9 @@ func engineCommand(ctx context.Context, docker, endpoint string, args ...string)
 // ContainerAbsent checks only an exact journalled Aegis name and never removes
 // a container. Recovery fails closed if the engine cannot answer.
 func (c Config) ContainerAbsent(ctx context.Context, name, expectedEngine string) (bool, error) {
+	if os.Getenv("AEGIS_SCANNER_ENGINE_TLS_DIR") != "" {
+		return false, errEngine
+	}
 	if !scannerName.MatchString(name) {
 		return false, fmt.Errorf("invalid scanner container identity")
 	}

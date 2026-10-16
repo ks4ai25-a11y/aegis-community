@@ -19,7 +19,7 @@ def certificate(tlsdir,role,cn,server=False):
  key=tlsdir/(role+'.key');csr=tlsdir/(role+'.csr');crt=tlsdir/(role+'.pem');ext=tlsdir/(role+'.ext')
  run(['openssl','genpkey','-algorithm','EC','-pkeyopt','ec_paramgen_curve:P-256','-out',key])
  run(['openssl','req','-new','-key',key,'-subj','/CN='+cn,'-out',csr])
- ext.write_text('basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature\nextendedKeyUsage='+('serverAuth\nsubjectAltName=IP:127.0.0.1\n' if server else 'clientAuth\n'))
+ ext.write_text('basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature\nextendedKeyUsage='+('serverAuth\nsubjectAltName=DNS:aegis-scanner-engine,IP:127.0.0.1\n' if server else 'clientAuth\n'))
  run(['openssl','x509','-req','-in',csr,'-CA',tlsdir/'ca.pem','-CAkey',tlsdir/'ca.key','-set_serial','0x'+secrets.token_hex(16),'-days','1','-sha256','-extfile',ext,'-out',crt])
  for p in (key,csr,crt,ext):p.chmod(0o600)
 
@@ -65,7 +65,7 @@ def main():
   if bootstrap.exists():raise RuntimeError('Bootstrap engine socket still exists')
   digest='sha256:'+hashlib.sha256(('aegis-authz-daemon-v1\n'+info['ID']).encode()).hexdigest()
   run(['openssl','genpkey','-algorithm','EC','-pkeyopt','ec_paramgen_curve:P-256','-out',tlsdir/'ca.key'])
-  run(['openssl','req','-x509','-new','-key',tlsdir/'ca.key','-days','1','-sha256','-subj','/CN=Aegis isolated CI engine CA','-addext','basicConstraints=critical,CA:TRUE','-out',tlsdir/'ca.pem'])
+  run(['openssl','req','-x509','-new','-key',tlsdir/'ca.key','-days','1','-sha256','-subj','/CN=Aegis isolated CI engine CA','-addext','basicConstraints=critical,CA:TRUE','-addext','keyUsage=critical,keyCertSign,cRLSign','-out',tlsdir/'ca.pem'])
   for role,cn in [('server','aegis-scanner-engine'),('broker','aegis-engine-broker'),('observer','aegis-engine-observer'),('unknown','unapproved-client')]:certificate(tlsdir,role,cn,role=='server')
   for path in tlsdir.iterdir():path.chmod(0o600)
   journal=fixture/'plugin-journal';plugin_socket=fixture/'plugin'/'authz.sock'

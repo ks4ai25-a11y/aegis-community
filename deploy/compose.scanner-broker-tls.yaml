@@ -1,0 +1,69 @@
+# Explicit TLS-only operator profile for a separate restricted scanner daemon.
+services:
+  scanner-broker:
+    profiles: [operator-broker-tls]
+    image: aegis-community/scanner-broker:0.1.0-alpha.1
+    build: {context: .., dockerfile: alpha/Dockerfile, target: scanner-broker}
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    network_mode: none
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+    restart: "no"
+    stop_grace_period: 25s
+    environment:
+      DOCKER_HOST: unix:///run/engine/docker.sock
+      DOCKER_CONTEXT: ""
+      AEGIS_SCANNER_ENGINE_TLS_DIR: /run/engine-tls
+      TMPDIR: "${AEGIS_SCANNER_WORK_ROOT:?Provision the owned canonical daemon-host workspace path}"
+    command: [/run/scan-broker/dispatch.sock, /run/dispatch-credential/client.credential, /run/scanner/worker.sock, /run/worker-credential/worker.credential, "${AEGIS_SCANNER_OWNER:?Set the enrolled owner ID}", "${AEGIS_SCANNER_BROKER_ID:?Set the controller-bound broker worker ID}", /opt/aegis, /opt/aegis/repositories, "${AEGIS_SCANNER_WORK_ROOT}/engine-journal"]
+    volumes:
+      - type: bind
+        source: "${AEGIS_SCANNER_ENGINE_TLS_ROOT:?Provision private broker CA and client identity directory}"
+        target: /run/engine-tls
+        read_only: true
+        bind: {create_host_path: false}
+      - {type: volume, source: scanner_socket, target: /run/scanner, read_only: true}
+      - {type: volume, source: scanner_broker_worker_credentials, target: /run/worker-credential, read_only: true}
+      - {type: volume, source: scanner_broker_client_credentials, target: /run/dispatch-credential, read_only: true}
+      - {type: volume, source: scanner_broker_socket, target: /run/scan-broker}
+      - type: bind
+        source: "${AEGIS_SCANNER_WORK_ROOT}"
+        target: "${AEGIS_SCANNER_WORK_ROOT}"
+        bind: {create_host_path: false}
+      - type: bind
+        source: "${AEGIS_SCANNER_ASSET_ROOT:?Set approved canonical repository assets}"
+        target: /opt/aegis/repositories
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: "${AEGIS_SCANNER_ENGINE_SOCKET:?Set daemon-host Unix socket path}"
+        target: /run/engine/docker.sock
+        read_only: true
+        bind: {create_host_path: false}
+    logging: {driver: json-file, options: {max-size: "2m", max-file: "2"}}
+  scanner-dispatch:
+    profiles: [operator-broker-tls]
+    image: aegis-community/scanner-dispatch:0.1.0-alpha.1
+    build: {context: .., dockerfile: alpha/Dockerfile, target: scanner-dispatch}
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    network_mode: none
+    pids_limit: 64
+    mem_limit: 64m
+    cpus: 0.25
+    restart: "no"
+    command: [run, /run/scan-broker/dispatch.sock, /run/dispatch-credential/client.credential]
+    volumes:
+      - {type: volume, source: scanner_broker_socket, target: /run/scan-broker, read_only: true}
+      - {type: volume, source: scanner_broker_client_credentials, target: /run/dispatch-credential, read_only: true}
+    logging: {driver: json-file, options: {max-size: "1m", max-file: "2"}}
+volumes:
+  scanner_broker_worker_credentials: {}
+  scanner_broker_client_credentials: {}
+  scanner_broker_socket: {}

@@ -29,6 +29,7 @@ type Tool struct {
 	Image   string `json:"image"`
 }
 type Config struct {
+	engineTLSIdentity         string
 	ExpectedJournalNamespace  string
 	ExpectedJournalRootDigest string
 	EngineJournalRoot         string
@@ -106,6 +107,9 @@ func (w *cappedOutput) Bytes() ([]byte, bool) {
 // Run scans an already captured private snapshot. Original checkout paths,
 // arbitrary argv and caller environment variables never enter the container.
 func (c Config) Run(ctx context.Context, toolID, app, repository string, snapshot source.Snapshot) (out Execution, err error) {
+	if os.Getenv("AEGIS_SCANNER_ENGINE_TLS_DIR") != "" && c.EngineJournalRoot == "" {
+		return out, fmt.Errorf("TLS scanner engine requires the journaled SDK backend")
+	}
 	invocation, e := scanners.BuildInvocation(toolID)
 	if e != nil {
 		return out, e
@@ -181,6 +185,7 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 			return out, fmt.Errorf("local scanner engine or pinned image preflight unavailable")
 		}
 		arch, engineDigest = preflight.Architecture, preflight.Engine
+		c.engineTLSIdentity = preflight.engineTLSIdentity
 	} else {
 		engineCtx, engineCancel := context.WithTimeout(ctx, 5*time.Second)
 		engine, e := inspectOutput(engineCtx, docker, endpoint, 512, "info", "--format", "{{.OSType}} {{.Architecture}} {{.ID}}")

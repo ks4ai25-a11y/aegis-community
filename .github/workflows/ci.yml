@@ -91,6 +91,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: alpha/go.sum
+      - run: make research-build engine-authz-build engine-relay-build
       - name: Prepare checksum-pinned engine for this disposable job
         run: |
           mkdir -m 700 "$RUNNER_TEMP/aegis-ci-engine-parent"
@@ -129,6 +134,12 @@ jobs:
         env:
           AEGIS_PACKAGED_WORKER_TEST: '1'
           AEGIS_PACKAGED_BROKER_TEST: '1'
+        run: python3 tests/integration/packaged_worker_acceptance.py
+      - name: Verify packaged selected broker through restricted TLS engine
+        env:
+          AEGIS_PACKAGED_WORKER_TEST: '1'
+          AEGIS_PACKAGED_BROKER_TEST: '1'
+          AEGIS_PACKAGED_ENGINE_AUTHZ_TEST: '1'
         run: python3 tests/integration/packaged_worker_acceptance.py
       - name: Stop only this disposable job engine
         if: always()

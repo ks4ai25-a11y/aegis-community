@@ -17,17 +17,18 @@ import (
 var engineIdentityPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}$`)
 
 type EnginePreflight struct {
-	Schema       string `json:"schema_version"`
-	Backend      string `json:"backend"`
-	Engine       string `json:"engine_digest"`
-	Architecture string `json:"architecture"`
-	Tool         string `json:"tool_id"`
-	Version      string `json:"tool_version"`
-	Image        string `json:"tool_image_digest"`
-	Config       string `json:"local_image_config_digest"`
-	Lock         string `json:"tool_lock_digest"`
-	Writes       bool   `json:"engine_writes_performed"`
-	Release      bool   `json:"cleanup_release_authorized"`
+	engineTLSIdentity string
+	Schema            string `json:"schema_version"`
+	Backend           string `json:"backend"`
+	Engine            string `json:"engine_digest"`
+	Architecture      string `json:"architecture"`
+	Tool              string `json:"tool_id"`
+	Version           string `json:"tool_version"`
+	Image             string `json:"tool_image_digest"`
+	Config            string `json:"local_image_config_digest"`
+	Lock              string `json:"tool_lock_digest"`
+	Writes            bool   `json:"engine_writes_performed"`
+	Release           bool   `json:"cleanup_release_authorized"`
 }
 
 func canonicalArchitecture(raw string) string {
@@ -63,7 +64,7 @@ func ConfiguredEngineDigest(ctx context.Context) (string, error) {
 	if capturedMetadata(active, &info) != nil || info.OSType != "linux" || !engineIdentityPattern.MatchString(info.ID) || canonicalArchitecture(info.Architecture) == "" {
 		return "", errEngine
 	}
-	return source.Hash([]byte(endpoint + "\n" + info.ID)), nil
+	return sdkEngineDigest(engine, endpoint, info.ID), nil
 }
 func metadataHooks(image string, active **responseCapture) (client.RequestHook, client.ResponseHook) {
 	_, response := engineHooks("", new(string))
@@ -136,7 +137,13 @@ func preflightSDK(ctx context.Context, endpoint string, tool Tool, lock string) 
 	if !matched {
 		return out, errEngine
 	}
-	return EnginePreflight{Schema: "1.0", Backend: "unix-sdk-1.55", Engine: source.Hash([]byte(endpoint + "\n" + info.ID)), Architecture: arch, Tool: tool.ID, Version: tool.Version, Image: pin, Config: image.ID, Lock: lock}, nil
+	backend := "unix-sdk-1.55"
+	tlsIdentity := ""
+	if engine.identity != nil {
+		backend = "mtls-unix-sdk-1.55"
+		tlsIdentity = engine.identity.Digest
+	}
+	return EnginePreflight{engineTLSIdentity: tlsIdentity, Schema: "1.0", Backend: backend, Engine: sdkEngineDigest(engine, endpoint, info.ID), Architecture: arch, Tool: tool.ID, Version: tool.Version, Image: pin, Config: image.ID, Lock: lock}, nil
 }
 
 // Preflight is read-only. It never pulls images or writes a lifecycle journal.
@@ -155,4 +162,11 @@ func (c Config) Preflight(ctx context.Context, toolID string) (EnginePreflight, 
 		return EnginePreflight{}, errEngine
 	}
 	return preflightSDK(ctx, os.Getenv("DOCKER_HOST"), tool, lock)
+}
+
+func sdkEngineDigest(client *scannerEngineClient, endpoint, id string) string {
+	if client.identity != nil {
+		return source.Hash([]byte("aegis-scanner-mtls-engine-v1\n" + endpoint + "\n" + id + "\n" + client.identity.Digest))
+	}
+	return source.Hash([]byte(endpoint + "\n" + id))
 }

@@ -46,3 +46,6 @@ broker-build:
 
 engine-authz-build:
 	cd alpha && CGO_ENABLED=0 go build -trimpath -buildvcs=false -o ../bin/aegis-engine-authz ./cmd/aegis-engine-authz
+
+engine-relay-build:
+	cd alpha && CGO_ENABLED=0 go build -trimpath -buildvcs=false -o ../bin/aegis-engine-relay ./cmd/aegis-engine-relay

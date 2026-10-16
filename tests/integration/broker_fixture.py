@@ -1,7 +1,8 @@
 """Nonce-owned broker/client extension of the isolated packaged worker proof."""
 import json,re,time
 class BrokerFixture:
- def __init__(self,raw,compose,helper,check,helpers,project,nonce,worker_id,owner,group,mounts,root_mount,work_root,secret_volume,arguments):
+ def __init__(self,raw,compose,helper,check,helpers,project,nonce,worker_id,owner,group,mounts,root_mount,work_root,secret_volume,arguments,engine_fixture=None):
+  self.engine_fixture=engine_fixture
   self.raw,self.compose,self.helper,self.check,self.helpers=raw,compose,helper,check,helpers
   self.project,self.nonce,self.group,self.mounts,self.arguments=project,nonce,group,mounts,arguments
   self.volumes=[project+'-dispatch-credential',project+'-broker-socket'];self.broker_name=project+'-broker'
@@ -22,6 +23,8 @@ class BrokerFixture:
   check('controller_bound_broker_refuses_other_workers_and_dispatch_credential_role')
   helpers.append(self.broker_name)
   command=['create','--pull=never','--name',self.broker_name,'--label','io.aegis.worker-proof='+nonce,'--network','none','--read-only','--user','10001:10001','--group-add',group,'--cap-drop','ALL','--security-opt','no-new-privileges','--memory','512m','--pids-limit','128','--cpus','1','--log-driver','none','--env','TMPDIR='+str(work_root)]
+  if engine_fixture is not None:
+   command.remove('--group-add');command.remove(group);command+=['--env','AEGIS_SCANNER_ENGINE_TLS_DIR=/run/engine-tls','--mount','type=bind,src='+str(engine_fixture.client_dir)+',dst=/run/engine-tls,readonly']
   for mount in mounts+[self.client_mounts[1],'type=volume,src='+self.volumes[1]+',dst=/run/scan-broker']:command+=['--mount',mount]
   command+=[self.images['scanner-broker'],'/run/scan-broker/dispatch.sock','/run/dispatch-credential/client.credential','/run/scanner/worker.sock','/run/worker-credential/worker.credential',owner,worker_id,'/opt/aegis','/opt/aegis/repositories',str(work_root/'engine-journal')]
   raw(command);raw(['start',self.broker_name])
@@ -31,7 +34,12 @@ class BrokerFixture:
   else:raise RuntimeError('Owned broker did not expose its private socket')
   config=json.loads(raw(['inspect',self.broker_name]).stdout)[0];host=config['HostConfig']
   assert config['Config']['Entrypoint']==['/aegis-scanner-broker'] and config['Config']['User']=='10001:10001'
-  assert host['NetworkMode']=='none' and host['ReadonlyRootfs'] and host['CapDrop']==['ALL'] and not host['Privileged'] and host['GroupAdd']==[group] and host['RestartPolicy']['Name']=='no'
+  assert host['NetworkMode']=='none' and host['ReadonlyRootfs'] and host['CapDrop']==['ALL'] and not host['Privileged'] and (not host['GroupAdd'] if engine_fixture is not None else host['GroupAdd']==[group]) and host['RestartPolicy']['Name']=='no'
+
+  if engine_fixture is not None:
+   actual={m['Destination']:m for m in config['Mounts']};assert actual['/run/engine/docker.sock']['Source']==engine_fixture.socket and not actual['/run/engine/docker.sock']['RW'] and not actual['/run/engine-tls']['RW']
+   assert not any(m['Source'] in {'/var/run/docker.sock','/run/docker.sock'} or 'plugin' in m['Destination'] for m in config['Mounts'])
+   check('packaged_broker_has_only_opaque_tls_relay_and_private_client_identity')
 
  def create_client(self,name):
   command=['create','--pull=never','--name',name,'--label','io.aegis.worker-proof='+self.nonce,'--network','none','--read-only','--user','10001:10001','--cap-drop','ALL','--security-opt','no-new-privileges','--memory','64m','--pids-limit','64','--cpus','.25','--log-driver','none']
@@ -43,10 +51,14 @@ class BrokerFixture:
   assert not any(value.startswith(('DOCKER_HOST=','DOCKER_CONTEXT=','AEGIS_DATA=')) for value in config['Config'].get('Env',[]) or [])
   self.check('minimal_dispatch_client_has_no_engine_worker_credential_source_or_journal_mount')
  def assert_compose(self,resolved):
-  services=resolved['services'];broker,client=services['scanner-broker'],services['scanner-dispatch'];assert client['profiles']==['operator-broker'] and broker['profiles']==['operator-broker']
+  services=resolved['services'];broker,client=services['scanner-broker'],services['scanner-dispatch'];profile='operator-broker-tls' if self.engine_fixture is not None else 'operator-broker';assert client['profiles']==[profile] and broker['profiles']==[profile]
   assert client['network_mode']=='none' and client['read_only'] and client['cap_drop']==['ALL'] and not client.get('group_add') and not client.get('environment')
   assert sorted(m['target'] for m in client['volumes'])==self.destinations and all(m.get('read_only') for m in client['volumes'])
-  assert broker['command'][5]==self.binding['document']['worker_id'] and broker['group_add']==[self.group]
+  assert broker['command'][5]==self.binding['document']['worker_id']
+  if self.engine_fixture is not None:
+   assert not broker.get('group_add') and broker['environment']['AEGIS_SCANNER_ENGINE_TLS_DIR']=='/run/engine-tls'
+   assert any(m['target']=='/run/engine-tls' and m.get('read_only') for m in broker['volumes'])
+  else:assert broker['group_add']==[self.group]
   self.check('broker_compose_profile_separates_control_client_from_privileged_orchestrator')
  def proof(self,outcome):
   assert outcome['all_engine_writes_mediated'] is False and outcome['cleanup_release_authorized'] is False

@@ -59,7 +59,9 @@
         "docs/architecture/adr/051-isolated-daemon-authorization-adapter.md",
         "alpha/engineauthz/policy_test.go",
         "docs/evidence/engine-authz-ci-acceptance.json",
-        "docs/evidence/engine-authz-acceptance.json"
+        "docs/evidence/engine-authz-acceptance.json",
+        "docs/architecture/adr/052-selected-broker-mutual-tls-engine.md",
+        "alpha/executor/tls_sdk_test.go"
       ]
     },
     {
