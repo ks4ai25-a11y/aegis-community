@@ -17,6 +17,8 @@ def raw(args,timeout=120,success=True):
  return result
 broker_mode=os.environ.get('AEGIS_PACKAGED_BROKER_TEST')=='1';broker=None
 authz_mode=os.environ.get('AEGIS_PACKAGED_ENGINE_AUTHZ_TEST')=='1';authz_engine=None
+controller_gate_mode=os.environ.get('AEGIS_PACKAGED_CONTROLLER_GATE_TEST')=='1'
+if controller_gate_mode and not authz_mode:raise SystemExit('Controller gate fixture requires the explicit restricted TLS fixture')
 if authz_mode:
  from packaged_engine_fixture import require_ci
  require_ci()
@@ -157,6 +159,12 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
    broker=BrokerFixture(raw,compose,helper,check,helpers,project,nonce,worker_id,owner,group,mounts,root_mount,work_root,secret_volume,arguments,engine_fixture=authz_engine)
    queued,_=request(base,'/scans/'+job['job_id'],cookie=cookie);assert queued['job']['state']=='queued'
    confirmed=True
+   if controller_gate_mode:
+    confirmed=False;started=True
+    authz_engine.bind_controller(raw,compose,project,nonce,owner,socket_volume,provisioning)
+    check('separate_packaged_authorizer_has_only_private_observer_channel_and_readonly_source')
+    check('native_tls_engine_refuses_unregistered_profile_without_allocation')
+    confirmed=True
    broker.create_client(worker_name)
    broker_env={**profile_env,'AEGIS_SCANNER_BROKER_ID':worker_id}
    broker_file='deploy/compose.scanner-broker.yaml';broker_profile_name='operator-broker'
@@ -213,17 +221,20 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   if authz_engine is not None:
    confirmed=False;engine_proof=authz_engine.finish();confirmed=True
    check('separate_restricted_engine_and_plugin_journal_settle_without_cleanup_release')
+   if controller_gate_mode:check('bound_authorizer_executes_real_scanner_and_fails_closed_on_loss_and_downgrade')
   evidence={'schema_version':'1.0','status':'PASS','scope':'Isolated packaged nonroot bound worker executes a real static fixture only after immutable operator engine/registry provisioning; no independent cleanup release or production broker claim','recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'worker_image':image,'preflight':preflight,'operator_provisioning_input':provisioning,'operator_binding':binding,'journal_provisioning_input':journal_input,'journal_binding':journal_binding,'bound_launch_example':launch,'result':suite,'tool_ids':tools,'catalogue':catalogue,'journal':journal,'container_hardening_verified':True,'child_absence_observed':True,'controller_cleanup_admission':'HELD','all_engine_writes_mediated':False,'independent_security_signoff':False}
   if engine_proof is not None:evidence['restricted_engine']=engine_proof
   if broker_mode:
    evidence.update(broker.proof(dispatch_outcome));evidence['scope']='Dedicated fixed scanner broker and minimal socket-only dispatch client; controller-selected worker identity; no production all-write mediation or independent cleanup claim'
  finally:
+  if authz_engine is not None:authz_engine.close()
   if not started or confirmed:
    raw(['rm','--force',worker_name],success=False)
    for name in helpers:raw(['rm','--force',name],success=False)
    if namespace_verified:compose('down','--volumes','--remove-orphans',success=False)
    raw(['volume','rm',secret_volume],success=False)
    if broker is not None:broker.cleanup_volumes()
+   if authz_engine is not None and authz_engine.bound is not None:authz_engine.bound.cleanup()
    if work_root is not None:
     helper(['chown','-R',str(os.geteuid())+':'+str(os.getegid()),'/target'],entry='/bin/busybox',user='0:0',caps=['CHOWN','DAC_OVERRIDE'],mounts=['type=bind,src='+str(work_root)+',dst=/target'])
     import shutil
@@ -244,4 +255,4 @@ if evidence is not None:
  assert work_root is not None and not work_root.exists()
  if broker is not None:broker.verify_removed()
  evidence['owned_fixture_resources_cleaned']=True
- path=pathlib.Path(os.environ.get('AEGIS_PACKAGED_WORKER_EVIDENCE',str(ROOT/('docs/evidence/tls-broker-acceptance.json' if authz_mode else 'docs/evidence/broker-dispatch-acceptance.json' if broker_mode else 'docs/evidence/journal-bound-worker-acceptance.json'))));path.write_text(json.dumps(evidence,indent=2)+'\n');print('packaged_worker_checks: '+str(len(checks)),flush=True)
+ path=pathlib.Path(os.environ.get('AEGIS_PACKAGED_WORKER_EVIDENCE',str(ROOT/('docs/evidence/bound-authorizer-acceptance.json' if controller_gate_mode else 'docs/evidence/tls-broker-acceptance.json' if authz_mode else 'docs/evidence/broker-dispatch-acceptance.json' if broker_mode else 'docs/evidence/journal-bound-worker-acceptance.json'))));path.write_text(json.dumps(evidence,indent=2)+'\n');print('packaged_worker_checks: '+str(len(checks)),flush=True)

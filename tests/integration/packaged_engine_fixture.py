@@ -11,10 +11,10 @@ def require_ci():
 
 class EngineFixture:
  def __init__(self,work_root):
-  require_ci();self.work=pathlib.Path(work_root);self.processes=[];self.logs=[];self.daemon=None;self.spec=None;self.installed=False;self.finished=False;self.proof=None
+  require_ci();self.work=pathlib.Path(work_root);self.processes=[];self.logs=[];self.daemon=None;self.spec=None;self.installed=False;self.finished=False;self.proof=None;self.bound=None
   self.root=pathlib.Path(tempfile.mkdtemp(prefix='aegis-packaged-engine-',dir='/tmp')).resolve();self.root.chmod(0o711)
   self.programs=self.root/'programs';self.programs.mkdir(mode=0o755)
-  for name in ('aegis-engine-authz','aegis-engine-relay','aegis-research'):
+  for name in ('aegis-engine-authz','aegis-engine-relay','aegis-research')+ (('aegis-engine-gate-tests',) if os.environ.get('AEGIS_PACKAGED_CONTROLLER_GATE_TEST')=='1' else ()):
    shutil.copyfile(ROOT/'bin'/name,self.programs/name);(self.programs/name).chmod(0o755)
   shutil.copyfile(ROOT/'tools/scanners.lock.json',self.programs/'scanners.lock.json');(self.programs/'scanners.lock.json').chmod(0o644)
   self.engine=pathlib.Path(os.environ['AEGIS_CI_ENGINE_ROOT']).resolve(strict=True)
@@ -107,6 +107,12 @@ class EngineFixture:
    if subprocess.run(['sudo','test','-S',self.socket],stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
    time.sleep(.1)
   else:raise RuntimeError('Private opaque relay unavailable')
+ def bind_controller(self,raw,compose,project,nonce,owner,socket_volume,provisioning):
+  if os.environ.get('AEGIS_PACKAGED_CONTROLLER_GATE_TEST')!='1':raise RuntimeError('Explicit bound authorizer fixture required')
+  from packaged_authorizer_fixture import BoundAuthorizer
+  self.bound=BoundAuthorizer(self,raw,compose,project,nonce,owner,socket_volume,provisioning)
+  self.bound.start()
+  self.bound.probe_unregistered()
  def assert_absent(self,name):
   if not re.fullmatch(r'aegis-scan-[0-9a-f]{32}',name):raise RuntimeError('Exact child name required')
   status,_=self.observer('/containers/'+name+'/json')
@@ -114,11 +120,12 @@ class EngineFixture:
  def finish(self):
   # Stop only native relay/plugin and this dedicated daemon. All private keys,
   # journals and engine state remain in the nonce root until runner destruction.
+  if self.bound is not None:self.bound.prove_failure_and_seal()
   self.close()
   observation=json.loads(run(self.as_user([self.programs/'aegis-research','engine-journal-status',self.journal,self.engine_digest]),env=self.env).stdout)
   if observation['attempts']!=1 or observation['unresolved_requests'] or observation['unfinished_attempts'] or observation['all_engine_writes_mediated'] or observation['cleanup_release_authorized']:raise RuntimeError('Independent plugin journal unconfirmed')
   self.finished=True
-  self.proof={'schema_version':'1.0','separate_daemon':True,'unique_containerd_namespaces':True,'raw_bootstrap_listener_removed':not self.bootstrap.exists(),'broker_has_raw_daemon_socket':False,'broker_has_daemon_socket_group':False,'end_to_end_tls_over_opaque_unix_relay':True,'relay_has_engine_credentials':False,'daemon_http2_setting':'GODEBUG=http2server=0','plugin_journal':observation,'controller_plugin_lease_binding_verified':False,'all_engine_writes_mediated':False,'cleanup_release_authorized':False,'public_beta':'NO-GO'}
+  self.proof={'schema_version':'1.0','separate_daemon':True,'unique_containerd_namespaces':True,'raw_bootstrap_listener_removed':not self.bootstrap.exists(),'broker_has_raw_daemon_socket':False,'broker_has_daemon_socket_group':False,'end_to_end_tls_over_opaque_unix_relay':True,'relay_has_engine_credentials':False,'daemon_http2_setting':'GODEBUG=http2server=0','plugin_journal':observation,'controller_live_preconditions_verified':self.bound is not None,'controller_plugin_lease_binding_verified':False,'all_engine_writes_mediated':False,'cleanup_release_authorized':False,'public_beta':'NO-GO'}
   return self.proof
  def close(self):
   if sys.exc_info()[0] is not None:
@@ -126,6 +133,7 @@ class EngineFixture:
     path=self.root/name
     if path.is_file():print(name+': '+path.read_bytes()[-8000:].decode(errors='replace'),file=sys.stderr)
   try:
+   if self.bound is not None:self.bound.stop()
    for item in reversed(self.processes):self.process_stop(item)
   finally:
    try:self.daemon_stop()

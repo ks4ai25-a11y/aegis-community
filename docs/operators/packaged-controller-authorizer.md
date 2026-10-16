@@ -1,0 +1,19 @@
+# Packaged controller-observed authorizer
+
+This experimental, disabled profile packages the [native bound gate](controller-observed-engine-gate.md). Read [ADR 055](../architecture/adr/055-packaged-controller-observed-authorizer.md) and the dedicated TLS engine requirements before provisioning. It does not configure a workstation daemon or release scanner cleanup admission.
+
+Build the separate image with:
+
+```text
+docker build -f alpha/Dockerfile --target scanner-authorizer -t aegis-community/scanner-authorizer:0.1.0-alpha.1 .
+```
+
+Set the operator inputs required by `deploy/compose.scanner-authorizer.yaml`: `AEGIS_SCANNER_AUTHORIZER_ROOT` (canonical owned mode-0700 plugin state outside the workspace registry), `AEGIS_SCANNER_ENGINE_DIGEST`, `AEGIS_SCANNER_REGISTRY_ROOT`, `AEGIS_SCANNER_REGISTRY_DIGEST`, `AEGIS_SCANNER_OWNER`, `AEGIS_SCANNER_OBSERVER_ID` and `AEGIS_SCANNER_OBSERVER_VOLUME`. Enroll a separate private observer in that external volume with the existing `aegisctl scanner-verifier enroll` operation. Its `observer.credential` must be owned UID 10001, mode 0600, under an owned mode-0700 volume root. The profile reuses only the controller's `scanner_socket` volume. Do not substitute a worker or dispatch credential.
+
+Initialize `AEGIS_SCANNER_AUTHORIZER_ROOT/bound-journal` explicitly through the same image's `init JOURNAL ENGINE_DIGEST` command, with its state mount writable. The approved engine digest must be the actual broker TLS engine identity, not a preflight experiment's unrelated journal hash. Used unbound namespaces cannot acquire this bound configuration. Preserve existing state; there is no reset/relabel/release command.
+
+Merge `deploy/compose.demo.yaml` and `deploy/compose.scanner-authorizer.yaml`, explicitly select `operator-engine-gate`, and start only `scanner-authorizer` after provisioning. The command is fixed `serve-bound`. No engine environment, raw daemon socket, daemon group or client TLS key belongs in this service. It reads the registry at the exact canonical daemon-host path; the broker receives its separate writable work area. The authorizer owns only its plugin socket/journal mount. `AEGIS_SCANNER_RULES_DIGEST` defaults to `-`, which refuses Semgrep; enabling it requires the independently approved rules snapshot digest.
+
+Separately configure the isolated TLS-only daemon's native authorization plugin discovery to the exact `authz.sock` path in this state directory, with the pinned daemon's HTTP/2 exclusion and no bypass listener. The Compose profile cannot establish that boundary by itself. The broker retains its scoped client identity and opaque relay; neither it nor the limited dispatcher receives the observer volume or plugin state. Metadata preflight may precede controller binding, but never use an unbound serving path for scanner execution that is meant to have these preconditions.
+
+Missing/expired/revoked observer access, controller loss, unregistered/stale launches and changed files deny new create/start. Tracked removal remains available after a later start denial. Unresolved plugin state refuses restart; independent reconciliation/recovery is still unfinished. A settled journal, absent child or passing automated run never clears a hold or permits a fresh namespace to inherit authority. The reference CI tests only its own disposable daemon; deployment-specific exclusivity, mutation race/fault testing, controller allocation fencing and cleanup release remain unfinished.

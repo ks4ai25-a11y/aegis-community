@@ -1,0 +1,34 @@
+# Explicit dedicated-daemon preconditions; never configures a workstation daemon.
+services:
+  scanner-authorizer:
+    profiles: [operator-engine-gate]
+    image: aegis-community/scanner-authorizer:0.1.0-alpha.1
+    build: {context: .., dockerfile: alpha/Dockerfile, target: scanner-authorizer}
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    network_mode: none
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: 1.0
+    restart: "no"
+    stop_grace_period: 10s
+    command: [serve-bound, "${AEGIS_SCANNER_AUTHORIZER_ROOT:?Provision private authorizer state}/authz.sock", "${AEGIS_SCANNER_AUTHORIZER_ROOT}/bound-journal", "${AEGIS_SCANNER_ENGINE_DIGEST:?Set approved engine digest}", "${AEGIS_SCANNER_REGISTRY_ROOT:?Set canonical registry path}", "10001", "10001", /opt/aegis/tools/scanners.lock.json, /run/scanner/worker.sock, /run/observer-credential/observer.credential, "${AEGIS_SCANNER_OWNER:?Set enrolled owner}", "${AEGIS_SCANNER_OBSERVER_ID:?Set separate observer identity}", "${AEGIS_SCANNER_REGISTRY_DIGEST:?Set approved registry digest}", "${AEGIS_SCANNER_RULES_DIGEST:--}"]
+    volumes:
+      - {type: volume, source: scanner_socket, target: /run/scanner, read_only: true}
+      - {type: volume, source: scanner_authorizer_credentials, target: /run/observer-credential, read_only: true}
+      - type: bind
+        source: "${AEGIS_SCANNER_REGISTRY_ROOT}"
+        target: "${AEGIS_SCANNER_REGISTRY_ROOT}"
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: "${AEGIS_SCANNER_AUTHORIZER_ROOT}"
+        target: "${AEGIS_SCANNER_AUTHORIZER_ROOT}"
+        bind: {create_host_path: false}
+    logging: {driver: none}
+volumes:
+  scanner_authorizer_credentials:
+    external: true
+    name: "${AEGIS_SCANNER_OBSERVER_VOLUME:?Provision a separate private observer credential volume}"

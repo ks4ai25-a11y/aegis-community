@@ -69,7 +69,10 @@
         "docs/architecture/adr/054-controller-observed-daemon-launch-preconditions.md",
         "tests/integration/scannerchannel/engine_gate_test.go",
         "alpha/enginejournal/policy_test.go",
-        "docs/evidence/controller-observed-gate-validation.json"
+        "docs/evidence/controller-observed-gate-validation.json",
+        "docs/architecture/adr/055-packaged-controller-observed-authorizer.md",
+        "alpha/engineauthz/packaged_real_test.go",
+        "tests/integration/packaged_authorizer_fixture.py"
       ]
     },
     {

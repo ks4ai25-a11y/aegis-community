@@ -118,6 +118,8 @@ jobs:
       - run: docker build -f alpha/Dockerfile -t aegis-community/scanner-worker:0.1.0-alpha.1 .
       - run: docker build -f alpha/Dockerfile --target scanner-broker -t aegis-community/scanner-broker:0.1.0-alpha.1 .
       - run: docker build -f alpha/Dockerfile --target scanner-dispatch -t aegis-community/scanner-dispatch:0.1.0-alpha.1 .
+      - run: docker build -f alpha/Dockerfile --target scanner-authorizer -t aegis-community/scanner-authorizer:0.1.0-alpha.1 .
+      - run: cd alpha && CGO_ENABLED=0 go test -c -o ../bin/aegis-engine-gate-tests ./engineauthz
       - name: Preload the exact public Bandit image
         run: |
           python3 - <<'PY'
@@ -140,6 +142,13 @@ jobs:
           AEGIS_PACKAGED_WORKER_TEST: '1'
           AEGIS_PACKAGED_BROKER_TEST: '1'
           AEGIS_PACKAGED_ENGINE_AUTHZ_TEST: '1'
+        run: python3 tests/integration/packaged_worker_acceptance.py
+      - name: Verify packaged controller-observed authorizer and held cleanup admission
+        env:
+          AEGIS_PACKAGED_WORKER_TEST: '1'
+          AEGIS_PACKAGED_BROKER_TEST: '1'
+          AEGIS_PACKAGED_ENGINE_AUTHZ_TEST: '1'
+          AEGIS_PACKAGED_CONTROLLER_GATE_TEST: '1'
         run: python3 tests/integration/packaged_worker_acceptance.py
       - name: Stop only this disposable job engine
         if: always()
