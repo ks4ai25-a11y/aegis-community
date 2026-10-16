@@ -1,0 +1,84 @@
+{
+ "schema_version": "1.0",
+ "test_scope": "local-multi-site-synthetic",
+ "started_at": "2026-10-16T15:38:33Z",
+ "checks": [
+  {
+   "id": "owner_session",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "unregistered_host_refused_421",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "metadata_origin_refused",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "protect_before_observation_refused",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "site_registered_in_observe",
+   "result": "PASS",
+   "detail": {
+    "revision": "sha256:86c6ed81e017cdd0cd42d8d1a2d29712f94d1e1915704db8989520bc621477d6"
+   }
+  },
+  {
+   "id": "gateway_assigned_site_request_id",
+   "result": "PASS",
+   "detail": {
+    "spoofed_header_ignored": true
+   }
+  },
+  {
+   "id": "events_attributed_only_to_site",
+   "result": "PASS",
+   "detail": {
+    "records": 3
+   }
+  },
+  {
+   "id": "site_privacy_sanitized",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "site_incident_attributed",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "site_endpoint_inventory",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "protect_isolated_to_site",
+   "result": "PASS",
+   "detail": {
+    "revision": "sha256:2057eb6799127dacb1fb63e04bf1a5d4dffc65f3b820cd2e5dabbdd902b06719"
+   }
+  },
+  {
+   "id": "site_benign_request_allowed",
+   "result": "PASS",
+   "detail": null
+  },
+  {
+   "id": "site_removed_restores_421",
+   "result": "PASS",
+   "detail": {
+    "revision": "sha256:b7c16edf279df91110e8d1e9628e2a3005caeec7030c36dd75e3cf6eaec70911"
+   }
+  }
+ ],
+ "result": "PASS",
+ "finished_at": "2026-10-16T15:38:38Z"
+}

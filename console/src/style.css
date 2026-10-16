@@ -9,3 +9,6 @@
 .review-history ol{padding-left:24px}.review-history li{padding:10px 0;border-bottom:1px solid var(--border)}
 .review-history p{overflow-wrap:anywhere;min-width:0}.review-rationale{white-space:pre-wrap}
 .catalogue-results .mono{overflow-wrap:anywhere}.catalogue-results>.button{margin:8px 0 18px}
+.site-picker{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted,#64748b);margin-right:8px}
+.site-picker select{min-width:140px}
+td.actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}

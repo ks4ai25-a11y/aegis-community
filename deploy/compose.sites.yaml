@@ -1,0 +1,7 @@
+# Overlay: lets the gateway (and only the gateway) reach applications on the
+# external `aegis_sites` network. Create it once with `docker network create aegis_sites`.
+services:
+  gateway:
+    networks: [origin_net, management_net, ingress_net, aegis_sites]
+networks:
+  aegis_sites: {external: true}

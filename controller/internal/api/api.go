@@ -377,7 +377,7 @@ func (s *Server) incidents(w http.ResponseWriter, r *http.Request, site string) 
 	for rows.Next() {
 		var id, sum, at, state, sev, conf string
 		rows.Scan(&id, &sum, &at, &state, &sev, &conf)
-		items = append(items, map[string]any{"incident_id": id, "summary": sum, "opened_at": at, "state": state, "severity": sev, "confidence": conf, "synthetic": true, "label_source": "rule_match_observation"})
+		items = append(items, map[string]any{"incident_id": id, "summary": sum, "opened_at": at, "state": state, "severity": sev, "confidence": conf, "synthetic": site == "site_demo", "label_source": "rule_match_observation"})
 	}
 	output(w, 200, map[string]any{"items": items})
 }
@@ -399,7 +399,7 @@ func (s *Server) incident(w http.ResponseWriter, id string) {
 		rows.Scan(&b)
 		events = append(events, json.RawMessage(b))
 	}
-	output(w, 200, map[string]any{"incident_id": id, "site_id": site, "summary": sum, "opened_at": at, "state": state, "severity": sev, "confidence": conf, "synthetic": true, "evidence": events, "unknowns": []string{"Pattern detection does not prove successful exploitation.", "Retained evidence may be incomplete after retention or telemetry loss.", "Source attribution and application authorization were not assessed."}})
+	output(w, 200, map[string]any{"incident_id": id, "site_id": site, "summary": sum, "opened_at": at, "state": state, "severity": sev, "confidence": conf, "synthetic": site == "site_demo", "evidence": events, "unknowns": []string{"Pattern detection does not prove successful exploitation.", "Retained evidence may be incomplete after retention or telemetry loss.", "Source attribution and application authorization were not assessed."}})
 }
 func (s *Server) endpoints(w http.ResponseWriter, r *http.Request, site string) {
 	rows, e := s.S.DB.Query("SELECT document FROM events WHERE json_extract(document,'$.source')='caddy-access' AND json_extract(document,'$.site_id')=? ORDER BY seq DESC LIMIT 50000", site)
