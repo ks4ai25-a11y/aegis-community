@@ -15,6 +15,7 @@ def raw(args,timeout=120,success=True):
  result=subprocess.run(['docker','--host',endpoint,*args],cwd=ROOT,env=env,capture_output=True,text=True,timeout=timeout)
  if success and result.returncode:raise RuntimeError('Owned packaged worker operation failed')
  return result
+broker_mode=os.environ.get('AEGIS_PACKAGED_BROKER_TEST')=='1';broker=None
 image=raw(['image','inspect','aegis-community/scanner-worker:0.1.0-alpha.1','--format','{{.Id}}']).stdout.strip()
 if not re.fullmatch(r'sha256:[0-9a-f]{64}',image):raise SystemExit('Build the pinned worker image first')
 engine_socket=os.environ.get('AEGIS_WORKER_TEST_ENGINE_SOCKET','/var/run/docker.sock')
@@ -135,15 +136,31 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   assert all(m.get('read_only') for m in profile['volumes'] if m['target']!=str(work_root))
   assert any(m['type']=='bind' and m['source']==str(work_root) and m['target']==str(work_root) for m in profile['volumes'])
   check('explicit_compose_worker_profile_matches_private_mount_and_hardening_contract')
-  command=['create','--pull=never','--name',worker_name,'--label','io.aegis.worker-proof='+nonce,'--network','none','--read-only','--user','10001:10001','--group-add',group,'--cap-drop','ALL','--security-opt','no-new-privileges','--memory','512m','--pids-limit','128','--cpus','1','--log-driver','none','--env','TMPDIR='+str(work_root),'--env','DOCKER_API_VERSION=0.1','--tmpfs','/tmp:rw,noexec,nosuid,size=32m,uid=10001,gid=10001']
-  for mount in mounts:command+=['--mount',mount]
-  arguments=['worker-once-bound','/run/scanner/worker.sock','/run/worker-credential/worker.credential',owner,'/opt/aegis','/opt/aegis/repositories',str(work_root/'engine-journal')]
-  raw(command+[image,*arguments]);worker=json.loads(raw(['inspect',worker_name]).stdout)[0];host=worker['HostConfig'];assert worker['Config']['User']=='10001:10001' and host['ReadonlyRootfs'] and host['NetworkMode']=='none' and host['CapDrop']==['ALL'] and not host['Privileged'] and host['RestartPolicy']['Name']=='no'
-  assert not any(m['Destination']=='/var/lib/aegis' for m in worker['Mounts']);check('worker_profile_has_no_controller_database_or_network_and_is_hardened')
-  confirmed=False;started=True;result=raw(['start','--attach',worker_name],120,False)
-  state=json.loads(raw(['inspect',worker_name]).stdout)[0]['State'];expected_exit=1 if len(tools)>1 else 0;assert not state['Running'] and state['ExitCode']==expected_exit and result.returncode==expected_exit,'Packaged worker did not complete its authorized static fixture'
-  report=json.loads(result.stdout);assert report['job_id']==job['job_id'] and report['state']==('tool_error' if len(tools)>1 else 'completed') and len(report['receipts'])==len(tools)
-  suite,_=request(base,'/scans/'+job['job_id']+'/result',cookie=cookie);assert suite==report['result'] and suite['document']['evidence_tier']=='T0' and suite['document']['cleanup_required'] is True
+  if broker_mode:
+   from broker_fixture import BrokerFixture
+   confirmed=False
+   broker=BrokerFixture(raw,compose,helper,check,helpers,project,nonce,worker_id,owner,group,mounts,root_mount,work_root,secret_volume,arguments)
+   queued,_=request(base,'/scans/'+job['job_id'],cookie=cookie);assert queued['job']['state']=='queued'
+   confirmed=True
+   broker.create_client(worker_name)
+   broker_env={**profile_env,'AEGIS_SCANNER_BROKER_ID':worker_id}
+   broker_profile=subprocess.run(['docker','--host',endpoint,'compose','-p',project,'-f',str(ROOT/'deploy/compose.demo.yaml'),'-f',str(ROOT/'deploy/compose.scanner-broker.yaml'),'--profile','operator-broker','config','--format','json'],env=broker_env,cwd=ROOT,capture_output=True,text=True,timeout=30);assert broker_profile.returncode==0;broker.assert_compose(json.loads(broker_profile.stdout))
+   confirmed=False;started=True;result=raw(['start','--attach',worker_name],120,False)
+   state=json.loads(raw(['inspect',worker_name]).stdout)[0]['State'];expected_exit=1 if len(tools)>1 else 0;assert not state['Running'] and state['ExitCode']==expected_exit and result.returncode==expected_exit
+   dispatch_outcome=json.loads(result.stdout);assert dispatch_outcome['job_id']==job['job_id'] and dispatch_outcome['receipt_count']==len(tools) and dispatch_outcome['state']==('tool_error' if len(tools)>1 else 'completed')
+  else:
+   command=['create','--pull=never','--name',worker_name,'--label','io.aegis.worker-proof='+nonce,'--network','none','--read-only','--user','10001:10001','--group-add',group,'--cap-drop','ALL','--security-opt','no-new-privileges','--memory','512m','--pids-limit','128','--cpus','1','--log-driver','none','--env','TMPDIR='+str(work_root),'--env','DOCKER_API_VERSION=0.1','--tmpfs','/tmp:rw,noexec,nosuid,size=32m,uid=10001,gid=10001']
+   for mount in mounts:command+=['--mount',mount]
+   arguments=['worker-once-bound','/run/scanner/worker.sock','/run/worker-credential/worker.credential',owner,'/opt/aegis','/opt/aegis/repositories',str(work_root/'engine-journal')]
+   raw(command+[image,*arguments]);worker=json.loads(raw(['inspect',worker_name]).stdout)[0];host=worker['HostConfig'];assert worker['Config']['User']=='10001:10001' and host['ReadonlyRootfs'] and host['NetworkMode']=='none' and host['CapDrop']==['ALL'] and not host['Privileged'] and host['RestartPolicy']['Name']=='no'
+   assert not any(m['Destination']=='/var/lib/aegis' for m in worker['Mounts']);check('worker_profile_has_no_controller_database_or_network_and_is_hardened')
+   confirmed=False;started=True;result=raw(['start','--attach',worker_name],120,False)
+   state=json.loads(raw(['inspect',worker_name]).stdout)[0]['State'];expected_exit=1 if len(tools)>1 else 0;assert not state['Running'] and state['ExitCode']==expected_exit and result.returncode==expected_exit,'Packaged worker did not complete its authorized static fixture'
+   report=json.loads(result.stdout);assert report['job_id']==job['job_id'] and report['state']==('tool_error' if len(tools)>1 else 'completed') and len(report['receipts'])==len(tools)
+  suite,_=request(base,'/scans/'+job['job_id']+'/result',cookie=cookie)
+  if broker_mode:assert suite['result_digest']==dispatch_outcome['result_digest']
+  else:assert suite==report['result']
+  assert suite['document']['evidence_tier']=='T0' and suite['document']['cleanup_required'] is True
   assert suite['document']['finding_claims']>0 and suite['document']['has_tool_error'] is (len(tools)>1)
   check('packaged_worker_commits_actual_guarded_tool_receipts_and_result')
   catalogue,_=request(base,'/findings/catalogue?limit=20',cookie=cookie);assert catalogue['retained_result_count']==1 and catalogue['result']['result_digest']==suite['result_digest'] and len(catalogue['findings']['items'])>0
@@ -164,19 +181,24 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   check('used_bound_journal_cannot_be_reinitialized_or_reset')
   second,_=request(base,'/scans',request_body,cookie,csrf,202,key=secrets.token_hex(16))
   confirmed=False
-  blocked=helper(arguments,mounts=mounts,extra=['--group-add',group,'--env','TMPDIR='+str(work_root)],success=False);assert blocked.returncode!=0
-  blocked_report=json.loads(blocked.stdout);assert blocked_report['state']=='not_claimed' and not blocked_report['receipts']
+  if broker_mode:blocked=raw(['start','--attach',worker_name],120,False)
+  else:blocked=helper(arguments,mounts=mounts,extra=['--group-add',group,'--env','TMPDIR='+str(work_root)],success=False)
+  assert blocked.returncode!=0
+  blocked_report=json.loads(blocked.stdout);assert blocked_report['state']=='not_claimed' and (blocked_report['receipt_count']==0 if broker_mode else not blocked_report['receipts'])
   status,_=request(base,'/scans/'+job['job_id'],cookie=cookie);next_status,_=request(base,'/scans/'+second['job_id'],cookie=cookie);assert status['execution_admission']=='cleanup_required' and next_status['job']['state']=='queued'
   after=json.loads(helper(['engine-journal-status',str(work_root/'engine-journal'),plan['engine_digest']],mounts=[root_mount]).stdout);assert after==journal
   confirmed=True
   check('second_job_remains_queued_behind_independent_cleanup_hold')
   evidence={'schema_version':'1.0','status':'PASS','scope':'Isolated packaged nonroot bound worker executes a real static fixture only after immutable operator engine/registry provisioning; no independent cleanup release or production broker claim','recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'worker_image':image,'preflight':preflight,'operator_provisioning_input':provisioning,'operator_binding':binding,'journal_provisioning_input':journal_input,'journal_binding':journal_binding,'bound_launch_example':launch,'result':suite,'tool_ids':tools,'catalogue':catalogue,'journal':journal,'container_hardening_verified':True,'child_absence_observed':True,'controller_cleanup_admission':'HELD','all_engine_writes_mediated':False,'independent_security_signoff':False}
+  if broker_mode:
+   evidence.update(broker.proof(dispatch_outcome));evidence['scope']='Dedicated fixed scanner broker and minimal socket-only dispatch client; controller-selected worker identity; no production all-write mediation or independent cleanup claim'
  finally:
   if not started or confirmed:
    raw(['rm','--force',worker_name],success=False)
    for name in helpers:raw(['rm','--force',name],success=False)
    if namespace_verified:compose('down','--volumes','--remove-orphans',success=False)
    raw(['volume','rm',secret_volume],success=False)
+   if broker is not None:broker.cleanup_volumes()
    if work_root is not None:
     helper(['chown','-R',str(os.geteuid())+':'+str(os.getegid()),'/target'],entry='/bin/busybox',user='0:0',caps=['CHOWN','DAC_OVERRIDE'],mounts=['type=bind,src='+str(work_root)+',dst=/target'])
     import shutil
@@ -184,6 +206,7 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   else:
    # Unknown daemon work must retain its records and private mount contents.
    raw(['stop','--time','10',worker_name],30,False)
+   if broker_mode:raw(['stop','--time','25',project+'-broker'],40,False)
    print('Unconfirmed fixture retained privately for trusted recovery; no dispatch release performed',flush=True)
 
 if evidence is not None:
@@ -193,5 +216,6 @@ if evidence is not None:
  assert raw(['volume','inspect',secret_volume],success=False).returncode!=0
  assert not raw(['network','ls','--filter','label=com.docker.compose.project='+project,'--format','{{.ID}}']).stdout.strip()
  assert work_root is not None and not work_root.exists()
+ if broker is not None:broker.verify_removed()
  evidence['owned_fixture_resources_cleaned']=True
- path=pathlib.Path(os.environ.get('AEGIS_PACKAGED_WORKER_EVIDENCE',str(ROOT/'docs/evidence/journal-bound-worker-acceptance.json')));path.write_text(json.dumps(evidence,indent=2)+'\n');print('packaged_worker_checks: '+str(len(checks)),flush=True)
+ path=pathlib.Path(os.environ.get('AEGIS_PACKAGED_WORKER_EVIDENCE',str(ROOT/('docs/evidence/broker-dispatch-acceptance.json' if broker_mode else 'docs/evidence/journal-bound-worker-acceptance.json'))));path.write_text(json.dumps(evidence,indent=2)+'\n');print('packaged_worker_checks: '+str(len(checks)),flush=True)

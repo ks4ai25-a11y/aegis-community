@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "scope": "Dedicated selected broker and least-privilege private dispatch client; no independent all-write or cleanup authority claim",
+  "race_tests": {
+    "controller": {
+      "test_cases": 18,
+      "repeats": 3,
+      "test_pass_events": 54
+    },
+    "worker_and_broker": {
+      "test_cases": 211,
+      "repeats": 3,
+      "test_pass_events": 633
+    },
+    "private_ipc_and_client": {
+      "test_cases": 19,
+      "repeats": 3,
+      "test_pass_events": 57
+    }
+  },
+  "full_source_tests": "make test PASS",
+  "vet": "controller and alpha PASS",
+  "actual_schema_payloads": 2,
+  "idle_outcome_schema_variant": 1,
+  "schema_refusal_variants": 6,
+  "dispatch_dependency_graph_has_engine_worker_or_controller": false,
+  "actual_six_tool_package_evidence": "broker-dispatch-acceptance.json",
+  "packaged_checks": 16,
+  "legacy_one_shot_regression_checks": 14,
+  "legacy_resources_cleaned": true,
+  "guard_builds": {
+    "scanner-guard-linux-arm64": "sha256:bbbb7f602ce019705311aeae62f886c5ba77b65f18d5e8ad34a54fef5db88239",
+    "scanner-guard-linux-amd64": "sha256:d0355bed871cdea81cd1aa2e0f23e7522c6231a3355dc62c4fde193f5f4d7f3f"
+  },
+  "controller_database_schema": 13,
+  "migration_added": false,
+  "client_has_daemon_or_worker_credentials": false,
+  "all_engine_writes_mediated": false,
+  "cleanup_release_authorized": false,
+  "independent_security_signoff": false,
+  "public_beta": "NO-GO"
+}

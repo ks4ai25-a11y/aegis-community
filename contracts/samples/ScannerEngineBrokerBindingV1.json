@@ -1,0 +1,10 @@
+{
+  "broker_binding_digest": "sha256:9e84c67bbb1f114ea6ab0a1530b92be9e024c6c79bd0aadbb274e92df2424a7c",
+  "document": {
+    "schema_version": "1.0",
+    "owner_id": "01a142fe-6e98-7cb8-a695-57130eafc93c",
+    "worker_id": "packaged-ddb6c3f4140f8b747b06b0d1",
+    "journal_binding_digest": "sha256:f29a389c5c71785d23b6e14c30dc0bed172b98b35ec6f0ceea74485ea5f42037",
+    "created_at": "2026-10-16T04:36:02.876650043Z"
+  }
+}

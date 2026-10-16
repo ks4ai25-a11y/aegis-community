@@ -1414,6 +1414,9 @@
       "ResearchJobV1": {
         "$ref": "schemas/ResearchJobV1.json"
       },
+      "ScannerBrokerDispatchOutcomeV1": {
+        "$ref": "schemas/ScannerBrokerDispatchOutcomeV1.json"
+      },
       "ScannerCleanupContextRecordV1": {
         "$ref": "schemas/ScannerCleanupContextRecordV1.json"
       },
@@ -1425,6 +1428,9 @@
       },
       "ScannerEngineBindingV1": {
         "$ref": "schemas/ScannerEngineBindingV1.json"
+      },
+      "ScannerEngineBrokerBindingV1": {
+        "$ref": "schemas/ScannerEngineBrokerBindingV1.json"
       },
       "ScannerEngineJournalBindingV1": {
         "$ref": "schemas/ScannerEngineJournalBindingV1.json"

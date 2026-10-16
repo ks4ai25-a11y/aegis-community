@@ -36,3 +36,5 @@ Choose a new suffix for each capture. These commands retain sensitive bytes insi
 Restoring current state also removes the immutable scanner engine/registry host binding. Historical binding audit and scan records remain; restored workers/verifiers stay revoked and dispatch cleanup holds remain. Provisioning another host cannot bypass a retained hold.
 
 The separate scanner journal root/namespace binding is also removed during restore. Both previous host approvals become unavailable, historical launch/audit records remain, and cleanup admission stays held. Rebinding or initializing another namespace cannot bypass a restored hold.
+
+Restore also removes the selected scanner-broker binding and revokes worker enrollment. Its historical approval and scan records remain; cleanup holds are not released by restoring or selecting another broker.

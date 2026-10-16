@@ -288,6 +288,24 @@ class ScannerEngineJournalInputV1(TypedDict):
     journal_namespace_digest: str
     controller_binding_verified: bool
     cleanup_release_authorized: bool
+class ScannerEngineBrokerBindingV1(TypedDict):
+    broker_binding_digest: str
+    document: ScannerEngineBrokerBindingV1Document
+class ScannerEngineBrokerBindingV1Document(TypedDict):
+    schema_version: str
+    owner_id: str
+    worker_id: str
+    journal_binding_digest: str
+    created_at: str
+class ScannerBrokerDispatchOutcomeV1(TypedDict):
+    schema_version: str
+    state: str
+    job_id: NotRequired[str]
+    request_digest: NotRequired[str]
+    result_digest: NotRequired[str]
+    receipt_count: int
+    all_engine_writes_mediated: bool
+    cleanup_release_authorized: bool
 class ScannerEnginePreflightV1(TypedDict):
     schema_version: str
     backend: str

@@ -44,3 +44,24 @@ func (r JournalBindingRecord) Valid(owner string, base EngineBindingRecord) bool
 	baseTime, be := time.Parse(time.RFC3339Nano, base.Document.Created)
 	return base.Valid(owner) && d.Schema == "1.0" && d.Owner == owner && d.EngineBinding == base.Digest && hash.MatchString(d.Root) && hash.MatchString(d.Namespace) && e == nil && t.Location() == time.UTC && t.Format(time.RFC3339Nano) == d.Created && be == nil && !t.Before(baseTime) && r.Digest == digest(d)
 }
+
+// BrokerBinding selects the only enrolled worker allowed to claim fresh work
+// in this configured installation. It is not daemon or cleanup attestation.
+type BrokerBinding struct {
+	Schema  string `json:"schema_version"`
+	Owner   string `json:"owner_id"`
+	Worker  string `json:"worker_id"`
+	Journal string `json:"journal_binding_digest"`
+	Created string `json:"created_at"`
+}
+type BrokerBindingRecord struct {
+	Digest   string        `json:"broker_binding_digest"`
+	Document BrokerBinding `json:"document"`
+}
+
+func (r BrokerBindingRecord) Valid(owner string, base EngineBindingRecord, journal JournalBindingRecord) bool {
+	d := r.Document
+	t, e := time.Parse(time.RFC3339Nano, d.Created)
+	previous, pe := time.Parse(time.RFC3339Nano, journal.Document.Created)
+	return journal.Valid(owner, base) && d.Schema == "1.0" && d.Owner == owner && cleanupIdentity.MatchString(d.Worker) && d.Journal == journal.Digest && e == nil && pe == nil && t.Location() == time.UTC && t.Format(time.RFC3339Nano) == d.Created && !t.Before(previous) && r.Digest == digest(d)
+}

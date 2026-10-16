@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerEngineBrokerBindingV1.json",
+  "title": "ScannerEngineBrokerBindingV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "broker_binding_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "owner_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "worker_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+        },
+        "journal_binding_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "schema_version",
+        "owner_id",
+        "worker_id",
+        "journal_binding_digest",
+        "created_at"
+      ]
+    }
+  },
+  "required": [
+    "broker_binding_digest",
+    "document"
+  ]
+}

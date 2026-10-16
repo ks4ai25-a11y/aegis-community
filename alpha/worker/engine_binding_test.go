@@ -20,7 +20,7 @@ import (
 )
 
 func TestBoundWorkerChecksOperatorRegistryBeforeClaimAndEngineAccess(t *testing.T) {
-	for _, kind := range []string{"valid-idle", "missing", "registry", "wrong-engine", "no-journal", "missing-journal-binding", "missing-journal-dir", "changed-journal", "wrong-journal-root", "pending-journal"} {
+	for _, kind := range []string{"valid-idle", "missing", "registry", "wrong-engine", "no-journal", "missing-journal-binding", "missing-journal-dir", "changed-journal", "wrong-journal-root", "pending-journal", "broker-binding-missing", "broker-id-mismatch", "valid-broker-idle"} {
 		t.Run(kind, func(t *testing.T) {
 			root, e := os.MkdirTemp("/tmp", "aeb-")
 			if e != nil {
@@ -96,6 +96,12 @@ func TestBoundWorkerChecksOperatorRegistryBeforeClaimAndEngineAccess(t *testing.
 			if kind == "missing-journal-dir" {
 				os.RemoveAll(journalPath)
 			}
+			brokerDoc := scanevidence.BrokerBinding{Schema: "1.0", Owner: "owner-a", Worker: "broker-a", Journal: journalBinding.Digest, Created: time.Now().UTC().Format(time.RFC3339Nano)}
+			if kind == "broker-id-mismatch" {
+				brokerDoc.Worker = "other"
+			}
+			brokerRaw, _ := json.Marshal(brokerDoc)
+			brokerBinding := scanevidence.BrokerBindingRecord{Digest: source.Hash(brokerRaw), Document: brokerDoc}
 			calls := make(chan string, 4)
 			server := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				calls <- r.URL.Path
@@ -114,6 +120,13 @@ func TestBoundWorkerChecksOperatorRegistryBeforeClaimAndEngineAccess(t *testing.
 						return
 					}
 					json.NewEncoder(w).Encode(journalBinding)
+				case "/internal/v1/scanner/engine-broker-binding":
+					if kind == "broker-binding-missing" {
+						w.WriteHeader(404)
+						w.Write([]byte(`{}`))
+						return
+					}
+					json.NewEncoder(w).Encode(brokerBinding)
 				case "/internal/v1/scanner/claim":
 					w.WriteHeader(204)
 				default:
@@ -127,8 +140,11 @@ func TestBoundWorkerChecksOperatorRegistryBeforeClaimAndEngineAccess(t *testing.
 			if kind == "no-journal" {
 				cfg.EngineJournalRoot = ""
 			}
+			if strings.HasPrefix(kind, "broker-") || kind == "valid-broker-idle" {
+				cfg.ExpectedBrokerID = "broker-a"
+			}
 			report, e := cfg.RunOnce(context.Background())
-			if kind == "valid-idle" {
+			if kind == "valid-idle" || kind == "valid-broker-idle" {
 				if e != nil || report.State != "no_job" {
 					t.Fatal(report, e)
 				}
@@ -140,17 +156,23 @@ func TestBoundWorkerChecksOperatorRegistryBeforeClaimAndEngineAccess(t *testing.
 			if kind == "missing" || kind == "registry" {
 				expected = 1
 			}
-			if kind == "valid-idle" {
+			if kind == "valid-idle" || kind == "valid-broker-idle" {
 				expected = 3
 			}
 			if kind == "no-journal" {
 				expected = 0
 			}
+			if kind == "broker-binding-missing" || kind == "broker-id-mismatch" {
+				expected = 3
+			}
+			if kind == "valid-broker-idle" {
+				expected = 4
+			}
 			if count != expected {
 				t.Fatal(count, expected)
 			}
 			engineCount := 0
-			if kind == "valid-idle" || kind == "wrong-engine" {
+			if kind == "valid-idle" || kind == "valid-broker-idle" || kind == "wrong-engine" {
 				engineCount = 1
 			}
 			if len(engineCalls) != engineCount {

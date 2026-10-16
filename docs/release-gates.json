@@ -53,7 +53,9 @@
         "docs/evidence/engine-binding-acceptance.json",
         "docs/evidence/engine-bound-worker-acceptance.json",
         "docs/evidence/journal-binding-acceptance.json",
-        "docs/evidence/journal-bound-worker-acceptance.json"
+        "docs/evidence/journal-bound-worker-acceptance.json",
+        "docs/evidence/scanner-broker-acceptance.json",
+        "docs/evidence/broker-dispatch-acceptance.json"
       ]
     },
     {

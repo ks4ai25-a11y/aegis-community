@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "state": "tool_error",
+  "job_id": "01a142fe-791c-7d14-b0ec-7e264b79b736",
+  "request_digest": "sha256:d274e2bdab5f978e30440ca400ff2ab79004e155767364ef47c8dcc1af061372",
+  "result_digest": "sha256:ab706198249d6c268176191a670cdd13a03e849ffaa0273ddaf28c66d8afa425",
+  "receipt_count": 6,
+  "all_engine_writes_mediated": false,
+  "cleanup_release_authorized": false
+}

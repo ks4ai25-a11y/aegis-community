@@ -45,6 +45,9 @@ func (q *Queue) Claim(worker, owner string) (Lease, error) {
 	if e = workerAuthority(tx, worker, owner, now); e != nil {
 		return Lease{}, e
 	}
+	if e = q.matchBrokerTx(tx, worker, owner); e != nil {
+		return Lease{}, e
+	}
 	if e = q.reconcileTx(tx, now); e != nil {
 		return Lease{}, e
 	}
@@ -240,6 +243,9 @@ func (q *Queue) live(tx *sql.Tx, l Lease) (Job, error) {
 		return Job{}, e
 	}
 	if e = workerAuthority(tx, l.Worker, j.Owner, now); e != nil {
+		return Job{}, e
+	}
+	if e = q.matchBrokerTx(tx, l.Worker, j.Owner); e != nil {
 		return Job{}, e
 	}
 	if j.State != "running" || j.CancelRequested || j.RequestDigest != l.Job.RequestDigest {

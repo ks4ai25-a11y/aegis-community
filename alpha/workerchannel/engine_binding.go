@@ -31,3 +31,15 @@ func (c *Client) JournalBinding(ctx context.Context, base scanevidence.EngineBin
 	}
 	return out, nil
 }
+
+func (c *Client) BrokerBinding(ctx context.Context, base scanevidence.EngineBindingRecord, journal scanevidence.JournalBindingRecord, id string) (scanevidence.BrokerBindingRecord, error) {
+	var out scanevidence.BrokerBindingRecord
+	if e := c.call(ctx, "engine-broker-binding", struct{}{}, &out, 2048); e != nil {
+		return scanevidence.BrokerBindingRecord{}, e
+	}
+	created, e := time.Parse(time.RFC3339Nano, out.Document.Created)
+	if !out.Valid(c.owner, base, journal) || out.Document.Worker != id || e != nil || created.After(time.Now()) {
+		return scanevidence.BrokerBindingRecord{}, errors.New("operator broker binding rejected")
+	}
+	return out, nil
+}

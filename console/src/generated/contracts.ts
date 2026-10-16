@@ -317,6 +317,27 @@ export interface ScannerEngineJournalInputV1 {
   controller_binding_verified: false;
   cleanup_release_authorized: false;
 }
+export interface ScannerEngineBrokerBindingV1 {
+  broker_binding_digest: string;
+  document: ScannerEngineBrokerBindingV1Document;
+}
+export interface ScannerEngineBrokerBindingV1Document {
+  schema_version: "1.0";
+  owner_id: string;
+  worker_id: string;
+  journal_binding_digest: string;
+  created_at: string;
+}
+export interface ScannerBrokerDispatchOutcomeV1 {
+  schema_version: "1.0";
+  state: "not_claimed" | "no_job" | "stopped" | "finalization_unconfirmed" | "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  job_id?: string;
+  request_digest?: string;
+  result_digest?: string;
+  receipt_count: number;
+  all_engine_writes_mediated: false;
+  cleanup_release_authorized: false;
+}
 export interface ScannerEnginePreflightV1 {
   schema_version: "1.0";
   backend: "unix-sdk-1.55";

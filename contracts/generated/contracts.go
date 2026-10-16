@@ -319,6 +319,27 @@ type ScannerEngineJournalInputV1 struct {
 	ControllerBindingVerified bool   `json:"controller_binding_verified"`
 	CleanupReleaseAuthorized  bool   `json:"cleanup_release_authorized"`
 }
+type ScannerEngineBrokerBindingV1 struct {
+	BrokerBindingDigest string                               `json:"broker_binding_digest"`
+	Document            ScannerEngineBrokerBindingV1Document `json:"document"`
+}
+type ScannerEngineBrokerBindingV1Document struct {
+	SchemaVersion        string `json:"schema_version"`
+	OwnerId              string `json:"owner_id"`
+	WorkerId             string `json:"worker_id"`
+	JournalBindingDigest string `json:"journal_binding_digest"`
+	CreatedAt            string `json:"created_at"`
+}
+type ScannerBrokerDispatchOutcomeV1 struct {
+	SchemaVersion            string `json:"schema_version"`
+	State                    string `json:"state"`
+	JobId                    string `json:"job_id,omitempty"`
+	RequestDigest            string `json:"request_digest,omitempty"`
+	ResultDigest             string `json:"result_digest,omitempty"`
+	ReceiptCount             int64  `json:"receipt_count"`
+	AllEngineWritesMediated  bool   `json:"all_engine_writes_mediated"`
+	CleanupReleaseAuthorized bool   `json:"cleanup_release_authorized"`
+}
 type ScannerEnginePreflightV1 struct {
 	SchemaVersion            string `json:"schema_version"`
 	Backend                  string `json:"backend"`

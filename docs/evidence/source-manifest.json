@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "source_tree_sha256": "sha256:f02c3e7f1efc7b66994ac73de7fc8b8e38c6b9553f511ea4ced7afdd776d0efb",
+  "source_tree_sha256": "sha256:8fb0ff8b872df60e2d9d118b1db77645833cb1294994686def916c8721765751",
   "files": [
     {
       "path": ".dockerignore",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "ab0154df25f6467649364f27f781c298aa4eb9d7140c9a9bbd2b41cfc4f085b5"
+      "sha256": "4747ac4d3470054957c4d9996fa00f9e575555ce3c0fcf9604ee07c4b5c3ebc0"
     },
     {
       "path": ".gitignore",
@@ -28,11 +28,11 @@
     },
     {
       "path": "Makefile",
-      "sha256": "af1e7779fbf649ad17a0ce5ac37fa84dfd0affd8b486da155e492f9250c3c8aa"
+      "sha256": "3eb80fa89d028963366507ac1be4a269dcf499e8b2eccbff07b3e29402e01428"
     },
     {
       "path": "README.md",
-      "sha256": "056f465bedbd622c60df266ca7f573853bb969e7f7185c9755aae535c22d0236"
+      "sha256": "befd9287b2f0ff051d6ce491a53f5dabc5472c4564cda4c12c8c05c008792a6b"
     },
     {
       "path": "SECURITY.md",
@@ -44,11 +44,19 @@
     },
     {
       "path": "alpha/Dockerfile",
-      "sha256": "3a9c281e2089b7035c77204aec384fb1851553d66193af966d6911827212284e"
+      "sha256": "f3470552871741324da8a721b79dce259b9fe9e2361190fba020356bd988fa9a"
     },
     {
       "path": "alpha/cmd/aegis-research/main.go",
       "sha256": "e7365fea1fdeac5e6aa8d1fd55cbd8a9a2e32de2a80c42d52b94f4ffdfdf9b77"
+    },
+    {
+      "path": "alpha/cmd/aegis-scan-dispatch/main.go",
+      "sha256": "3eb709688bb897f94c982aafefdaee25e7503f52d30b5e41db373679f9734a46"
+    },
+    {
+      "path": "alpha/cmd/aegis-scanner-broker/main.go",
+      "sha256": "6284f633c765e383d04a726be2748327e60ad9d2bb18e73e0b46dd6f9e0a776a"
     },
     {
       "path": "alpha/cmd/scanner-guard/main.go",
@@ -207,6 +215,14 @@
       "sha256": "f6e55404521a599bdb311abc981cd905b9f15393760c1f0a2ad79c1bf4e9bf4c"
     },
     {
+      "path": "alpha/scanbroker/server.go",
+      "sha256": "f54a0ff4fc063b6ede531d93ff87f94e0223df5942383fbc3073390cf2da6ef3"
+    },
+    {
+      "path": "alpha/scanbroker/server_test.go",
+      "sha256": "fc8aa610b1a2391c23aec569980fb9a1a69318e1337c7238d89dbab2b616a141"
+    },
+    {
       "path": "alpha/scanners/dedupe.go",
       "sha256": "537ec4e32aab1d101bee2263390b1ada5955cc95917248a372ac78ced69519c2"
     },
@@ -240,11 +256,11 @@
     },
     {
       "path": "alpha/worker/engine_binding_test.go",
-      "sha256": "d6000bd5fe17db499c17e18e23fcd6e60a97c5c47e6d15b97b8c0afad737ec22"
+      "sha256": "c789bb2c8eba654b1ed97f887650d2c3425af08b0624dbaf5478e3d6945b528d"
     },
     {
       "path": "alpha/worker/run.go",
-      "sha256": "20a28ea51d247a02a74ad8db4c9c606ef113daaf4e53efc2666decb93abfe27d"
+      "sha256": "a263b1198e5d612bff6c50ee066fe64d3fd44648dfccb530dbabdff65e8eab6a"
     },
     {
       "path": "alpha/worker/run_test.go",
@@ -252,7 +268,7 @@
     },
     {
       "path": "alpha/workerchannel/client.go",
-      "sha256": "e141d28c7efabf04f02e916dca94023f1a5a51201acef9a3d39b0fc485c064e9"
+      "sha256": "6a96501353ed9ec0206d7ecdf95e96fc5fa7c40b01de3804e263cc5b1694906a"
     },
     {
       "path": "alpha/workerchannel/client_test.go",
@@ -260,7 +276,7 @@
     },
     {
       "path": "alpha/workerchannel/engine_binding.go",
-      "sha256": "1a5369187f41858adedbe5d6f37ddc026ebf03439b70cb3ab3cef61a7004687c"
+      "sha256": "bb099feaebdec35ae72ec12dee1dcd15fb75340f356133ceda6d4369346b179c"
     },
     {
       "path": "alpha/workerchannel/engine_binding_test.go",
@@ -408,7 +424,7 @@
     },
     {
       "path": "console/src/generated/contracts.ts",
-      "sha256": "75a3554b956c48ac8eff56d46940bebe6ea2635e8834cd9ae7dcb3df1d0c9dbc"
+      "sha256": "5e9f3ce8cfadbe99ccb816a72e242b51823b9705dedf2e6c4d43614c1fc3e347"
     },
     {
       "path": "console/src/generated/research-client.ts",
@@ -468,15 +484,15 @@
     },
     {
       "path": "contracts/generated/contracts.go",
-      "sha256": "54f607194ac554a9926649ad0fe5ef6bd4560e9577c81c2a5386fdcce27e7c59"
+      "sha256": "c3e272052bcdde9960c9d73a04c56f49a49d4aa3d9947e05642cc648aae20f1a"
     },
     {
       "path": "contracts/generated/contracts.py",
-      "sha256": "a937e6fb3fe75e8ef60afee78405a8c368b34a6439406fd6d550f85b0e8dd811"
+      "sha256": "822ced0e62efc45dbea738a362720a86a4f1abfc9e3861665508908e49238a96"
     },
     {
       "path": "contracts/generated/contracts.ts",
-      "sha256": "75a3554b956c48ac8eff56d46940bebe6ea2635e8834cd9ae7dcb3df1d0c9dbc"
+      "sha256": "5e9f3ce8cfadbe99ccb816a72e242b51823b9705dedf2e6c4d43614c1fc3e347"
     },
     {
       "path": "contracts/generated/research_client.go",
@@ -496,7 +512,7 @@
     },
     {
       "path": "contracts/openapi-research.json",
-      "sha256": "9dd5f5ebc7c4fbec3648a3035ca9bc2345599867c876e80c0a3d2a5cc1c2330d"
+      "sha256": "5a622dbe14c6b7343cf934b08099be10c48f018b57680dbda87ac1e913c40454"
     },
     {
       "path": "contracts/samples/ApplicationMapV1.json",
@@ -551,6 +567,10 @@
       "sha256": "68f8ffbd9055b8d7e999361c376865ecf4ffb1e4e4e67b89ab5769e1bb125e17"
     },
     {
+      "path": "contracts/samples/ScannerBrokerDispatchOutcomeV1.json",
+      "sha256": "54132ad01a0a9f987001a9731c7abbdb3ccfd3d2120fc81c25441fe4c12793b3"
+    },
+    {
       "path": "contracts/samples/ScannerCleanupContextRecordV1.json",
       "sha256": "f035e9920d741adb9c1cdeff003a7847728e0bf01ee153541ced2ccd882c72f0"
     },
@@ -561,6 +581,10 @@
     {
       "path": "contracts/samples/ScannerEngineBindingV1.json",
       "sha256": "f2bde7a82365469c2197113441a59bd91047c5b541c0532c8f91f55b630779bd"
+    },
+    {
+      "path": "contracts/samples/ScannerEngineBrokerBindingV1.json",
+      "sha256": "1bff6e79dddce5db548e3cafe8c4746357606ee150df746ea96e4b9ca4ea5505"
     },
     {
       "path": "contracts/samples/ScannerEngineJournalBindingV1.json",
@@ -775,6 +799,10 @@
       "sha256": "e89fd29909519b4a8d06532cde0c705913fa96aa8b875dad17cc75bdb0b7239d"
     },
     {
+      "path": "contracts/schemas/ScannerBrokerDispatchOutcomeV1.json",
+      "sha256": "a81ca51e8437858802e28d94302ee87e9eeb5128227e995ff1eb04bdda678c79"
+    },
+    {
       "path": "contracts/schemas/ScannerCleanupContextRecordV1.json",
       "sha256": "a94dc4f4bb25e3262ce215634eb495a48e51e24abab9e5f2a9082463f2fd984b"
     },
@@ -789,6 +817,10 @@
     {
       "path": "contracts/schemas/ScannerEngineBindingV1.json",
       "sha256": "f7e3b059d61c7ea9bdbf962dd726b042503f1fb1a5f752b647758bc72571fc7f"
+    },
+    {
+      "path": "contracts/schemas/ScannerEngineBrokerBindingV1.json",
+      "sha256": "4ea6f03ce5e6a173840b68df8b2d832689611f976b9257ea30008baaf3bfcf38"
     },
     {
       "path": "contracts/schemas/ScannerEngineJournalBindingV1.json",
@@ -932,7 +964,7 @@
     },
     {
       "path": "controller/cmd/aegisctl/main.go",
-      "sha256": "845ea6b66f133df344836b25a1e185099389625db8920bd98c53e66803d33331"
+      "sha256": "4513980e8c8fb11820af83ce0a8be47c7785875d49994f7cc3f32ec851c14244"
     },
     {
       "path": "controller/cmd/aegisctl/main_test.go",
@@ -1044,7 +1076,7 @@
     },
     {
       "path": "controller/internal/recovery/bundle_test.go",
-      "sha256": "5174d14cef30247fccd6e7fc92d9874c64c190f578dee739ac4678df8a8d3833"
+      "sha256": "4fa20d59e4027d5605f9e20daf6daee41f7cd3fd03a0a26a4e324b99d34c1633"
     },
     {
       "path": "controller/internal/recovery/files_other.go",
@@ -1056,7 +1088,7 @@
     },
     {
       "path": "controller/internal/recovery/restore.go",
-      "sha256": "517fcbd9374226b8dfb2239cbe736ef1a8a2a88f82daebbf80fe0eb7bcd75e49"
+      "sha256": "ffcce17aeb04989ce33566963f78543ba185bfc72641d9f55c4ad91b903a82e7"
     },
     {
       "path": "controller/internal/repository/repository.go",
@@ -1101,6 +1133,14 @@
     {
       "path": "controller/internal/scannerauth/verifier_test.go",
       "sha256": "f9dd697fa037e1efbaac17eda5c933bf7c3b5980af81b2fddd9ab9cae46f4da2"
+    },
+    {
+      "path": "controller/internal/scanqueue/broker_binding.go",
+      "sha256": "ad1cf687461c6f95dc3a77de01308929d772ae895874017a27ed2be6e0547cdb"
+    },
+    {
+      "path": "controller/internal/scanqueue/broker_binding_test.go",
+      "sha256": "88560c015b57ff1f2e25fb047cef933590724c1176e29e8dea49d810506628b0"
     },
     {
       "path": "controller/internal/scanqueue/catalogue.go",
@@ -1180,7 +1220,7 @@
     },
     {
       "path": "controller/internal/scanqueue/lease.go",
-      "sha256": "b67e3b27565b2225c982c0d8ce4fd34210a817db77b4e1d2fa7cfd8bb3e5baee"
+      "sha256": "4af1cacc103f2951bf9f901b6c23a762fa22bf658f04f73c6294aab1271a4264"
     },
     {
       "path": "controller/internal/scanqueue/lease_test.go",
@@ -1239,6 +1279,10 @@
       "sha256": "c2f3d38f7dbe2f607425d3d75dc385fdc4375155515edb475bc2cba51c6ae559"
     },
     {
+      "path": "controller/internal/scantransport/broker_binding_test.go",
+      "sha256": "2dc78ebdd9c9de8a1a471c0d3c32b735a88f380622d193af7a9ccf83a38264ec"
+    },
+    {
       "path": "controller/internal/scantransport/client.go",
       "sha256": "895965540966268057cb65da2e3d3141e8f79e96ac9dc4165946d67fdc5c536e"
     },
@@ -1292,7 +1336,7 @@
     },
     {
       "path": "controller/internal/scantransport/server.go",
-      "sha256": "e0b18abd8ddafe8dd197b0012c7baa4a952fe890c1ab062a792a4b4b57acea1e"
+      "sha256": "e72ccee602855ea62062902341cd60bfa6498e54e8372db002d4a612ff7eada8"
     },
     {
       "path": "controller/internal/scantransport/server_test.go",
@@ -1395,16 +1439,20 @@
       "sha256": "527a667ce1e8a9bd5a9a18203f08e7d541fa435235c8a06503fa2852353c3c25"
     },
     {
+      "path": "deploy/compose.scanner-broker.yaml",
+      "sha256": "80d2af49869dd3e25bff345e374d06d2adefa0f6b519bff9600bd2e209aa2050"
+    },
+    {
       "path": "deploy/compose.scanner-worker.yaml",
       "sha256": "f98f3af6b2991fde4c046bee13e3a309d2b0d0ca856cb2d7c3c679e2211258f8"
     },
     {
       "path": "docs/IMPLEMENTATION_STATUS.md",
-      "sha256": "61b11cd2fa8a72e90dfb5b76dbb726e5a1ab4b4acbe0292e7a891a516752f61d"
+      "sha256": "65999672299caaeea1e573990ea822015a8abab2c0573384fa171d3695b4268f"
     },
     {
       "path": "docs/KNOWN_LIMITATIONS.md",
-      "sha256": "25060b7385d6409b7c5c32750abb3d842599915d101826e37f2d9bc15a198b15"
+      "sha256": "9d49fd67bf8e83d9f160e443d2e557f05f8247c80c98f2d46174a1318e4fcd75"
     },
     {
       "path": "docs/architecture/adr/011-v4-research-plane.md",
@@ -1563,6 +1611,10 @@
       "sha256": "1033fcf8189ffd1388ea79919afb64f2206a55417ad12e8ad6a4976f3c0c815a"
     },
     {
+      "path": "docs/architecture/adr/050-selected-scanner-broker-and-minimal-dispatch-client.md",
+      "sha256": "17b011f3707e5ee428a8ac655f19d1ae4e8ca790af256850107bccce98586980"
+    },
+    {
       "path": "docs/operators/database-snapshots.md",
       "sha256": "3c62f228aa2828f135f5293c85d3da33a1e25464022bcbe6bd9344de9e3c6e85"
     },
@@ -1592,11 +1644,15 @@
     },
     {
       "path": "docs/operators/recovery-bundles.md",
-      "sha256": "5be99cad5ff28369bd8fd4a295606ef9c3dfc0b1e17775c3f77ea08b8033d0b0"
+      "sha256": "7bfe418c845facf7e1bbff697ae60722b8fb391b750eb1de9f640f887e4d5138"
     },
     {
       "path": "docs/operators/repositories.md",
       "sha256": "9b27f2f6cd276aed2b21fbb62e70c321f5521abb88b5ea6f85f4ca2c572f667f"
+    },
+    {
+      "path": "docs/operators/scanner-broker.md",
+      "sha256": "16b146f588b0ebe49c413880543e71216d22305ca60d18d24e1a60fe062418f2"
     },
     {
       "path": "docs/operators/scanner-verifier-context.md",
@@ -1608,7 +1664,7 @@
     },
     {
       "path": "docs/release-gates.json",
-      "sha256": "821724d8eb9e151f0614b04e7328556f2c39785a35d50ec4cc60e0f19d9525b7"
+      "sha256": "d38569f19bab0f93a947570cc8528ee0be1a6b8170ef8134006ce6d55129788b"
     },
     {
       "path": "gateway/Dockerfile",
@@ -1644,7 +1700,7 @@
     },
     {
       "path": "scripts/generate_contracts.py",
-      "sha256": "1d28790c383fdc9495043ff52991a1eeecfb10534afc1b39a5573e52e93aded0"
+      "sha256": "613f0c92d824d5b2b23e198baeb2a84c030dc1aa14ecef3ca345d17d2e2cb84b"
     },
     {
       "path": "scripts/generate_research_api.py",
@@ -1653,6 +1709,22 @@
     {
       "path": "scripts/source_manifest.py",
       "sha256": "6d67f6fc3dabafc78b8dc1d6470c75d9bdfa2dedf6283d56d815f4c340c5b1a6"
+    },
+    {
+      "path": "shared/source/brokerwire/client.go",
+      "sha256": "72c1f1975bed927e7731ff02773ef59ab90f2c1c4b449e17b4af21b93e135dcd"
+    },
+    {
+      "path": "shared/source/brokerwire/client_test.go",
+      "sha256": "1446df45f6b57bd642c57f031df9912d938b2f462074b7d500402481c3a633ad"
+    },
+    {
+      "path": "shared/source/brokerwire/dispatch.go",
+      "sha256": "192a5df601d7aff67a72a1b0901f8efabcce59965c9894ec38d714069fd491d7"
+    },
+    {
+      "path": "shared/source/brokerwire/dispatch_test.go",
+      "sha256": "ac8cc1cd765e1686ce7f058dd0299ca11479499684091d5712898017ed013c83"
     },
     {
       "path": "shared/source/go.mod",
@@ -1679,6 +1751,26 @@
       "sha256": "af8741f22f1033d164e50b9333355a7070ea31c91222678ae320cee699bc1339"
     },
     {
+      "path": "shared/source/privateipc/credential.go",
+      "sha256": "f3eaa7a782bc0ed8cd2150a561e34f4f85c3a248a8bb5bf17ebf41f7a04196c6"
+    },
+    {
+      "path": "shared/source/privateipc/parent_unix.go",
+      "sha256": "a94da34b978c7f89692df4602cedf21ebc68016ca3d544b5a2acba63505076bc"
+    },
+    {
+      "path": "shared/source/privateipc/private_test.go",
+      "sha256": "12eded1268a9573a11bd50c318e0c6d0ba71a82f5d0a6ac519eb6202064b319b"
+    },
+    {
+      "path": "shared/source/privateipc/socket_other.go",
+      "sha256": "042b81ff159e97a6a47f8ff15f85aa10b1caa95f9783a82e0e3c6d183e24e429"
+    },
+    {
+      "path": "shared/source/privateipc/socket_unix.go",
+      "sha256": "02ec8845ae9ea889937cad3909fca7415c1f3e5401dcd3af24192d362611c0f1"
+    },
+    {
       "path": "shared/source/scanevidence/cleanup.go",
       "sha256": "8b5ee2105e512747a4f3a635381d8d8542c498ede7e0c027cc28f162bd0405f6"
     },
@@ -1692,7 +1784,7 @@
     },
     {
       "path": "shared/source/scanevidence/engine_binding.go",
-      "sha256": "9ea19e41ba608ec892a3cd80aab0ac18c914d907b7cc18e24700b007c4ef9761"
+      "sha256": "c26b21e5492033a85d31bb73fdd781728bb82ad3020416be93fa51cf9431b7b2"
     },
     {
       "path": "shared/source/scanevidence/guard.go",
@@ -1775,6 +1867,10 @@
       "sha256": "38e8e282679ede45f435088ac5a061cc546b948f1699a0065def865da1b3a54c"
     },
     {
+      "path": "tests/integration/broker_fixture.py",
+      "sha256": "c9877af74d9113ce5989eb60d04fcfcb7823a795ae64a56b4a62353128b58041"
+    },
+    {
       "path": "tests/integration/contract_acceptance.py",
       "sha256": "e7648d744ea4342b21239dce26900e68b6db1bb7236f7406f310d84a6dff177e"
     },
@@ -1804,7 +1900,7 @@
     },
     {
       "path": "tests/integration/packaged_worker_acceptance.py",
-      "sha256": "aae67bccd2a86b6923570c8c5d7185f5a8c63f6c16dc63714a6570e65d1b928d"
+      "sha256": "bf5f15df1a69921559fe388adee90140fa16fd8840517ea552ad5ae7d63ad6c6"
     },
     {
       "path": "tests/integration/recovery_application_acceptance.py",

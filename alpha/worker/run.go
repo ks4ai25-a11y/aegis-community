@@ -28,6 +28,7 @@ var assetName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$`)
 // All paths are operator provisioned. The claim contains only a mounted asset
 // identifier; it cannot supply a filesystem path, command, URL or image.
 type Config struct {
+	ExpectedBrokerID                     string
 	RequireEngineBinding                 bool
 	EngineJournalRoot                    string
 	Socket, Credential, Owner            string
@@ -79,6 +80,9 @@ func openAsset(root *os.Root, ref string) (*os.Root, error) {
 // accepted receipts. A terminal scan result never verifies or releases cleanup.
 func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 	out := Report{Schema: "1.0", State: "not_claimed", Receipts: []workerchannel.ReceiptAcknowledgement{}}
+	if cfg.ExpectedBrokerID != "" && !cfg.RequireEngineBinding {
+		return out, ErrRun
+	}
 	if !canonicalDir(cfg.SourceRoot) || !canonicalDir(cfg.AssetRoot) {
 		return out, ErrRun
 	}
@@ -124,6 +128,11 @@ func (cfg Config) RunOnce(ctx context.Context) (Report, error) {
 		journalBinding, e = client.JournalBinding(ctx, binding)
 		if e != nil || journalBinding.Document.Root != source.Hash([]byte("aegis-scanner-engine-journal-root-v1\n"+cfg.EngineJournalRoot+"\n"+fmt.Sprint(os.Geteuid()))) {
 			return out, ErrRun
+		}
+		if cfg.ExpectedBrokerID != "" {
+			if _, e = client.BrokerBinding(ctx, binding, journalBinding, cfg.ExpectedBrokerID); e != nil {
+				return out, ErrRun
+			}
 		}
 		observation, e := enginejournal.ReadObservation(cfg.EngineJournalRoot, binding.Document.Engine)
 		if e != nil || observation.Namespace != journalBinding.Document.Namespace || observation.Unfinished != 0 || observation.Unresolved != 0 {
