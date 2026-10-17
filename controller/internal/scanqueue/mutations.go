@@ -240,6 +240,11 @@ func readIntent(row scanner) (MutationIntent, error) {
 		if !digestPattern.MatchString(m.Response) || !nativeContainerID.MatchString(m.EngineID) || (r.Operation == "create" && m.Status != 201) || (r.Operation != "create" && (m.Status != 204 || m.EngineID != r.EngineID)) {
 			return MutationIntent{}, ErrConflict
 		}
+	} else if m.State == "repaired" {
+		// Never a native status: Response names the retained repair record.
+		if !m.Valid() {
+			return MutationIntent{}, ErrConflict
+		}
 	} else {
 		return MutationIntent{}, ErrConflict
 	}
@@ -295,7 +300,10 @@ func (q *Queue) AdmitMutation(ctx context.Context, v scanevidence.AuthorizerIden
 		if e != nil {
 			return MutationAdmission{}, e
 		}
-		if created.State != "completed" || created.EngineID != r.EngineID || created.Request.Launch != r.Launch {
+		// After crash repair, a create repaired as created is removed through
+		// this same admitted path; it never permits a new start.
+		settled := created.State == "completed" || r.Operation == "remove" && created.State == "repaired" && created.EngineID != ""
+		if !settled || created.EngineID != r.EngineID || created.Request.Launch != r.Launch {
 			return MutationAdmission{}, ErrConflict
 		}
 		var pending, removed int
@@ -396,7 +404,7 @@ func (q *Queue) CompleteMutation(ctx context.Context, v scanevidence.AuthorizerI
 	}
 	if m.Request.Operation == "create" {
 		var n int
-		if e = tx.QueryRow("SELECT count(*) FROM scanner_mutation_intents WHERE operation='create' AND state='completed' AND result_engine_id=?", c.EngineID).Scan(&n); e != nil {
+		if e = tx.QueryRow("SELECT count(*) FROM scanner_mutation_intents WHERE operation='create' AND state IN ('completed','repaired') AND result_engine_id=?", c.EngineID).Scan(&n); e != nil {
 			return MutationIntent{}, e
 		}
 		if n != 0 {

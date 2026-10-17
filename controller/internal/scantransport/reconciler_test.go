@@ -102,9 +102,27 @@ func TestReconcilerHTTPRequiresSeparateRoleAndExactContextShape(t *testing.T) {
 	for _, bad := range []string{"{}", strings.Replace(string(confirmBody), `"absent":[]`, `"absent":null`, 1), strings.Replace(string(confirmBody), `"absent":[]`, `"absent":[{"tool_id":"bandit","container":"x","engine_id":"","extra":1}]`, 1), strings.TrimSuffix(string(confirmBody), "}") + `,"dispatch_released":true}`} {
 		call(t, h, token, "reconciler/confirm", bad, 400)
 	}
+	// Crash repair shares the reconciler role and fails closed on shape, scope
+	// and an unfinished job; an authorizer may only read its own intents.
+	b := snapshot.Membership.Binding
+	repair := scanevidence.MutationRepairRequest{Job: job.ID, Generation: generation, Membership: snapshot.MembershipHash, Engine: b.Document.Engine, Namespace: b.Document.Namespace, Fence: scanevidence.RepairFence{Policy: scanevidence.AdmittedJournalSeal(b.Document.Policy, b.Digest), Quarantine: domain.Hash([]byte("q")), Activation: domain.Hash([]byte("a"))}, Resolutions: []scanevidence.MutationResolution{{Intent: domain.Hash([]byte("i")), Operation: "create", Outcome: scanevidence.RepairNotCreated, Evidence: domain.Hash([]byte("e"))}}}
+	repairBody, _ := json.Marshal(repair)
+	call(t, h, token, "reconciler/repair", string(repairBody), 409)
+	call(t, h, strings.TrimSpace(string(authorizerToken)), "reconciler/repair", string(repairBody), 401)
+	for _, bad := range []string{"{}", strings.Replace(string(repairBody), `"resolutions":[`, `"resolutions":null,"x":[`, 1), strings.Replace(string(repairBody), `"outcome":"not_created"`, `"outcome":"not_created","extra":1`, 1), strings.Replace(string(repairBody), `"activation_digest"`, `"activation"`, 1), strings.TrimSuffix(string(repairBody), "}") + `,"cleanup_release_authorized":true}`, strings.Replace(string(repairBody), `"outcome":"not_created"`, `"outcome":"absent"`, 1)} {
+		call(t, h, token, "reconciler/repair", bad, 400)
+	}
+	read, _ := json.Marshal(scanevidence.AuthorizerIntentRequest{Generation: generation, Intent: domain.Hash([]byte("never admitted"))})
+	got := call(t, h, strings.TrimSpace(string(authorizerToken)), "authorizer/intent", string(read), 200)
+	if got["found"] != false || got["intent"] != nil {
+		t.Fatal("never-admitted intent reported", got)
+	}
+	call(t, h, token, "authorizer/intent", string(read), 401)
+	call(t, h, strings.TrimSpace(string(authorizerToken)), "authorizer/intent", strings.TrimSuffix(string(read), "}")+`,"state":"repaired"}`, 400)
 	if err = s.Auth.RevokeReconciler(v.Owner, v.ID); err != nil {
 		t.Fatal(err)
 	}
 	call(t, h, token, "reconciler/context", string(body), 401)
 	call(t, h, token, "reconciler/confirm", string(confirmBody), 401)
+	call(t, h, token, "reconciler/repair", string(repairBody), 401)
 }

@@ -76,6 +76,22 @@ func (s *Server) authorizer(w http.ResponseWriter, r *http.Request, token string
 			return
 		}
 		reply(w, 200, out)
+	case "/internal/v1/scanner/authorizer/intent":
+		var in scanevidence.AuthorizerIntentRequest
+		if authorizerDecode(r, &in, map[string]bool{"generation_id": true, "intent_id": true}) != nil || !in.Valid() {
+			failure(w, 400, "INVALID_AUTHORIZER_REQUEST")
+			return
+		}
+		m, repair, found, e := s.Q.MutationForAuthorizer(r.Context(), v, in.Generation, in.Intent)
+		if e != nil {
+			queueError(w, e)
+			return
+		}
+		out := scanevidence.AuthorizerIntentRead{Schema: "1.0", Found: found}
+		if found {
+			out.Intent, out.Repair = &m, repair
+		}
+		reply(w, 200, out)
 	default:
 		failure(w, 404, "AUTHORIZER_OPERATION_UNAVAILABLE")
 	}

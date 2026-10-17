@@ -71,6 +71,27 @@ func (s *Server) reconciler(w http.ResponseWriter, r *http.Request, token string
 		default:
 			reply(w, 200, out)
 		}
+	case "/internal/v1/scanner/reconciler/repair":
+		var in scanevidence.MutationRepairRequest
+		if authorizerDecode(r, &in, map[string]bool{"job_id": true, "generation_id": true, "membership_digest": true, "engine_digest": true, "registry_namespace_digest": true, "fence": true, "resolutions": true}) != nil || !in.Valid() || !canonicalRepair(in) {
+			failure(w, 400, "INVALID_RECONCILER_REQUEST")
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+		out, err := s.Q.RepairMutations(ctx, v, in)
+		switch {
+		case errors.Is(err, scannerauth.ErrDenied):
+			failure(w, 401, "RECONCILER_AUTH_REQUIRED")
+		case errors.Is(err, scanqueue.ErrContextUnbound):
+			failure(w, 409, "RECONCILIATION_CONTEXT_UNBOUND")
+		case errors.Is(err, scanqueue.ErrConflict):
+			failure(w, 409, "MUTATION_NOT_REPAIRABLE")
+		case err != nil:
+			queueError(w, err)
+		default:
+			reply(w, 200, out)
+		}
 	default:
 		failure(w, 404, "RECONCILER_OPERATION_UNAVAILABLE")
 	}
@@ -92,4 +113,15 @@ func ProbeReconciler(ctx context.Context, socket, credential string) (scaneviden
 		return scanevidence.ReconcilerIdentity{}, fmt.Errorf("reconciler identity binding rejected")
 	}
 	return v, nil
+}
+
+// canonicalRepair refuses omitted nested objects, which decode to zero values
+// that a flat key check cannot see. Unknown nested fields fail auth.Decode.
+func canonicalRepair(in scanevidence.MutationRepairRequest) bool {
+	for _, x := range in.Resolutions {
+		if x == (scanevidence.MutationResolution{}) {
+			return false
+		}
+	}
+	return in.Fence != (scanevidence.RepairFence{})
 }

@@ -161,7 +161,7 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 	if e = tx.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version); e != nil {
 		return ErrRecovery
 	}
-	if version < 13 || version > 19 {
+	if version < 13 || version > 20 {
 		return ErrRecovery
 	}
 	if version >= 14 {
@@ -190,6 +190,8 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 			return ErrRecovery
 		}
 	}
+	// Version 20 repair records are retained history, like confirmations.
+	// Restore revokes the reconcilers that wrote them; it never repairs.
 	now := domain.Now()
 	if _, e = tx.ExecContext(ctx, "UPDATE research_jobs SET state='cancelled',cancel_requested=1,lease_token='',worker='',lease_until=0,finished_at=?,error_code='RESTORE_AUTHORITY_INVALIDATED' WHERE state IN ('queued','running')", now); e != nil {
 		return ErrRecovery

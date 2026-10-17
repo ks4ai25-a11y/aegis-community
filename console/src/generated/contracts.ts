@@ -1871,7 +1871,7 @@ export interface ScannerMutationIntentV1 {
   request: ScannerMutationIntentV1Request;
   workspace_digest: string;
   container: string;
-  state: "pending" | "completed";
+  state: "pending" | "completed" | "repaired";
   response_digest?: string;
   response_status?: number;
   result_engine_id?: string;
@@ -1894,7 +1894,7 @@ export interface ScannerMutationAdmissionV1Intent {
   request: ScannerMutationAdmissionV1IntentRequest;
   workspace_digest: string;
   container: string;
-  state: "pending" | "completed";
+  state: "pending" | "completed" | "repaired";
   response_digest?: string;
   response_status?: number;
   result_engine_id?: string;
@@ -2149,7 +2149,7 @@ export interface ScannerReconciliationMembershipV1MutationsItem {
   request: ScannerReconciliationMembershipV1MutationsItemRequest;
   workspace_digest: string;
   container: string;
-  state: "pending" | "completed";
+  state: "pending" | "completed" | "repaired";
   response_digest?: string;
   response_status?: number;
   result_engine_id?: string;
@@ -2283,7 +2283,7 @@ export interface ScannerReconciliationSnapshotV1MembershipMutationsItem {
   request: ScannerReconciliationSnapshotV1MembershipMutationsItemRequest;
   workspace_digest: string;
   container: string;
-  state: "pending" | "completed";
+  state: "pending" | "completed" | "repaired";
   response_digest?: string;
   response_status?: number;
   result_engine_id?: string;

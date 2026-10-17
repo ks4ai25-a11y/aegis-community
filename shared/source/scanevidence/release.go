@@ -57,7 +57,9 @@ func (r CleanupConfirmationRequest) Valid() bool {
 // RequiredAbsences derives, from complete retained membership, every
 // allocation that must be observed absent before release. It refuses when any
 // obligation is unresolved: a pending mutation, a confirmed create without a
-// confirmed removal, or a start/remove without a confirmed create.
+// confirmed removal, or a start/remove without a confirmed create. A create
+// repaired as not created leaves only its exact name to observe absent; a
+// create repaired as created needs a settled removal like a native one.
 func RequiredAbsences(m ReconciliationMembership) ([]CleanupAbsence, error) {
 	if !m.Valid() {
 		return nil, ErrNotReleasable
@@ -66,7 +68,7 @@ func RequiredAbsences(m ReconciliationMembership) ([]CleanupAbsence, error) {
 	byTool := map[string]*ops{}
 	for i := range m.Mutations {
 		x := &m.Mutations[i]
-		if x.State != "completed" {
+		if !x.Settled() {
 			return nil, ErrNotReleasable
 		}
 		o := byTool[x.Request.Tool]
@@ -92,8 +94,8 @@ func RequiredAbsences(m ReconciliationMembership) ([]CleanupAbsence, error) {
 		launched[tool] = true
 		o := byTool[tool]
 		switch {
-		case o == nil || o.create == nil:
-			if o != nil && (o.start != nil || o.remove != nil) {
+		case o == nil || o.create == nil || o.create.State == "repaired" && o.create.EngineID == "":
+			if o != nil && (o.start != nil || o.remove != nil) || o != nil && o.create != nil && o.create.Container != name {
 				return nil, ErrNotReleasable
 			}
 			out = append(out, CleanupAbsence{Tool: tool, Container: name})

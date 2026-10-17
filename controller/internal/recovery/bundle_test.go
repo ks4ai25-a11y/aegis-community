@@ -429,6 +429,7 @@ func removeAllocationSchema(t *testing.T, s *store.Store) {
 
 func removeReconcilerSchema(t *testing.T, s *store.Store) {
 	t.Helper()
+	removeRepairSchema(t, s)
 	for _, statement := range []string{"DROP TRIGGER scanner_generation_release_confirmed", "DROP TRIGGER scanner_cleanup_confirmation_scoped", "DELETE FROM migrations WHERE version=19", "DROP TABLE scanner_cleanup_confirmations", "DELETE FROM migrations WHERE version=18", "DROP TABLE scanner_reconcilers", "DELETE FROM migrations WHERE version=17"} {
 		if _, err := s.DB.Exec(statement); err != nil {
 			t.Fatal(err)
@@ -503,5 +504,22 @@ func TestLegacyFourteenAndFifteenRestoreWithoutAllocationTables(t *testing.T) {
 				t.Fatal("legacy authorizer survived", e)
 			}
 		})
+	}
+}
+
+// removeRepairSchema returns a disposable fixture to version 19: it drops the
+// repair records and restores the migration-016 completion trigger. The
+// rebuilt intent table keeps its wider state check, which older rows satisfy.
+func removeRepairSchema(t *testing.T, s *store.Store) {
+	t.Helper()
+	for _, statement := range []string{
+		"DROP TABLE scanner_mutation_repairs",
+		"DROP TRIGGER scanner_mutation_completion_once",
+		"CREATE TRIGGER scanner_mutation_completion_once BEFORE UPDATE OF state,response_digest,response_status,result_engine_id,completed_at ON scanner_mutation_intents WHEN OLD.state!='pending' OR NEW.state!='completed' OR NEW.response_digest='' OR NEW.completed_at='' OR NOT ((NEW.operation='create' AND NEW.response_status=201 AND length(NEW.result_engine_id)=64) OR (NEW.operation IN ('start','remove') AND NEW.response_status=204 AND NEW.result_engine_id=NEW.target_engine_id)) BEGIN SELECT RAISE(ABORT,'mutation completion is immutable'); END",
+		"DELETE FROM migrations WHERE version=20",
+	} {
+		if _, err := s.DB.Exec(statement); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
