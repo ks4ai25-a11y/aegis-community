@@ -2,7 +2,7 @@
 # Aegis Community quickstart: build and start the local stack, then print where to
 # sign in. Uses only Docker; no account, paid service or model is required.
 #   scripts/quickstart.sh            start (or restart) the local stack
-#   scripts/quickstart.sh --ai       also start the optional local model (downloads ~2 GB once)
+#   scripts/quickstart.sh --ai       also start the optional local models (downloads ~4 GB once)
 #   scripts/quickstart.sh --down     stop the stack (data volumes are kept)
 # Optional: AEGIS_CONSOLE_PORT / AEGIS_GATEWAY_PORT change the loopback ports and
 # COMPOSE_PROJECT_NAME runs a separate installation; AEGIS_IMAGE_TAG names its images.
@@ -22,9 +22,16 @@ for arg in "$@"; do
 done
 command -v docker >/dev/null 2>&1 || { echo "Docker is required: https://docs.docker.com/get-docker/" >&2; exit 1; }
 docker compose version >/dev/null 2>&1 || { echo "Docker Compose v2 is required." >&2; exit 1; }
-if [ "$ai" = 1 ]; then
+command -v curl >/dev/null 2>&1 || { echo "curl is required to check that the console started." >&2; exit 1; }
+# Keep the AI overlay if this installation already runs it, so a plain rerun does not drop it.
+if [ "$ai" = 0 ] && docker compose $files -f deploy/compose.ai-local.yaml ps --services --status running 2>/dev/null | grep -qx ollama; then
+  ai=2
+fi
+if [ "$ai" != 0 ]; then
   files="$files -f deploy/compose.ai-local.yaml"
-  echo "Downloading the local model once (this job alone has internet access)…"
+fi
+if [ "$ai" = 1 ]; then
+  echo "Downloading the local models once (about 4 GB; this job alone has internet access)…"
   docker compose $files --profile ai-pull run --rm ollama-pull
 fi
 echo "Building images (first run takes a few minutes)…"
@@ -36,7 +43,11 @@ until curl -fsS http://127.0.0.1:$console_port/api/v1/health/live >/dev/null 2>&
   i=$((i + 1)); [ "$i" -gt 90 ] && { echo "The console did not start; see: docker compose $files logs controller" >&2; exit 1; }
   sleep 1
 done
-token=$(docker compose $files logs --no-log-prefix controller 2>/dev/null | grep '"local_bootstrap_token"' | tail -1 | sed 's/.*"token":"\([^"]*\)".*/\1/')
+token=""
+# Only a fresh installation needs the one-time token; older log lines may hold an expired one.
+if curl -fsS http://127.0.0.1:$console_port/api/v1/health/live 2>/dev/null | grep -q '"bootstrap_required":true'; then
+  token=$(docker compose $files logs --no-log-prefix controller 2>/dev/null | grep '"local_bootstrap_token"' | tail -1 | sed 's/.*"token":"\([^"]*\)".*/\1/')
+fi
 echo
 echo "Aegis Community is running."
 echo "  Console:  http://127.0.0.1:$console_port"
@@ -45,6 +56,9 @@ if [ -n "$token" ]; then
   echo "  First sign-in: select 'First installation? Enroll owner' and use this one-time token"
   echo "  (valid for a short time, printed only to local logs):"
   echo "    $token"
+elif curl -fsS http://127.0.0.1:$console_port/api/v1/health/live 2>/dev/null | grep -q '"bootstrap_required":true'; then
+  echo "  The first-owner token has expired. Restart the controller to get a new one:"
+  echo "    docker compose $files restart controller && $0"
 else
   echo "  Sign in with your owner passphrase."
 fi

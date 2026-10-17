@@ -100,7 +100,11 @@ func fail(w http.ResponseWriter, status int, code, msg string) {
 func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/api/v1")
 	if path == "/health/live" {
-		output(w, 200, map[string]bool{"live": true})
+		// bootstrap_required lets the console and quickstart open first-owner
+		// enrollment only when no owner exists yet; it carries no secret.
+		var owners int
+		s.S.DB.QueryRow("SELECT count(*) FROM owners").Scan(&owners)
+		output(w, 200, map[string]bool{"live": true, "bootstrap_required": owners == 0})
 		return
 	}
 	if path == "/health/ready" {

@@ -137,3 +137,14 @@ test('settings shows a readable audit log', async ({page}) => {
   await expect(page.getByRole('cell', {name: 'policy.activate'})).toBeVisible();
   await expect(page.getByRole('cell', {name: 'ACTIVE'})).toBeVisible();
 });
+
+test('a fresh installation opens on owner enrollment', async ({page}) => {
+  await page.route('**/api/v1/**', async route => {
+    const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
+    if (path === '/health/live') return route.fulfill({json: {live: true, bootstrap_required: true}});
+    return route.fulfill({status: 401, json: {error: {message: 'authentication required'}}});
+  });
+  await page.goto('/');
+  await expect(page.getByRole('heading', {name: 'Enroll the first owner'})).toBeVisible();
+  await expect(page.getByText('at least 14 characters')).toBeVisible();
+});

@@ -274,6 +274,8 @@ function Overview({status, statusError, site, refresh, busy, go, action}: {statu
 
 function Auth({onSuccess, ended}: {onSuccess: (csrf: string) => void; ended?: boolean}) {
   const [setup, setSetup] = useState(false), [token, setToken] = useState(''), [password, setPassword] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false);
+  // A fresh installation opens on enrollment instead of "Welcome back".
+  useEffect(() => { fetch('/api/v1/health/live').then(r => r.json()).then(v => { if (v?.bootstrap_required) setSetup(true); }).catch(() => {}); }, []);
   return <div className="auth-page">
     <div className="auth-art">
       <div className="brand"><span className="brand-mark"><Shield size={20}/></span><span className="brand-name">Aegis<small>Community</small></span></div>
@@ -293,7 +295,7 @@ function Auth({onSuccess, ended}: {onSuccess: (csrf: string) => void; ended?: bo
     }}>
       <span className="brand-mark large"><Shield size={26}/></span>
       <h2>{setup ? 'Enroll the first owner' : 'Welcome back.'}</h2>
-      <p className="muted">{setup ? 'Use the short-lived bootstrap token printed in the local controller logs.' : 'Sign in to your local Aegis console.'}</p>
+      <p className="muted">{setup ? 'Use the one-time token printed by the quickstart or the local controller logs. It expires 10 minutes after the controller starts. Choose a passphrase of at least 14 characters.' : 'Sign in to your local Aegis console.'}</p>
       {ended && !error && <div role="status" className="alert warn">Your session ended. Sign in again to continue.</div>}
       {error && <div role="alert" className="alert error">{error}</div>}
       {setup && <label>Bootstrap token<input required value={token} onChange={e => setToken(e.target.value)} autoComplete="off"/></label>}
