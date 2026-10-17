@@ -9,10 +9,10 @@ This repository is unfinished engineering work. No public-beta, production-safet
 | Capability | Current implementation | Acceptance state |
 | --- | --- | --- |
 | C0 defence foundation | Pinned Caddy/Coraza/CRS, telemetry sanitizer, controller, console, typed policies, isolated WAF fixture | Local ARM64 demo acceptance passed; broader gates pending |
-| C1 security research | Bounded parsers, pinned images, fixed invocation plans and owner-scoped provisioned repository maps | Real Semgrep CE / Gitleaks / Syft / Bandit fixture runs pass; OSV / Trivy honestly reject missing offline databases |
+| C1 security research | Bounded parsers, pinned images, fixed invocation plans and owner-scoped provisioned repository maps | Real Semgrep CE / Gitleaks / Syft / Bandit fixture runs pass; OSV / Trivy run with operator-provisioned, verified offline databases through the guarded executor (ADR 068); without an approved digest the controller keeps their results `completed_stale_db`. Express/FastAPI/Flask route extraction; change-triggered rescans (ADR 070) |
 | C2 closed loop | Trusted synthetic tenant challenge with correct, incorrect and overbroad variants | Six HTTP controls pass for correct variant; full patch/VM/AI orchestration pending |
 | C3 operational release | Supply chain, full fault/restore tests, independent installations and security review | Not implemented |
-| Desktop AI apps | UI identifies unverified integrations | Pairing, MCP and real GUI acceptance pending |
+| Desktop AI apps | UI identifies unverified integrations; read-only `aegis-mcp` connector (ADR 061) | Pairing and real GUI acceptance pending |
 
 ## Required v4 architecture changes
 
@@ -296,3 +296,5 @@ Migration 016 scanner ledger increment: controller-internal selected authorizer/
 Native admitted-mode increment: private authorizer lookup/admission/completion, immutable local selection, read-only policy input, exact proposed-controller intents in the native journal and response acknowledgement ordering are implemented with local real-Unix protocol/policy coverage. Lost committed completion acknowledgements reconcile metadata only; native mutation replay stays denied. Packaged daemon admission, independent cleanup/release, sealed crash repair and actual sequential scans are still unfinished. The full v4 build remains incomplete.
 
 Packaged admitted-mode acceptance is configured separately from the existing observer-only regression: actual pinned Bandit, private controller/native-journal matching, scope/credential checks, sealed used-state refusal and second-job hold. Local synthetic verifier/privacy tests and Compose expansion pass. The new actual-daemon hosted run remains pending; independent reconciliation/release and repeated actual scans remain unfinished.
+
+**Claude increment, 2026-10-17.** GATE-10 release evidence (ADR 069: per-image and console SBOMs, licence texts, rebuilt-identical CLI binaries, checksums, optional SSH signature; GATE-10 partial, no publisher key). Offline OSV/Trivy databases through the guarded executor (`docs/evidence/scanner-database-executor-acceptance.json`). Express/FastAPI/Flask route extraction (every map digest changed once). Change-triggered rescans (ADR 070). Tenant lab evidence capped at T2. Adversarial AI evaluation suite and patch-draft hardening (ADR 072; drafts must replace the finding's line and may not add suppressions, URLs, execution, network access, disabled TLS verification or encoded blobs). Safe red research planner (ADR 071: closed tool and template catalogues, hypotheses only). Remaining in these areas: controller approval of the database digest and the admitted SDK mount allowlist (Codex), a live stack run of rescans with a scanner worker, a publisher signing key.
