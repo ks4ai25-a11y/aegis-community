@@ -266,7 +266,12 @@ type Excerpt struct {
 
 // likelySecret matches common credential shapes. It is a conservative filter for
 // display and model input, not a secret scanner.
-var likelySecret = regexp.MustCompile(`(?i)(gh[pousr]_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16}|xox[abposr]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9]{20,}|(password|passwd|secret|api[_-]?key|token)\s*[:=]\s*\S{6,})`)
+var likelySecret = regexp.MustCompile(`(?i)(` +
+	`gh[pousr]_[A-Za-z0-9]{16,}|github_pat_[A-Za-z0-9_]{20,}|glpat-[A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{30,}|` +
+	`xox[abposr]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9_-]{20,}|[sr]k_(live|test)_[A-Za-z0-9]{10,}|` +
+	`eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.|` + // JWT
+	`[a-z][a-z0-9+.-]*://[^/\s:@'"]+:[^@\s'"]{3,}@|` + // URL with an embedded password
+	`(password|passwd|pwd|secret|api[_-]?key|access[_-]?key|private[_-]?key|token|auth|credential)[a-z0-9_-]*["']?\s*[:=]\s*["']?[^\s"',;]{6,})`)
 
 var ErrSourceChanged = errors.New("source file is not in the current inventory or changed since it was inventoried")
 

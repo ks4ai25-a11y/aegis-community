@@ -120,9 +120,13 @@ func DraftRisk(d *remediate.Draft) []string {
 		return nil
 	}
 	added, removed := []string{}, []string{}
+	inHunk := false
 	for _, l := range strings.Split(d.Diff, "\n") {
 		switch {
-		case strings.HasPrefix(l, "+++") || strings.HasPrefix(l, "---"):
+		case strings.HasPrefix(l, "@@"):
+			inHunk = true
+		case !inHunk && (strings.HasPrefix(l, "+++ ") || strings.HasPrefix(l, "--- ")):
+			// file headers only before the first hunk; inside a hunk "+++i" is an added "++i"
 		case strings.HasPrefix(l, "+"):
 			added = append(added, l[1:])
 		case strings.HasPrefix(l, "-"):

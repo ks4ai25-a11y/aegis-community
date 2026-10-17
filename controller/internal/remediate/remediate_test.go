@@ -118,3 +118,20 @@ func TestBalancedRejectsBrokenEdits(t *testing.T) {
 		t.Fatal("strings or comments miscounted")
 	}
 }
+
+// QA finding: a removed line starting with "-- " ended the hunk early.
+func TestApplyRemovesSQLCommentLines(t *testing.T) {
+	src := "SELECT 1;\n-- legacy comment\nSELECT 2;\n"
+	lines := strings.Split(src, "\n")
+	d, e := Build("q.sql", lines, 2, 2, 2, []string{"-- reviewed comment"})
+	if e != nil {
+		t.Fatal(e)
+	}
+	got, e := Apply(src, "q.sql", d)
+	if e != nil || got != "SELECT 1;\n-- reviewed comment\nSELECT 2;\n" {
+		t.Fatalf("%q %v", got, e)
+	}
+	if _, e = Apply(src, "q.sql", strings.Replace(d, "@@ -1,4 +1,4 @@", "@@ -1,9 +1,9 @@", 1)); e == nil {
+		t.Fatal("hunk with wrong counts accepted")
+	}
+}

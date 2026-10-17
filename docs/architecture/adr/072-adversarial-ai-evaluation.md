@@ -19,7 +19,7 @@ The optional model features read text that attackers or untrusted contributors c
 Fixes made because of the suite:
 
 - Drafts must replace the finding's own line.
-- Drafts may not add a suppression comment, URL, IP address, execution primitive, network client, disabled TLS verification or long encoded literal. Each construct is compared individually, so swapping `eval` for `os.popen` is caught.
+- Drafts may not add constructs from known pattern lists: suppression comments, URLs (including scheme-relative), IP addresses, code or command execution (including `subprocess`/`shell=True`, `pickle.loads`, `__builtins__` indirection), network clients, disabled TLS verification and long encoded literals. Each construct is compared individually, so swapping `eval` for `os.popen` is caught. The lists are pattern-based: a construct not on them is not detected, which is why every draft still needs human review. A QA pass found and closed gaps in the first version.
 - Model text drops Unicode format characters.
 
 ## Live results (`docs/evidence/ai-eval-live.json`, `ai-eval-planner-live.json`)

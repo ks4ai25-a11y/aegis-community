@@ -295,7 +295,17 @@ func Apply(content, path, diff string) (string, error) {
 			out = append(out, lines[pos:start-1]...)
 			pos = start - 1
 			hunks++
-			for i+1 < len(d) && !strings.HasPrefix(d[i+1], "@@") && !strings.HasPrefix(d[i+1], "--- ") {
+			// Consume exactly the line counts in the header, so a removed line
+			// that itself starts with "-- " (an SQL or Lua comment) is not read
+			// as the next file header.
+			oldLeft, newLeft := 1, 1
+			if m[2] != "" {
+				oldLeft, _ = strconv.Atoi(m[2])
+			}
+			if m[4] != "" {
+				newLeft, _ = strconv.Atoi(m[4])
+			}
+			for (oldLeft > 0 || newLeft > 0) && i+1 < len(d) {
 				i++
 				h := d[i]
 				if h == "" && i == len(d)-1 {
@@ -314,13 +324,19 @@ func Apply(content, path, diff string) (string, error) {
 					}
 					if h[0] == ' ' {
 						out = append(out, lines[pos])
+						newLeft--
 					}
+					oldLeft--
 					pos++
 				case '+':
 					out = append(out, h[1:])
+					newLeft--
 				default:
 					return "", errors.New("unexpected diff line")
 				}
+			}
+			if oldLeft != 0 || newLeft != 0 {
+				return "", errors.New("hunk line counts do not match its header")
 			}
 		case strings.TrimSpace(l) == "" || strings.HasPrefix(l, "diff ") || strings.HasPrefix(l, "index "):
 		default:
@@ -387,12 +403,12 @@ var riskyIntroductions = []struct {
 	re   *regexp.Regexp
 	what string
 }{
-	{regexp.MustCompile(`(?i)(#\s*nosec|#\s*noqa|//\s*nolint|eslint-disable|@SuppressWarnings|#\s*type:\s*ignore|//\s*@ts-ignore|NOSONAR|semgrep-ignore|nosemgrep)`), "a finding suppression comment"},
-	{regexp.MustCompile(`(?i)\b(https?|ftp|wss?)://`), "a URL"},
+	{regexp.MustCompile(`(?i)(#\s*nosec|#\s*noqa|//\s*nolint|eslint-disable|@SuppressWarnings|#\s*type:\s*ignore|//\s*@ts-ignore|@ts-expect-error|@ts-nocheck|NOSONAR|semgrep-ignore|nosemgrep|pylint:\s*disable|\blgtm\b|gitleaks:allow|noinspection|codeql\[|#\s*pragma:\s*no\s*cover)`), "a finding suppression comment"},
+	{regexp.MustCompile(`(?i)\b(https?|ftp|wss?|file|data|gopher)://|["'(=\s]//[a-z0-9-]+(\.[a-z0-9-]+)+(/|["'])`), "a URL"},
 	{regexp.MustCompile(`\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b`), "an IP address"},
-	{regexp.MustCompile(`(?i)\b(eval|exec|execfile|compile|__import__)\s*\(|os\.(system|popen|exec\w*)\s*\(|child_process|Runtime\.getRuntime|new\s+Function\s*\(|\bcurl\b|\bwget\b|/bin/(ba)?sh`), "code or command execution"},
-	{regexp.MustCompile(`(?i)\b(socket\.|requests\.(get|post|put)|urllib|http\.client|fetch\s*\(|XMLHttpRequest|net\.Dial|http\.(Get|Post)\s*\(|axios)`), "network access"},
-	{regexp.MustCompile(`(?i)(verify\s*=\s*False|InsecureSkipVerify|rejectUnauthorized\s*:\s*false|CERT_NONE|check_hostname\s*=\s*False)`), "disabled TLS verification"},
+	{regexp.MustCompile(`(?i)\b(eval|exec|execfile|compile|__import__)\s*\(|os\.(system|popen|spawn\w*|exec\w*|fork)\s*\(|\bsubprocess\b|shell\s*=\s*True|\bpty\.spawn|child_process|\bexecSync\b|\bspawnSync\b|Runtime\.getRuntime|ProcessBuilder|new\s+Function\s*\(|\bcurl\b|\bwget\b|/bin/(ba)?sh|__builtins__|\bgetattr\s*\([^)]*["']__|\bpickle\.loads?\b|\bmarshal\.loads?\b|\bdill\.loads?\b|yaml\.unsafe_load|Loader\s*=\s*(yaml\.)?(Unsafe|Full)?Loader\b|\bctypes\b|\bimportlib\b`), "code or command execution"},
+	{regexp.MustCompile(`(?i)\b(socket\.|requests\.(get|post|put|patch|delete|request|Session)|\bhttpx\b|aiohttp|urllib|http\.client|\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon|new\s+WebSocket|net\.Dial|http\.(Get|Post|NewRequest)\s*\(|axios|smtplib|ftplib|paramiko|dns\.resolver)`), "network access"},
+	{regexp.MustCompile(`(?i)(verify\s*=\s*False|InsecureSkipVerify|rejectUnauthorized\s*:\s*false|NODE_TLS_REJECT_UNAUTHORIZED|CERT_NONE|check_hostname\s*=\s*False|_create_unverified_context)`), "disabled TLS verification"},
 	{regexp.MustCompile(`[A-Za-z0-9+/]{48,}={0,2}`), "a long encoded literal"},
 }
 

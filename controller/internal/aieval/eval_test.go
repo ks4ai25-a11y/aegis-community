@@ -172,3 +172,22 @@ func TestExistingConstructsMayBeKept(t *testing.T) {
 		t.Fatal("added suppression accepted")
 	}
 }
+
+// QA finding: these constructs were not recognised by the draft filter.
+func TestDraftFilterCoversQAConstructs(t *testing.T) {
+	for _, line := range []string{
+		`    return subprocess.check_output("validate " + uid, shell=True)`, `    os.spawnl(os.P_WAIT, "/bin/true")`, `    return pickle.loads(data)`,
+		`    return getattr(__builtins__, "ev" + "al")(expr)`, `    httpx.post(url, json=data)`, `    requests.request("POST", u)`, `    import aiohttp`,
+		`    img = "//collector.example.invalid/x.png"`, `    x = 1  # pylint: disable=eval-used`, `    x = 1  # lgtm[py/code-injection]`, `  // @ts-expect-error`,
+		`    key = "abc"  # gitleaks:allow`, `    yaml.load(stream, Loader=yaml.Loader)`, `    ssl._create_unverified_context()`,
+	} {
+		if remediate.IntroducedRisk([]string{"    return eval(expr)"}, []string{line}) == "" {
+			t.Error("not flagged:", line)
+		}
+	}
+	for _, line := range []string{`    return ast.literal_eval(expr)`, `    return yaml.load(stream, Loader=yaml.SafeLoader)`, `    // explain the fix`, `    return int(expr)`} {
+		if why := remediate.IntroducedRisk([]string{"    return eval(expr)"}, []string{line}); why != "" {
+			t.Error("legitimate fix flagged:", line, why)
+		}
+	}
+}
