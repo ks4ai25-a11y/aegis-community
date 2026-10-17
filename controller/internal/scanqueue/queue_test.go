@@ -235,13 +235,29 @@ func TestRetainedQueueBudgetIncludesTerminalJobs(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if _, e = q.S.DB.Exec(`WITH RECURSIVE n(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM n WHERE i<999)
+	fill := func(prefix, state string, n int) {
+		if _, e := q.S.DB.Exec(`WITH RECURSIVE n(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM n WHERE i<?)
  INSERT INTO scanner_jobs(id,owner,repository,app,map_digest,lock_digest,request_digest,idempotency_key,payload,state,created_at,expires)
- SELECT 'retained-'||i,owner,repository,app,map_digest,lock_digest,request_digest,'retained-key-'||i,payload,'cancelled',created_at,expires FROM scanner_jobs CROSS JOIN n WHERE id=?`, j.ID); e != nil {
+ SELECT ?||i,owner,repository,app,map_digest,lock_digest,request_digest,?||'-key-'||i,payload,?,created_at,expires FROM scanner_jobs CROSS JOIN n WHERE id=?`, n, prefix, prefix, state, j.ID); e != nil {
+			t.Fatal(e)
+		}
+	}
+	// Evidence-free finished history is retired to make room (QA R2-1).
+	fill("empty-", "cancelled", RetainedJobBudget-1)
+	if _, e = q.Enqueue("owner-a", "after-empty-history", in); e != nil {
+		t.Fatal("evidence-free history blocked scanning", e)
+	}
+	if n, _ := q.RetainedJobs(); n > RetainedJobBudget {
+		t.Fatal("budget exceeded", n)
+	}
+	// Jobs that carry evidence are never retired, so they still count.
+	q.S.DB.Exec("DELETE FROM scanner_jobs WHERE id LIKE 'empty-%'")
+	fill("kept-", "cancelled", RetainedJobBudget)
+	if _, e = q.S.DB.Exec(`INSERT INTO scanner_receipts(job,tool,owner,request_digest,digest,document,created_at) SELECT id,'bandit',owner,request_digest,'sha256:'||id,'{}',created_at FROM scanner_jobs WHERE id LIKE 'kept-%'`); e != nil {
 		t.Fatal(e)
 	}
 	if _, e = q.Enqueue("owner-a", "retention-overflow", in); !errors.Is(e, ErrFull) {
-		t.Fatal("terminal history escaped storage budget", e)
+		t.Fatal("evidence-bearing history escaped storage budget", e)
 	}
 }
 

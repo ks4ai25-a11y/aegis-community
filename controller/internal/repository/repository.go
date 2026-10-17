@@ -57,12 +57,14 @@ func (r *Registry) Refresh(ctx context.Context, owner, id string) (Record, error
 }
 
 // pruneMaps removes the oldest application maps of a repository that are
-// neither current nor referenced by any scan job, until fewer than keep remain.
-// Scan receipts and leases read their job's map, so referenced maps stay.
+// neither current nor needed by a live scan job, until fewer than keep remain.
+// Leases and receipts read a job's map only while it is queued or running (or
+// still holds a dispatch slot); finished jobs keep their own records.
 func pruneMaps(tx *sql.Tx, repo, current string, keep int) error {
 	_, e := tx.Exec(`DELETE FROM application_maps WHERE repository=? AND digest<>? AND digest IN (
 		SELECT m.digest FROM application_maps m WHERE m.repository=? AND m.digest<>?
-		AND NOT EXISTS (SELECT 1 FROM scanner_jobs j WHERE j.repository=m.repository AND j.map_digest=m.digest)
+		AND NOT EXISTS (SELECT 1 FROM scanner_jobs j WHERE j.repository=m.repository AND j.map_digest=m.digest
+			AND (j.state IN ('queued','running') OR EXISTS (SELECT 1 FROM scanner_dispatch d WHERE d.job=j.id)))
 		ORDER BY m.created_at ASC LIMIT max(0,(SELECT count(*) FROM application_maps WHERE repository=?)-?))`, repo, current, repo, current, repo, keep-1)
 	return e
 }

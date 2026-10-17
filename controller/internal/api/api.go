@@ -1004,10 +1004,14 @@ func allowedHost(h string) bool {
 // not prove a worker is currently connected.
 func scannerStatus(s *Server) map[string]any {
 	var workers int
+	out := map[string]any{"service_configured": s.Scans != nil}
 	if s.Scans != nil {
 		s.S.DB.QueryRow("SELECT count(*) FROM scanner_workers WHERE state='active' AND expires>?", time.Now().Unix()).Scan(&workers)
+		retained, budget := s.Scans.RetainedJobs()
+		out["retained_jobs"], out["retained_job_budget"] = retained, budget
 	}
-	return map[string]any{"service_configured": s.Scans != nil, "enrolled_workers": workers}
+	out["enrolled_workers"] = workers
+	return out
 }
 
 var (

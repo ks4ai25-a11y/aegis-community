@@ -149,7 +149,19 @@ func (q *Queue) Enqueue(owner, key string, in Input) (Job, error) {
 	if e = tx.QueryRow("SELECT count(*),coalesce(sum(CASE WHEN owner=? AND state IN ('queued','running') THEN 1 ELSE 0 END),0) FROM scanner_jobs", owner).Scan(&total, &active); e != nil {
 		return Job{}, e
 	}
-	if total >= 1000 || active >= 20 {
+	// Scan evidence is retained permanently (delete triggers), so the budget
+	// counts every job. At the limit, the oldest finished jobs that never
+	// produced evidence (for example cancelled before they ran) are retired
+	// first, so scanning does not stop because of empty history (QA R2-1).
+	if total >= RetainedJobBudget {
+		if e = retireEvidenceFreeJobs(tx, 100); e != nil {
+			return Job{}, e
+		}
+		if e = tx.QueryRow("SELECT count(*) FROM scanner_jobs").Scan(&total); e != nil {
+			return Job{}, e
+		}
+	}
+	if total >= RetainedJobBudget || active >= 20 {
 		return Job{}, ErrFull
 	}
 	now := q.now().UTC()
@@ -194,4 +206,32 @@ func (q *Queue) Cancel(owner, id string) error {
 		return e
 	}
 	return tx.Commit()
+}
+
+// RetainedJobBudget bounds stored scan jobs. Jobs with evidence are kept
+// permanently; see retireEvidenceFreeJobs and docs/operators/scanner-workers.md.
+const RetainedJobBudget = 10000
+
+// retireEvidenceFreeJobs deletes up to n of the oldest finished jobs that have
+// no receipts, results, launches, workspaces, reviews, allocation generations
+// or dispatch row, i.e. nothing the evidence trail depends on.
+func retireEvidenceFreeJobs(tx *sql.Tx, n int) error {
+	_, e := tx.Exec(`DELETE FROM scanner_jobs WHERE id IN (
+		SELECT j.id FROM scanner_jobs j WHERE j.state NOT IN ('queued','running')
+		AND NOT EXISTS (SELECT 1 FROM scanner_receipts x WHERE x.job=j.id)
+		AND NOT EXISTS (SELECT 1 FROM scanner_results x WHERE x.job=j.id)
+		AND NOT EXISTS (SELECT 1 FROM scanner_launches x WHERE x.job=j.id)
+		AND NOT EXISTS (SELECT 1 FROM scanner_workspaces x WHERE x.job=j.id)
+		AND NOT EXISTS (SELECT 1 FROM finding_triage x WHERE x.job=j.id)
+		AND NOT EXISTS (SELECT 1 FROM scanner_allocation_generations x WHERE x.job=j.id)
+		AND NOT EXISTS (SELECT 1 FROM scanner_dispatch x WHERE x.job=j.id)
+		ORDER BY j.created_at ASC LIMIT ?)`, n)
+	return e
+}
+
+// RetainedJobs reports stored jobs against the budget (for status and diagnostics).
+func (q *Queue) RetainedJobs() (int, int) {
+	var n int
+	q.S.DB.QueryRow("SELECT count(*) FROM scanner_jobs").Scan(&n)
+	return n, RetainedJobBudget
 }

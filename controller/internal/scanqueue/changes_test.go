@@ -327,3 +327,25 @@ func TestNoFakeRetryForAnExistingRetryJob(t *testing.T) {
 		t.Fatal("audited a scan that never ran")
 	}
 }
+
+// QA R2-2: maps referenced only by finished jobs can be pruned, so rescans
+// keep working after 100 changes.
+func TestFinishedJobMapsArePrunable(t *testing.T) {
+	r := newChangeRig(t)
+	r.q.SetRescanPolicy("owner-a", r.repo, true, []string{"bandit"}, 30)
+	for i := 0; i < 110; i++ {
+		os.WriteFile(filepath.Join(r.dir, "app.py"), []byte(fmt.Sprintf("print(%d)\n", i)), 0600)
+		o := r.check(t)
+		if o == "refresh_failed_storage_budget" {
+			t.Fatal("rescans stopped at change", i)
+		}
+		if o == "enqueued" {
+			r.q.S.DB.Exec("UPDATE scanner_jobs SET state='completed' WHERE id=?", r.jobs(t)[0].ID)
+		}
+	}
+	var maps int
+	r.q.S.DB.QueryRow("SELECT count(*) FROM application_maps WHERE repository=?", r.repo).Scan(&maps)
+	if maps > 100 {
+		t.Fatal("history not bounded", maps)
+	}
+}
