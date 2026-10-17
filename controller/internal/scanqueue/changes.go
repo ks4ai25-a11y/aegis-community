@@ -36,6 +36,7 @@ type RescanPolicy struct {
 	CheckedAt      string   `json:"last_checked_at,omitempty"`
 	LastOutcome    string   `json:"last_outcome,omitempty"`
 	LastJob        string   `json:"last_job_id,omitempty"`
+	Retried        string   `json:"retried_map_digest,omitempty"`
 }
 
 type RescanOutcome struct {
@@ -160,17 +161,28 @@ func (q *Queue) checkOne(ctx context.Context, refresh Refresh, p RescanPolicy, n
 			if r.Job != "" {
 				cur.LastJob = r.Job
 				cur.BaselineDigest = p.BaselineDigest
+				cur.Retried = p.Retried
 			}
 			q.savePolicy(cur)
 		}
 		return r
 	}
 	digest, e := refresh(ctx, p.Owner, p.Repository)
+	if e != nil && strings.Contains(e.Error(), "budget") {
+		return finish("refresh_failed_storage_budget")
+	}
 	if e != nil || !digestPattern.MatchString(digest) {
 		return finish("refresh_failed")
 	}
+	retry := false
 	if digest == p.BaselineDigest {
-		return finish("unchanged")
+		// A rescan that failed to run (tool error or timeout) is retried once for
+		// the same identity; an owner cancellation is respected.
+		var state string
+		if p.LastJob == "" || p.Retried == digest || q.S.DB.QueryRow("SELECT state FROM scanner_jobs WHERE id=? AND owner=?", p.LastJob, p.Owner).Scan(&state) != nil || (state != "tool_error" && state != "timeout") {
+			return finish("unchanged")
+		}
+		retry = true
 	}
 	var active, held int
 	if e = q.S.DB.QueryRow("SELECT count(*) FROM scanner_jobs WHERE owner=? AND repository=? AND state IN ('queued','running')", p.Owner, p.Repository).Scan(&active); e != nil {
@@ -197,6 +209,9 @@ func (q *Queue) checkOne(ctx context.Context, refresh Refresh, p RescanPolicy, n
 		Tools      []string `json:"tool_ids"`
 		Duration   int      `json:"tool_timeout_seconds"`
 	}{p.Repository, digest, p.Tools, p.Duration}), "sha256:")[:48]
+	if retry {
+		key = "rescan-retry:" + key[7:]
+	}
 	job, e := q.Enqueue(p.Owner, key, in)
 	switch {
 	case errors.Is(e, ErrFull):
@@ -208,6 +223,12 @@ func (q *Queue) checkOne(ctx context.Context, refresh Refresh, p RescanPolicy, n
 	}
 	r.Job = job.ID
 	p.BaselineDigest = digest
+	if retry {
+		p.Retried = digest
+	}
 	q.S.Audit("system", "scanner.rescan_triggered", job.ID, p.Repository, map[string]any{"owner_id": p.Owner, "map_digest": digest, "tool_ids": p.Tools})
+	if retry {
+		return finish("retried_after_failure")
+	}
 	return finish("enqueued")
 }

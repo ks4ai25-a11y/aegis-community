@@ -43,6 +43,31 @@ func (r *Registry) Connect(owner, app, asset string, acknowledge bool) (Record, 
 }
 
 func (r *Registry) ConnectContext(ctx context.Context, owner, app, asset string, acknowledge bool) (Record, error) {
+	return r.connect(ctx, owner, app, asset, acknowledge, false)
+}
+
+// Refresh re-reads an already connected repository (change-triggered rescans).
+// It is audited only when the application map actually changed.
+func (r *Registry) Refresh(ctx context.Context, owner, id string) (Record, error) {
+	rec, e := r.Get(owner, id)
+	if e != nil {
+		return Record{}, e
+	}
+	return r.connect(ctx, owner, rec.App, rec.Asset, true, true)
+}
+
+// pruneMaps removes the oldest application maps of a repository that are
+// neither current nor referenced by any scan job, until fewer than keep remain.
+// Scan receipts and leases read their job's map, so referenced maps stay.
+func pruneMaps(tx *sql.Tx, repo, current string, keep int) error {
+	_, e := tx.Exec(`DELETE FROM application_maps WHERE repository=? AND digest<>? AND digest IN (
+		SELECT m.digest FROM application_maps m WHERE m.repository=? AND m.digest<>?
+		AND NOT EXISTS (SELECT 1 FROM scanner_jobs j WHERE j.repository=m.repository AND j.map_digest=m.digest)
+		ORDER BY m.created_at ASC LIMIT max(0,(SELECT count(*) FROM application_maps WHERE repository=?)-?))`, repo, current, repo, current, repo, keep-1)
+	return e
+}
+
+func (r *Registry) connect(ctx context.Context, owner, app, asset string, acknowledge, quiet bool) (Record, error) {
 	if r.Root == nil {
 		return Record{}, ErrUnavailable
 	}
@@ -82,8 +107,10 @@ func (r *Registry) ConnectContext(ctx context.Context, owner, app, asset string,
 	}
 	defer tx.Rollback()
 	var out Record
+	changed := false
 	e = tx.QueryRow("SELECT id,owner,app,asset,map_digest,created_at FROM repositories WHERE owner=? AND app=? AND asset=?", owner, app, asset).Scan(&out.ID, &out.Owner, &out.App, &out.Asset, &out.MapDigest, &out.Created)
 	if e == sql.ErrNoRows {
+		changed = true
 		var count int
 		if e = tx.QueryRow("SELECT count(*) FROM repositories WHERE owner=?", owner).Scan(&count); e != nil {
 			return Record{}, e
@@ -94,7 +121,11 @@ func (r *Registry) ConnectContext(ctx context.Context, owner, app, asset string,
 		out = Record{ID: domain.ID(), Owner: owner, App: app, Asset: asset, MapDigest: m.Digest, Created: domain.Now()}
 		_, e = tx.Exec("INSERT INTO repositories VALUES(?,?,?,?,?,?)", out.ID, owner, app, asset, m.Digest, out.Created)
 	} else if e == nil && out.MapDigest != m.Digest {
+		changed = true
 		var count int
+		if e = pruneMaps(tx, out.ID, m.Digest, 100); e != nil {
+			return Record{}, e
+		}
 		if e = tx.QueryRow("SELECT count(*) FROM application_maps WHERE repository=? AND digest<>?", out.ID, m.Digest).Scan(&count); e != nil {
 			return Record{}, e
 		}
@@ -117,15 +148,26 @@ func (r *Registry) ConnectContext(ctx context.Context, owner, app, asset string,
 			return Record{}, e
 		}
 		if bytes+int64(len(b)) > 16<<20 {
-			return Record{}, ErrBudget
+			// Reclaim this repository's own unreferenced history before refusing.
+			if e = pruneMaps(tx, out.ID, m.Digest, 1); e != nil {
+				return Record{}, e
+			}
+			if e = tx.QueryRow("SELECT coalesce(sum(length(CAST(document AS BLOB))),0) FROM application_maps").Scan(&bytes); e != nil {
+				return Record{}, e
+			}
+			if bytes+int64(len(b)) > 16<<20 {
+				return Record{}, ErrBudget
+			}
 		}
 	}
 	_, e = tx.Exec("INSERT INTO application_maps VALUES(?,?,?,?) ON CONFLICT(repository,digest) DO NOTHING", out.ID, m.Digest, string(b), m.Observed)
 	if e != nil {
 		return Record{}, e
 	}
-	if e = store.AuditTx(tx, owner, "repository.connect", out.ID, "read_only", map[string]any{"asset_id": asset, "map_digest": m.Digest, "file_count": len(m.Files), "commit_sha": m.Commit}); e != nil {
-		return Record{}, e
+	if !quiet || changed {
+		if e = store.AuditTx(tx, owner, "repository.connect", out.ID, "read_only", map[string]any{"asset_id": asset, "map_digest": m.Digest, "file_count": len(m.Files), "commit_sha": m.Commit, "refresh": quiet}); e != nil {
+			return Record{}, e
+		}
 	}
 	if e = tx.Commit(); e != nil {
 		return Record{}, e

@@ -153,11 +153,7 @@ func main() {
 				interval = d
 			}
 			refresh := func(ctx context.Context, owner, repo string) (string, error) {
-				rec, e := repos.Get(owner, repo)
-				if e != nil {
-					return "", e
-				}
-				out, e := repos.ConnectContext(ctx, owner, rec.App, rec.Asset, true)
+				out, e := repos.Refresh(ctx, owner, repo)
 				return out.MapDigest, e
 			}
 			go func() {

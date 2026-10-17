@@ -27,6 +27,8 @@ An owner can turn on **Rescan on change** for a connected repository (console, o
 | `deferred_active_job` | A scan for this repository is queued or running; retried on the next check |
 | `deferred_cleanup_held` | One of the owner's scanner cleanups is held; no new scan until it is resolved |
 | `deferred_queue_full` | The owner's queue budget is exhausted |
+| `retried_after_failure` | The last rescan ended in a tool error or timeout, so it was queued once more for the same identity |
+| `refresh_failed_storage_budget` | Map storage is full even after pruning old history that no scan references |
 | `refresh_failed` | The repository could not be re-read (for example, the mount was removed) |
 
-The same identity and scanner set always map to the same job, so restarts and retries do not create duplicates. Turning the setting off stops future scans but does not cancel queued ones. Rescans require the scanner service (`AEGIS_SCANNER_SOCKET`) and repository mounts to be provisioned.
+The same identity and scanner set always map to the same job, so restarts do not create duplicates. Each repository keeps at most 100 application maps; when it reaches the cap, the oldest maps that no scan job references are removed. Unchanged periodic re-reads are not written to the audit log. Turning the setting off stops future scans but does not cancel queued ones. Rescans require the scanner service (`AEGIS_SCANNER_SOCKET`) and repository mounts to be provisioned.

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/store"
 	"database/sql"
@@ -78,13 +79,16 @@ func TestConnectionIdentityOwnerScopeAndSourceChange(t *testing.T) {
 			t.Fatal(e)
 		}
 	}
+	// At the cap, the oldest maps no scan job references are pruned instead of
+	// refusing the change (rescans previously stopped for ever after 100).
 	os.WriteFile(filepath.Join(path, "fixture", "query.py"), []byte("third identity"), 0600)
-	if _, e = r.Connect(owner, "app_demo", "fixture", true); e != ErrBudget {
-		t.Fatal("history cap not enforced", e)
+	third, e := r.Connect(owner, "app_demo", "fixture", true)
+	if e != nil || third.MapDigest == c.MapDigest {
+		t.Fatal("change at the history cap refused", e)
 	}
-	unchanged, e := r.Get(owner, a.ID)
-	if e != nil || unchanged.MapDigest != c.MapDigest {
-		t.Fatal("rejected map changed current identity", e)
+	s.DB.QueryRow("SELECT count(*) FROM application_maps WHERE repository=?", a.ID).Scan(&count)
+	if count != 100 {
+		t.Fatal("history not pruned to the cap", count)
 	}
 	os.WriteFile(filepath.Join(path, "fixture", "query.py"), []byte("print('static only')"), 0600)
 	restored, e := r.Connect(owner, "app_demo", "fixture", true)
@@ -146,7 +150,11 @@ func TestStoredMapBudgetCountsUTF8BytesAndRollsBack(t *testing.T) {
 	// Existing storage can contain multi-byte text. SQLite character length must
 	// not be mistaken for its actual byte budget.
 	document := strings.Repeat("é", (8<<20)+1)
-	if _, e = s.DB.Exec("INSERT INTO application_maps VALUES(?,?,?,?)", original.ID, domain.Hash([]byte(document)), document, domain.Now()); e != nil {
+	// Held by another repository, so this one cannot reclaim it by pruning.
+	if _, e = s.DB.Exec("INSERT INTO repositories VALUES('other-repo',?,'app_demo','other',?,?)", owner, domain.Hash([]byte(document)), domain.Now()); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = s.DB.Exec("INSERT INTO application_maps VALUES(?,?,?,?)", "other-repo", domain.Hash([]byte(document)), document, domain.Now()); e != nil {
 		t.Fatal(e)
 	}
 	os.WriteFile(file, []byte("second"), 0600)
@@ -204,5 +212,39 @@ func TestExcerptOnlyServesUnchangedInventoriedFiles(t *testing.T) {
 	os.WriteFile(filepath.Join(path, "fixture", "query.py"), []byte(src+"changed\n"), 0600)
 	if _, e = r.Excerpt(owner, rec.ID, "query.py", 1, 1); e != ErrSourceChanged {
 		t.Fatal("served modified source", e)
+	}
+}
+
+func TestRefreshAuditsOnlyChanges(t *testing.T) {
+	path, _ := filepath.EvalSymlinks(t.TempDir())
+	os.Mkdir(filepath.Join(path, "fixture"), 0700)
+	file := filepath.Join(path, "fixture", "source.py")
+	os.WriteFile(file, []byte("first"), 0600)
+	s, e := store.Open(filepath.Join(t.TempDir(), "refresh.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	owner := domain.ID()
+	s.DB.Exec("INSERT INTO owners VALUES(?,'test',?)", owner, domain.Now())
+	r, _ := Open(s, path)
+	defer r.Root.Close()
+	rec, e := r.Connect(owner, "app_demo", "fixture", true)
+	if e != nil {
+		t.Fatal(e)
+	}
+	audits := func() (n int) { s.DB.QueryRow("SELECT count(*) FROM audit WHERE json_extract(document,'$.action')='repository.connect'").Scan(&n); return }
+	before := audits()
+	for i := 0; i < 5; i++ {
+		if _, e = r.Refresh(context.Background(), owner, rec.ID); e != nil {
+			t.Fatal(e)
+		}
+	}
+	if audits() != before {
+		t.Fatal("unchanged refresh audited")
+	}
+	os.WriteFile(file, []byte("second"), 0600)
+	if _, e = r.Refresh(context.Background(), owner, rec.ID); e != nil || audits() != before+1 {
+		t.Fatal("changed refresh not audited", e)
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -181,5 +182,48 @@ func TestRescanDefersWhileCleanupHeld(t *testing.T) {
 	os.WriteFile(filepath.Join(r.dir, "app.py"), []byte("print('v2')\n"), 0600)
 	if o := r.check(t); o != "deferred_cleanup_held" {
 		t.Fatal(o)
+	}
+}
+
+func TestRescanRetriesOnceAfterToolFailure(t *testing.T) {
+	r := newChangeRig(t)
+	r.q.SetRescanPolicy("owner-a", r.repo, true, []string{"bandit"}, 30)
+	os.WriteFile(filepath.Join(r.dir, "app.py"), []byte("print('v2')\n"), 0600)
+	if o := r.check(t); o != "enqueued" {
+		t.Fatal(o)
+	}
+	first := r.jobs(t)[0]
+	if _, e := r.q.S.DB.Exec("UPDATE scanner_jobs SET state='tool_error' WHERE id=?", first.ID); e != nil {
+		t.Fatal(e)
+	}
+	if o := r.check(t); o != "retried_after_failure" || len(r.jobs(t)) != 2 {
+		t.Fatal(o, len(r.jobs(t)))
+	}
+	second := r.jobs(t)[0]
+	r.q.S.DB.Exec("UPDATE scanner_jobs SET state='tool_error' WHERE id=?", second.ID)
+	if o := r.check(t); o != "unchanged" || len(r.jobs(t)) != 2 {
+		t.Fatal("retried more than once", o)
+	}
+}
+
+func TestMapPruningKeepsMapsReferencedByJobs(t *testing.T) {
+	r := newChangeRig(t)
+	r.q.SetRescanPolicy("owner-a", r.repo, true, []string{"bandit"}, 30)
+	os.WriteFile(filepath.Join(r.dir, "app.py"), []byte("print('scanned')\n"), 0600)
+	if o := r.check(t); o != "enqueued" {
+		t.Fatal(o)
+	}
+	scanned := r.jobs(t)[0].Input.MapDigest
+	for i := 0; i < 105; i++ {
+		os.WriteFile(filepath.Join(r.dir, "app.py"), []byte(fmt.Sprintf("print(%d)\n", i)), 0600)
+		if _, e := r.reg.Refresh(context.Background(), "owner-a", r.repo); e != nil {
+			t.Fatal("change", i, e)
+		}
+	}
+	var kept, total int
+	r.q.S.DB.QueryRow("SELECT count(*) FROM application_maps WHERE repository=? AND digest=?", r.repo, scanned).Scan(&kept)
+	r.q.S.DB.QueryRow("SELECT count(*) FROM application_maps WHERE repository=?", r.repo).Scan(&total)
+	if kept != 1 || total > 100 {
+		t.Fatal("referenced map pruned or history unbounded", kept, total)
 	}
 }
