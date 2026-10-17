@@ -50,3 +50,7 @@ Follow [protecting your applications](../operators/sites.md):
 A WAF match is not proof of an attack; a passing fixture is not proof your application is secure; a generic WAF does not enforce your application's authorization. Aegis says exactly what each piece of evidence shows and what it does not. See [known limitations](../KNOWN_LIMITATIONS.md).
 
 Stop the stack with `scripts/quickstart.sh --down` (your data is kept).
+
+## Reaching the console from another name
+
+The console answers only to `localhost`, `127.0.0.1` and `::1` (any port), so another web page cannot reach it by pointing its own domain at your machine. An SSH tunnel to `localhost` works unchanged. If you put the console behind a private reverse proxy or tunnel with its own host name, set `AEGIS_CONSOLE_HOSTS=console.example.internal` (comma-separated, optionally with `:port`) for the controller.

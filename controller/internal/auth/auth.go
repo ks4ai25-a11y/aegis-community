@@ -64,26 +64,37 @@ func New(s *store.Store) *Auth {
 	}
 	return a
 }
+
+// Throttle reports whether a sign-in or enrollment attempt may run now. Only
+// failed attempts (Fail) start a back-off, so a stream of requests cannot keep
+// the owner locked out unless those requests are themselves failing guesses.
 func (a *Auth) Throttle() bool {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if time.Now().Before(a.next) {
-		return false
-	}
+	return !time.Now().Before(a.next)
+}
+
+// Fail records a failed attempt and doubles the back-off, up to 64 seconds.
+func (a *Auth) Fail() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	a.failures++
-	d := time.Duration(1<<min(a.failures-1, 6)) * time.Second
-	a.next = time.Now().Add(d)
-	return true
+	a.next = time.Now().Add(time.Duration(1<<min(a.failures-1, 6)) * time.Second)
 }
 func (a *Auth) Reset() { a.mu.Lock(); a.failures = 0; a.next = time.Time{}; a.mu.Unlock() }
+
+// ErrEnrollment is a client-presentable enrollment refusal.
+type ErrEnrollment struct{ Reason string }
+
+func (e ErrEnrollment) Error() string { return e.Reason }
 func (a *Auth) Enroll(token, password string) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if len(password) < 14 || len(password) > 256 {
-		return fmt.Errorf("passphrase must have 14–256 characters")
+		return ErrEnrollment{"passphrase must have 14–256 characters"}
 	}
 	if a.Bootstrap == "" || time.Now().After(a.Expiry) || subtle.ConstantTimeCompare([]byte(token), []byte(a.Bootstrap)) != 1 {
-		return fmt.Errorf("invalid enrollment")
+		return ErrEnrollment{"invalid or expired enrollment token"}
 	}
 	tx, e := a.S.DB.Begin()
 	if e != nil {
@@ -92,7 +103,7 @@ func (a *Auth) Enroll(token, password string) error {
 	defer tx.Rollback()
 	var n int
 	if e = tx.QueryRow("SELECT count(*) FROM owners").Scan(&n); e != nil || n != 0 {
-		return fmt.Errorf("enrollment unavailable")
+		return ErrEnrollment{"enrollment unavailable: an owner already exists"}
 	}
 	_, e = tx.Exec("INSERT INTO owners VALUES(?,?,?)", domain.ID(), HashPassword(password), domain.Now())
 	if e == nil {

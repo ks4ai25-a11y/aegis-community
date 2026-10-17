@@ -23,8 +23,10 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -66,6 +68,13 @@ func (s *Server) Handler() http.Handler {
 		w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("Cache-Control", "no-store")
+		// Only answer to the names the console is reached by. A page on another
+		// site that DNS-rebinds its own name to this address sends its own Host,
+		// which would otherwise also pass the same-origin check below.
+		if !allowedHost(r.Host) {
+			fail(w, 421, "MISDIRECTED_REQUEST", "This console does not answer to that host name; add it to AEGIS_CONSOLE_HOSTS if intended")
+			return
+		}
 		if r.Method != "GET" && r.Method != "HEAD" {
 			origin := r.Header.Get("Origin")
 			scheme := "http"
@@ -130,12 +139,20 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		}
 		if path == "/auth/bootstrap" {
 			if e := s.A.Enroll(in.Token, in.Password); e != nil {
-				fail(w, 403, "FORBIDDEN", e.Error())
+				s.A.Fail()
+				var reason auth.ErrEnrollment
+				if errors.As(e, &reason) {
+					fail(w, 403, "FORBIDDEN", reason.Reason)
+				} else {
+					fmt.Println(`{"event":"enrollment_storage_error"}`)
+					fail(w, 500, "INTERNAL_ERROR", "Enrollment could not be saved")
+				}
 				return
 			}
 		}
 		csrf, e := s.A.Login(w, r, in.Password)
 		if e != nil {
+			s.A.Fail()
 			fail(w, 403, "FORBIDDEN", "Invalid credentials")
 			return
 		}
@@ -165,7 +182,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	// their own one-at-a-time limit; they must not hold the global mutation lock
 	// for the minutes a local model can take.
 	advisory := strings.HasSuffix(path, "/assessment") || path == "/findings/remediation" || strings.HasSuffix(path, "/research-plan")
-	if r.Method != "GET" && r.Method != "HEAD" && !advisory {
+	// Signing out must work while a long policy activation holds the lock.
+	if r.Method != "GET" && r.Method != "HEAD" && !advisory && path != "/auth/logout" {
 		if !s.mutations.TryLock() {
 			fail(w, 429, "RATE_LIMITED", "Another state change is in progress")
 			return
@@ -458,6 +476,13 @@ func (s *Server) stream(w http.ResponseWriter, r *http.Request, site string) {
 		case <-deadline:
 			return
 		case <-ticker.C:
+			// Read the batch and release the (single) database connection before
+			// writing: a client that stops reading must never hold the store.
+			type pending struct {
+				seq int
+				doc string
+			}
+			batch := []pending{}
 			rows, e := s.S.DB.Query("SELECT seq,document,json_extract(document,'$.site_id')=? FROM events WHERE seq>? ORDER BY seq LIMIT 100", site, cursor)
 			if e != nil {
 				return
@@ -468,12 +493,21 @@ func (s *Server) stream(w http.ResponseWriter, r *http.Request, site string) {
 				var match bool
 				rows.Scan(&seq, &b, &match)
 				if match {
-					fmt.Fprintf(w, "id: %d\nevent: event\ndata: %s\n\n", seq, b)
+					batch = append(batch, pending{seq, b})
 				}
 				cursor = seq
 			}
 			rows.Close()
-			fmt.Fprint(w, "event: heartbeat\ndata: {}\n\n")
+			// A stalled reader times out instead of blocking this goroutine forever.
+			_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(10 * time.Second))
+			for _, p := range batch {
+				if _, e := fmt.Fprintf(w, "id: %d\nevent: event\ndata: %s\n\n", p.seq, p.doc); e != nil {
+					return
+				}
+			}
+			if _, e := fmt.Fprint(w, "event: heartbeat\ndata: {}\n\n"); e != nil {
+				return
+			}
 			flusher.Flush()
 		}
 	}
@@ -923,4 +957,23 @@ func (s *Server) demo(w http.ResponseWriter, r *http.Request) {
 		out = append(out, map[string]any{"status": resp.StatusCode, "request_id": resp.Header.Get("X-Aegis-Request-ID"), "revision": resp.Header.Get("X-Aegis-Revision")})
 	}
 	output(w, 200, map[string]any{"synthetic": true, "results": out})
+}
+
+// allowedHost accepts loopback names on any port, plus the comma-separated
+// AEGIS_CONSOLE_HOSTS entries (host or host:port) for tunnels and proxies.
+func allowedHost(h string) bool {
+	host := h
+	if hh, _, e := net.SplitHostPort(h); e == nil {
+		host = hh
+	}
+	host = strings.ToLower(strings.Trim(host, "[]"))
+	if host == "localhost" || host == "::1" || strings.HasPrefix(host, "127.") && net.ParseIP(host) != nil {
+		return true
+	}
+	for _, v := range strings.Split(os.Getenv("AEGIS_CONSOLE_HOSTS"), ",") {
+		if v = strings.ToLower(strings.TrimSpace(v)); v != "" && (v == strings.ToLower(h) || v == host) {
+			return true
+		}
+	}
+	return false
 }
