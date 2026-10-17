@@ -1,16 +1,83 @@
 {
  "schema_version": "1.0",
  "test_scope": "release-supply-chain-evidence",
- "source_commit": "6bb1c75deedfc89858965f86d24a164703fb6859",
+ "command": "python3 scripts/release/release_evidence.py --sign-key <key>",
+ "source_commit": "9a2da06a553c8f3be4e232c5b726698643111d06",
  "working_tree_clean": true,
- "generated_at": "2026-10-17T02:32:39Z",
- "command": "python3 scripts/release/release_evidence.py --sign-key <test key>",
+ "generated_at": "2026-10-17T04:44:29Z",
  "toolchain": {
   "go": "go version go1.27.1 darwin/arm64",
   "node": "v22.23.1",
   "docker": "29.6.1"
  },
  "sbom_tool": "anchore/syft@sha256:3eb5379ba7b409c3f4069b686110527af0c47df993fa5c10d13e7cf34f49b1aa",
+ "licences": {
+  "by_identifier": {
+   "Apache-2.0 (from module LICENSE)": 154,
+   "MIT (from module LICENSE)": 128,
+   "BSD-3-Clause (from module LICENSE)": 96,
+   "GPL-2.0-only": 24,
+   "MIT": 9,
+   "BSD-3-Clause": 9,
+   "BSD-2-Clause (from module LICENSE)": 8,
+   "Apache-2.0": 6,
+   "MPL-2.0 AND MIT": 3,
+   "MIT AND BSD-2-Clause AND GPL-2.0-or-later": 3,
+   "Zlib": 3,
+   "MIT (npm, shipped in console)": 3,
+   "MPL-2.0 (from module LICENSE)": 2,
+   "Unlicense/public-domain (from module LICENSE)": 2,
+   "ISC (npm, shipped in console)": 1
+  },
+  "components_without_licence_metadata": 0,
+  "examples_without_licence": [],
+  "copyleft_identifiers_for_review": [
+   "GPL-2.0-only",
+   "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
+   "MPL-2.0 (from module LICENSE)",
+   "MPL-2.0 AND MIT"
+  ]
+ },
+ "limitations": [
+  "SHA256SUMS is signed only when --sign-key is given; there is no publisher key or transparency log yet.",
+  "Image IDs are local build results and are not claimed reproducible; CLI binaries are rebuilt twice on this host and compared (rebuild_identical), which is not a cross-host reproducibility proof.",
+  "Licence identifiers come from package metadata as reported by Syft and are not a legal review."
+ ],
+ "checks": [
+  {
+   "id": "tree_clean_at_commit",
+   "result": "PASS"
+  },
+  {
+   "id": "every_component_has_licence_metadata_or_licence_file",
+   "result": "PASS",
+   "detail": 0
+  },
+  {
+   "id": "every_shipped_go_module_and_npm_package_has_licence_text",
+   "result": "PASS"
+  },
+  {
+   "id": "cli_binaries_rebuild_identical_with_empty_build_cache",
+   "result": "PASS",
+   "detail": 9
+  },
+  {
+   "id": "sha256sums_verify",
+   "result": "PASS",
+   "detail": 15
+  },
+  {
+   "id": "sha256sums_signature_verifies",
+   "result": "PASS",
+   "detail": "key SHA256:0ytX6QYp7GTIa4XK6kLoW89p+WloKwvACMqhTqAplIk"
+  },
+  {
+   "id": "edited_sha256sums_signature_refused",
+   "result": "PASS"
+  }
+ ],
+ "result": "PASS",
  "images": [
   {
    "name": "gateway",
@@ -19,7 +86,7 @@
     "golang:1.27.1-alpine3.23@sha256:0908ac9b9319e09d7c238aabe914e0395c51d63c4e3d0ae8c554fda9158a5769"
    ],
    "components": 273,
-   "sbom_sha256": "e2b624f5ee18583a61394a1a426488b3a64536f26f0d776bdc4ec4d0ef0dfc87"
+   "sbom_sha256": "931a62e761bb771ecbf642302a1336e16b56a72bab63980ea45c18d8a4da5d68"
   },
   {
    "name": "controller",
@@ -29,7 +96,7 @@
     "node:22.23.1-alpine3.23@sha256:8516dce0483394d5708d4b2ee6cacb79fb1d617ea4e2787c2120bcca92ce372e"
    ],
    "components": 335,
-   "sbom_sha256": "ab07067a84ca93a4819f4c06f8c9700ad20c794cde92d80474967872c6a330f4"
+   "sbom_sha256": "8deabfe5b6d9cf3da7afe4915959883ee2e6e9d42374699e85c668fcf4d1f94e"
   },
   {
    "name": "demo-origin",
@@ -38,23 +105,23 @@
     "golang:1.27.1-alpine3.23@sha256:0908ac9b9319e09d7c238aabe914e0395c51d63c4e3d0ae8c554fda9158a5769"
    ],
    "components": 98,
-   "sbom_sha256": "72b34045294acd370df2431a631b1e1b96cd2c6f4d9fefec41eb4772d6574c41"
+   "sbom_sha256": "f1cd5cf99aacaedad5906b5d44d605f4720fd23055e2a39eaf5670885e00646e"
   }
  ],
  "binaries": [
   {
    "name": "aegisctl-linux-amd64",
-   "sha256": "bd7c7904061804fc6d94fd32fb89dbba778311a919c02fbafbff6e07a7a600d7",
+   "sha256": "cb8923985bf6f246ffdc0ba007056543145ed2300e4a4086891717f0c4342d6e",
    "rebuild_identical": true
   },
   {
    "name": "aegisctl-linux-arm64",
-   "sha256": "19d73688dcd9d1e14c4aacc3c0ccba8ad1501a0beefb8a7055617106d4306c7e",
+   "sha256": "0a86172974fa4758fdcdf08e8a5b4bab46ca69769cb963528a04caa423f4bc15",
    "rebuild_identical": true
   },
   {
    "name": "aegisctl-darwin-arm64",
-   "sha256": "f62b46cf7744533b4afc4135d9b734c5cfb2697fb0d6aaa8048d5cb6e9b695ba",
+   "sha256": "0a574453325e3eb04246d4fa0638e9957d8d49235df8d206329df78d988c0063",
    "rebuild_identical": true
   },
   {
@@ -93,77 +160,11 @@
    "MIT": 3,
    "ISC": 1
   },
-  "sbom_sha256": "0c86e4c08e0324f9420d8b454d5d3acfcfc30c9fd8205cd06dd7401006d42efb"
- },
- "licences": {
-  "by_identifier": {
-   "Apache-2.0 (from module LICENSE)": 154,
-   "MIT (from module LICENSE)": 128,
-   "BSD-3-Clause (from module LICENSE)": 96,
-   "GPL-2.0-only": 24,
-   "MIT": 9,
-   "BSD-3-Clause": 9,
-   "BSD-2-Clause (from module LICENSE)": 8,
-   "Apache-2.0": 6,
-   "MPL-2.0 AND MIT": 3,
-   "MIT AND BSD-2-Clause AND GPL-2.0-or-later": 3,
-   "Zlib": 3,
-   "MIT (npm, shipped in console)": 3,
-   "MPL-2.0 (from module LICENSE)": 2,
-   "Unlicense/public-domain (from module LICENSE)": 2,
-   "ISC (npm, shipped in console)": 1
-  },
-  "components_without_licence_metadata": 0,
-  "examples_without_licence": [],
-  "copyleft_identifiers_for_review": [
-   "GPL-2.0-only",
-   "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
-   "MPL-2.0 (from module LICENSE)",
-   "MPL-2.0 AND MIT"
-  ]
+  "sbom_sha256": "fd91c7720b473fb1381afe9d4667f715cab0eb20a6e2ee3ab76006f5753afc6d"
  },
  "notices": {
-  "sha256": "e9e8ab02fd11de5cb0b4c104fed5cfd5cdccff3520192c7fd7fe00e02abc7a4a",
+  "sha256": "ce30dc254faf3b32c60502504cec147fd8bc07d1616f60061b950d18c46a52e9",
   "go_modules": 183,
   "without_licence_text": []
- },
- "checks": [
-  {
-   "id": "tree_clean_at_commit",
-   "result": "PASS"
-  },
-  {
-   "id": "every_component_has_licence_metadata_or_licence_file",
-   "result": "PASS"
-  },
-  {
-   "id": "every_shipped_go_module_and_npm_package_has_licence_text",
-   "result": "PASS"
-  },
-  {
-   "id": "cli_binaries_rebuild_identical_on_host",
-   "result": "PASS",
-   "detail": 9
-  },
-  {
-   "id": "sha256sums_verify",
-   "result": "PASS"
-  },
-  {
-   "id": "sha256sums_ssh_signature_verifies_with_test_key",
-   "result": "PASS",
-   "detail": "Throwaway test key generated for this run, not a publisher key."
-  },
-  {
-   "id": "edited_sha256sums_signature_refused",
-   "result": "PASS"
-  }
- ],
- "limitations": [
-  "SHA256SUMS is signed only when --sign-key is given; there is no publisher key or transparency log yet.",
-  "Image IDs are local build results and are not claimed reproducible; CLI binaries are rebuilt twice on this host and compared (rebuild_identical), which is not a cross-host reproducibility proof.",
-  "Licence identifiers come from package metadata as reported by Syft and are not a legal review.",
-  "Copyleft identifiers are listed for review: GPL-2.0-only items are unmodified Alpine OS packages (busybox, apk-tools, alpine-baselayout, scanelf, ssl_client); MPL-2.0 is ca-certificates and github.com/go-sql-driver/mysql (linked through Caddy's ACME server storage, unmodified)."
- ],
- "result": "PASS"
+ }
 }

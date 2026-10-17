@@ -20,8 +20,17 @@ OpenSSH signatures were chosen over Sigstore keyless signing because they work o
 
 ## Validation
 
-`docs/evidence/release-supply-chain.json`: clean tree at the recorded commit; 273/335/98 components in the gateway/controller/demo-origin images; every component has a licence identifier or licence file; every shipped Go module and npm package has licence text; all nine binaries rebuilt identically; checksums verify; the signature verifies with the run's test key and an edited `SHA256SUMS` is refused.
+`docs/evidence/release-supply-chain.json` is written by the script itself (`--evidence-out`), not by hand. Every check is run from the artefacts on disk:
+- clean tree at the recorded commit;
+- every component has a licence identifier or licence file;
+- every shipped Go module and npm package has licence text;
+- all nine CLI binaries rebuilt byte-identical with an empty Go build cache;
+- `SHA256SUMS` re-hashed from disk;
+- the SSH signature verifies with the run's key;
+- an edited `SHA256SUMS` is refused.
+
+The recorded run used a throwaway test key. The per-release `release-checks.json` sits beside the signed set.
 
 ## Limitations
 
-No publisher key, provenance attestation or transparency log; images are not claimed reproducible; cross-host binary reproducibility is untested; the licence inventory is not a legal review.
+No publisher key, provenance attestation or transparency log; images are not claimed reproducible; cross-host binary reproducibility is untested (same-host rebuilds use an empty build cache); the licence inventory is not a legal review.
