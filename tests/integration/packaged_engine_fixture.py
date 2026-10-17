@@ -15,7 +15,7 @@ class EngineFixture:
   require_ci();self.work=pathlib.Path(work_root);self.processes=[];self.logs=[];self.daemon=None;self.spec=None;self.installed=False;self.finished=False;self.proof=None;self.bound=None
   self.root=pathlib.Path(tempfile.mkdtemp(prefix='aegis-packaged-engine-',dir='/tmp')).resolve();self.root.chmod(0o711)
   self.programs=self.root/'programs';self.programs.mkdir(mode=0o755)
-  for name in ('aegis-engine-authz','aegis-engine-relay','aegis-research')+ (('aegis-engine-gate-tests',) if os.environ.get('AEGIS_PACKAGED_CONTROLLER_GATE_TEST')=='1' else ()):
+  for name in ('aegis-engine-authz','aegis-engine-relay','aegis-research')+ (('aegis-engine-gate-tests',) if os.environ.get('AEGIS_PACKAGED_CONTROLLER_GATE_TEST')=='1' else ())+(('aegis-engine-authz-fault',) if os.environ.get('AEGIS_PACKAGED_CRASH_REPAIR_TEST')=='1' else ()):
    shutil.copyfile(ROOT/'bin'/name,self.programs/name);(self.programs/name).chmod(0o755)
   shutil.copyfile(ROOT/'tools/scanners.lock.json',self.programs/'scanners.lock.json');(self.programs/'scanners.lock.json').chmod(0o644)
   self.engine=pathlib.Path(os.environ['AEGIS_CI_ENGINE_ROOT']).resolve(strict=True)
@@ -93,7 +93,8 @@ class EngineFixture:
   run(['sudo','mkdir','-p',self.spec.parent]);run(['sudo','install','-m','600',local,self.spec]);self.installed=True
   with socket.socket() as selected:selected.bind(('127.0.0.1',0));port=selected.getsockname()[1]
   self.endpoint='https://127.0.0.1:'+str(port)
-  self.daemon_start(['--host=tcp://127.0.0.1:'+str(port),'--tlsverify','--tlscacert='+str(self.tls/'ca.pem'),'--tlscert='+str(self.tls/'server.pem'),'--tlskey='+str(self.tls/'server.key'),'--authorization-plugin='+name],'authorized')
+  self.authorized_args=['--host=tcp://127.0.0.1:'+str(port),'--tlsverify','--tlscacert='+str(self.tls/'ca.pem'),'--tlscert='+str(self.tls/'server.pem'),'--tlskey='+str(self.tls/'server.key'),'--authorization-plugin='+name]
+  self.daemon_start(self.authorized_args,'authorized')
   context=ssl.create_default_context(cafile=str(self.tls/'ca.pem'));context.minimum_version=ssl.TLSVersion.TLSv1_3;context.load_cert_chain(str(self.tls/'observer.pem'),str(self.tls/'observer.key'))
   self.opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),urllib.request.HTTPSHandler(context=context))
   for _ in range(60):
@@ -108,10 +109,25 @@ class EngineFixture:
    if subprocess.run(['sudo','test','-S',self.socket],stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
    time.sleep(.1)
   else:raise RuntimeError('Private opaque relay unavailable')
+ def daemon_restart(self,label):
+  """Stop and restart only this dedicated daemon with its original arguments
+  (ADR 057 crash repair fence). In-flight requests die with the old process."""
+  if os.environ.get('AEGIS_PACKAGED_CRASH_REPAIR_TEST')!='1':raise RuntimeError('Explicit crash repair fixture only')
+  self.daemon_stop();self.daemon_start(self.authorized_args,label)
+  for _ in range(60):
+   if self.daemon.poll() is not None:raise RuntimeError('Restarted private engine exited')
+   try:status,_=self.observer('/info')
+   except (OSError,urllib.error.URLError):time.sleep(1);continue
+   if status==200:return
+   time.sleep(1)
+  raise RuntimeError('Restarted engine TLS identity unavailable')
  def bind_controller(self,raw,compose,project,nonce,owner,socket_volume,provisioning,worker=None):
   if os.environ.get('AEGIS_PACKAGED_CONTROLLER_GATE_TEST')!='1':raise RuntimeError('Explicit bound authorizer fixture required')
   from packaged_authorizer_fixture import BoundAuthorizer,AdmittedAuthorizer
-  if os.environ.get('AEGIS_PACKAGED_ADMISSION_TEST')=='1':self.bound=AdmittedAuthorizer(self,raw,compose,project,nonce,owner,socket_volume,provisioning,worker)
+  if os.environ.get('AEGIS_PACKAGED_CRASH_REPAIR_TEST')=='1':
+   from packaged_authorizer_fixture import CrashableAuthorizer
+   self.bound=CrashableAuthorizer(self,raw,compose,project,nonce,owner,socket_volume,provisioning,worker)
+  elif os.environ.get('AEGIS_PACKAGED_ADMISSION_TEST')=='1':self.bound=AdmittedAuthorizer(self,raw,compose,project,nonce,owner,socket_volume,provisioning,worker)
   else:self.bound=BoundAuthorizer(self,raw,compose,project,nonce,owner,socket_volume,provisioning)
   self.bound.start()
   self.bound.probe_unregistered()
@@ -128,7 +144,7 @@ class EngineFixture:
    self.bound.prove_failure_and_seal()
   self.close()
   observation=json.loads(run(self.as_user([self.programs/'aegis-research','engine-journal-status',self.journal,self.engine_digest]),env=self.env).stdout)
-  if observation['attempts']!=(2 if os.environ.get('AEGIS_PACKAGED_RECONCILE_TEST')=='1' else 1) or observation['unresolved_requests'] or observation['unfinished_attempts'] or observation['all_engine_writes_mediated'] or observation['cleanup_release_authorized']:raise RuntimeError('Independent plugin journal unconfirmed')
+  if observation['attempts']!=(4 if os.environ.get('AEGIS_PACKAGED_CRASH_REPAIR_TEST')=='1' else 2 if os.environ.get('AEGIS_PACKAGED_RECONCILE_TEST')=='1' else 1) or observation['unresolved_requests'] or observation['unfinished_attempts'] or observation['all_engine_writes_mediated'] or observation['cleanup_release_authorized']:raise RuntimeError('Independent plugin journal unconfirmed')
   self.finished=True
   self.proof={'schema_version':'1.0','separate_daemon':True,'unique_containerd_namespaces':True,'raw_bootstrap_listener_removed':not self.bootstrap.exists(),'broker_has_raw_daemon_socket':False,'broker_has_daemon_socket_group':False,'end_to_end_tls_over_opaque_unix_relay':True,'relay_has_engine_credentials':False,'daemon_http2_setting':'GODEBUG=http2server=0','plugin_journal':observation,'controller_live_preconditions_verified':self.bound is not None,'controller_plugin_lease_binding_verified':False,'actual_controller_mutation_ledger_verified':self.bound is not None and self.bound.ledger_verified,'enumerated_unadmitted_api_writes_refused':self.bound is not None and self.bound.admitted and self.bound.mediation_verified,'all_engine_writes_mediated':False,'cleanup_release_authorized':False,'public_beta':'NO-GO'}
   return self.proof

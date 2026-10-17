@@ -86,7 +86,7 @@ jobs:
 
   packaged-worker:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -120,6 +120,8 @@ jobs:
       - run: docker build -f alpha/Dockerfile --target scanner-dispatch -t aegis-community/scanner-dispatch:0.1.0-alpha.1 .
       - run: docker build -f alpha/Dockerfile --target scanner-authorizer -t aegis-community/scanner-authorizer:0.1.0-alpha.1 .
       - run: cd alpha && CGO_ENABLED=0 go test -c -o ../bin/aegis-engine-gate-tests ./engineauthz
+      # Test-only fault build for the crash repair acceptance; never packaged.
+      - run: cd alpha && CGO_ENABLED=0 go build -tags aegisfault -trimpath -buildvcs=false -o ../bin/aegis-engine-authz-fault ./cmd/aegis-engine-authz
       - name: Preload the exact public Bandit image
         run: |
           python3 - <<'PY'
@@ -171,6 +173,20 @@ jobs:
         run: |
           mkdir -m 700 "$RUNNER_TEMP/aegis-reconcile-private"
           AEGIS_PACKAGED_WORKER_EVIDENCE="$RUNNER_TEMP/aegis-reconcile-private/acceptance.json" python3 tests/integration/packaged_worker_acceptance.py
+      # ADR 057 sealed crash repair. Non-gating until its first hosted pass.
+      - name: Verify sealed crash repair after a killed authorizer, then another scan
+        continue-on-error: true
+        env:
+          AEGIS_PACKAGED_WORKER_TEST: '1'
+          AEGIS_PACKAGED_BROKER_TEST: '1'
+          AEGIS_PACKAGED_ENGINE_AUTHZ_TEST: '1'
+          AEGIS_PACKAGED_CONTROLLER_GATE_TEST: '1'
+          AEGIS_PACKAGED_ADMISSION_TEST: '1'
+          AEGIS_PACKAGED_RECONCILE_TEST: '1'
+          AEGIS_PACKAGED_CRASH_REPAIR_TEST: '1'
+        run: |
+          mkdir -m 700 "$RUNNER_TEMP/aegis-crash-repair-private"
+          AEGIS_PACKAGED_WORKER_EVIDENCE="$RUNNER_TEMP/aegis-crash-repair-private/acceptance.json" python3 tests/integration/packaged_worker_acceptance.py
       - name: Stop only this disposable job engine
         if: always()
         run: |

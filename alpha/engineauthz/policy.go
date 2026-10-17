@@ -360,6 +360,9 @@ func (p *Policy) create(ctx context.Context, r Request, u *url.URL, now time.Tim
 		if p.admitted.admit(ctx, admitted, mutation) != nil {
 			return false
 		}
+		if faultAfterCreateAdmission != nil {
+			faultAfterCreateAdmission()
+		}
 	}
 	return ctx.Err() == nil
 }

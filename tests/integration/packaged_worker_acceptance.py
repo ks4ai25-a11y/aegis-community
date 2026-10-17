@@ -24,6 +24,8 @@ controller_gate_mode=os.environ.get('AEGIS_PACKAGED_CONTROLLER_GATE_TEST')=='1'
 admission_mode=os.environ.get('AEGIS_PACKAGED_ADMISSION_TEST')=='1'
 reconcile_mode=os.environ.get('AEGIS_PACKAGED_RECONCILE_TEST')=='1';reconciler_volume=None
 if reconcile_mode and not admission_mode:raise SystemExit('Independent reconciliation requires the explicit native admission fixture')
+crash_mode=os.environ.get('AEGIS_PACKAGED_CRASH_REPAIR_TEST')=='1';crash_evidence=None
+if crash_mode and not reconcile_mode:raise SystemExit('Sealed crash repair requires the explicit independent reconciliation fixture')
 if admission_mode and not (controller_gate_mode and authz_mode and broker_mode):raise SystemExit('Native admission fixture requires all explicit broker/controller/engine guards')
 if controller_gate_mode and not authz_mode:raise SystemExit('Controller gate fixture requires the explicit restricted TLS fixture')
 if authz_mode:
@@ -258,6 +260,12 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
    second_suite,_=request(base,'/scans/'+second['job_id']+'/result',cookie=cookie);assert second_suite['result_digest']==second_outcome['result_digest'] and second_suite['document']['cleanup_required'] is True
    status,_=request(base,'/scans/'+second['job_id'],cookie=cookie);assert status['execution_admission']=='cleanup_required'
    confirmed=True;check('second_sequential_scan_completes_after_release_and_is_held_again')
+   if crash_mode:
+    import types
+    from packaged_crash_repair import run_crash_repair
+    confirmed=False;started=True
+    crash_evidence=run_crash_repair(types.SimpleNamespace(engine=authz_engine,helper=helper,check=check,compose=compose,raw=raw,request=request,base=base,cookie=cookie,csrf=csrf,request_body=request_body,worker_name=worker_name,reconcile_mounts=reconcile_mounts,config_path=config_path,group=group,mounts=mounts,owner=owner,work_root=work_root,engine_digest=plan['engine_digest'],second_job=second['job_id']))
+    confirmed=True
   engine_proof=None
   if authz_engine is not None:
    confirmed=False;engine_proof=authz_engine.finish();confirmed=True
@@ -268,6 +276,10 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   if reconcile_mode:
    evidence['scope']='Packaged admitted path: two sequential real scans, with one independent reconciler release between them after exact absence observation under the original registry barrier; enumerated unadmitted Docker API writes refused without engine state change; no host-level all-write mediation or security sign-off claim'
    evidence['independent_cleanup_release']={'released_jobs':1,'second_scan_completed':True,'second_job_held_again':True}
+   if crash_evidence is not None:
+    evidence['scope']='Packaged admitted path: a test-only authorizer build exits after a committed create admission; sealed quarantine serving, a daemon restart recorded as a post-seal plugin activation, an independent repair from exact observation, observer-checked workspace recovery, release, journal settlement and a further real scan; no host-level all-write mediation or security sign-off claim'
+    evidence['sequential_scans']=4;evidence['independent_cleanup_release']['released_jobs']=3
+    evidence['sealed_crash_repair']=crash_evidence
    if engine_proof is not None:engine_proof['cleanup_release_authorized']='ONCE_BY_INDEPENDENT_RECONCILER'
   if admission_mode:evidence['actual_controller_mutation_ledger_verified']=authz_engine.bound.ledger_verified
   if admission_mode:evidence['enumerated_unadmitted_api_writes_refused']=authz_engine.bound.mediation_verified

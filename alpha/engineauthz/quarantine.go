@@ -30,6 +30,10 @@ import (
 // daemon runs as a single process for its data root, as dockerd enforces with
 // its pidfile; it is the reason the operator must restart that daemon.
 
+// faultAfterCreateAdmission is nil in every release build. Only the hosted
+// crash acceptance's separately tagged binary sets it (fault_aegisfault.go).
+var faultAfterCreateAdmission func()
+
 func (p *Policy) activated() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
