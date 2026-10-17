@@ -4,7 +4,7 @@ Aegis Community is an internal alpha with no supported production release. Do no
 
 ## Reporting
 
-A maintainer-controlled private security reporting address and repository security advisory channel must be configured before publication. Until then, report findings directly to the operator who supplied this local checkout. Never paste credentials, customer payloads, exploit targets or raw source into public issue trackers. This file does not imply that an invented address is monitored.
+Report security issues privately by email to **ks4ai25@gmail.com**. Please don't open a public issue for a suspected vulnerability. Never paste credentials, customer payloads, exploit targets or raw source into public issue trackers.
 
 Include the affected version, a synthetic reproduction, expected and actual outcomes, and sanitized evidence. Disclosure timing and supported-version policy are release requirements awaiting maintainer ownership.
 

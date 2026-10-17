@@ -56,4 +56,4 @@ The console is at `http://127.0.0.1:7410` and the demo gateway at `http://127.0.
 
 ## Licence
 
-Source-available under the [Business Source License 1.1](LICENSE): you may run Aegis in production to protect, scan and verify applications you or your affiliates operate; offering it to others as a competing hosted or embedded product needs a commercial licence. Each version becomes Apache-2.0 four years after release. See [NOTICE](NOTICE) and [CLA](CLA.md).
+Source-available under the [Business Source License 1.1](LICENSE): you may run Aegis in production to protect, scan and verify applications you or your affiliates operate; offering it to others as a competing hosted or embedded product needs a commercial licence (contact ks4ai25@gmail.com). Each version becomes Apache-2.0 four years after release. See [NOTICE](NOTICE) and [CLA](CLA.md). Report security issues privately as described in [SECURITY.md](SECURITY.md).

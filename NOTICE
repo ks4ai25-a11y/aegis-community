@@ -8,5 +8,7 @@ change (git history up to and including the commit that introduced this NOTICE)
 were released under the Apache License, Version 2.0, and remain available
 under that licence.
 
+Commercial licensing and security reports: ks4ai25@gmail.com
+
 Third-party components keep their own licences; see THIRD_PARTY_NOTICES.md and
 the THIRD_PARTY_LICENSES.txt produced for each release.
