@@ -561,7 +561,7 @@ func RemoveRepaired(ctx context.Context, name, id string) error {
 		return errEngine
 	}
 	capture := &responseCapture{operation: "remove", id: id}
-	bounded, cancel := context.WithTimeout(context.WithValue(ctx, captureKey{}, capture), 10*time.Second)
+	bounded, cancel := context.WithTimeout(context.WithValue(ctx, captureKey{}, capture), engineMutationBound)
 	defer cancel()
 	if _, e = cli.ContainerRemove(bounded, id, client.ContainerRemoveOptions{Force: true, RemoveVolumes: true}); e != nil || !observed(capture, 204) {
 		return errEngine

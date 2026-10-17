@@ -173,9 +173,8 @@ jobs:
         run: |
           mkdir -m 700 "$RUNNER_TEMP/aegis-reconcile-private"
           AEGIS_PACKAGED_WORKER_EVIDENCE="$RUNNER_TEMP/aegis-reconcile-private/acceptance.json" python3 tests/integration/packaged_worker_acceptance.py
-      # ADR 057 sealed crash repair. Non-gating until its first hosted pass.
+      # ADR 057 sealed crash repair; gating since its first hosted pass (run 39032841061).
       - name: Verify sealed crash repair after a killed authorizer, then another scan
-        continue-on-error: true
         env:
           AEGIS_PACKAGED_WORKER_TEST: '1'
           AEGIS_PACKAGED_BROKER_TEST: '1'
