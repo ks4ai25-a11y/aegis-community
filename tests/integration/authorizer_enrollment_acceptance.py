@@ -5,6 +5,8 @@ import hashlib,os,pathlib,sqlite3,subprocess,tempfile
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 if not __debug__ or os.geteuid()<=0:raise SystemExit('Assertions and an unprivileged operator required')
 checks=[]
+reconciler_checks=[]
+def reconciler_check(name):reconciler_checks.append(name);print(name+': PASS',flush=True)
 def check(name):checks.append(name);print(name+': PASS',flush=True)
 with tempfile.TemporaryDirectory(prefix='aegis-authorizer-proof-') as temporary:
  parent=pathlib.Path(temporary).resolve();binary=parent/'aegisctl';data=parent/'data';data.mkdir(mode=0o700)
@@ -66,6 +68,36 @@ with tempfile.TemporaryDirectory(prefix='aegis-authorizer-proof-') as temporary:
   assert db.execute('SELECT count(*) FROM scanner_allocation_generations').fetchone()==(0,)
   assert db.execute('SELECT count(*) FROM scanner_dispatch').fetchone()==(0,)
  check('compiled_selection_binds_exact_scope_without_adopting_a_dispatch')
+ # These are separate role checks; preserve the original authorizer count.
+ with sqlite3.connect(dbpath) as db:
+  binding=db.execute("SELECT digest FROM scanner_mutation_bindings WHERE authorizer='gate-a'").fetchone()[0]
+ assert ('Selected binding digest: '+binding).encode() in bound.stdout
+ reconciler=parent/'reconciler.credential'
+ result=run('scanner-reconciler','enroll','reconciler-a','1',binding,str(reconciler))
+ reconciler_token=reconciler.read_bytes()
+ assert len(reconciler_token)==65 and reconciler.stat().st_mode&0o777==0o600
+ assert reconciler_token.strip() not in result.stdout+result.stderr and b'cleanup release unavailable' in result.stdout
+ with sqlite3.connect(dbpath) as db:
+  role=db.execute('SELECT owner,binding_digest,capability,state,token_hash FROM scanner_reconcilers').fetchone()
+  assert role==('fixture-owner',binding,'confirm-fenced-cleanup-v1','active',digest(b'aegis-scanner-engine-reconciler-v1\x00'+reconciler_token.strip()))
+  assert db.execute('SELECT count(*) FROM scanner_dispatch').fetchone()==(0,)
+  assert db.execute('SELECT count(*) FROM scanner_allocation_generations').fetchone()==(0,)
+ reconciler_check('compiled_reconciler_enrollment_is_private_and_exact_binding_scoped')
+ run('scanner-reconciler','enroll','reconciler-a','1',binding,str(reconciler),ok=False)
+ assert reconciler.read_bytes()==reconciler_token
+ refused=parent/'refused-reconciler.credential'
+ run('scanner-reconciler','enroll','reconciler-b','1',binding,str(refused),ok=False)
+ assert not refused.exists()
+ denied=run('scanner-reconciler','probe',str(reconciler),ok=False)
+ assert reconciler_token.strip() not in denied.stdout+denied.stderr
+ run('scanner-reconciler','release','reconciler-a',ok=False)
+ reconciler_check('compiled_reconciler_conflicts_unavailable_probe_and_release_are_refused')
+ run('scanner-reconciler','revoke','reconciler-a');run('scanner-reconciler','revoke','reconciler-a')
+ with sqlite3.connect(dbpath) as db:
+  assert db.execute("SELECT state,binding_digest,capability FROM scanner_reconcilers").fetchone()==('revoked',binding,'confirm-fenced-cleanup-v1')
+  assert db.execute("SELECT count(*) FROM audit WHERE json_extract(document,'$.action')='scanner.reconciler_revoke'").fetchone()==(1,)
+  assert reconciler_token.strip().decode() not in str(db.execute('SELECT document FROM audit').fetchall())
+ reconciler_check('compiled_reconciler_revocation_is_monotonic_and_audited')
  run('scanner-authorizer','revoke','gate-a');run('scanner-authorizer','revoke','gate-a')
  with sqlite3.connect(dbpath) as db:
   assert db.execute("SELECT state FROM scanner_authorizers WHERE id='gate-a'").fetchone()==('revoked',)
@@ -74,3 +106,4 @@ with tempfile.TemporaryDirectory(prefix='aegis-authorizer-proof-') as temporary:
  run('audit','verify')
  check('revocation_is_retained_idempotent_and_audited')
 print('authorizer_enrollment_checks: '+str(len(checks)),flush=True)
+print('reconciler_enrollment_checks: '+str(len(reconciler_checks)),flush=True)

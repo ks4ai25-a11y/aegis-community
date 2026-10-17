@@ -161,7 +161,7 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 	if e = tx.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version); e != nil {
 		return ErrRecovery
 	}
-	if version < 13 || version > 16 {
+	if version < 13 || version > 17 {
 		return ErrRecovery
 	}
 	if version >= 14 {
@@ -182,6 +182,11 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 			return ErrRecovery
 		}
 		if _, e = tx.ExecContext(ctx, "UPDATE scanner_allocation_generations SET state='closed',closed_at=? WHERE state='open'", domain.Now()); e != nil {
+			return ErrRecovery
+		}
+	}
+	if version >= 17 {
+		if _, e = tx.ExecContext(ctx, "UPDATE scanner_reconcilers SET state='revoked' WHERE state='active'"); e != nil {
 			return ErrRecovery
 		}
 	}

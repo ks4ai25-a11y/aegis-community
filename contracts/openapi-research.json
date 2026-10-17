@@ -1531,6 +1531,18 @@
       "ScannerMutationRequestV1": {
         "$ref": "schemas/ScannerMutationRequestV1.json"
       },
+      "ScannerReconcilerIdentityV1": {
+        "$ref": "schemas/ScannerReconcilerIdentityV1.json"
+      },
+      "ScannerReconciliationMembershipV1": {
+        "$ref": "schemas/ScannerReconciliationMembershipV1.json"
+      },
+      "ScannerReconciliationRequestV1": {
+        "$ref": "schemas/ScannerReconciliationRequestV1.json"
+      },
+      "ScannerReconciliationSnapshotV1": {
+        "$ref": "schemas/ScannerReconciliationSnapshotV1.json"
+      },
       "ScannerSandboxObservationV1": {
         "$ref": "schemas/ScannerSandboxObservationV1.json"
       },

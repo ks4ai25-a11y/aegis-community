@@ -132,8 +132,18 @@ CREATE TRIGGER scanner_generation_binding_revoked AFTER UPDATE OF state ON scann
 CREATE TRIGGER scanner_generation_dispatch_held BEFORE DELETE ON scanner_dispatch WHEN EXISTS (SELECT 1 FROM scanner_allocation_generations WHERE job=OLD.job AND state!='released') BEGIN SELECT RAISE(ABORT,'generation awaits independent cleanup confirmation'); END;
 `
 
+// Migration 017 reserves independent confirmed-cleanup capability for a new
+// role. It never elevates deployed observer tokens or releases old dispatches.
+const scannerReconcilerSchema = `
+CREATE TABLE scanner_reconcilers(id TEXT PRIMARY KEY,owner TEXT NOT NULL REFERENCES owners(id),token_hash TEXT UNIQUE NOT NULL,binding_digest TEXT NOT NULL REFERENCES scanner_mutation_bindings(digest),capability TEXT NOT NULL CHECK(capability='confirm-fenced-cleanup-v1'),state TEXT NOT NULL CHECK(state IN ('active','revoked')),expires INTEGER NOT NULL,created_at TEXT NOT NULL);
+CREATE INDEX scanner_reconcilers_scope ON scanner_reconcilers(owner,binding_digest,state,expires);
+CREATE TRIGGER scanner_reconciler_scope_immutable BEFORE UPDATE OF id,owner,token_hash,binding_digest,capability,expires,created_at ON scanner_reconcilers BEGIN SELECT RAISE(ABORT,'scanner reconciler scope is immutable'); END;
+CREATE TRIGGER scanner_reconciler_state_monotonic BEFORE UPDATE OF state ON scanner_reconcilers WHEN OLD.state!='active' OR NEW.state!='revoked' BEGIN SELECT RAISE(ABORT,'scanner reconciler cannot reactivate'); END;
+CREATE TRIGGER scanner_reconciler_retained BEFORE DELETE ON scanner_reconcilers BEGIN SELECT RAISE(ABORT,'scanner reconciler enrollment is retained'); END;
+`
+
 func migrationBodies() []string {
-	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema}
+	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema}
 }
 func migrate(db *sql.DB) error {
 	versions := migrationBodies()

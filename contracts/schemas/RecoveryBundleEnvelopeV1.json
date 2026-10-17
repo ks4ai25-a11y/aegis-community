@@ -32,7 +32,7 @@
         "database_schema_version": {
           "type": "integer",
           "minimum": 13,
-          "maximum": 16
+          "maximum": 17
         },
         "policy_digest": {
           "type": "string",

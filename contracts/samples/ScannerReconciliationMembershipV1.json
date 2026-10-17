@@ -1,0 +1,44 @@
+{
+  "owner_id": "synthetic-owner",
+  "job_id": "019b0000-0000-7000-8000-000000000001",
+  "request_digest": "sha256:e31f0de7c4de5af4f7f484150688cbfa208739a40465555a62aa867596147b5d",
+  "app_id": "app_demo",
+  "repository_id": "synthetic-repository",
+  "map_digest": "sha256:3f0b1c826adaf540140218c30ee887edfc68f933f3ca17116e91171189e408ab",
+  "tool_lock_digest": "sha256:0a948ecbe109b72aca1d4e615f5dcb5d025ea07549e5fcc15cd8fbf9fc99cf62",
+  "duration_limit_seconds": 120,
+  "job_created_at": "2026-10-17T11:00:00Z",
+  "job_state": "cancelled",
+  "cancel_requested": true,
+  "binding": {
+    "binding_digest": "sha256:7d1f98ac6f891018255bd5e7427bbec50398f0216562253821a31dfa7947113e",
+    "document": {
+      "owner_id": "synthetic-owner",
+      "authorizer_id": "synthetic-authorizer",
+      "engine_digest": "sha256:6354d63730d420b78a2e34a03c61bb16aaa0c77fddf475d107ab4b20125040bb",
+      "registry_digest": "sha256:fd9c1f9e7f7faa50a47b5886dabc5a7b02b77f99cbc6ff11579073d04bbdbd8a",
+      "policy_digest": "sha256:c6685979e71b96c88a6c9585168ace685f6f28c2844da1f1b9f016ca334cf693",
+      "registry_namespace_digest": "sha256:c17505c7b84b19b6da4505faf7f863ffbfd134dea73f6d50c93e8f9dbd45dd13",
+      "broker_binding_digest": "sha256:3fd1820e647bac58f4f27b64f226947500848c0b9f3cf752ba67d8514a1885ef",
+      "created_at": "2026-10-17T10:00:00Z"
+    }
+  },
+  "generation": {
+    "generation_id": "1111111111111111111111111111111111111111111111111111111111111111",
+    "job_id": "019b0000-0000-7000-8000-000000000001",
+    "binding_digest": "sha256:7d1f98ac6f891018255bd5e7427bbec50398f0216562253821a31dfa7947113e",
+    "state": "closed",
+    "deadline_unix": 1792234920
+  },
+  "worker_id": "synthetic-worker",
+  "dispatch_state": "cleanup_required",
+  "lease_until_unix": 0,
+  "dispatch_fingerprint": "sha256:059ef333b301c78e081797c58eec6ec75699456afad777bd66a107ebdff2bbb1",
+  "guard_set_digest": "sha256:b799677abd6fea6c3259672fefedafe4ad781d3a7e3917f2c4a25c3efc5ffca7",
+  "tool_ids": [
+    "bandit"
+  ],
+  "workspaces": [],
+  "launches": [],
+  "mutations": []
+}

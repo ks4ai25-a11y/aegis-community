@@ -1,0 +1,790 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerReconciliationSnapshotV1.json",
+  "title": "ScannerReconciliationSnapshotV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "reconciler_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+    },
+    "challenge": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "membership_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "membership": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "owner_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "job_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "request_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "app_id": {
+          "type": "string",
+          "const": "app_demo"
+        },
+        "repository_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "map_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "tool_lock_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "duration_limit_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "job_created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "job_state": {
+          "type": "string",
+          "enum": [
+            "running",
+            "cancelled",
+            "timeout",
+            "failed",
+            "completed",
+            "completed_partial",
+            "completed_stale_db",
+            "tool_error"
+          ]
+        },
+        "cancel_requested": {
+          "type": "boolean"
+        },
+        "binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "binding_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "document": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "owner_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "authorizer_id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+                },
+                "engine_digest": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "registry_digest": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "policy_digest": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "registry_namespace_digest": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "broker_binding_digest": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "owner_id",
+                "authorizer_id",
+                "engine_digest",
+                "registry_digest",
+                "policy_digest",
+                "registry_namespace_digest",
+                "broker_binding_digest",
+                "created_at"
+              ]
+            }
+          },
+          "required": [
+            "binding_digest",
+            "document"
+          ]
+        },
+        "generation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "generation_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "job_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "binding_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "state": {
+              "type": "string",
+              "const": "closed"
+            },
+            "deadline_unix": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9999999999
+            }
+          },
+          "required": [
+            "generation_id",
+            "job_id",
+            "binding_digest",
+            "state",
+            "deadline_unix"
+          ]
+        },
+        "worker_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+        },
+        "dispatch_state": {
+          "type": "string",
+          "enum": [
+            "active",
+            "cleanup_required"
+          ]
+        },
+        "lease_until_unix": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999999999
+        },
+        "dispatch_fingerprint": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "guard_set_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "tool_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "semgrep_ce",
+              "osv_v2",
+              "trivy",
+              "syft",
+              "gitleaks",
+              "bandit"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 6,
+          "uniqueItems": true
+        },
+        "workspaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "workspace_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "document": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "schema_version": {
+                    "type": "string",
+                    "const": "1.0"
+                  },
+                  "owner_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "job_id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "request_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "app_id": {
+                    "type": "string",
+                    "const": "app_demo"
+                  },
+                  "repository_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "map_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "tool_lock_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "plan": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "tool_id": {
+                        "type": "string",
+                        "enum": [
+                          "semgrep_ce",
+                          "osv_v2",
+                          "trivy",
+                          "syft",
+                          "gitleaks",
+                          "bandit"
+                        ]
+                      },
+                      "workspace_id": {
+                        "type": "string",
+                        "pattern": "^run-[0-9a-f]{32}$"
+                      },
+                      "registry_digest": {
+                        "type": "string",
+                        "pattern": "^sha256:[0-9a-f]{64}$"
+                      },
+                      "snapshot_digest": {
+                        "type": "string",
+                        "pattern": "^sha256:[0-9a-f]{64}$"
+                      }
+                    },
+                    "required": [
+                      "tool_id",
+                      "workspace_id",
+                      "registry_digest",
+                      "snapshot_digest"
+                    ]
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "deadline": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "schema_version",
+                  "owner_id",
+                  "job_id",
+                  "request_digest",
+                  "app_id",
+                  "repository_id",
+                  "map_digest",
+                  "tool_lock_digest",
+                  "plan",
+                  "created_at",
+                  "deadline"
+                ]
+              }
+            },
+            "required": [
+              "workspace_digest",
+              "document"
+            ]
+          },
+          "maxItems": 6
+        },
+        "launches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "launch_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "document": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "schema_version": {
+                    "type": "string",
+                    "const": "1.2"
+                  },
+                  "owner_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "job_id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "request_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "app_id": {
+                    "type": "string",
+                    "const": "app_demo"
+                  },
+                  "repository_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "map_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "tool_lock_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "tool_version": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "tool_image_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "sandbox_profile": {
+                    "type": "string",
+                    "const": "repo_offline-network-none-v1"
+                  },
+                  "duration_limit_seconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 120
+                  },
+                  "plan": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "tool_id": {
+                        "type": "string",
+                        "enum": [
+                          "semgrep_ce",
+                          "osv_v2",
+                          "trivy",
+                          "syft",
+                          "gitleaks",
+                          "bandit"
+                        ]
+                      },
+                      "container_id": {
+                        "type": "string",
+                        "pattern": "^aegis-scan-[0-9a-f]{32}$"
+                      },
+                      "engine_digest": {
+                        "type": "string",
+                        "pattern": "^sha256:[0-9a-f]{64}$"
+                      },
+                      "workspace_id": {
+                        "type": "string",
+                        "pattern": "^run-[0-9a-f]{32}$"
+                      },
+                      "registry_digest": {
+                        "type": "string",
+                        "pattern": "^sha256:[0-9a-f]{64}$"
+                      },
+                      "snapshot_digest": {
+                        "type": "string",
+                        "pattern": "^sha256:[0-9a-f]{64}$"
+                      },
+                      "guard_binary_digest": {
+                        "type": "string",
+                        "pattern": "^sha256:[0-9a-f]{64}$"
+                      },
+                      "guard_architecture": {
+                        "type": "string",
+                        "enum": [
+                          "amd64",
+                          "arm64"
+                        ]
+                      },
+                      "engine_journal_binding_digest": {
+                        "type": "string",
+                        "pattern": "^sha256:[0-9a-f]{64}$"
+                      },
+                      "engine_journal_namespace_digest": {
+                        "type": "string",
+                        "pattern": "^sha256:[0-9a-f]{64}$"
+                      }
+                    },
+                    "required": [
+                      "tool_id",
+                      "container_id",
+                      "engine_digest",
+                      "workspace_id",
+                      "registry_digest",
+                      "snapshot_digest",
+                      "guard_binary_digest",
+                      "guard_architecture",
+                      "engine_journal_binding_digest",
+                      "engine_journal_namespace_digest"
+                    ]
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "deadline": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "guard_set_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "guard_protocol": {
+                    "type": "string",
+                    "const": "absolute-deadline-v1"
+                  }
+                },
+                "required": [
+                  "schema_version",
+                  "owner_id",
+                  "job_id",
+                  "request_digest",
+                  "app_id",
+                  "repository_id",
+                  "map_digest",
+                  "tool_lock_digest",
+                  "tool_version",
+                  "tool_image_digest",
+                  "sandbox_profile",
+                  "duration_limit_seconds",
+                  "plan",
+                  "created_at",
+                  "deadline",
+                  "guard_set_digest",
+                  "guard_protocol"
+                ]
+              }
+            },
+            "required": [
+              "launch_digest",
+              "document"
+            ]
+          },
+          "maxItems": 6
+        },
+        "mutations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "intent_id": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "request": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "generation_id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "job_id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "tool_id": {
+                    "type": "string",
+                    "enum": [
+                      "semgrep_ce",
+                      "osv_v2",
+                      "trivy",
+                      "syft",
+                      "gitleaks",
+                      "bandit"
+                    ]
+                  },
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "create",
+                      "start",
+                      "remove"
+                    ]
+                  },
+                  "launch_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "descriptor_digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "target_engine_id": {
+                    "type": "string",
+                    "pattern": "^(|[0-9a-f]{64})$"
+                  }
+                },
+                "required": [
+                  "generation_id",
+                  "job_id",
+                  "tool_id",
+                  "operation",
+                  "launch_digest",
+                  "descriptor_digest",
+                  "target_engine_id"
+                ],
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "operation": {
+                          "const": "create"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "target_engine_id": {
+                          "const": ""
+                        }
+                      }
+                    },
+                    "else": {
+                      "properties": {
+                        "target_engine_id": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "workspace_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "container": {
+                "type": "string",
+                "pattern": "^aegis-scan-[0-9a-f]{32}$"
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "completed"
+                ]
+              },
+              "response_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "response_status": {
+                "type": "integer",
+                "minimum": 201,
+                "maximum": 204
+              },
+              "result_engine_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "intent_id",
+              "request",
+              "workspace_digest",
+              "container",
+              "state"
+            ],
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "state": {
+                      "const": "pending"
+                    }
+                  }
+                },
+                "then": {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "response_digest"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "response_status"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "result_engine_id"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "else": {
+                  "required": [
+                    "response_digest",
+                    "response_status",
+                    "result_engine_id"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "request": {
+                      "properties": {
+                        "operation": {
+                          "const": "create"
+                        }
+                      }
+                    },
+                    "state": {
+                      "const": "completed"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "response_status": {
+                      "const": 201
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "request": {
+                      "properties": {
+                        "operation": {
+                          "enum": [
+                            "start",
+                            "remove"
+                          ]
+                        }
+                      }
+                    },
+                    "state": {
+                      "const": "completed"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "response_status": {
+                      "const": 204
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "maxItems": 18
+        }
+      },
+      "required": [
+        "owner_id",
+        "job_id",
+        "request_digest",
+        "app_id",
+        "repository_id",
+        "map_digest",
+        "tool_lock_digest",
+        "duration_limit_seconds",
+        "job_created_at",
+        "job_state",
+        "cancel_requested",
+        "binding",
+        "generation",
+        "worker_id",
+        "dispatch_state",
+        "lease_until_unix",
+        "dispatch_fingerprint",
+        "guard_set_digest",
+        "tool_ids",
+        "workspaces",
+        "launches",
+        "mutations"
+      ]
+    },
+    "metadata_only": {
+      "type": "boolean",
+      "const": true
+    },
+    "cleanup_required": {
+      "type": "boolean",
+      "const": true
+    },
+    "cleanup_release_authorized": {
+      "type": "boolean",
+      "const": false
+    },
+    "engine_writes_authorized": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "reconciler_id",
+    "challenge",
+    "observed_at",
+    "membership_digest",
+    "membership",
+    "metadata_only",
+    "cleanup_required",
+    "cleanup_release_authorized",
+    "engine_writes_authorized"
+  ]
+}

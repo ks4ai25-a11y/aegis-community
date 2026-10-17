@@ -414,6 +414,7 @@ func TestRecoveryRefusesAuthorizerTableOutsideDeclaredMigration(t *testing.T) {
 // prefix and its original checksums, rather than teaching restore to upgrade.
 func removeAllocationSchema(t *testing.T, s *store.Store) {
 	t.Helper()
+	removeReconcilerSchema(t, s)
 	for _, statement := range []string{
 		"DROP TRIGGER scanner_generation_job_closed", "DROP TRIGGER scanner_generation_dispatch_closed",
 		"DROP TRIGGER scanner_generation_authorizer_revoked", "DROP TRIGGER scanner_generation_worker_revoked", "DROP TRIGGER scanner_generation_dispatch_held",
@@ -426,9 +427,19 @@ func removeAllocationSchema(t *testing.T, s *store.Store) {
 	}
 }
 
+func removeReconcilerSchema(t *testing.T, s *store.Store) {
+	t.Helper()
+	for _, statement := range []string{"DROP TABLE scanner_reconcilers", "DELETE FROM migrations WHERE version=17"} {
+		if _, err := s.DB.Exec(statement); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestVersionSixteenRestoreClosesGenerationWithoutSettlingObligations(t *testing.T) {
 	c, s, parent := fixture(t)
 	seedAuthorities(t, s)
+	removeReconcilerSchema(t, s)
 	for _, statement := range []string{
 		"INSERT INTO scanner_mutation_bindings VALUES('binding','owner','authorizer','engine','registry','policy','namespace','broker','2026-10-15T00:00:00Z','active')",
 		"INSERT INTO scanner_allocation_generations(job,id,owner,worker,binding_digest,lease_hash,deadline,guard_digest,created_at,state) VALUES('scan','generation','owner','worker','binding','old-capability-hash',2147483647,'guard','2026-10-15T00:00:00Z','open')",

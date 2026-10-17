@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "role": "scanner-engine-reconciler",
+  "capability": "confirm-fenced-cleanup-v1",
+  "reconciler_id": "synthetic-reconciler",
+  "owner_id": "synthetic-owner",
+  "binding_digest": "sha256:7d1f98ac6f891018255bd5e7427bbec50398f0216562253821a31dfa7947113e",
+  "engine_digest": "sha256:6354d63730d420b78a2e34a03c61bb16aaa0c77fddf475d107ab4b20125040bb",
+  "registry_digest": "sha256:fd9c1f9e7f7faa50a47b5886dabc5a7b02b77f99cbc6ff11579073d04bbdbd8a",
+  "policy_digest": "sha256:c6685979e71b96c88a6c9585168ace685f6f28c2844da1f1b9f016ca334cf693",
+  "registry_namespace_digest": "sha256:c17505c7b84b19b6da4505faf7f863ffbfd134dea73f6d50c93e8f9dbd45dd13",
+  "state": "active",
+  "expires_at": "2026-10-17T12:55:00Z",
+  "created_at": "2026-10-17T11:55:00Z"
+}

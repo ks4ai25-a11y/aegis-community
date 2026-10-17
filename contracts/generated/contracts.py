@@ -1792,6 +1792,255 @@ class ScannerAuthorizerLaunchV1GuardSet(TypedDict):
     linux_amd64: str
     linux_arm64: str
     guard_set_digest: str
+class ScannerReconcilerIdentityV1(TypedDict):
+    schema_version: str
+    role: str
+    capability: str
+    reconciler_id: str
+    owner_id: str
+    binding_digest: str
+    engine_digest: str
+    registry_digest: str
+    policy_digest: str
+    registry_namespace_digest: str
+    state: str
+    expires_at: str
+    created_at: str
+class ScannerReconciliationRequestV1(TypedDict):
+    job_id: str
+    generation_id: str
+    challenge: str
+class ScannerReconciliationMembershipV1(TypedDict):
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    duration_limit_seconds: int
+    job_created_at: str
+    job_state: str
+    cancel_requested: bool
+    binding: ScannerReconciliationMembershipV1Binding
+    generation: ScannerReconciliationMembershipV1Generation
+    worker_id: str
+    dispatch_state: str
+    lease_until_unix: int
+    dispatch_fingerprint: str
+    guard_set_digest: str
+    tool_ids: list[str]
+    workspaces: list[ScannerReconciliationMembershipV1WorkspacesItem]
+    launches: list[ScannerReconciliationMembershipV1LaunchesItem]
+    mutations: list[ScannerReconciliationMembershipV1MutationsItem]
+class ScannerReconciliationMembershipV1Binding(TypedDict):
+    binding_digest: str
+    document: ScannerReconciliationMembershipV1BindingDocument
+class ScannerReconciliationMembershipV1BindingDocument(TypedDict):
+    owner_id: str
+    authorizer_id: str
+    engine_digest: str
+    registry_digest: str
+    policy_digest: str
+    registry_namespace_digest: str
+    broker_binding_digest: str
+    created_at: str
+class ScannerReconciliationMembershipV1Generation(TypedDict):
+    generation_id: str
+    job_id: str
+    binding_digest: str
+    state: str
+    deadline_unix: int
+class ScannerReconciliationMembershipV1WorkspacesItem(TypedDict):
+    workspace_digest: str
+    document: ScannerReconciliationMembershipV1WorkspacesItemDocument
+class ScannerReconciliationMembershipV1WorkspacesItemDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    plan: ScannerReconciliationMembershipV1WorkspacesItemDocumentPlan
+    created_at: str
+    deadline: str
+class ScannerReconciliationMembershipV1WorkspacesItemDocumentPlan(TypedDict):
+    tool_id: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+class ScannerReconciliationMembershipV1LaunchesItem(TypedDict):
+    launch_digest: str
+    document: ScannerReconciliationMembershipV1LaunchesItemDocument
+class ScannerReconciliationMembershipV1LaunchesItemDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    tool_version: str
+    tool_image_digest: str
+    sandbox_profile: str
+    duration_limit_seconds: int
+    plan: ScannerReconciliationMembershipV1LaunchesItemDocumentPlan
+    created_at: str
+    deadline: str
+    guard_set_digest: str
+    guard_protocol: str
+class ScannerReconciliationMembershipV1LaunchesItemDocumentPlan(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+    guard_binary_digest: str
+    guard_architecture: str
+    engine_journal_binding_digest: str
+    engine_journal_namespace_digest: str
+class ScannerReconciliationMembershipV1MutationsItem(TypedDict):
+    intent_id: str
+    request: ScannerReconciliationMembershipV1MutationsItemRequest
+    workspace_digest: str
+    container: str
+    state: str
+    response_digest: NotRequired[str]
+    response_status: NotRequired[int]
+    result_engine_id: NotRequired[str]
+class ScannerReconciliationMembershipV1MutationsItemRequest(TypedDict):
+    generation_id: str
+    job_id: str
+    tool_id: str
+    operation: str
+    launch_digest: str
+    descriptor_digest: str
+    target_engine_id: str
+class ScannerReconciliationSnapshotV1(TypedDict):
+    schema_version: str
+    reconciler_id: str
+    challenge: str
+    observed_at: str
+    membership_digest: str
+    membership: ScannerReconciliationSnapshotV1Membership
+    metadata_only: bool
+    cleanup_required: bool
+    cleanup_release_authorized: bool
+    engine_writes_authorized: bool
+class ScannerReconciliationSnapshotV1Membership(TypedDict):
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    duration_limit_seconds: int
+    job_created_at: str
+    job_state: str
+    cancel_requested: bool
+    binding: ScannerReconciliationSnapshotV1MembershipBinding
+    generation: ScannerReconciliationSnapshotV1MembershipGeneration
+    worker_id: str
+    dispatch_state: str
+    lease_until_unix: int
+    dispatch_fingerprint: str
+    guard_set_digest: str
+    tool_ids: list[str]
+    workspaces: list[ScannerReconciliationSnapshotV1MembershipWorkspacesItem]
+    launches: list[ScannerReconciliationSnapshotV1MembershipLaunchesItem]
+    mutations: list[ScannerReconciliationSnapshotV1MembershipMutationsItem]
+class ScannerReconciliationSnapshotV1MembershipBinding(TypedDict):
+    binding_digest: str
+    document: ScannerReconciliationSnapshotV1MembershipBindingDocument
+class ScannerReconciliationSnapshotV1MembershipBindingDocument(TypedDict):
+    owner_id: str
+    authorizer_id: str
+    engine_digest: str
+    registry_digest: str
+    policy_digest: str
+    registry_namespace_digest: str
+    broker_binding_digest: str
+    created_at: str
+class ScannerReconciliationSnapshotV1MembershipGeneration(TypedDict):
+    generation_id: str
+    job_id: str
+    binding_digest: str
+    state: str
+    deadline_unix: int
+class ScannerReconciliationSnapshotV1MembershipWorkspacesItem(TypedDict):
+    workspace_digest: str
+    document: ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocument
+class ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    plan: ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocumentPlan
+    created_at: str
+    deadline: str
+class ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocumentPlan(TypedDict):
+    tool_id: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+class ScannerReconciliationSnapshotV1MembershipLaunchesItem(TypedDict):
+    launch_digest: str
+    document: ScannerReconciliationSnapshotV1MembershipLaunchesItemDocument
+class ScannerReconciliationSnapshotV1MembershipLaunchesItemDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    tool_version: str
+    tool_image_digest: str
+    sandbox_profile: str
+    duration_limit_seconds: int
+    plan: ScannerReconciliationSnapshotV1MembershipLaunchesItemDocumentPlan
+    created_at: str
+    deadline: str
+    guard_set_digest: str
+    guard_protocol: str
+class ScannerReconciliationSnapshotV1MembershipLaunchesItemDocumentPlan(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+    guard_binary_digest: str
+    guard_architecture: str
+    engine_journal_binding_digest: str
+    engine_journal_namespace_digest: str
+class ScannerReconciliationSnapshotV1MembershipMutationsItem(TypedDict):
+    intent_id: str
+    request: ScannerReconciliationSnapshotV1MembershipMutationsItemRequest
+    workspace_digest: str
+    container: str
+    state: str
+    response_digest: NotRequired[str]
+    response_status: NotRequired[int]
+    result_engine_id: NotRequired[str]
+class ScannerReconciliationSnapshotV1MembershipMutationsItemRequest(TypedDict):
+    generation_id: str
+    job_id: str
+    tool_id: str
+    operation: str
+    launch_digest: str
+    descriptor_digest: str
+    target_engine_id: str
 class DatabaseSnapshotReceiptV1(TypedDict):
     schema_version: str
     status: str

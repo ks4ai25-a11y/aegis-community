@@ -2003,6 +2003,282 @@ type ScannerAuthorizerLaunchV1GuardSet struct {
 	LinuxArm64     string `json:"linux_arm64"`
 	GuardSetDigest string `json:"guard_set_digest"`
 }
+type ScannerReconcilerIdentityV1 struct {
+	SchemaVersion           string `json:"schema_version"`
+	Role                    string `json:"role"`
+	Capability              string `json:"capability"`
+	ReconcilerId            string `json:"reconciler_id"`
+	OwnerId                 string `json:"owner_id"`
+	BindingDigest           string `json:"binding_digest"`
+	EngineDigest            string `json:"engine_digest"`
+	RegistryDigest          string `json:"registry_digest"`
+	PolicyDigest            string `json:"policy_digest"`
+	RegistryNamespaceDigest string `json:"registry_namespace_digest"`
+	State                   string `json:"state"`
+	ExpiresAt               string `json:"expires_at"`
+	CreatedAt               string `json:"created_at"`
+}
+type ScannerReconciliationRequestV1 struct {
+	JobId        string `json:"job_id"`
+	GenerationId string `json:"generation_id"`
+	Challenge    string `json:"challenge"`
+}
+type ScannerReconciliationMembershipV1 struct {
+	OwnerId              string                                            `json:"owner_id"`
+	JobId                string                                            `json:"job_id"`
+	RequestDigest        string                                            `json:"request_digest"`
+	AppId                string                                            `json:"app_id"`
+	RepositoryId         string                                            `json:"repository_id"`
+	MapDigest            string                                            `json:"map_digest"`
+	ToolLockDigest       string                                            `json:"tool_lock_digest"`
+	DurationLimitSeconds int64                                             `json:"duration_limit_seconds"`
+	JobCreatedAt         string                                            `json:"job_created_at"`
+	JobState             string                                            `json:"job_state"`
+	CancelRequested      bool                                              `json:"cancel_requested"`
+	Binding              ScannerReconciliationMembershipV1Binding          `json:"binding"`
+	Generation           ScannerReconciliationMembershipV1Generation       `json:"generation"`
+	WorkerId             string                                            `json:"worker_id"`
+	DispatchState        string                                            `json:"dispatch_state"`
+	LeaseUntilUnix       int64                                             `json:"lease_until_unix"`
+	DispatchFingerprint  string                                            `json:"dispatch_fingerprint"`
+	GuardSetDigest       string                                            `json:"guard_set_digest"`
+	ToolIds              []string                                          `json:"tool_ids"`
+	Workspaces           []ScannerReconciliationMembershipV1WorkspacesItem `json:"workspaces"`
+	Launches             []ScannerReconciliationMembershipV1LaunchesItem   `json:"launches"`
+	Mutations            []ScannerReconciliationMembershipV1MutationsItem  `json:"mutations"`
+}
+type ScannerReconciliationMembershipV1Binding struct {
+	BindingDigest string                                           `json:"binding_digest"`
+	Document      ScannerReconciliationMembershipV1BindingDocument `json:"document"`
+}
+type ScannerReconciliationMembershipV1BindingDocument struct {
+	OwnerId                 string `json:"owner_id"`
+	AuthorizerId            string `json:"authorizer_id"`
+	EngineDigest            string `json:"engine_digest"`
+	RegistryDigest          string `json:"registry_digest"`
+	PolicyDigest            string `json:"policy_digest"`
+	RegistryNamespaceDigest string `json:"registry_namespace_digest"`
+	BrokerBindingDigest     string `json:"broker_binding_digest"`
+	CreatedAt               string `json:"created_at"`
+}
+type ScannerReconciliationMembershipV1Generation struct {
+	GenerationId  string `json:"generation_id"`
+	JobId         string `json:"job_id"`
+	BindingDigest string `json:"binding_digest"`
+	State         string `json:"state"`
+	DeadlineUnix  int64  `json:"deadline_unix"`
+}
+type ScannerReconciliationMembershipV1WorkspacesItem struct {
+	WorkspaceDigest string                                                  `json:"workspace_digest"`
+	Document        ScannerReconciliationMembershipV1WorkspacesItemDocument `json:"document"`
+}
+type ScannerReconciliationMembershipV1WorkspacesItemDocument struct {
+	SchemaVersion  string                                                      `json:"schema_version"`
+	OwnerId        string                                                      `json:"owner_id"`
+	JobId          string                                                      `json:"job_id"`
+	RequestDigest  string                                                      `json:"request_digest"`
+	AppId          string                                                      `json:"app_id"`
+	RepositoryId   string                                                      `json:"repository_id"`
+	MapDigest      string                                                      `json:"map_digest"`
+	ToolLockDigest string                                                      `json:"tool_lock_digest"`
+	Plan           ScannerReconciliationMembershipV1WorkspacesItemDocumentPlan `json:"plan"`
+	CreatedAt      string                                                      `json:"created_at"`
+	Deadline       string                                                      `json:"deadline"`
+}
+type ScannerReconciliationMembershipV1WorkspacesItemDocumentPlan struct {
+	ToolId         string `json:"tool_id"`
+	WorkspaceId    string `json:"workspace_id"`
+	RegistryDigest string `json:"registry_digest"`
+	SnapshotDigest string `json:"snapshot_digest"`
+}
+type ScannerReconciliationMembershipV1LaunchesItem struct {
+	LaunchDigest string                                                `json:"launch_digest"`
+	Document     ScannerReconciliationMembershipV1LaunchesItemDocument `json:"document"`
+}
+type ScannerReconciliationMembershipV1LaunchesItemDocument struct {
+	SchemaVersion        string                                                    `json:"schema_version"`
+	OwnerId              string                                                    `json:"owner_id"`
+	JobId                string                                                    `json:"job_id"`
+	RequestDigest        string                                                    `json:"request_digest"`
+	AppId                string                                                    `json:"app_id"`
+	RepositoryId         string                                                    `json:"repository_id"`
+	MapDigest            string                                                    `json:"map_digest"`
+	ToolLockDigest       string                                                    `json:"tool_lock_digest"`
+	ToolVersion          string                                                    `json:"tool_version"`
+	ToolImageDigest      string                                                    `json:"tool_image_digest"`
+	SandboxProfile       string                                                    `json:"sandbox_profile"`
+	DurationLimitSeconds int64                                                     `json:"duration_limit_seconds"`
+	Plan                 ScannerReconciliationMembershipV1LaunchesItemDocumentPlan `json:"plan"`
+	CreatedAt            string                                                    `json:"created_at"`
+	Deadline             string                                                    `json:"deadline"`
+	GuardSetDigest       string                                                    `json:"guard_set_digest"`
+	GuardProtocol        string                                                    `json:"guard_protocol"`
+}
+type ScannerReconciliationMembershipV1LaunchesItemDocumentPlan struct {
+	ToolId                       string `json:"tool_id"`
+	ContainerId                  string `json:"container_id"`
+	EngineDigest                 string `json:"engine_digest"`
+	WorkspaceId                  string `json:"workspace_id"`
+	RegistryDigest               string `json:"registry_digest"`
+	SnapshotDigest               string `json:"snapshot_digest"`
+	GuardBinaryDigest            string `json:"guard_binary_digest"`
+	GuardArchitecture            string `json:"guard_architecture"`
+	EngineJournalBindingDigest   string `json:"engine_journal_binding_digest"`
+	EngineJournalNamespaceDigest string `json:"engine_journal_namespace_digest"`
+}
+type ScannerReconciliationMembershipV1MutationsItem struct {
+	IntentId        string                                                `json:"intent_id"`
+	Request         ScannerReconciliationMembershipV1MutationsItemRequest `json:"request"`
+	WorkspaceDigest string                                                `json:"workspace_digest"`
+	Container       string                                                `json:"container"`
+	State           string                                                `json:"state"`
+	ResponseDigest  string                                                `json:"response_digest,omitempty"`
+	ResponseStatus  int64                                                 `json:"response_status,omitempty"`
+	ResultEngineId  string                                                `json:"result_engine_id,omitempty"`
+}
+type ScannerReconciliationMembershipV1MutationsItemRequest struct {
+	GenerationId     string `json:"generation_id"`
+	JobId            string `json:"job_id"`
+	ToolId           string `json:"tool_id"`
+	Operation        string `json:"operation"`
+	LaunchDigest     string `json:"launch_digest"`
+	DescriptorDigest string `json:"descriptor_digest"`
+	TargetEngineId   string `json:"target_engine_id"`
+}
+type ScannerReconciliationSnapshotV1 struct {
+	SchemaVersion            string                                    `json:"schema_version"`
+	ReconcilerId             string                                    `json:"reconciler_id"`
+	Challenge                string                                    `json:"challenge"`
+	ObservedAt               string                                    `json:"observed_at"`
+	MembershipDigest         string                                    `json:"membership_digest"`
+	Membership               ScannerReconciliationSnapshotV1Membership `json:"membership"`
+	MetadataOnly             bool                                      `json:"metadata_only"`
+	CleanupRequired          bool                                      `json:"cleanup_required"`
+	CleanupReleaseAuthorized bool                                      `json:"cleanup_release_authorized"`
+	EngineWritesAuthorized   bool                                      `json:"engine_writes_authorized"`
+}
+type ScannerReconciliationSnapshotV1Membership struct {
+	OwnerId              string                                                    `json:"owner_id"`
+	JobId                string                                                    `json:"job_id"`
+	RequestDigest        string                                                    `json:"request_digest"`
+	AppId                string                                                    `json:"app_id"`
+	RepositoryId         string                                                    `json:"repository_id"`
+	MapDigest            string                                                    `json:"map_digest"`
+	ToolLockDigest       string                                                    `json:"tool_lock_digest"`
+	DurationLimitSeconds int64                                                     `json:"duration_limit_seconds"`
+	JobCreatedAt         string                                                    `json:"job_created_at"`
+	JobState             string                                                    `json:"job_state"`
+	CancelRequested      bool                                                      `json:"cancel_requested"`
+	Binding              ScannerReconciliationSnapshotV1MembershipBinding          `json:"binding"`
+	Generation           ScannerReconciliationSnapshotV1MembershipGeneration       `json:"generation"`
+	WorkerId             string                                                    `json:"worker_id"`
+	DispatchState        string                                                    `json:"dispatch_state"`
+	LeaseUntilUnix       int64                                                     `json:"lease_until_unix"`
+	DispatchFingerprint  string                                                    `json:"dispatch_fingerprint"`
+	GuardSetDigest       string                                                    `json:"guard_set_digest"`
+	ToolIds              []string                                                  `json:"tool_ids"`
+	Workspaces           []ScannerReconciliationSnapshotV1MembershipWorkspacesItem `json:"workspaces"`
+	Launches             []ScannerReconciliationSnapshotV1MembershipLaunchesItem   `json:"launches"`
+	Mutations            []ScannerReconciliationSnapshotV1MembershipMutationsItem  `json:"mutations"`
+}
+type ScannerReconciliationSnapshotV1MembershipBinding struct {
+	BindingDigest string                                                   `json:"binding_digest"`
+	Document      ScannerReconciliationSnapshotV1MembershipBindingDocument `json:"document"`
+}
+type ScannerReconciliationSnapshotV1MembershipBindingDocument struct {
+	OwnerId                 string `json:"owner_id"`
+	AuthorizerId            string `json:"authorizer_id"`
+	EngineDigest            string `json:"engine_digest"`
+	RegistryDigest          string `json:"registry_digest"`
+	PolicyDigest            string `json:"policy_digest"`
+	RegistryNamespaceDigest string `json:"registry_namespace_digest"`
+	BrokerBindingDigest     string `json:"broker_binding_digest"`
+	CreatedAt               string `json:"created_at"`
+}
+type ScannerReconciliationSnapshotV1MembershipGeneration struct {
+	GenerationId  string `json:"generation_id"`
+	JobId         string `json:"job_id"`
+	BindingDigest string `json:"binding_digest"`
+	State         string `json:"state"`
+	DeadlineUnix  int64  `json:"deadline_unix"`
+}
+type ScannerReconciliationSnapshotV1MembershipWorkspacesItem struct {
+	WorkspaceDigest string                                                          `json:"workspace_digest"`
+	Document        ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocument `json:"document"`
+}
+type ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocument struct {
+	SchemaVersion  string                                                              `json:"schema_version"`
+	OwnerId        string                                                              `json:"owner_id"`
+	JobId          string                                                              `json:"job_id"`
+	RequestDigest  string                                                              `json:"request_digest"`
+	AppId          string                                                              `json:"app_id"`
+	RepositoryId   string                                                              `json:"repository_id"`
+	MapDigest      string                                                              `json:"map_digest"`
+	ToolLockDigest string                                                              `json:"tool_lock_digest"`
+	Plan           ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocumentPlan `json:"plan"`
+	CreatedAt      string                                                              `json:"created_at"`
+	Deadline       string                                                              `json:"deadline"`
+}
+type ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocumentPlan struct {
+	ToolId         string `json:"tool_id"`
+	WorkspaceId    string `json:"workspace_id"`
+	RegistryDigest string `json:"registry_digest"`
+	SnapshotDigest string `json:"snapshot_digest"`
+}
+type ScannerReconciliationSnapshotV1MembershipLaunchesItem struct {
+	LaunchDigest string                                                        `json:"launch_digest"`
+	Document     ScannerReconciliationSnapshotV1MembershipLaunchesItemDocument `json:"document"`
+}
+type ScannerReconciliationSnapshotV1MembershipLaunchesItemDocument struct {
+	SchemaVersion        string                                                            `json:"schema_version"`
+	OwnerId              string                                                            `json:"owner_id"`
+	JobId                string                                                            `json:"job_id"`
+	RequestDigest        string                                                            `json:"request_digest"`
+	AppId                string                                                            `json:"app_id"`
+	RepositoryId         string                                                            `json:"repository_id"`
+	MapDigest            string                                                            `json:"map_digest"`
+	ToolLockDigest       string                                                            `json:"tool_lock_digest"`
+	ToolVersion          string                                                            `json:"tool_version"`
+	ToolImageDigest      string                                                            `json:"tool_image_digest"`
+	SandboxProfile       string                                                            `json:"sandbox_profile"`
+	DurationLimitSeconds int64                                                             `json:"duration_limit_seconds"`
+	Plan                 ScannerReconciliationSnapshotV1MembershipLaunchesItemDocumentPlan `json:"plan"`
+	CreatedAt            string                                                            `json:"created_at"`
+	Deadline             string                                                            `json:"deadline"`
+	GuardSetDigest       string                                                            `json:"guard_set_digest"`
+	GuardProtocol        string                                                            `json:"guard_protocol"`
+}
+type ScannerReconciliationSnapshotV1MembershipLaunchesItemDocumentPlan struct {
+	ToolId                       string `json:"tool_id"`
+	ContainerId                  string `json:"container_id"`
+	EngineDigest                 string `json:"engine_digest"`
+	WorkspaceId                  string `json:"workspace_id"`
+	RegistryDigest               string `json:"registry_digest"`
+	SnapshotDigest               string `json:"snapshot_digest"`
+	GuardBinaryDigest            string `json:"guard_binary_digest"`
+	GuardArchitecture            string `json:"guard_architecture"`
+	EngineJournalBindingDigest   string `json:"engine_journal_binding_digest"`
+	EngineJournalNamespaceDigest string `json:"engine_journal_namespace_digest"`
+}
+type ScannerReconciliationSnapshotV1MembershipMutationsItem struct {
+	IntentId        string                                                        `json:"intent_id"`
+	Request         ScannerReconciliationSnapshotV1MembershipMutationsItemRequest `json:"request"`
+	WorkspaceDigest string                                                        `json:"workspace_digest"`
+	Container       string                                                        `json:"container"`
+	State           string                                                        `json:"state"`
+	ResponseDigest  string                                                        `json:"response_digest,omitempty"`
+	ResponseStatus  int64                                                         `json:"response_status,omitempty"`
+	ResultEngineId  string                                                        `json:"result_engine_id,omitempty"`
+}
+type ScannerReconciliationSnapshotV1MembershipMutationsItemRequest struct {
+	GenerationId     string `json:"generation_id"`
+	JobId            string `json:"job_id"`
+	ToolId           string `json:"tool_id"`
+	Operation        string `json:"operation"`
+	LaunchDigest     string `json:"launch_digest"`
+	DescriptorDigest string `json:"descriptor_digest"`
+	TargetEngineId   string `json:"target_engine_id"`
+}
 type DatabaseSnapshotReceiptV1 struct {
 	SchemaVersion                string `json:"schema_version"`
 	Status                       string `json:"status"`

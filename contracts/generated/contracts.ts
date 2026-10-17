@@ -2001,6 +2001,282 @@ export interface ScannerAuthorizerLaunchV1GuardSet {
   linux_arm64: string;
   guard_set_digest: string;
 }
+export interface ScannerReconcilerIdentityV1 {
+  schema_version: "1.0";
+  role: "scanner-engine-reconciler";
+  capability: "confirm-fenced-cleanup-v1";
+  reconciler_id: string;
+  owner_id: string;
+  binding_digest: string;
+  engine_digest: string;
+  registry_digest: string;
+  policy_digest: string;
+  registry_namespace_digest: string;
+  state: "active";
+  expires_at: string;
+  created_at: string;
+}
+export interface ScannerReconciliationRequestV1 {
+  job_id: string;
+  generation_id: string;
+  challenge: string;
+}
+export interface ScannerReconciliationMembershipV1 {
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  duration_limit_seconds: number;
+  job_created_at: string;
+  job_state: "running" | "cancelled" | "timeout" | "failed" | "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  cancel_requested: boolean;
+  binding: ScannerReconciliationMembershipV1Binding;
+  generation: ScannerReconciliationMembershipV1Generation;
+  worker_id: string;
+  dispatch_state: "active" | "cleanup_required";
+  lease_until_unix: number;
+  dispatch_fingerprint: string;
+  guard_set_digest: string;
+  tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
+  workspaces: Array<ScannerReconciliationMembershipV1WorkspacesItem>;
+  launches: Array<ScannerReconciliationMembershipV1LaunchesItem>;
+  mutations: Array<ScannerReconciliationMembershipV1MutationsItem>;
+}
+export interface ScannerReconciliationMembershipV1Binding {
+  binding_digest: string;
+  document: ScannerReconciliationMembershipV1BindingDocument;
+}
+export interface ScannerReconciliationMembershipV1BindingDocument {
+  owner_id: string;
+  authorizer_id: string;
+  engine_digest: string;
+  registry_digest: string;
+  policy_digest: string;
+  registry_namespace_digest: string;
+  broker_binding_digest: string;
+  created_at: string;
+}
+export interface ScannerReconciliationMembershipV1Generation {
+  generation_id: string;
+  job_id: string;
+  binding_digest: string;
+  state: "closed";
+  deadline_unix: number;
+}
+export interface ScannerReconciliationMembershipV1WorkspacesItem {
+  workspace_digest: string;
+  document: ScannerReconciliationMembershipV1WorkspacesItemDocument;
+}
+export interface ScannerReconciliationMembershipV1WorkspacesItemDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  plan: ScannerReconciliationMembershipV1WorkspacesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+}
+export interface ScannerReconciliationMembershipV1WorkspacesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}
+export interface ScannerReconciliationMembershipV1LaunchesItem {
+  launch_digest: string;
+  document: ScannerReconciliationMembershipV1LaunchesItemDocument;
+}
+export interface ScannerReconciliationMembershipV1LaunchesItemDocument {
+  schema_version: "1.2";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerReconciliationMembershipV1LaunchesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+  guard_set_digest: string;
+  guard_protocol: "absolute-deadline-v1";
+}
+export interface ScannerReconciliationMembershipV1LaunchesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+  engine_journal_binding_digest: string;
+  engine_journal_namespace_digest: string;
+}
+export interface ScannerReconciliationMembershipV1MutationsItem {
+  intent_id: string;
+  request: ScannerReconciliationMembershipV1MutationsItemRequest;
+  workspace_digest: string;
+  container: string;
+  state: "pending" | "completed";
+  response_digest?: string;
+  response_status?: number;
+  result_engine_id?: string;
+}
+export interface ScannerReconciliationMembershipV1MutationsItemRequest {
+  generation_id: string;
+  job_id: string;
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  operation: "create" | "start" | "remove";
+  launch_digest: string;
+  descriptor_digest: string;
+  target_engine_id: string;
+}
+export interface ScannerReconciliationSnapshotV1 {
+  schema_version: "1.0";
+  reconciler_id: string;
+  challenge: string;
+  observed_at: string;
+  membership_digest: string;
+  membership: ScannerReconciliationSnapshotV1Membership;
+  metadata_only: true;
+  cleanup_required: true;
+  cleanup_release_authorized: false;
+  engine_writes_authorized: false;
+}
+export interface ScannerReconciliationSnapshotV1Membership {
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  duration_limit_seconds: number;
+  job_created_at: string;
+  job_state: "running" | "cancelled" | "timeout" | "failed" | "completed" | "completed_partial" | "completed_stale_db" | "tool_error";
+  cancel_requested: boolean;
+  binding: ScannerReconciliationSnapshotV1MembershipBinding;
+  generation: ScannerReconciliationSnapshotV1MembershipGeneration;
+  worker_id: string;
+  dispatch_state: "active" | "cleanup_required";
+  lease_until_unix: number;
+  dispatch_fingerprint: string;
+  guard_set_digest: string;
+  tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
+  workspaces: Array<ScannerReconciliationSnapshotV1MembershipWorkspacesItem>;
+  launches: Array<ScannerReconciliationSnapshotV1MembershipLaunchesItem>;
+  mutations: Array<ScannerReconciliationSnapshotV1MembershipMutationsItem>;
+}
+export interface ScannerReconciliationSnapshotV1MembershipBinding {
+  binding_digest: string;
+  document: ScannerReconciliationSnapshotV1MembershipBindingDocument;
+}
+export interface ScannerReconciliationSnapshotV1MembershipBindingDocument {
+  owner_id: string;
+  authorizer_id: string;
+  engine_digest: string;
+  registry_digest: string;
+  policy_digest: string;
+  registry_namespace_digest: string;
+  broker_binding_digest: string;
+  created_at: string;
+}
+export interface ScannerReconciliationSnapshotV1MembershipGeneration {
+  generation_id: string;
+  job_id: string;
+  binding_digest: string;
+  state: "closed";
+  deadline_unix: number;
+}
+export interface ScannerReconciliationSnapshotV1MembershipWorkspacesItem {
+  workspace_digest: string;
+  document: ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocument;
+}
+export interface ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  plan: ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+}
+export interface ScannerReconciliationSnapshotV1MembershipWorkspacesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}
+export interface ScannerReconciliationSnapshotV1MembershipLaunchesItem {
+  launch_digest: string;
+  document: ScannerReconciliationSnapshotV1MembershipLaunchesItemDocument;
+}
+export interface ScannerReconciliationSnapshotV1MembershipLaunchesItemDocument {
+  schema_version: "1.2";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerReconciliationSnapshotV1MembershipLaunchesItemDocumentPlan;
+  created_at: string;
+  deadline: string;
+  guard_set_digest: string;
+  guard_protocol: "absolute-deadline-v1";
+}
+export interface ScannerReconciliationSnapshotV1MembershipLaunchesItemDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+  engine_journal_binding_digest: string;
+  engine_journal_namespace_digest: string;
+}
+export interface ScannerReconciliationSnapshotV1MembershipMutationsItem {
+  intent_id: string;
+  request: ScannerReconciliationSnapshotV1MembershipMutationsItemRequest;
+  workspace_digest: string;
+  container: string;
+  state: "pending" | "completed";
+  response_digest?: string;
+  response_status?: number;
+  result_engine_id?: string;
+}
+export interface ScannerReconciliationSnapshotV1MembershipMutationsItemRequest {
+  generation_id: string;
+  job_id: string;
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  operation: "create" | "start" | "remove";
+  launch_digest: string;
+  descriptor_digest: string;
+  target_engine_id: string;
+}
 export interface DatabaseSnapshotReceiptV1 {
   schema_version: "1.0";
   status: "created";

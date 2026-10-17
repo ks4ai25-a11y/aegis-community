@@ -43,10 +43,12 @@ func runScannerAuthorizer(root string, args []string) {
 		die("Connect an owned provisioned repository before authorizer enrollment")
 	}
 	if args[1] == "bind" {
-		if _, e = (&scanqueue.Queue{S: s}).BindMutationAuthorizer(owner, args[2], args[3]); e != nil {
+		selected, err := (&scanqueue.Queue{S: s}).BindMutationAuthorizer(owner, args[2], args[3])
+		if err != nil {
 			die("Authorizer selection refused; preserve existing bindings and cleanup holds")
 		}
 		fmt.Println("Authorizer selection recorded; native serving must match the selected policy and namespace; cleanup admission remains held")
+		fmt.Printf("Selected binding digest: %s\n", selected.Digest)
 		return
 	}
 	r := &scannerauth.Registry{S: s}

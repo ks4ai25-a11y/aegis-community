@@ -144,7 +144,7 @@ func (c *Client) call(ctx context.Context, operation string, in, out any, budget
 	if strictDecode(b, out) != nil {
 		return errors.New("invalid private worker response")
 	}
-	if strings.HasPrefix(operation, "verifier/") || strings.HasPrefix(operation, "authorizer/") || (operation == "engine-binding" || operation == "engine-journal-binding" || operation == "engine-broker-binding") {
+	if strings.HasPrefix(operation, "verifier/") || strings.HasPrefix(operation, "authorizer/") || strings.HasPrefix(operation, "reconciler/") || (operation == "engine-binding" || operation == "engine-journal-binding" || operation == "engine-broker-binding") {
 		canonical, e := json.Marshal(out)
 		if e != nil || !bytes.Equal(bytes.TrimSpace(b), canonical) {
 			return errors.New("noncanonical private verifier response")
