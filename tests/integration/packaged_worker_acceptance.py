@@ -244,7 +244,9 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
    reconciler_volume,config_path,reconcile_mounts=provision_reconciler(authz_engine,authz_engine.bound,raw,compose,nonce,socket_volume,project)
    released=json.loads(helper(['reconcile-cleanup',config_path,job['job_id'],authz_engine.bound.generation],mounts=reconcile_mounts,extra=['--group-add',group]).stdout)
    assert released['dispatch_released'] is True and released['request']['job_id']==job['job_id'] and released['request']['generation_id']==authz_engine.bound.generation and len(released['request']['absent'])==1 and released['request']['absent'][0]['container']==plan['container_id']
-   replay=json.loads(helper(['reconcile-cleanup',config_path,job['job_id'],authz_engine.bound.generation],mounts=reconcile_mounts,extra=['--group-add',group]).stdout);assert replay==released
+   # A released generation has no held context left to snapshot; repeating the
+   # command must fail closed (controller replay is covered by queue tests).
+   assert helper(['reconcile-cleanup',config_path,job['job_id'],authz_engine.bound.generation],mounts=reconcile_mounts,extra=['--group-add',group],success=False).returncode!=0
    status,_=request(base,'/scans/'+job['job_id'],cookie=cookie);assert status['execution_admission']!='cleanup_required'
    confirmed=True;check('independent_reconciler_observes_absence_under_registry_barrier_and_releases_once')
    confirmed=False;started=True;result=raw(['start','--attach',worker_name],120,False)
