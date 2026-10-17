@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -108,5 +109,41 @@ func TestUnreachableGatewayIsInconclusiveWithoutIncident(t *testing.T) {
 	r := (&Canary{S: s, Gateway: "http://127.0.0.1:1"}).Run(context.Background())
 	if r.Outcome != "INCONCLUSIVE" || incidents(s) != 0 {
 		t.Fatal(r)
+	}
+}
+
+func TestOriginExposureRecordsOncePerSiteAndDay(t *testing.T) {
+	s, d := setup(t)
+	p := domain.Initial()
+	p.Schema, p.Parent = "1.1", d
+	p.Metadata.Rationale = "Two sites"
+	p.Sites = []domain.SitePolicy{
+		{ID: "site_open", Name: "Open", Hostnames: []string{"open.example.test"}, Origin: "open:3000", Mode: "observe", CRS: domain.CRS{Blocking: 1, Executing: 1, Threshold: 5}, Exclusions: []domain.Exclusion{}},
+		{ID: "site_private", Name: "Private", Hostnames: []string{"private.example.test"}, Origin: "private:3000", Mode: "observe", CRS: domain.CRS{Blocking: 1, Executing: 1, Threshold: 5}, Exclusions: []domain.Exclusion{}},
+	}
+	b, _ := json.Marshal(p)
+	s.DB.Exec("INSERT INTO policies VALUES(?,?,?,?,?,?)", domain.Digest(p), d, string(b), "ACTIVE", domain.Now(), "owner")
+	s.DB.Exec("UPDATE settings SET value=? WHERE key='active'", domain.Digest(p))
+	dial := func(ctx context.Context, network, address string) (net.Conn, error) {
+		if address == "open:3000" {
+			a, b := net.Pipe()
+			b.Close()
+			return a, nil
+		}
+		return nil, context.DeadlineExceeded
+	}
+	for i := 0; i < 2; i++ {
+		r := CheckOrigins(context.Background(), s, dial)
+		if len(r) != 2 || !r[0].Reachable || r[1].Reachable || r[0].Incident == "" || r[1].Incident != "" {
+			t.Fatal(r)
+		}
+	}
+	var n int
+	s.DB.QueryRow("SELECT count(*) FROM incidents WHERE json_extract(notes,'$.detector_id')='DET-08'").Scan(&n)
+	if n != 1 {
+		t.Fatal("expected one DET-08 incident", n)
+	}
+	if v, _ := s.Get("origin_exposure_last"); !strings.Contains(v, "site_private") {
+		t.Fatal(v)
 	}
 }

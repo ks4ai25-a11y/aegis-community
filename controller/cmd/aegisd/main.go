@@ -177,6 +177,11 @@ func main() {
 			if r := probe.Run(c); r.Outcome != "PASS" {
 				fmt.Printf("{\"event\":\"canary_%s\",\"revision\":%q}\n", strings.ToLower(r.Outcome), r.Revision)
 			}
+			for _, o := range canary.CheckOrigins(c, s, nil) {
+				if o.Reachable {
+					fmt.Printf("{\"event\":\"origin_reachable_without_gateway\",\"site\":%q}\n", o.Site)
+				}
+			}
 			cn()
 			timer.Reset(15 * time.Minute)
 		}
