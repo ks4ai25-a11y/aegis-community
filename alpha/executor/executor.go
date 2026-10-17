@@ -95,6 +95,7 @@ func (c Config) database(toolID string, now time.Time) (*scanevidence.DatabaseUs
 	}
 	return nil, nil, fmt.Errorf("advisory database for %s not provisioned", toolID)
 }
+
 type Execution = scanevidence.Execution
 
 var scannerName = regexp.MustCompile(`^aegis-scan-[0-9a-f]{32}$`)

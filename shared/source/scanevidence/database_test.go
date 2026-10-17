@@ -60,13 +60,20 @@ func TestOnlyApprovedFreshDatabaseIsCurrent(t *testing.T) {
 			}
 		}
 		refused := map[string]func(*Execution, *Expected){
-			"other digest":    func(r *Execution, x *Expected) { x.Database = source.Hash([]byte("other")) },
-			"path":            func(r *Execution, x *Expected) { r.Database.ContainerPath = "/src" },
-			"digest format":   func(r *Execution, x *Expected) { r.Database.Digest = "md5:x"; x.Database = r.Database.Digest },
-			"built time":      func(r *Execution, x *Expected) { r.Database.BuiltAt = "yesterday" },
-			"negative age":    func(r *Execution, x *Expected) { r.Database.AgeHours = -1 },
-			"plain argv":      func(r *Execution, x *Expected) { r.Invocation, _ = BuildInvocation(tool); r.Invocation.Args = append(r.Invocation.Args, "x") },
-			"database absent": func(r *Execution, x *Expected) { r.Database = nil; r.Invocation, _ = BuildInvocation(tool); r.Invocation.Args = append([]string{"--cache-dir", "/tmp"}, r.Invocation.Args...) },
+			"other digest":  func(r *Execution, x *Expected) { x.Database = source.Hash([]byte("other")) },
+			"path":          func(r *Execution, x *Expected) { r.Database.ContainerPath = "/src" },
+			"digest format": func(r *Execution, x *Expected) { r.Database.Digest = "md5:x"; x.Database = r.Database.Digest },
+			"built time":    func(r *Execution, x *Expected) { r.Database.BuiltAt = "yesterday" },
+			"negative age":  func(r *Execution, x *Expected) { r.Database.AgeHours = -1 },
+			"plain argv": func(r *Execution, x *Expected) {
+				r.Invocation, _ = BuildInvocation(tool)
+				r.Invocation.Args = append(r.Invocation.Args, "x")
+			},
+			"database absent": func(r *Execution, x *Expected) {
+				r.Database = nil
+				r.Invocation, _ = BuildInvocation(tool)
+				r.Invocation.Args = append([]string{"--cache-dir", "/tmp"}, r.Invocation.Args...)
+			},
 		}
 		for name, change := range refused {
 			r, x := dependencyFixture(t, tool)

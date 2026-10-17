@@ -11,4 +11,6 @@ func BuildInvocation(tool string) (Invocation, error) { return scanevidence.Buil
 func BuildDatabaseInvocation(tool string) (Invocation, error) {
 	return scanevidence.BuildDatabaseInvocation(tool)
 }
-func DatabaseContainerPath(tool string) (string, error) { return scanevidence.DatabaseContainerPath(tool) }
+func DatabaseContainerPath(tool string) (string, error) {
+	return scanevidence.DatabaseContainerPath(tool)
+}
