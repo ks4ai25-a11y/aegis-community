@@ -160,6 +160,9 @@ scanner_db_file=obj({'path':string(minLength=1,maxLength=512),'sha256':hash,'siz
 scanner_db=obj({'tool':string(enum=['osv_v2','trivy']),'source':string(minLength=1,maxLength=512),'upstream_built_at':string(format='date-time'),'fetched_at':string(format='date-time'),'files':array(scanner_db_file,minItems=1,maxItems=4096),'digest':hash})
 schemas['ScannerDatabaseManifestV1']=obj({'schema_version':string(const='1.0'),'created_at':string(format='date-time'),'databases':array(scanner_db,minItems=1,maxItems=2),'manifest_digest':hash})
 # Optional on scanner receipts: the verified database mounted read-only for that run.
+# Express/FastAPI/Flask route extraction (shared/source/routes.go): known methods,
+# a name-based authentication signal and medium confidence for same-file literal routes.
+route_ref['properties'].update({'method':string(enum=['unknown','GET','POST','PUT','PATCH','DELETE','OPTIONS','HEAD','ALL']),'auth_signal':string(enum=['not assessed','auth_middleware_named']),'confidence':string(enum=['low','medium'])})
 execution['properties']['advisory_database']=obj({'manifest_digest':hash,'database_digest':hash,'upstream_built_at':string(format='date-time'),'age_hours':integer(0,1048576),'stale':{'type':'boolean'},'container_path':string(enum=['/db/osv','/db/trivy'])})
 
 for name,body in schemas.items():

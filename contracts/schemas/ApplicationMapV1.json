@@ -116,7 +116,15 @@
           "method": {
             "type": "string",
             "enum": [
-              "unknown"
+              "unknown",
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE",
+              "OPTIONS",
+              "HEAD",
+              "ALL"
             ]
           },
           "pattern": {
@@ -129,11 +137,17 @@
           },
           "auth_signal": {
             "type": "string",
-            "const": "not assessed"
+            "enum": [
+              "not assessed",
+              "auth_middleware_named"
+            ]
           },
           "confidence": {
             "type": "string",
-            "const": "low"
+            "enum": [
+              "low",
+              "medium"
+            ]
           },
           "source_path": {
             "type": "string",

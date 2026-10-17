@@ -11,6 +11,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -81,7 +82,7 @@ func ReadRoot(anchor *os.Root, app, sourceRef string) (Map, error) {
 }
 
 func ReadRootContext(ctx context.Context, anchor *os.Root, app, sourceRef string) (Map, error) {
-	m := Map{Schema: "1.0", App: app, SourceRef: sourceRef, Observed: time.Now().UTC().Format(time.RFC3339Nano), Extractors: []Extractor{{"next-file-conventions", "1.1"}}, SensitiveOps: []string{}, Models: []string{}, AuthBoundaries: []string{}, Frameworks: []string{}, Files: []File{}, Routes: []Route{}, Unknowns: []string{"Declared route files do not prove runtime reachability or authorization enforcement.", "Dynamic registration, server actions, cross-file ownership and database semantics are not yet assessed.", "The content digest covers included working-tree files, not a proof that the checkout is clean. Protected files and generated directories are omitted."}}
+	m := Map{Schema: "1.0", App: app, SourceRef: sourceRef, Observed: time.Now().UTC().Format(time.RFC3339Nano), Extractors: append([]Extractor{{"next-file-conventions", "1.1"}}, routeExtractors...), SensitiveOps: []string{}, Models: []string{}, AuthBoundaries: []string{}, Frameworks: []string{}, Files: []File{}, Routes: []Route{}, Unknowns: []string{"Declared route files do not prove runtime reachability or authorization enforcement.", "Dynamic registration, server actions, cross-file ownership and database semantics are not yet assessed.", "Express, FastAPI and Flask routes are read from literal registrations on receivers created in the same file; routers mounted from other files have unknown prefixes (low confidence), and auth_signal only reports a middleware, decorator or dependency whose name suggests authentication.", "The content digest covers included working-tree files, not a proof that the checkout is clean. Protected files and generated directories are omitted."}}
 	if err := ctx.Err(); err != nil {
 		return m, err
 	}
@@ -181,6 +182,17 @@ func ReadRootContext(ctx context.Context, anchor *os.Root, app, sourceRef string
 				}
 				m.Routes = append(m.Routes, Route{"unknown", "/" + strings.Join(out, "/"), "declared_route", "not assessed", "low", rel})
 			}
+		}
+		for _, f := range pythonFrameworks(rel, b) {
+			if !slices.Contains(m.Frameworks, f) {
+				m.Frameworks = append(m.Frameworks, f)
+			}
+		}
+		if found := extractRoutes(rel, b); len(found) > 0 {
+			if len(m.Routes)+len(found) > 10000 {
+				return fmt.Errorf("route budget exceeded")
+			}
+			m.Routes = append(m.Routes, found...)
 		}
 		if strings.HasPrefix(rel, "pages/api/") || strings.HasPrefix(rel, "src/pages/api/") {
 			prefix := strings.TrimPrefix(strings.TrimPrefix(rel, "src/"), "pages")

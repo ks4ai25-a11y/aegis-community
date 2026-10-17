@@ -504,11 +504,11 @@ export interface ApplicationMapV1FilesItem {
   size: number;
 }
 export interface ApplicationMapV1RoutesItem {
-  method: "unknown";
+  method: "unknown" | "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OPTIONS" | "HEAD" | "ALL";
   pattern: string;
   origin: "declared_route";
-  auth_signal: "not assessed";
-  confidence: "low";
+  auth_signal: "not assessed" | "auth_middleware_named";
+  confidence: "low" | "medium";
   source_path: string;
 }
 export interface RepositoryV1 {

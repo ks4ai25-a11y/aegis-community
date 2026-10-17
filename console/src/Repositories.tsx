@@ -13,7 +13,7 @@ export function Repositories({action,busy}:Props){
   {error&&<div role="alert" className="alert error">{error}</div>}
   <section className="card">
    <div className="card-heading"><h2>Connect a read-only repository</h2><span className="pill">Static inventory</span></div>
-   <p className="muted">Choose a directory provisioned by the local operator. Connecting reads file references and declared route conventions. Source scripts and dependencies are never executed.</p>
+   <p className="muted">Choose a directory provisioned by the local operator. Connecting reads file references and declared routes (Next.js conventions; Express, FastAPI and Flask literal registrations). Source scripts and dependencies are never executed.</p>
    {loading?<p role="status">Loading provisioned mounts…</p>:assets.length===0?<p>No repository mounts are available. The operator must provision a read-only directory first.</p>:<>
     <label htmlFor="repository-asset">Provisioned repository</label>
     <select id="repository-asset" value={asset} onChange={e=>{setAsset(e.target.value);setAck(false)}}>{assets.map(a=><option key={a} value={a}>{a}</option>)}</select>
@@ -34,7 +34,7 @@ export function Repositories({action,busy}:Props){
    <div className="system-row"><span>Framework manifests</span><span>{map.frameworks.join(', ')||'None recognized'}</span></div>
    <div className="system-row"><span>Extractors</span><span>{map.extractors.map(e=>e.id+' '+e.version).join(', ')}</span></div>
    <p className="mono muted">Content identity: {map.content_digest}</p>
-   {map.routes.length>0?<div className="table-wrap"><table><thead><tr><th>Declared route</th><th>Source location</th><th>Authorization</th></tr></thead><tbody>{map.routes.map((r,i)=><tr key={i}><td>{r.pattern}</td><td>{r.source_path}</td><td>{r.auth_signal}</td></tr>)}</tbody></table></div>:<p>No route conventions recognized. This does not establish that the application has no routes.</p>}
+   {map.routes.length>0?<div className="table-wrap"><table><thead><tr><th>Method</th><th>Declared route</th><th>Source location</th><th>Authorization signal</th><th>Confidence</th></tr></thead><tbody>{map.routes.map((r,i)=><tr key={i}><td className="mono">{r.method==='unknown'?'—':r.method}</td><td>{r.pattern}</td><td>{r.source_path}</td><td>{r.auth_signal==='auth_middleware_named'?'Auth-named middleware':'Not assessed'}</td><td>{r.confidence}</td></tr>)}</tbody></table></div>:<p>No route conventions recognized. This does not establish that the application has no routes.</p>}
    <ul>{map.unknowns.map(u=><li key={u}>{u}</li>)}</ul>
   </section>}
  </>;
