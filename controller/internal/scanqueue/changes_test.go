@@ -153,7 +153,8 @@ func TestRescanIsIdempotentAcrossLostBaseline(t *testing.T) {
 	cur, _ := r.q.loadPolicy("owner-a", r.repo)
 	cur.BaselineDigest = p.BaselineDigest
 	r.q.savePolicy(cur)
-	if o := r.check(t); o != "enqueued" || len(r.jobs(t)) != 1 {
+	// The cancelled job for this identity is reported, not duplicated.
+	if o := r.check(t); o != "previously_failed" || len(r.jobs(t)) != 1 {
 		t.Fatal("restart created a duplicate job", o, len(r.jobs(t)))
 	}
 }
@@ -260,5 +261,36 @@ func TestRescanPolicyPrefixIsLiteral(t *testing.T) {
 	}
 	if _, e := r.q.SetRescanPolicy("owner-a", r.repo, true, []string{"bandit"}, 30); e != nil {
 		t.Fatal("wildcard keys counted against this owner:", e)
+	}
+}
+
+// QA round 2 (R2-7, R2-8).
+func TestRescanHistoryEdgeCases(t *testing.T) {
+	r := newChangeRig(t)
+	write := func(v string) { os.WriteFile(filepath.Join(r.dir, "app.py"), []byte(v), 0600) }
+	r.q.SetRescanPolicy("owner-a", r.repo, true, []string{"bandit"}, 30)
+	write("print('A')\n")
+	if o := r.check(t); o != "enqueued" {
+		t.Fatal(o)
+	}
+	a := r.jobs(t)[0]
+	r.q.S.DB.Exec("UPDATE scanner_jobs SET state='completed' WHERE id=?", a.ID)
+	write("print('B')\n")
+	if o := r.check(t); o != "enqueued" {
+		t.Fatal(o)
+	}
+	b := r.jobs(t)[0]
+	r.q.S.DB.Exec("UPDATE scanner_jobs SET state='tool_error' WHERE id=?", b.ID)
+	// Back to A, which was already scanned: no new job and an honest outcome.
+	write("print('A')\n")
+	if o := r.check(t); o != "already_scanned" || len(r.jobs(t)) != 2 {
+		t.Fatal(o, len(r.jobs(t)))
+	}
+	// Re-enabling clears retry history, so B's old failure is not "retried" for C.
+	r.q.SetRescanPolicy("owner-a", r.repo, false, nil, 0)
+	write("print('C')\n")
+	r.q.SetRescanPolicy("owner-a", r.repo, true, []string{"bandit"}, 30)
+	if o := r.check(t); o != "enqueued" || len(r.jobs(t)) != 3 || r.jobs(t)[0].Input.MapDigest == b.Input.MapDigest {
+		t.Fatal("C should be a new scan, not a retry of B", o)
 	}
 }

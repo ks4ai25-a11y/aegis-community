@@ -186,7 +186,7 @@ def main():
         if key and not pkg.get("dev"):
             npm[pkg.get("license") or "unknown"] += 1
             installed = ROOT / "console" / key / "package.json"
-            if installed.is_file() and json.loads(installed.read_text()).get("version") != pkg.get("version"):
+            if not installed.is_file() or json.loads(installed.read_text()).get("version") != pkg.get("version"):
                 stale.append(key.removeprefix("node_modules/"))
     if stale:
         sys.exit("console/node_modules does not match package-lock.json (run npm ci): " + ", ".join(stale[:10]))
@@ -256,7 +256,9 @@ def main():
                    "notices": {k: manifest["notices"][k] for k in ("sha256", "go_modules", "without_licence_text")}}
         pathlib.Path(a.evidence_out).write_text(json.dumps(summary, indent=1) + "\n")
     print(json.dumps({"result": manifest["result"], "output": str(out.relative_to(ROOT)), "images": [(i["name"], i["components"]) for i in manifest["images"]], "licence_ids": len(licences), "copyleft_for_review": copyleft, "without_licence": len(unknown), "without_licence_text": manifest["notices"]["without_licence_text"]}, indent=1))
+    # A failed check must fail the command (and make release-evidence).
+    return 0 if manifest["result"] == "PASS" else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

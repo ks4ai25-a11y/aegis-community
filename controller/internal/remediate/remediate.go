@@ -219,8 +219,20 @@ func Build(path string, lines []string, finding, start, end int, replacement []s
 			return "", errors.New("replacement lines must not contain newlines")
 		}
 	}
+	// Keep the file's line endings: replacement lines in a CRLF file get \r.
+	if strings.HasSuffix(lines[start-1], "\r") {
+		withCR := make([]string, len(replacement))
+		for i, r := range replacement {
+			withCR[i] = r + "\r"
+		}
+		replacement = withCR
+	}
 	from := max(1, start-3)
 	to := min(len(lines), end+3)
+	// A file without a final newline needs git's marker after its last line,
+	// or git apply and patch refuse the diff.
+	noEOL := to == len(lines) && lines[len(lines)-1] != ""
+	const marker = `\ No newline at end of file`
 	var hunk []string
 	for i := from; i < start; i++ {
 		hunk = append(hunk, " "+lines[i-1])
@@ -228,11 +240,20 @@ func Build(path string, lines []string, finding, start, end int, replacement []s
 	for i := start; i <= end; i++ {
 		hunk = append(hunk, "-"+lines[i-1])
 	}
+	if noEOL && end == to {
+		hunk = append(hunk, marker)
+	}
 	for _, r := range replacement {
 		hunk = append(hunk, "+"+r)
 	}
+	if noEOL && end == to {
+		hunk = append(hunk, marker)
+	}
 	for i := end + 1; i <= to; i++ {
 		hunk = append(hunk, " "+lines[i-1])
+	}
+	if noEOL && end < to {
+		hunk = append(hunk, marker)
 	}
 	oldCount := to - from + 1
 	newCount := oldCount - (end - start + 1) + len(replacement)
@@ -264,7 +285,12 @@ func Apply(content, path, diff string) (string, error) {
 	out := []string{}
 	pos := 0
 	hunks := 0
-	d := strings.Split(strings.ReplaceAll(diff, "\r\n", "\n"), "\n")
+	// Line endings are compared as they are: a CRLF file's diff keeps its \r on
+	// every line (that is what Build emits and what git produces).
+	if !strings.Contains(content, "\r\n") {
+		diff = strings.ReplaceAll(diff, "\r\n", "\n")
+	}
+	d := strings.Split(diff, "\n")
 	for i := 0; i < len(d); i++ {
 		l := d[i]
 		switch {
@@ -338,6 +364,7 @@ func Apply(content, path, diff string) (string, error) {
 			if oldLeft != 0 || newLeft != 0 {
 				return "", errors.New("hunk line counts do not match its header")
 			}
+		case l == `\ No newline at end of file` && hunks > 0:
 		case strings.TrimSpace(l) == "" || strings.HasPrefix(l, "diff ") || strings.HasPrefix(l, "index "):
 		default:
 			return "", errors.New("text outside diff hunks")
@@ -402,14 +429,19 @@ func balanced(src string) bool {
 var riskyIntroductions = []struct {
 	re   *regexp.Regexp
 	what string
+	// safer lists replacements accepted when the replaced lines already used
+	// this kind of construct (the fix a finding asks for, e.g. os.system →
+	// subprocess.run with an argument list).
+	safer *regexp.Regexp
 }{
-	{regexp.MustCompile(`(?i)(#\s*nosec|#\s*noqa|//\s*nolint|eslint-disable|@SuppressWarnings|#\s*type:\s*ignore|//\s*@ts-ignore|@ts-expect-error|@ts-nocheck|NOSONAR|semgrep-ignore|nosemgrep|pylint:\s*disable|\blgtm\b|gitleaks:allow|noinspection|codeql\[|#\s*pragma:\s*no\s*cover)`), "a finding suppression comment"},
-	{regexp.MustCompile(`(?i)\b(https?|ftp|wss?|file|data|gopher)://|["'(=\s]//[a-z0-9-]+(\.[a-z0-9-]+)+(/|["'])`), "a URL"},
-	{regexp.MustCompile(`\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b`), "an IP address"},
-	{regexp.MustCompile(`(?i)\b(eval|exec|execfile|compile|__import__)\s*\(|os\.(system|popen|spawn\w*|exec\w*|fork)\s*\(|\bsubprocess\b|shell\s*=\s*True|\bpty\.spawn|child_process|\bexecSync\b|\bspawnSync\b|Runtime\.getRuntime|ProcessBuilder|new\s+Function\s*\(|\bcurl\b|\bwget\b|/bin/(ba)?sh|__builtins__|\bgetattr\s*\([^)]*["']__|\bpickle\.loads?\b|\bmarshal\.loads?\b|\bdill\.loads?\b|yaml\.unsafe_load|Loader\s*=\s*(yaml\.)?(Unsafe|Full)?Loader\b|\bctypes\b|\bimportlib\b`), "code or command execution"},
-	{regexp.MustCompile(`(?i)\b(socket\.|requests\.(get|post|put|patch|delete|request|Session)|\bhttpx\b|aiohttp|urllib|http\.client|\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon|new\s+WebSocket|net\.Dial|http\.(Get|Post|NewRequest)\s*\(|axios|smtplib|ftplib|paramiko|dns\.resolver)`), "network access"},
-	{regexp.MustCompile(`(?i)(verify\s*=\s*False|InsecureSkipVerify|rejectUnauthorized\s*:\s*false|NODE_TLS_REJECT_UNAUTHORIZED|CERT_NONE|check_hostname\s*=\s*False|_create_unverified_context)`), "disabled TLS verification"},
-	{regexp.MustCompile(`[A-Za-z0-9+/]{48,}={0,2}`), "a long encoded literal"},
+	{re: regexp.MustCompile(`(?i)(#\s*nosec|#\s*noqa|//\s*nolint|eslint-disable|@SuppressWarnings|#\s*type:\s*ignore|//\s*@ts-ignore|@ts-expect-error|@ts-nocheck|NOSONAR|semgrep-ignore|nosemgrep|pylint:\s*disable|\blgtm\b|gitleaks:allow|noinspection|codeql\[|#\s*pragma:\s*no\s*cover|@phpstan-ignore|phpcs:ignore|rubocop:disable|#\[allow\()`), what: "a finding suppression comment"},
+	{re: regexp.MustCompile(`(?i)\b(https?|ftp|wss?|file|data|gopher|ldap|smb)://|["'(=\s]//[a-z0-9-]+(\.[a-z0-9-]+)+(/|["'])`), what: "a URL"},
+	{re: regexp.MustCompile(`\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b`), what: "an IP address"},
+	{re: regexp.MustCompile(`(?i)\b(eval|exec|execfile|compile|__import__|assert_options|create_function|system|passthru|shell_exec|proc_open|popen|pcntl_exec)\s*\(|os\.(system|popen|spawn\w*|exec\w*|fork)\b|\bsubprocess\b|create_subprocess_(shell|exec)|shell\s*=\s*True|\bpty\.spawn|child_process|\bexec(Sync|File|FileSync)?\b|\bspawn(Sync)?\b|\bvm\.(run\w*|Script|compileFunction)|\bFunction\s*\(|Runtime\.getRuntime|ProcessBuilder|\bexec\.Command(Context)?\b|syscall\.Exec|\bcurl\b|\bwget\b|/bin/(ba)?sh|__builtins__|\bgetattr\s*\(\s*(os|subprocess|builtins|sys)\b|\bgetattr\s*\([^)]*["']__|sys\.modules|\bpickle\b|\bmarshal\.loads?\b|\bdill\b|\bshelve\b|yaml\.(unsafe_)?load(_all)?\s*\(|Loader\s*=\s*(yaml\.)?(Unsafe|Full)?Loader\b|\bctypes\b|\bimportlib\b|\bunserialize\s*\(|ObjectInputStream|BinaryFormatter`), what: "code or command execution",
+		safer: regexp.MustCompile(`(?i)^(subprocess\b|subprocess\.(run|call|check_call|check_output)|execfile|execfilesync|exec\.command|exec\.commandcontext|spawn)$`)},
+	{re: regexp.MustCompile(`(?i)(\bsocket\b|requests\.(get|post|put|patch|delete|head|options|request|Session)|\bhttpx\b|aiohttp|urllib|http\.client|\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon|\bWebSocket\b|net\.(Dial\w*|connect|createConnection|Socket)|tls\.(connect|Dial)|\bdgram\b|require\(\s*["'](https?|net|tls|dgram|child_process)["']|http\.(Get|Post|Head|NewRequest\w*|DefaultClient)\b|\bhttp\.Client\b|axios|smtplib|ftplib|paramiko|dns\.resolver|curl_init|file_get_contents\s*\(\s*["']?(https?|ftp)|Net::HTTP|open-uri)`), what: "network access"},
+	{re: regexp.MustCompile(`(?i)(verify\s*=\s*False|InsecureSkipVerify|rejectUnauthorized\s*:\s*false|NODE_TLS_REJECT_UNAUTHORIZED|CERT_NONE|check_hostname\s*=\s*False|_create_unverified_context|CURLOPT_SSL_VERIFY(PEER|HOST)\s*,\s*(0|false)|VERIFY_NONE)`), what: "disabled TLS verification"},
+	{re: regexp.MustCompile(`[A-Za-z0-9+/]{48,}={0,2}|\\x[0-9a-f]{2}(\\x[0-9a-f]{2}){15,}`), what: "a long encoded literal"},
 }
 
 func introducedRisk(original, replacement []string) string {
@@ -418,17 +450,28 @@ func introducedRisk(original, replacement []string) string {
 	// another (eval for os.popen) still counts as adding one.
 	count := func(re *regexp.Regexp, s string) map[string]int {
 		m := map[string]int{}
-		for _, v := range re.FindAllString(s, -1) {
-			m[strings.ToLower(strings.Join(strings.Fields(v), ""))]++
+		for _, line := range strings.Split(s, "\n") {
+			for _, v := range re.FindAllString(line, -1) {
+				k := strings.ToLower(strings.Join(strings.Fields(v), ""))
+				// yaml.load with an explicit safe loader is the recommended fix.
+				if strings.HasPrefix(k, "yaml.load") && strings.Contains(line, "SafeLoader") {
+					continue
+				}
+				m[k]++
+			}
 		}
 		return m
 	}
 	for _, r := range riskyIntroductions {
 		had := count(r.re, before)
 		for k, n := range count(r.re, after) {
-			if n > had[k] {
-				return "the edit adds " + r.what + ", which a minimal fix must not introduce"
+			if n <= had[k] {
+				continue
 			}
+			if r.safer != nil && len(had) > 0 && r.safer.MatchString(strings.TrimRight(k, "(")) && !regexp.MustCompile(`(?i)shell\s*=\s*True`).MatchString(after) {
+				continue
+			}
+			return "the edit adds " + r.what + ", which a minimal fix must not introduce"
 		}
 	}
 	return ""

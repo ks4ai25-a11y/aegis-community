@@ -102,9 +102,17 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if path == "/health/live" {
 		// bootstrap_required lets the console and quickstart open first-owner
 		// enrollment only when no owner exists yet; it carries no secret.
+		// Liveness must not hang on a busy database; the enrollment fields are
+		// omitted when they cannot be read quickly.
+		out := map[string]bool{"live": true}
+		ctx, cancel := context.WithTimeout(r.Context(), 250*time.Millisecond)
 		var owners int
-		s.S.DB.QueryRow("SELECT count(*) FROM owners").Scan(&owners)
-		output(w, 200, map[string]bool{"live": true, "bootstrap_required": owners == 0})
+		if s.S.DB.QueryRowContext(ctx, "SELECT count(*) FROM owners").Scan(&owners) == nil {
+			out["bootstrap_required"] = owners == 0
+			out["bootstrap_expired"] = owners == 0 && s.A.BootstrapExpired()
+		}
+		cancel()
+		output(w, 200, out)
 		return
 	}
 	if path == "/health/ready" {
@@ -133,6 +141,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			fail(w, 429, "RATE_LIMITED", "Wait before retrying enrollment or login")
 			return
 		}
+		defer s.A.Release()
 		var in struct {
 			Token    string `json:"token"`
 			Password string `json:"password"`

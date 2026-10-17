@@ -59,3 +59,34 @@ func TestRebindingCannotLockOutOwner(t *testing.T) {
 		t.Fatal("failed guess did not start a back-off:", c)
 	}
 }
+
+// QA round 2: concurrent guesses must not all pass the back-off at once.
+func TestConcurrentLoginGuessesAreSerialised(t *testing.T) {
+	s, e := store.Open(filepath.Join(t.TempDir(), "burst.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.DB.Close()
+	a := auth.New(s)
+	a.Enroll(a.Bootstrap, "a sufficiently long test passphrase")
+	h := (&Server{S: s, A: a, Assets: t.TempDir()}).Handler()
+	codes := make(chan int, 16)
+	for i := 0; i < 16; i++ {
+		go func() {
+			r := httptest.NewRequest("POST", "http://127.0.0.1:7410/api/v1/auth/login", strings.NewReader(`{"password":"wrong"}`))
+			r.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, r)
+			codes <- w.Code
+		}()
+	}
+	checked := 0
+	for i := 0; i < 16; i++ {
+		if <-codes == 403 {
+			checked++
+		}
+	}
+	if checked > 2 {
+		t.Fatal("password checks ran concurrently:", checked)
+	}
+}

@@ -122,6 +122,8 @@ func (q *Queue) SetRescanPolicy(owner, repo string, enabled bool, tools []string
 	}
 	if enabled && (!p.Enabled || p.BaselineDigest == "") {
 		p.BaselineDigest = mapDigest
+		// A fresh opt-in starts without retry history from an earlier period.
+		p.LastJob, p.Retried = "", ""
 	}
 	p.Enabled, p.Tools, p.Duration, p.UpdatedAt = enabled, tools, duration, domain.Now()
 	if !enabled {
@@ -199,8 +201,8 @@ func (q *Queue) checkOne(ctx context.Context, refresh Refresh, p RescanPolicy, n
 	if digest == p.BaselineDigest {
 		// A rescan that failed to run (tool error or timeout) is retried once for
 		// the same identity; an owner cancellation is respected.
-		var state string
-		if p.LastJob == "" || p.Retried == digest || q.S.DB.QueryRow("SELECT state FROM scanner_jobs WHERE id=? AND owner=?", p.LastJob, p.Owner).Scan(&state) != nil || (state != "tool_error" && state != "timeout") {
+		var state, jobDigest string
+		if p.LastJob == "" || p.Retried == digest || q.S.DB.QueryRow("SELECT state,map_digest FROM scanner_jobs WHERE id=? AND owner=?", p.LastJob, p.Owner).Scan(&state, &jobDigest) != nil || jobDigest != digest || (state != "tool_error" && state != "timeout") {
 			return finish("unchanged")
 		}
 		retry = true
@@ -230,6 +232,23 @@ func (q *Queue) checkOne(ctx context.Context, refresh Refresh, p RescanPolicy, n
 		Tools      []string `json:"tool_ids"`
 		Duration   int      `json:"tool_timeout_seconds"`
 	}{p.Repository, digest, p.Tools, p.Duration}), "sha256:")[:48]
+	if !retry {
+		// Returning to a map identity that was already queued reuses that job
+		// (same idempotency key), so say what happened instead of "enqueued".
+		var oldID, oldState string
+		if q.S.DB.QueryRow("SELECT id,state FROM scanner_jobs WHERE owner=? AND idempotency_key=?", p.Owner, key).Scan(&oldID, &oldState) == nil {
+			r.Job = oldID
+			p.BaselineDigest = digest
+			switch {
+			case strings.HasPrefix(oldState, "completed"):
+				return finish("already_scanned")
+			case (oldState == "tool_error" || oldState == "timeout") && p.Retried != digest:
+				retry, r.Job = true, ""
+			default:
+				return finish("previously_failed")
+			}
+		}
+	}
 	if retry {
 		key = "rescan-retry:" + key[7:]
 	}

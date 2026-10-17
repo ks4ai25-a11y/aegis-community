@@ -313,7 +313,12 @@ var likelySecret = regexp.MustCompile(`(?i)(` +
 	`xox[abposr]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9_-]{20,}|[sr]k_(live|test)_[A-Za-z0-9]{10,}|` +
 	`eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.|` + // JWT
 	`[a-z][a-z0-9+.-]*://[^/\s:@'"]+:[^@\s'"]{3,}@|` + // URL with an embedded password
-	`(password|passwd|pwd|secret|api[_-]?key|access[_-]?key|private[_-]?key|token|auth|credential)[a-z0-9_-]*["']?\s*[:=]\s*["']?[^\s"',;]{6,})`)
+	`xox[abposre]-[A-Za-z0-9-]{10,}|npm_[A-Za-z0-9]{30,}|AccountKey=[A-Za-z0-9+/=]{20,}|hooks\.slack\.com/services/|discord(app)?\.com/api/webhooks/|` +
+	`Authorization:\s*(Basic|Bearer)\s+[A-Za-z0-9+/=._-]{8,}|` +
+	`define\(\s*["'][A-Z0-9_]*(PASS|SECRET|KEY|TOKEN)[A-Z0-9_]*["']\s*,\s*["'][^"']{6,}|` + // PHP define()
+	`<(password|passwd|secret|api[_-]?key|token|connectionString)>[^<]{6,}<|` + // XML element
+	`key\s*=\s*["'][^"']*(key|secret|password|token)[^"']*["']\s+value\s*=\s*["'][^"']{6,}|` + // .NET appSettings
+	`(password|passwd|pass|pwd|passphrase|secret|api[_-]?key|access[_-]?key|private[_-]?key|signing[_-]?key|encryption[_-]?key|hmac[_-]?key|account[_-]?key|token|auth|credential)[a-z0-9_-]*["']?\s*(:=|=>|[:=])\s*["']?[^\s"',;]{6,})`)
 
 var ErrSourceChanged = errors.New("source file is not in the current inventory or changed since it was inventoried")
 

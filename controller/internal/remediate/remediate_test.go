@@ -135,3 +135,23 @@ func TestApplyRemovesSQLCommentLines(t *testing.T) {
 		t.Fatal("hunk with wrong counts accepted")
 	}
 }
+
+// QA round 2: CRLF files and files without a final newline.
+func TestLineEndingsRoundTrip(t *testing.T) {
+	crlf := "a = 1\r\nb = eval(x)\r\nc = 3\r\n"
+	d, e := Build("w.py", strings.Split(crlf, "\n"), 2, 2, 2, []string{"b = int(x)"})
+	if e != nil {
+		t.Fatal(e)
+	}
+	if got, e := Apply(crlf, "w.py", d); e != nil || got != "a = 1\r\nb = int(x)\r\nc = 3\r\n" {
+		t.Fatalf("CRLF: %q %v", got, e)
+	}
+	noeol := "a = 1\nb = eval(x)"
+	d, e = Build("n.py", strings.Split(noeol, "\n"), 2, 2, 2, []string{"b = int(x)"})
+	if e != nil || !strings.Contains(d, "\\ No newline at end of file") {
+		t.Fatal("marker missing", d, e)
+	}
+	if got, e := Apply(noeol, "n.py", d); e != nil || got != "a = 1\nb = int(x)" {
+		t.Fatalf("no EOL: %q %v", got, e)
+	}
+}

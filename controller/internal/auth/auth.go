@@ -53,6 +53,7 @@ type Auth struct {
 	mu        sync.Mutex
 	failures  int
 	next      time.Time
+	checking  bool
 }
 
 func New(s *store.Store) *Auth {
@@ -68,11 +69,28 @@ func New(s *store.Store) *Auth {
 // Throttle reports whether a sign-in or enrollment attempt may run now. Only
 // failed attempts (Fail) start a back-off, so a stream of requests cannot keep
 // the owner locked out unless those requests are themselves failing guesses.
+// A successful Throttle reserves the single password-check slot (argon2id uses
+// 64 MiB per check), so concurrent guesses cannot exhaust memory or race past
+// the back-off; the caller must Release it.
 func (a *Auth) Throttle() bool {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	return !time.Now().Before(a.next)
+	if a.checking || time.Now().Before(a.next) {
+		return false
+	}
+	a.checking = true
+	return true
 }
+
+// BootstrapExpired reports that the one-time enrollment token can no longer be used.
+func (a *Auth) BootstrapExpired() bool {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.Bootstrap == "" || time.Now().After(a.Expiry)
+}
+
+// Release frees the password-check slot reserved by Throttle.
+func (a *Auth) Release() { a.mu.Lock(); a.checking = false; a.mu.Unlock() }
 
 // Fail records a failed attempt and doubles the back-off, up to 64 seconds.
 func (a *Auth) Fail() {

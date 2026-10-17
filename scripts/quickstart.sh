@@ -45,7 +45,8 @@ until curl -fsS http://127.0.0.1:$console_port/api/v1/health/live >/dev/null 2>&
 done
 token=""
 # Only a fresh installation needs the one-time token; older log lines may hold an expired one.
-if curl -fsS http://127.0.0.1:$console_port/api/v1/health/live 2>/dev/null | grep -q '"bootstrap_required":true'; then
+live=$(curl -fsS http://127.0.0.1:$console_port/api/v1/health/live 2>/dev/null || true)
+if echo "$live" | grep -q '"bootstrap_required":true' && ! echo "$live" | grep -q '"bootstrap_expired":true'; then
   token=$(docker compose $files logs --no-log-prefix controller 2>/dev/null | grep '"local_bootstrap_token"' | tail -1 | sed 's/.*"token":"\([^"]*\)".*/\1/')
 fi
 echo
@@ -56,7 +57,7 @@ if [ -n "$token" ]; then
   echo "  First sign-in: the console opens on owner enrollment; use this one-time token"
   echo "  (valid for a short time, printed only to local logs):"
   echo "    $token"
-elif curl -fsS http://127.0.0.1:$console_port/api/v1/health/live 2>/dev/null | grep -q '"bootstrap_required":true'; then
+elif echo "$live" | grep -q '"bootstrap_required":true'; then
   echo "  The first-owner token has expired. Restart the controller to get a new one:"
   echo "    ${COMPOSE_PROJECT_NAME:+COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME }AEGIS_CONSOLE_PORT=$console_port AEGIS_GATEWAY_PORT=$gateway_port sh -c 'docker compose $files restart controller && $0'"
 else

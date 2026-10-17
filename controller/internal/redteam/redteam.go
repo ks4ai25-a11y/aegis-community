@@ -102,7 +102,11 @@ type Inputs struct {
 var (
 	resource = regexp.MustCompile(`(?i)/(accounts?|users?|orders?|invoices?|documents?|files?|projects?|tenants?|organi[sz]ations?|orgs?|customers?|profiles?|messages?|payments?|teams?)(/|$)`)
 	sqlRule  = regexp.MustCompile(`(?i)(^B608$|sql|sqli|injection\.sql|942\d{3})`)
-	urlLike  = regexp.MustCompile(`(?i)([a-z][a-z0-9+.-]*://|\bwww\.|\b\d{1,3}(\.\d{1,3}){3}\b)`)
+	urlLike  = regexp.MustCompile(`(?i)([a-z][a-z0-9+.-]*://|\bwww\.|\b\d{1,3}(\.\d{1,3}){3}\b|\blocalhost\b|\b[a-z0-9-]+(\.[a-z0-9-]+)*:\d{2,5}\b|\b[a-z0-9-]+(\.[a-z0-9-]+)*\.(com|net|org|io|dev|ai|app|co|me|xyz|info|biz|ru|cn|top|site|online|cloud|invalid|example|test|internal|local)\b)`)
+	// path:line source references look like host:port; remove them before checking.
+	sourceRef = regexp.MustCompile(`(?i)[\w./-]+\.(py|js|mjs|cjs|ts|tsx|jsx|go|java|kt|rb|php|cs|rs|c|cc|cpp|h|swift|scala|sql|yaml|yml|json|toml):\d+(-\d+)?`)
+	// Command-like text in a claim is a request for the owner to run something.
+	commandLike = regexp.MustCompile(`(?i)(\b(nc|ncat|netcat|curl|wget|ssh|scp|telnet|redis-cli|psql|mysql|mongo|nmap|sqlmap|powershell|bash|sudo|chmod|chown)\b\s+\S|\brm\s+-|\bsh\s+-c\b|[|;&]\s*(sh|bash)\b|<\s*/etc/|>\s*/dev/tcp)`)
 	refShape = regexp.MustCompile(`^([^:\s]{1,512})(?::(\d{1,6})(?:-(\d{1,6}))?)?$`)
 )
 
@@ -339,8 +343,11 @@ func modelRound(ctx context.Context, c assess.Config, in Inputs, ps *PlanSet) er
 			continue
 		case claim == "":
 			continue
-		case urlLike.MatchString(claim):
-			ps.Rejected = append(ps.Rejected, "hypothesis names an external destination")
+		case urlLike.MatchString(sourceRef.ReplaceAllString(claim, "")):
+			ps.Rejected = append(ps.Rejected, "hypothesis names a host or network destination")
+			continue
+		case commandLike.MatchString(claim):
+			ps.Rejected = append(ps.Rejected, "hypothesis contains a command to run")
 			continue
 		}
 		refs := []string{}

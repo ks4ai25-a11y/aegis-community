@@ -191,3 +191,32 @@ func TestDraftFilterCoversQAConstructs(t *testing.T) {
 		}
 	}
 }
+
+// QA round 2: remaining bypasses, and fixes Aegis itself recommends.
+func TestDraftFilterRoundTwo(t *testing.T) {
+	for _, line := range []string{
+		`    await asyncio.create_subprocess_shell(uid)`, `    system($uid);`, `    getattr(os, "system")(uid)`, `    sys.modules["os"].system(uid)`,
+		`    yaml.load(uid)`, `    from pickle import loads`, `    import socket as s`, `    requests.head(u)`, `  Function("return 1")()`,
+		`  vm.runInNewContext(code)`, `  require('http').get(u)`, `  net.connect(443, h)`, `	exec.Command("sh", "-c", uid).Run()`, `	http.DefaultClient.Do(req)`,
+	} {
+		if remediate.IntroducedRisk([]string{"    return value"}, []string{line}) == "" {
+			t.Error("not flagged:", line)
+		}
+	}
+	// Replacing a shell call with an argument list is the recommended fix.
+	if why := remediate.IntroducedRisk([]string{`    os.system("ls " + name)`}, []string{`    subprocess.run(["ls", name], check=True)`}); why != "" {
+		t.Error("recommended fix refused:", why)
+	}
+	if why := remediate.IntroducedRisk([]string{"  exec(`ls ${name}`, cb)"}, []string{"  execFile('ls', [name], cb)"}); why != "" {
+		t.Error("recommended fix refused:", why)
+	}
+	if remediate.IntroducedRisk([]string{`    os.system("ls " + name)`}, []string{`    subprocess.run("ls " + name, shell=True)`}) == "" {
+		t.Error("shell=True accepted as a safer replacement")
+	}
+	if remediate.IntroducedRisk([]string{"    return value"}, []string{`    subprocess.run(["ls"])`}) == "" {
+		t.Error("new execution accepted where none existed")
+	}
+	if why := remediate.IntroducedRisk([]string{`    data = yaml.load(f)`}, []string{`    data = yaml.load(f, Loader=yaml.SafeLoader)`}); why != "" {
+		t.Error("safe YAML fix refused:", why)
+	}
+}
