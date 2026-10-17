@@ -161,8 +161,6 @@ jobs:
           mkdir -m 700 "$RUNNER_TEMP/aegis-native-admission-private"
           AEGIS_PACKAGED_WORKER_EVIDENCE="$RUNNER_TEMP/aegis-native-admission-private/acceptance.json" python3 tests/integration/packaged_worker_acceptance.py
       - name: Verify independent reconciliation releases between two sequential scans
-        # First hosted run of the ADR 057 release path; reported, not yet gating.
-        continue-on-error: true
         env:
           AEGIS_PACKAGED_WORKER_TEST: '1'
           AEGIS_PACKAGED_BROKER_TEST: '1'

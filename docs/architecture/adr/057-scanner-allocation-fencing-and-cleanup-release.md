@@ -1,6 +1,6 @@
 # ADR 057: Scanner mutation admission and confirmed cleanup release
 
-Status: partially implemented. Migrations 014/016 implement authorizer enrollment and the controller mutation ledger. Packaged native admission and the bounded independent TLS reader have passed hosted acceptance. Migration017 adds separately scoped reconciler enrollment and complete closed-generation metadata. Migration 018 adds the evidence-bound release transaction and the `aegis-research reconcile-cleanup` reconciler. Two sequential packaged scans with independent reconciliation between them run in a new hosted CI step whose first runs are reported but not yet gating. Native all-write mediation proof and sealed crash repair remain unfinished; unknown mutations keep admission held.
+Status: partially implemented. Migrations 014/016 implement authorizer enrollment and the controller mutation ledger. Packaged native admission and the bounded independent TLS reader have passed hosted acceptance. Migration017 adds separately scoped reconciler enrollment and complete closed-generation metadata. Migration 018 adds the evidence-bound release transaction and the `aegis-research reconcile-cleanup` reconciler. Two sequential packaged scans with independent reconciliation between them passed hosted CI at commit `4a8c616` ([run 39013987465](https://github.com/ks4ai25-a11y/aegis-community/actions/runs/39013987465), 26 checks), and that step now gates CI. Native all-write mediation proof and sealed crash repair remain unfinished; unknown mutations keep admission held.
 
 ## Problem
 
