@@ -266,7 +266,7 @@ func TestRenderedSitesValidateWithGateway(t *testing.T) {
 		t.Fatal(e)
 	}
 	if _, e = os.Stat(bin); e != nil {
-		t.Skip("gateway binary not built")
+		skipWithoutGateway(t, "gateway binary not built")
 	}
 	dir := t.TempDir()
 	rendered := Render(sitePolicy(), "demo-origin:8080", ":8080", filepath.Join(dir, "admin.sock"), filepath.Join(dir, "events.jsonl"))
@@ -340,7 +340,7 @@ func TestTLSAndRateLimitValidation(t *testing.T) {
 func TestTLSRedirectAndRateLimitWithRealGateway(t *testing.T) {
 	bin, _ := filepath.Abs("../../../bin/caddy")
 	if out, e := exec.Command(bin, "list-modules").Output(); e != nil || !strings.Contains(string(out), "http.handlers.rate_limit") {
-		t.Skip("gateway binary with rate limiting not built")
+		skipWithoutGateway(t, "gateway binary with rate limiting not built")
 	}
 	origin := http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("origin ok")) })}
 	ol, _ := net.Listen("tcp", "127.0.0.1:0")
@@ -447,7 +447,7 @@ func TestTrustedProxyValidation(t *testing.T) {
 func TestRateLimitKeyFollowsTrustedProxiesOnly(t *testing.T) {
 	bin, _ := filepath.Abs("../../../bin/caddy")
 	if out, e := exec.Command(bin, "list-modules").Output(); e != nil || !strings.Contains(string(out), "http.handlers.rate_limit") {
-		t.Skip("gateway binary with rate limiting not built")
+		skipWithoutGateway(t, "gateway binary with rate limiting not built")
 	}
 	origin := http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })}
 	ol, _ := net.Listen("tcp", "127.0.0.1:0")
@@ -620,4 +620,13 @@ func TestBodyLimitRendering(t *testing.T) {
 			t.Fatal("accepted", bad)
 		}
 	}
+}
+
+// skipWithoutGateway skips locally, but CI must exercise the real gateway.
+func skipWithoutGateway(t *testing.T, why string) {
+	t.Helper()
+	if os.Getenv("CI") != "" {
+		t.Fatal(why + "; run make gateway-build")
+	}
+	t.Skip(why)
 }

@@ -1,6 +1,6 @@
-.PHONY: release-evidence mcp-build defence-verify test generate check-generated build demo-up demo-verify scoped-verify repository-verify research-build
+.PHONY: gateway-build release-evidence mcp-build defence-verify test generate check-generated build demo-up demo-verify scoped-verify repository-verify research-build
 
-test: check-generated
+test: check-generated gateway-build
 	python3 -m unittest discover -s tests/integration -p test_generated_check.py
 	python3 -m unittest discover -s tests/integration -p test_acceptance_assertions.py
 	cd gateway && go test -race ./...
@@ -71,3 +71,7 @@ defence-verify: mcp-build
 
 release-evidence:
 	python3 scripts/release/release_evidence.py
+
+# Real-gateway policy tests need this binary; CI fails rather than skips without it.
+gateway-build:
+	cd gateway && CGO_ENABLED=0 go build -trimpath -o ../bin/caddy ./cmd/caddy
