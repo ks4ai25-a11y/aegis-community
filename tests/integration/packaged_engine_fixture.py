@@ -5,7 +5,7 @@ The package/orchestration daemon is untouched. The second daemon has a new data
 root, its own authorization plugin/journal and a credential-free Unix byte relay.
 """
 import hashlib,json,os,pathlib,platform,re,secrets,shutil,socket,ssl,subprocess,sys,tempfile,time,urllib.error,urllib.request
-from engine_authz_acceptance import certificate,run,ROOT
+from engine_authz_acceptance import certificate,flush_bootstrap_writes,run,ROOT
 
 def require_ci():
  if os.environ.get('AEGIS_PACKAGED_ENGINE_AUTHZ_TEST')!='1' or os.environ.get('AEGIS_PACKAGED_BROKER_TEST')!='1' or os.environ.get('GITHUB_ACTIONS')!='true' or platform.system()!='Linux' or platform.machine() not in ('x86_64','amd64') or os.geteuid()<=0:raise RuntimeError('Explicit packaged TLS engine GitHub Linux AMD64 CI only')
@@ -69,7 +69,7 @@ class EngineFixture:
   tool=next(t for t in json.loads((ROOT/'tools/scanners.lock.json').read_text())['tools'] if t['id']=='bandit')
   if not re.fullmatch(r'ghcr.io/pycqa/bandit/bandit@sha256:[0-9a-f]{64}',tool['image']):raise RuntimeError('Pinned Bandit required')
   run([self.engine/'bin/docker','--host','unix://'+str(self.bootstrap),'pull',tool['image']],env=self.env)
-  self.daemon_stop()
+  self.daemon_stop();flush_bootstrap_writes()
   if self.bootstrap.exists():raise RuntimeError('Private raw listener remains')
   self.engine_digest='sha256:'+hashlib.sha256(('aegis-authz-daemon-v1\n'+info['ID']).encode()).hexdigest()
   run(['openssl','genpkey','-algorithm','EC','-pkeyopt','ec_paramgen_curve:P-256','-out',self.tls/'ca.key'])

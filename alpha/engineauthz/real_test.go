@@ -247,9 +247,25 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 	}
 	profile.HostConfig.Mounts[0].ReadOnly = true
 	checks = append(checks, "observer writes and unsafe scanner profiles denied")
+	// Public timing diagnostics only: counts, never identities or payloads.
+	pageCache := func() (dirty, writeback string) {
+		raw, _ := os.ReadFile("/proc/meminfo")
+		dirty, writeback = "0", "0"
+		for _, line := range strings.Split(string(raw), "\n") {
+			if f := strings.Fields(line); len(f) >= 2 && f[0] == "Dirty:" {
+				dirty = f[1]
+			} else if len(f) >= 2 && f[0] == "Writeback:" {
+				writeback = f[1]
+			}
+		}
+		return
+	}
+	dirty, writeback := pageCache()
+	began := time.Now()
 	createAttempt = name
 	status, createdBody := request("broker", "POST", "/containers/create?name="+name, b)
 	createAttempt = ""
+	t.Logf("native create timing: create_ms=%d dirty_kb=%s writeback_kb=%s", time.Since(began).Milliseconds(), dirty, writeback)
 	if status != 201 {
 		t.Fatalf("fixed scanner create denied: %d %s", status, createdBody)
 	}
