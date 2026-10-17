@@ -161,7 +161,7 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 	if e = tx.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version); e != nil {
 		return ErrRecovery
 	}
-	if version < 13 || version > 17 {
+	if version < 13 || version > 18 {
 		return ErrRecovery
 	}
 	if version >= 14 {

@@ -70,3 +70,43 @@ func (c *ReconcilerClient) Snapshot(ctx context.Context, job, generation string)
 	}
 	return s, nil
 }
+
+// Confirm asks the controller to release a held dispatch after the caller
+// observed every required allocation absent under the bound registry barrier.
+// The controller recomputes membership; this only reports what was observed.
+func (c *ReconcilerClient) Confirm(ctx context.Context, s scanevidence.ReconciliationSnapshot, absent []scanevidence.CleanupAbsence) (scanevidence.CleanupConfirmation, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	v, err := c.Identity(ctx)
+	if err != nil {
+		return scanevidence.CleanupConfirmation{}, err
+	}
+	if absent == nil {
+		absent = []scanevidence.CleanupAbsence{}
+	}
+	r := scanevidence.CleanupConfirmationRequest{Job: s.Membership.Job, Generation: s.Membership.Generation.ID, Membership: s.MembershipHash, Engine: c.engine, Namespace: c.namespace, Absent: absent}
+	if !r.Valid() {
+		return scanevidence.CleanupConfirmation{}, errors.New("invalid cleanup confirmation request")
+	}
+	var out scanevidence.CleanupConfirmation
+	if err = c.client.call(ctx, "reconciler/confirm", r, &out, 16<<10); err != nil {
+		return scanevidence.CleanupConfirmation{}, err
+	}
+	confirmed, err := time.Parse(time.RFC3339Nano, out.Confirmed)
+	if err != nil || out.Schema != "1.0" || out.Reconciler != v.ID || !out.Released || out.Digest != scanevidence.NewCleanupConfirmation(v.ID, r, confirmed).Digest || !sameConfirmationRequest(out.Request, r) {
+		return scanevidence.CleanupConfirmation{}, errors.New("cleanup confirmation rejected")
+	}
+	return out, nil
+}
+
+func sameConfirmationRequest(a, b scanevidence.CleanupConfirmationRequest) bool {
+	if a.Job != b.Job || a.Generation != b.Generation || a.Membership != b.Membership || a.Engine != b.Engine || a.Namespace != b.Namespace || len(a.Absent) != len(b.Absent) {
+		return false
+	}
+	for i := range a.Absent {
+		if a.Absent[i] != b.Absent[i] {
+			return false
+		}
+	}
+	return true
+}

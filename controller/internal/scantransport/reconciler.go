@@ -50,6 +50,27 @@ func (s *Server) reconciler(w http.ResponseWriter, r *http.Request, token string
 		default:
 			reply(w, 200, out)
 		}
+	case "/internal/v1/scanner/reconciler/confirm":
+		var in scanevidence.CleanupConfirmationRequest
+		if authorizerDecode(r, &in, map[string]bool{"job_id": true, "generation_id": true, "membership_digest": true, "engine_digest": true, "registry_namespace_digest": true, "absent": true}) != nil || !in.Valid() {
+			failure(w, 400, "INVALID_RECONCILER_REQUEST")
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+		out, err := s.Q.ConfirmCleanup(ctx, v, in)
+		switch {
+		case errors.Is(err, scannerauth.ErrDenied):
+			failure(w, 401, "RECONCILER_AUTH_REQUIRED")
+		case errors.Is(err, scanqueue.ErrContextUnbound):
+			failure(w, 409, "RECONCILIATION_CONTEXT_UNBOUND")
+		case errors.Is(err, scanqueue.ErrConflict):
+			failure(w, 409, "CLEANUP_NOT_RELEASABLE")
+		case err != nil:
+			queueError(w, err)
+		default:
+			reply(w, 200, out)
+		}
 	default:
 		failure(w, 404, "RECONCILER_OPERATION_UNAVAILABLE")
 	}

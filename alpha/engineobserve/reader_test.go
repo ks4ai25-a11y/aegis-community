@@ -206,6 +206,22 @@ func TestObserverChecksBothExactIdentitiesWithoutBrokerKeyOrAmbientConfig(t *tes
 	}
 }
 
+func TestObserverChecksNameOnlyForUncreatedLaunch(t *testing.T) {
+	f := newFixture(t, "")
+	r := openReader(t, f)
+	uncreated := Target{Name: target(2).Name}
+	if err := r.VerifyAbsent(context.Background(), []Target{target(1), uncreated}); err != nil {
+		t.Fatal(err)
+	}
+	expected := []string{"GET /v1.55/info", "GET /v1.55/containers/" + target(1).ID + "/json", "GET /v1.55/containers/" + target(1).Name + "/json", "GET /v1.55/containers/" + uncreated.Name + "/json", "GET /v1.55/info"}
+	if strings.Join(f.calls(), "\n") != strings.Join(expected, "\n") {
+		t.Fatal("name-only target read an unexpected sequence", f.calls())
+	}
+	if r.VerifyAbsent(context.Background(), []Target{uncreated, uncreated}) != ErrUnconfirmed {
+		t.Fatal("duplicate name-only target accepted")
+	}
+}
+
 func TestObserverRefusesUnconfirmedScopeOrAbsence(t *testing.T) {
 	for _, mode := range []string{"wrong-engine", "changed-engine", "duplicate-info", "alias-info", "case-info", "trailing-info", "null-info", "windows", "architecture", "oversized-info", "info-status", "id-present", "name-present", "inspect-denied", "inspect-error", "redirect", "html-404", "empty-404", "null-message", "alias-message", "duplicate-message", "trailing-message", "oversized-404", "compressed-404", "truncated-404", "withdraw-during-response", "foreign-server-ca"} {
 		t.Run(mode, func(t *testing.T) {

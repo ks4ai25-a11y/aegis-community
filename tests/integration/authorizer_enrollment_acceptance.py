@@ -77,7 +77,7 @@ with tempfile.TemporaryDirectory(prefix='aegis-authorizer-proof-') as temporary:
  result=run('scanner-reconciler','enroll','reconciler-a','1',binding,str(reconciler))
  reconciler_token=reconciler.read_bytes()
  assert len(reconciler_token)==65 and reconciler.stat().st_mode&0o777==0o600
- assert reconciler_token.strip() not in result.stdout+result.stderr and b'cleanup release unavailable' in result.stdout
+ assert reconciler_token.strip() not in result.stdout+result.stderr and b'reconcile-cleanup' in result.stdout
  with sqlite3.connect(dbpath) as db:
   role=db.execute('SELECT owner,binding_digest,capability,state,token_hash FROM scanner_reconcilers').fetchone()
   assert role==('fixture-owner',binding,'confirm-fenced-cleanup-v1','active',digest(b'aegis-scanner-engine-reconciler-v1\x00'+reconciler_token.strip()))

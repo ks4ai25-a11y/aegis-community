@@ -1,6 +1,6 @@
 # Scoped scanner reconciler enrollment
 
-Migration 017 adds the separate `scanner-engine-reconciler` role. It explicitly reserves `confirm-fenced-cleanup-v1` for future evidence-based cleanup confirmation, scoped to one immutable retained mutation-binding digest. The current protocol exposes identity and complete closed-generation metadata only. It has no release, reset, mutation-admission, response-completion or worker-lease operation. Existing worker, observer and authorizer tokens retain their existing permissions.
+Migration 017 adds the separate `scanner-engine-reconciler` role. It explicitly reserves `confirm-fenced-cleanup-v1` for future evidence-based cleanup confirmation, scoped to one immutable retained mutation-binding digest. The protocol exposes identity, complete closed-generation metadata and one evidence-bound release operation. It has no reset, mutation-admission, response-completion or worker-lease operation. Existing worker, observer and authorizer tokens retain their existing permissions.
 
 The local operator obtains the binding digest from the successful `scanner-authorizer bind` result, retains it privately with the original policy and namespace, and enrolls a separate credential:
 
@@ -26,11 +26,29 @@ The stable `membership_digest` covers the complete original scope, dispatch fing
 
 Every context retains `metadata_only=true`, `cleanup_required=true`, `cleanup_release_authorized=false` and `engine_writes_authorized=false`. Reading does not write an audit entry, renew a lease, close a generation, settle a pending response, remove a container or delete a dispatch. Original scope remains readable after authorizer withdrawal or removal of current host selections; it is not relabelled to a successor or a replacement namespace.
 
-## Recovery and remaining release work
+## Independent cleanup release (migration 018)
 
-Recovery manifests now support verified database prefixes 13–17 without offline upgrades. Version 17 requires the reconciler table; older declared versions must not contain it. Restore revokes every active reconciler while preserving its immutable original scope, pending mutation records and scanner cleanup holds. Restored credentials cannot authenticate. Existing earlier-prefix compatibility and automatic-rescan consent quarantine remain in force.
+`POST /internal/v1/scanner/reconciler/confirm` takes exactly `job_id`, `generation_id`, `membership_digest`, `engine_digest`, `registry_namespace_digest` and `absent` (one `{tool_id, container, engine_id}` per retained launch, sorted by tool). In one transaction the controller rechecks the enrollment, recomputes complete membership, and refuses unless all of these hold:
 
-The reconciler enrollment and metadata snapshot are prerequisites for ADR 057. Actual native mediation/fencing proof, sealed quarantine and explicit response repair, an independently observed complete allocation set, the original empty-registry barrier, and the final atomic/idempotent controller confirmation are still required before any release endpoint is enabled. A worker success, empty snapshot, settled journal, expired lease or404 alone cannot discharge an unknown mutation. Two actual sequential packaged scans with independent reconciliation remain unfinished.
+- the job is terminal and its dispatch is `cleanup_required` with a closed generation;
+- the recomputed membership digest equals the one the reconciler observed;
+- every mutation obligation is completed, each confirmed create has a confirmed removal, and there is no start/remove without a create and no obligation without a launch;
+- the absences equal exactly what membership requires;
+- engine and namespace equal the original binding.
+
+Only then does it record an immutable, retained confirmation (`scanner_cleanup_confirmations`), move the generation `closed`→`released`, delete the held dispatch and audit `scanner.cleanup_confirmed`. An exact replay returns the stored confirmation. A different request for a released job is refused. Unknown or pending mutations keep the hold indefinitely; there is no repair or override path.
+
+The operator runs the release with the reconciler's own credential and the observer's own engine TLS identity:
+
+```text
+aegis-research reconcile-cleanup PRIVATE_RECONCILE_CONFIG JOB GENERATION
+```
+
+The private config (owner-only mode, at most 8 KiB, exact fields) names the controller socket, reconciler credential, original binding scope, canonical source root, original workspace registry, observer endpoint/identity and broker public certificate. The command reads a fresh snapshot while holding the original registry empty under its approved namespace (`workspace.WithBoundEmptyRegistry`). It derives the required absences, observes each exact engine ID and name absent on the original engine (bracketed by engine identity checks), and only then asks the controller to release. A launch whose create was never admitted is observed by name only.
+
+## Recovery
+
+Recovery manifests support verified database prefixes 13–18 without offline upgrades. Versions 17 and 18 require the reconciler and confirmation tables respectively; older declared versions must not contain them. Restore revokes every active reconciler while preserving its immutable original scope, pending mutation records, confirmations and scanner cleanup holds. Restored credentials cannot authenticate.
 
 Local checks include role/credential isolation, immutable scope, expiry/revocation, failed issuance and audit rollback, complete pending membership, stable/fresh snapshot identities, hostile wire shapes, actual controller/alpha Unix RPC, older migration preservation and restored-role revocation. Fixed contract samples use only synthetic labels and dates and contain no issued credential or runtime evidence.
 

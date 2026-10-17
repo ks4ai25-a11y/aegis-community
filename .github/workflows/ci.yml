@@ -160,6 +160,19 @@ jobs:
         run: |
           mkdir -m 700 "$RUNNER_TEMP/aegis-native-admission-private"
           AEGIS_PACKAGED_WORKER_EVIDENCE="$RUNNER_TEMP/aegis-native-admission-private/acceptance.json" python3 tests/integration/packaged_worker_acceptance.py
+      - name: Verify independent reconciliation releases between two sequential scans
+        # First hosted run of the ADR 057 release path; reported, not yet gating.
+        continue-on-error: true
+        env:
+          AEGIS_PACKAGED_WORKER_TEST: '1'
+          AEGIS_PACKAGED_BROKER_TEST: '1'
+          AEGIS_PACKAGED_ENGINE_AUTHZ_TEST: '1'
+          AEGIS_PACKAGED_CONTROLLER_GATE_TEST: '1'
+          AEGIS_PACKAGED_ADMISSION_TEST: '1'
+          AEGIS_PACKAGED_RECONCILE_TEST: '1'
+        run: |
+          mkdir -m 700 "$RUNNER_TEMP/aegis-reconcile-private"
+          AEGIS_PACKAGED_WORKER_EVIDENCE="$RUNNER_TEMP/aegis-reconcile-private/acceptance.json" python3 tests/integration/packaged_worker_acceptance.py
       - name: Stop only this disposable job engine
         if: always()
         run: |

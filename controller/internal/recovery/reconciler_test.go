@@ -86,3 +86,21 @@ func TestRecoveryRequiresReconcilerTableToMatchDeclaredVersion(t *testing.T) {
 		})
 	}
 }
+
+func TestRecoveryRequiresCleanupConfirmationTableToMatchDeclaredVersion(t *testing.T) {
+	for _, kind := range []string{"missing-table", "undeclared-table"} {
+		t.Run(kind, func(t *testing.T) {
+			c, s, parent := fixture(t)
+			statement := "DROP TABLE scanner_cleanup_confirmations"
+			if kind == "undeclared-table" {
+				statement = "DELETE FROM migrations WHERE version=18"
+			}
+			if _, err := s.DB.Exec(statement); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := Create(context.Background(), c, filepath.Join(parent, "refused18")); err != ErrRecovery {
+				t.Fatal("cleanup confirmation table/version mismatch accepted", err)
+			}
+		})
+	}
+}

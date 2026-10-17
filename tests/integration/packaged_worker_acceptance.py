@@ -22,6 +22,8 @@ broker_mode=os.environ.get('AEGIS_PACKAGED_BROKER_TEST')=='1';broker=None
 authz_mode=os.environ.get('AEGIS_PACKAGED_ENGINE_AUTHZ_TEST')=='1';authz_engine=None
 controller_gate_mode=os.environ.get('AEGIS_PACKAGED_CONTROLLER_GATE_TEST')=='1'
 admission_mode=os.environ.get('AEGIS_PACKAGED_ADMISSION_TEST')=='1'
+reconcile_mode=os.environ.get('AEGIS_PACKAGED_RECONCILE_TEST')=='1';reconciler_volume=None
+if reconcile_mode and not admission_mode:raise SystemExit('Independent reconciliation requires the explicit native admission fixture')
 if admission_mode and not (controller_gate_mode and authz_mode and broker_mode):raise SystemExit('Native admission fixture requires all explicit broker/controller/engine guards')
 if controller_gate_mode and not authz_mode:raise SystemExit('Controller gate fixture requires the explicit restricted TLS fixture')
 if authz_mode:
@@ -236,12 +238,27 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   after=json.loads(helper(['engine-journal-status',str(work_root/'engine-journal'),plan['engine_digest']],mounts=[root_mount]).stdout);assert after==journal
   confirmed=True
   check('second_job_remains_queued_behind_independent_cleanup_hold')
+  if reconcile_mode:
+   from packaged_authorizer_fixture import provision_reconciler
+   confirmed=False
+   reconciler_volume,config_path,reconcile_mounts=provision_reconciler(authz_engine,authz_engine.bound,raw,compose,nonce,socket_volume,project)
+   released=json.loads(helper(['reconcile-cleanup',config_path,job['job_id'],authz_engine.bound.generation],mounts=reconcile_mounts,extra=['--group-add',group]).stdout)
+   assert released['dispatch_released'] is True and released['request']['job_id']==job['job_id'] and released['request']['generation_id']==authz_engine.bound.generation and len(released['request']['absent'])==1 and released['request']['absent'][0]['container']==plan['container_id']
+   replay=json.loads(helper(['reconcile-cleanup',config_path,job['job_id'],authz_engine.bound.generation],mounts=reconcile_mounts,extra=['--group-add',group]).stdout);assert replay==released
+   status,_=request(base,'/scans/'+job['job_id'],cookie=cookie);assert status['execution_admission']!='cleanup_required'
+   confirmed=True;check('independent_reconciler_observes_absence_under_registry_barrier_and_releases_once')
+   confirmed=False;started=True;result=raw(['start','--attach',worker_name],120,False)
+   assert result.returncode==0
+   second_outcome=json.loads(result.stdout);assert second_outcome['job_id']==second['job_id'] and second_outcome['state']=='completed' and second_outcome['receipt_count']==len(tools)
+   second_suite,_=request(base,'/scans/'+second['job_id']+'/result',cookie=cookie);assert second_suite['result_digest']==second_outcome['result_digest'] and second_suite['document']['cleanup_required'] is True
+   status,_=request(base,'/scans/'+second['job_id'],cookie=cookie);assert status['execution_admission']=='cleanup_required'
+   confirmed=True;check('second_sequential_scan_completes_after_release_and_is_held_again')
   engine_proof=None
   if authz_engine is not None:
    confirmed=False;engine_proof=authz_engine.finish();confirmed=True
    check('separate_restricted_engine_and_plugin_journal_settle_without_cleanup_release')
    if controller_gate_mode:check('admitted_authorizer_executes_real_scanner_and_fails_closed_on_loss_and_downgrade' if admission_mode else 'bound_authorizer_executes_real_scanner_and_fails_closed_on_loss_and_downgrade')
-  evidence={'schema_version':'1.0','status':'PASS','scope':'Isolated packaged nonroot bound worker executes a real static fixture only after immutable operator engine/registry provisioning; no independent cleanup release or production broker claim','recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'worker_image':image,'preflight':preflight,'operator_provisioning_input':provisioning,'operator_binding':binding,'journal_provisioning_input':journal_input,'journal_binding':journal_binding,'bound_launch_example':launch,'result':suite,'tool_ids':tools,'catalogue':catalogue,'journal':journal,'container_hardening_verified':True,'child_absence_observed':True,'controller_cleanup_admission':'HELD','all_engine_writes_mediated':False,'independent_security_signoff':False}
+  evidence={'schema_version':'1.0','status':'PASS','scope':'Isolated packaged nonroot bound worker executes a real static fixture only after immutable operator engine/registry provisioning; no independent cleanup release or production broker claim','recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'worker_image':image,'preflight':preflight,'operator_provisioning_input':provisioning,'operator_binding':binding,'journal_provisioning_input':journal_input,'journal_binding':journal_binding,'bound_launch_example':launch,'result':suite,'tool_ids':tools,'catalogue':catalogue,'journal':journal,'container_hardening_verified':True,'child_absence_observed':True,'controller_cleanup_admission':'RELEASED_ONCE_THEN_HELD' if reconcile_mode else 'HELD','sequential_scans':2 if reconcile_mode else 1,'all_engine_writes_mediated':False,'independent_security_signoff':False}
   if engine_proof is not None:evidence['restricted_engine']=engine_proof
   if admission_mode:evidence['actual_controller_mutation_ledger_verified']=authz_engine.bound.ledger_verified
   if broker_mode:
@@ -255,6 +272,7 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
    # After confirmed engine settlement, remove this exact nonce-owned holder
    # before Compose removes its volumes. Unknown work takes the retain branch.
    if authz_engine is not None and authz_engine.bound is not None:authz_engine.bound.cleanup()
+   if reconciler_volume is not None:raw(['volume','rm',reconciler_volume],success=False)
    if namespace_verified:compose('down','--volumes','--remove-orphans',success=False)
    raw(['volume','rm',secret_volume],success=False)
    if broker is not None:broker.cleanup_volumes()

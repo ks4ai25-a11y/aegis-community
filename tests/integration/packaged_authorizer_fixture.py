@@ -178,6 +178,7 @@ class AdmittedAuthorizer(BoundAuthorizer):
    dispatch=db.execute('SELECT * FROM scanner_dispatch WHERE job=?',(job,)).fetchone();assert dispatch is not None and dispatch['state']=='cleanup_required'
    generations=db.execute('SELECT * FROM scanner_allocation_generations').fetchall();assert len(generations)==1;g=generations[0]
    assert g['job']==job and g['owner']==self.owner and g['worker']==self.worker and g['state']=='closed' and g['closed_at'] and re.fullmatch(r'[0-9a-f]{64}',g['id'])
+   self.generation,self.binding_digest=g['id'],b['digest']
    assert g['binding_digest']==b['digest'] and g['lease_hash']==dispatch['token_hash'] and g['deadline']==dispatch['deadline'] and g['guard_digest']==dispatch['guard_set_digest']
    assert len(launches)==1 and launches[0]['document']['plan']['tool_id']=='bandit';launch=launches[0];name=launch['document']['plan']['container_id'];assert g['guard_digest']==launch['document']['guard_set_digest']
    workspace=db.execute('SELECT digest FROM scanner_workspaces WHERE job=? AND tool=?',(job,'bandit')).fetchone()[0]
@@ -201,6 +202,28 @@ class AdmittedAuthorizer(BoundAuthorizer):
    expected='sha256:'+hashlib.sha256(json.dumps({'Domain':'aegis-controller-admitted-journal-v1','Policy':self.policy,'Binding':b['digest']},separators=(',',':')).encode()).hexdigest()
    assert seal['document']['local_policy_digest']==expected
   self.ledger_verified=True
+
+def provision_reconciler(engine,bound,raw,compose,nonce,socket_volume,project):
+ """Enroll a separate reconciler and write its private config (ADR 057).
+
+ The reconciler receives its own controller credential and the observer's own
+ engine TLS identity; never the worker lease, authorizer or broker key."""
+ import shutil
+ volume=project+'-reconciler-credential';reconciler='reconciler-'+nonce
+ raw(['volume','create','--label','io.aegis.worker-proof='+nonce,volume])
+ compose('run','--rm','--no-deps','--volume',volume+':/run/scanner','--entrypoint','aegisctl','init','--version')
+ compose('run','--rm','--no-deps','--volume',volume+':/run/scanner','--entrypoint','aegisctl','init','scanner-reconciler','enroll',reconciler,'10',bound.binding_digest,'/run/scanner/reconciler.credential')
+ identity=engine.root/'observer-client';public=engine.root/'observer-public';config=engine.root/'reconcile'
+ for path in (identity,public,config):path.mkdir(mode=0o700)
+ for source,target in [('ca.pem','ca.pem'),('observer.pem','client.pem'),('observer.key','client.key')]:
+  shutil.copyfile(engine.tls/source,identity/target);(identity/target).chmod(0o600)
+ shutil.copyfile(engine.tls/'broker.pem',public/'broker.pem');(public/'broker.pem').chmod(0o600)
+ document={'controller_socket':'/run/scanner/worker.sock','reconciler_credential_file':'/run/reconciler-credential/reconciler.credential','owner_id':bound.owner,'reconciler_id':reconciler,'binding_digest':bound.binding_digest,'engine_digest':bound.digest,'registry_digest':bound.registry_digest,'policy_digest':bound.policy,'registry_namespace_digest':bound.namespace,'canonical_aegis_source_root':'/opt/aegis','canonical_workspace_registry':str(bound.registry),'observer_endpoint':'unix:///run/engine/docker.sock','observer_identity_directory':str(identity),'broker_certificate_file':str(public/'broker.pem')}
+ (config/'config.json').write_text(json.dumps(document));(config/'config.json').chmod(0o600)
+ for path in (identity,public,config):run(['sudo','chown','-R','10001:10001',path])
+ mounts=['type=volume,src='+socket_volume+',dst=/run/scanner,readonly','type=volume,src='+volume+',dst=/run/reconciler-credential,readonly','type=bind,src='+engine.socket+',dst=/run/engine/docker.sock,readonly','type=bind,src='+str(bound.registry)+',dst='+str(bound.registry)+',readonly']
+ mounts+=['type=bind,src='+str(p)+',dst='+str(p)+',readonly' for p in (identity,public,config)]
+ return volume,str(config/'config.json'),mounts
 
 def write_private_admission_evidence(path,value):
  """Create one new private receipt under an existing owned0700 directory."""

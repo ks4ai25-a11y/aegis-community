@@ -55,5 +55,5 @@ func runScannerReconciler(root string, args []string) {
 	if _, err = r.EnrollReconcilerFile(owner, args[2], minutes, args[4], args[5]); err != nil {
 		die("Reconciler enrollment refused; retain the original binding and cleanup hold")
 	}
-	fmt.Println("Reconciler enrolled for one retained binding; credential written privately; engine mediation and independent observations remain required; cleanup release unavailable")
+	fmt.Println("Reconciler enrolled for one retained binding; credential written privately; release requires aegis-research reconcile-cleanup with independent absence observation")
 }

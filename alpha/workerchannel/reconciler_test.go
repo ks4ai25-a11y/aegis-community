@@ -153,3 +153,62 @@ func TestReconcilerClientWithdrawalRefusesCachedConnection(t *testing.T) {
 		t.Fatal("cached connection bypassed credential withdrawal")
 	}
 }
+
+func TestReconcilerClientConfirmAcceptsOnlyTheExactRelease(t *testing.T) {
+	for _, kind := range []string{"ok", "reconciler", "not-released", "digest", "absences", "membership", "extra"} {
+		t.Run(kind, func(t *testing.T) {
+			v, s := reconcilerDocuments(t)
+			absent := []scanevidence.CleanupAbsence{{Tool: "bandit", Container: "aegis-scan-" + strings.Repeat("0", 32), EngineID: strings.Repeat("c", 64)}}
+			base, cred := fixture(t, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				switch req.URL.Path {
+				case "/internal/v1/scanner/reconciler/identity":
+					json.NewEncoder(w).Encode(v)
+				case "/internal/v1/scanner/reconciler/confirm":
+					var r scanevidence.CleanupConfirmationRequest
+					d := json.NewDecoder(req.Body)
+					d.DisallowUnknownFields()
+					if d.Decode(&r) != nil || r.Membership != s.MembershipHash || r.Engine != v.Engine || r.Namespace != v.Namespace {
+						t.Error("client sent an unbound confirmation")
+						w.WriteHeader(400)
+						return
+					}
+					c := scanevidence.NewCleanupConfirmation(v.ID, r, time.Now())
+					switch kind {
+					case "reconciler":
+						c = scanevidence.NewCleanupConfirmation("other", r, time.Now())
+					case "not-released":
+						c.Released = false
+					case "digest":
+						c.Digest = source.Hash([]byte("other"))
+					case "absences":
+						c.Request.Absent = []scanevidence.CleanupAbsence{}
+					case "membership":
+						c.Request.Membership = source.Hash([]byte("other"))
+					}
+					wire, _ := json.Marshal(c)
+					if kind == "extra" {
+						wire = []byte(strings.TrimSuffix(string(wire), "}") + `,"slot_free":true}`)
+					}
+					w.Write(wire)
+				default:
+					w.WriteHeader(404)
+				}
+			}))
+			c, err := NewReconciler(base.socket, cred, v.Owner, v.ID, v.Binding, v.Engine, v.Registry, v.Policy, v.Namespace, base.lock)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer c.Close()
+			out, err := c.Confirm(context.Background(), s, absent)
+			if kind == "ok" {
+				if err != nil || !out.Released || out.Reconciler != v.ID {
+					t.Fatal("exact release refused", err)
+				}
+				return
+			}
+			if err == nil {
+				t.Fatal("changed release accepted")
+			}
+		})
+	}
+}

@@ -66,7 +66,7 @@ func TestReconcilerHTTPRequiresSeparateRoleAndExactContextShape(t *testing.T) {
 	for _, operation := range []string{"identity", "claim", "verifier/identity", "authorizer/identity", "authorizer/admit", "authorizer/complete"} {
 		call(t, h, token, operation, "{}", 401)
 	}
-	for _, operation := range []string{"release", "reset", "admit", "complete"} {
+	for _, operation := range []string{"release", "reset", "admit", "complete", "cleanup"} {
 		call(t, h, token, "reconciler/"+operation, "{}", 404)
 	}
 	job, err := s.Q.Enqueue("owner-a", "reconciliation-context-http", input)
@@ -95,8 +95,16 @@ func TestReconcilerHTTPRequiresSeparateRoleAndExactContextShape(t *testing.T) {
 	for _, bad := range []string{"null", "{}", string(body) + "{}", strings.TrimSuffix(string(body), "}") + `,"tool_ids":["bandit"]}`, strings.Replace(string(body), `"job_id"`, `"Job_ID"`, 1), strings.TrimSuffix(string(body), "}") + `,"job_id":"` + job.ID + `"}`, strings.Replace(string(body), `"generation_id":"`+generation+`"`, `"generation_id":null`, 1)} {
 		call(t, h, token, "reconciler/context", bad, 400)
 	}
+	confirm := scanevidence.CleanupConfirmationRequest{Job: job.ID, Generation: generation, Membership: snapshot.MembershipHash, Engine: snapshot.Membership.Binding.Document.Engine, Namespace: snapshot.Membership.Binding.Document.Namespace, Absent: []scanevidence.CleanupAbsence{}}
+	confirmBody, _ := json.Marshal(confirm)
+	// The job is still running under cancellation, so nothing may be released.
+	call(t, h, token, "reconciler/confirm", string(confirmBody), 409)
+	for _, bad := range []string{"{}", strings.Replace(string(confirmBody), `"absent":[]`, `"absent":null`, 1), strings.Replace(string(confirmBody), `"absent":[]`, `"absent":[{"tool_id":"bandit","container":"x","engine_id":"","extra":1}]`, 1), strings.TrimSuffix(string(confirmBody), "}") + `,"dispatch_released":true}`} {
+		call(t, h, token, "reconciler/confirm", bad, 400)
+	}
 	if err = s.Auth.RevokeReconciler(v.Owner, v.ID); err != nil {
 		t.Fatal(err)
 	}
 	call(t, h, token, "reconciler/context", string(body), 401)
+	call(t, h, token, "reconciler/confirm", string(confirmBody), 401)
 }

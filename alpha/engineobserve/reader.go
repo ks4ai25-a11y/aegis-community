@@ -168,10 +168,15 @@ func (r *Reader) VerifyAbsent(ctx context.Context, targets []Target) error {
 	targets = append([]Target(nil), targets...)
 	names, ids := map[string]bool{}, map[string]bool{}
 	for _, target := range targets {
-		if !namePattern.MatchString(target.Name) || !idPattern.MatchString(target.ID) || names[target.Name] || ids[target.ID] {
+		// An empty ID is a launch whose create was never admitted: only its
+		// exact name can be observed absent.
+		if !namePattern.MatchString(target.Name) || (target.ID != "" && !idPattern.MatchString(target.ID)) || names[target.Name] || (target.ID != "" && ids[target.ID]) {
 			return ErrUnconfirmed
 		}
-		names[target.Name], ids[target.ID] = true, true
+		names[target.Name] = true
+		if target.ID != "" {
+			ids[target.ID] = true
+		}
 	}
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -180,6 +185,9 @@ func (r *Reader) VerifyAbsent(ctx context.Context, targets []Target) error {
 	}
 	for _, target := range targets {
 		for _, exact := range []string{target.ID, target.Name} {
+			if exact == "" {
+				continue
+			}
 			b, err := r.get(ctx, "/containers/"+exact+"/json", http.StatusNotFound)
 			if err != nil {
 				return ErrUnconfirmed

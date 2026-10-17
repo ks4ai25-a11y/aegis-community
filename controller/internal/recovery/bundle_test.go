@@ -429,7 +429,7 @@ func removeAllocationSchema(t *testing.T, s *store.Store) {
 
 func removeReconcilerSchema(t *testing.T, s *store.Store) {
 	t.Helper()
-	for _, statement := range []string{"DROP TABLE scanner_reconcilers", "DELETE FROM migrations WHERE version=17"} {
+	for _, statement := range []string{"DROP TABLE scanner_cleanup_confirmations", "DELETE FROM migrations WHERE version=18", "DROP TABLE scanner_reconcilers", "DELETE FROM migrations WHERE version=17"} {
 		if _, err := s.DB.Exec(statement); err != nil {
 			t.Fatal(err)
 		}

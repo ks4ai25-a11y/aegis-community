@@ -142,8 +142,16 @@ CREATE TRIGGER scanner_reconciler_state_monotonic BEFORE UPDATE OF state ON scan
 CREATE TRIGGER scanner_reconciler_retained BEFORE DELETE ON scanner_reconcilers BEGIN SELECT RAISE(ABORT,'scanner reconciler enrollment is retained'); END;
 `
 
+// Migration 018 (ADR 057): independent cleanup confirmations. Each release is
+// recorded once per job and generation and is retained permanently.
+const scannerCleanupConfirmationSchema = `
+CREATE TABLE scanner_cleanup_confirmations(job TEXT PRIMARY KEY REFERENCES scanner_jobs(id),generation TEXT UNIQUE NOT NULL REFERENCES scanner_allocation_generations(id),reconciler TEXT NOT NULL REFERENCES scanner_reconcilers(id),membership_digest TEXT NOT NULL,digest TEXT UNIQUE NOT NULL,document TEXT NOT NULL,created_at TEXT NOT NULL);
+CREATE TRIGGER scanner_cleanup_confirmation_immutable BEFORE UPDATE ON scanner_cleanup_confirmations BEGIN SELECT RAISE(ABORT,'cleanup confirmations are immutable'); END;
+CREATE TRIGGER scanner_cleanup_confirmation_retained BEFORE DELETE ON scanner_cleanup_confirmations BEGIN SELECT RAISE(ABORT,'cleanup confirmations are retained'); END;
+`
+
 func migrationBodies() []string {
-	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema}
+	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema, scannerCleanupConfirmationSchema}
 }
 func migrate(db *sql.DB) error {
 	versions := migrationBodies()
