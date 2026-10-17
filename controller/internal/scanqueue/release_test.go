@@ -3,8 +3,11 @@ package scanqueue
 
 import (
 	"aegis.local/controller/internal/domain"
+	"aegis.local/controller/internal/scannerauth"
 	"aegis.local/source/scanevidence"
 	"context"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -66,6 +69,9 @@ func TestConfirmCleanupReleasesDispatchOnceAndRetainsConfirmation(t *testing.T) 
 	}
 	if dispatchHeld(t, q, l.Job.ID) {
 		t.Fatal("dispatch still held after release")
+	}
+	if st, e := q.Status(l.Job.Owner, l.Job.ID); e != nil || st.Admission != "cleanup_confirmed" {
+		t.Fatal("released job status unreadable", st.Admission, e)
 	}
 	var state string
 	if e = q.S.DB.QueryRow("SELECT state FROM scanner_allocation_generations WHERE job=?", l.Job.ID).Scan(&state); e != nil || state != "released" {
@@ -168,5 +174,64 @@ func TestRequiredAbsencesRefuseRetargetedStartOrRemove(t *testing.T) {
 		if _, e = scanevidence.RequiredAbsences(m); e == nil {
 			t.Fatal(op + " of another engine ID accepted as proof for the created container")
 		}
+	}
+}
+
+func TestConfirmCleanupRefusesRevokedBindingAfterRestoreInvalidation(t *testing.T) {
+	for _, statement := range []string{"UPDATE scanner_mutation_bindings SET state='revoked' WHERE state='active'", "UPDATE scanner_authorizers SET state='revoked' WHERE state='active'"} {
+		q, l, v, req := releasableFixture(t, true)
+		if _, e := q.S.DB.Exec(statement); e != nil {
+			t.Fatal(e)
+		}
+		if _, e := q.ConfirmCleanup(context.Background(), v, req); e != ErrContextUnbound {
+			t.Fatal("restored or withdrawn scope released a hold", statement, e)
+		}
+		if !dispatchHeld(t, q, l.Job.ID) {
+			t.Fatal("hold freed")
+		}
+	}
+}
+
+func TestConfirmCleanupReplayReadableByLaterReconcilerOnSameBinding(t *testing.T) {
+	q, _, v, req := releasableFixture(t, true)
+	c, e := q.ConfirmCleanup(context.Background(), v, req)
+	if e != nil {
+		t.Fatal(e)
+	}
+	auth := &scannerauth.Registry{S: q.S, Now: q.Now}
+	if e = auth.RevokeReconciler(v.Owner, v.ID); e != nil {
+		t.Fatal(e)
+	}
+	parent, e := filepath.EvalSymlinks(t.TempDir())
+	if e != nil || os.Chmod(parent, 0700) != nil {
+		t.Fatal("private fixture unavailable")
+	}
+	next, e := auth.EnrollReconcilerFile(v.Owner, "reconciler-b", 60, v.Binding, filepath.Join(parent, "next.token"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	replay, e := q.ConfirmCleanup(context.Background(), next, req)
+	if e != nil || replay.Digest != c.Digest || replay.Reconciler != v.ID {
+		t.Fatal("lost reply not recoverable by successor reconciler", e)
+	}
+}
+
+func TestDatabaseRefusesReleaseWithoutMatchingConfirmation(t *testing.T) {
+	q, l, _, req := releasableFixture(t, true)
+	if _, e := q.S.DB.Exec("UPDATE scanner_allocation_generations SET state='released' WHERE job=?", l.Job.ID); e == nil {
+		t.Fatal("generation released without a confirmation row")
+	}
+	hash := domain.Hash([]byte("x"))
+	for name, row := range map[string][]any{
+		"malformed":        {l.Job.ID, req.Generation, "reconciler-a", req.Membership, "x", "{}"},
+		"empty-document":   {l.Job.ID, req.Generation, "reconciler-a", req.Membership, hash, "{}"},
+		"other-generation": {l.Job.ID, strings.Repeat("9", 64), "reconciler-a", req.Membership, hash, `{"confirmation_digest":"` + hash + `"}`},
+	} {
+		if _, e := q.S.DB.Exec("INSERT INTO scanner_cleanup_confirmations(job,generation,reconciler,membership_digest,digest,document,created_at) VALUES(?,?,?,?,?,?,'2026-10-17T00:00:00Z')", row...); e == nil {
+			t.Fatal("unbound confirmation row accepted:", name)
+		}
+	}
+	if !dispatchHeld(t, q, l.Job.ID) {
+		t.Fatal("hold freed")
 	}
 }

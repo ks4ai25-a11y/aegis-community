@@ -150,8 +150,16 @@ CREATE TRIGGER scanner_cleanup_confirmation_immutable BEFORE UPDATE ON scanner_c
 CREATE TRIGGER scanner_cleanup_confirmation_retained BEFORE DELETE ON scanner_cleanup_confirmations BEGIN SELECT RAISE(ABORT,'cleanup confirmations are retained'); END;
 `
 
+// Migration 019 makes the database itself refuse a release without its
+// recorded confirmation, and refuses confirmation rows for another job's
+// generation or with malformed digests (QA R4-4).
+const scannerReleaseGuardSchema = `
+CREATE TRIGGER scanner_generation_release_confirmed BEFORE UPDATE OF state ON scanner_allocation_generations WHEN NEW.state='released' AND NOT EXISTS (SELECT 1 FROM scanner_cleanup_confirmations WHERE job=NEW.job AND generation=NEW.id) BEGIN SELECT RAISE(ABORT,'release requires a recorded cleanup confirmation'); END;
+CREATE TRIGGER scanner_cleanup_confirmation_scoped BEFORE INSERT ON scanner_cleanup_confirmations WHEN NOT EXISTS (SELECT 1 FROM scanner_allocation_generations WHERE job=NEW.job AND id=NEW.generation AND state='closed') OR length(NEW.digest)!=71 OR substr(NEW.digest,1,7)!='sha256:' OR length(NEW.membership_digest)!=71 OR substr(NEW.membership_digest,1,7)!='sha256:' OR json_valid(NEW.document)=0 OR json_extract(NEW.document,'$.confirmation_digest') IS NOT NEW.digest OR json_extract(NEW.document,'$.request.membership_digest') IS NOT NEW.membership_digest OR json_extract(NEW.document,'$.request.job_id') IS NOT NEW.job OR json_extract(NEW.document,'$.request.generation_id') IS NOT NEW.generation BEGIN SELECT RAISE(ABORT,'cleanup confirmation does not match its generation'); END;
+`
+
 func migrationBodies() []string {
-	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema, scannerCleanupConfirmationSchema}
+	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema, scannerCleanupConfirmationSchema, scannerReleaseGuardSchema}
 }
 func migrate(db *sql.DB) error {
 	versions := migrationBodies()

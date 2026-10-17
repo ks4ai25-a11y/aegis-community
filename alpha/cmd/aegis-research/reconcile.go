@@ -10,9 +10,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"syscall"
 	"time"
 )
 
@@ -37,11 +40,7 @@ type reconcileConfig struct {
 }
 
 func reconcileCleanup(configPath, job, generation string) error {
-	info, err := os.Lstat(configPath)
-	if err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0077 != 0 || info.Size() > 8192 {
-		return fmt.Errorf("private reconcile configuration required")
-	}
-	raw, err := os.ReadFile(configPath)
+	raw, err := readPrivate(configPath, 8192)
 	if err != nil {
 		return fmt.Errorf("private reconcile configuration required")
 	}
@@ -59,8 +58,8 @@ func reconcileCleanup(configPath, job, generation string) error {
 	if err != nil {
 		return fmt.Errorf("trusted tool lock unavailable")
 	}
-	certificate, err := os.ReadFile(c.BrokerCertificate)
-	if err != nil || len(certificate) > 16<<10 {
+	certificate, err := readPrivate(c.BrokerCertificate, 16<<10)
+	if err != nil {
 		return fmt.Errorf("broker certificate unavailable")
 	}
 	client, err := workerchannel.NewReconciler(c.Socket, c.Credential, c.Owner, c.Reconciler, c.Binding, c.Engine, c.Registry, c.Policy, c.Namespace, lock)
@@ -76,8 +75,32 @@ func reconcileCleanup(configPath, job, generation string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	out, err := reconcile.Release{Controller: client, Observer: observer, Barrier: workspace.WithBoundEmptyRegistry, Registry: c.WorkspaceRegistry, Namespace: c.Namespace}.Run(ctx, job, generation)
-	if err != nil {
+	if errors.Is(err, reconcile.ErrReleasedWithWarning) {
+		fmt.Fprintln(os.Stderr, "warning: release committed; registry barrier closing check failed; inspect the registry before the next scan")
+	} else if err != nil {
 		return fmt.Errorf("scanner cleanup not released")
 	}
 	return json.NewEncoder(os.Stdout).Encode(out)
+}
+
+// readPrivate opens without following links and checks the open file: a
+// regular, single-link file owned by this user, unreadable by others.
+func readPrivate(path string, limit int64) ([]byte, error) {
+	if !filepath.IsAbs(path) || filepath.Clean(path) != path {
+		return nil, fmt.Errorf("canonical absolute path required")
+	}
+	f, err := os.OpenFile(path, os.O_RDONLY|syscall.O_NOFOLLOW, 0)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	info, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+	st, ok := info.Sys().(*syscall.Stat_t)
+	if !ok || !info.Mode().IsRegular() || info.Mode().Perm()&0077 != 0 || info.Size() > limit || st.Nlink != 1 || int(st.Uid) != os.Geteuid() {
+		return nil, fmt.Errorf("private file required")
+	}
+	return io.ReadAll(io.LimitReader(f, limit+1))
 }

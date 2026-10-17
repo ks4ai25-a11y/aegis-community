@@ -155,7 +155,8 @@
         "not_claimed",
         "unconfirmed",
         "active",
-        "cleanup_required"
+        "cleanup_required",
+        "cleanup_confirmed"
       ]
     }
   },

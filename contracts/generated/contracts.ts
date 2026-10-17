@@ -733,7 +733,7 @@ export interface ScannerJobListV1ItemsItemInputAdvisoryDatabaseDigests {
 }
 export interface ScannerJobStatusV1 {
   job: ScannerJobStatusV1Job;
-  execution_admission: "not_claimed" | "unconfirmed" | "active" | "cleanup_required";
+  execution_admission: "not_claimed" | "unconfirmed" | "active" | "cleanup_required" | "cleanup_confirmed";
 }
 export interface ScannerJobStatusV1Job {
   schema_version: "1.0";

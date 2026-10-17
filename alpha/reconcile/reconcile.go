@@ -14,6 +14,11 @@ import (
 
 var ErrUnreleased = errors.New("scanner cleanup not released")
 
+// ErrReleasedWithWarning means the controller committed the release, but the
+// registry barrier's closing checks then failed. The release stands; the
+// operator should inspect the registry before the next scan (QA R4-5).
+var ErrReleasedWithWarning = errors.New("scanner cleanup released; registry barrier closing check failed")
+
 type Controller interface {
 	Snapshot(ctx context.Context, job, generation string) (scanevidence.ReconciliationSnapshot, error)
 	Confirm(ctx context.Context, s scanevidence.ReconciliationSnapshot, absent []scanevidence.CleanupAbsence) (scanevidence.CleanupConfirmation, error)
@@ -72,6 +77,9 @@ func (r Release) Run(ctx context.Context, job, generation string) (scanevidence.
 		return err
 	})
 	if err != nil {
+		if out.Released {
+			return out, ErrReleasedWithWarning
+		}
 		return scanevidence.CleanupConfirmation{}, err
 	}
 	return out, nil

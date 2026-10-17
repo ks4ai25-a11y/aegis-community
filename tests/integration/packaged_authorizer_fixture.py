@@ -198,6 +198,7 @@ class AdmittedAuthorizer(BoundAuthorizer):
     proposed=pending['document']['controller_intent'];assert proposed['intent_id']==m['id'] and proposed['state']=='pending' and proposed['request']['generation_id']==g['id'] and proposed['request']['descriptor_digest']==m['descriptor_digest'] and proposed['request']['job_id']==job and proposed['request']['operation']==op and proposed['request']['launch_digest']==m['launch_digest'] and proposed['workspace_digest']==m['workspace_digest'] and proposed['container']==name
     assert native['document']['intent_digest']==pending['digest'] and native['document']['container_id']==m['result_engine_id'] and native['document']['response_status']==m['response_status'] and native['digest']==m['response_digest']
    assert len({m['result_engine_id'] for m in intents})==1
+   self.created_engine_id=intents[0]['result_engine_id']
    seal=journal_record(self.journal/'policy.json')
    expected='sha256:'+hashlib.sha256(json.dumps({'Domain':'aegis-controller-admitted-journal-v1','Policy':self.policy,'Binding':b['digest']},separators=(',',':')).encode()).hexdigest()
    assert seal['document']['local_policy_digest']==expected

@@ -24,7 +24,7 @@
     "database_schema_version": {
       "type": "integer",
       "minimum": 13,
-      "maximum": 18
+      "maximum": 19
     },
     "policy_digest": {
       "type": "string",

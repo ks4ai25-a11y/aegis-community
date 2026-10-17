@@ -139,6 +139,8 @@ func newFixture(t *testing.T, mode string) *fixture {
 			status = http.StatusTemporaryRedirect
 		case "html-404":
 			body = "404 page not found"
+		case "router-404":
+			body = `{"message":"page not found"}`
 		case "empty-404":
 			body = ""
 		case "null-message":
@@ -223,7 +225,7 @@ func TestObserverChecksNameOnlyForUncreatedLaunch(t *testing.T) {
 }
 
 func TestObserverRefusesUnconfirmedScopeOrAbsence(t *testing.T) {
-	for _, mode := range []string{"wrong-engine", "changed-engine", "duplicate-info", "alias-info", "case-info", "trailing-info", "null-info", "windows", "architecture", "oversized-info", "info-status", "id-present", "name-present", "inspect-denied", "inspect-error", "redirect", "html-404", "empty-404", "null-message", "alias-message", "duplicate-message", "trailing-message", "oversized-404", "compressed-404", "truncated-404", "withdraw-during-response", "foreign-server-ca"} {
+	for _, mode := range []string{"wrong-engine", "changed-engine", "duplicate-info", "alias-info", "case-info", "trailing-info", "null-info", "windows", "architecture", "oversized-info", "info-status", "id-present", "name-present", "inspect-denied", "inspect-error", "redirect", "html-404", "router-404", "empty-404", "null-message", "alias-message", "duplicate-message", "trailing-message", "oversized-404", "compressed-404", "truncated-404", "withdraw-during-response", "foreign-server-ca"} {
 		t.Run(mode, func(t *testing.T) {
 			f := newFixture(t, mode)
 			r := openReader(t, f)

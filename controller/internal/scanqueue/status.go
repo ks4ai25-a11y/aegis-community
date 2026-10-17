@@ -23,7 +23,16 @@ func (q *Queue) Status(owner, id string) (Status, error) {
 	var admission string
 	e = tx.QueryRow("SELECT state FROM scanner_dispatch WHERE job=?", id).Scan(&admission)
 	if e == sql.ErrNoRows {
-		// Missing dispatch is expected only for jobs that never ran.
+		// A released job's dispatch is gone once an independent reconciler
+		// confirmed cleanup (ADR 057); otherwise a missing dispatch is expected
+		// only for jobs that never ran.
+		var confirmed int
+		if e = tx.QueryRow("SELECT count(*) FROM scanner_cleanup_confirmations c JOIN scanner_allocation_generations g ON g.job=c.job AND g.id=c.generation WHERE c.job=? AND g.state='released'", id).Scan(&confirmed); e != nil {
+			return Status{}, e
+		}
+		if confirmed == 1 && j.State != "queued" && j.State != "running" {
+			return Status{j, "cleanup_confirmed"}, nil
+		}
 		if j.State != "queued" && j.State != "cancelled" && !(j.State == "timeout" && j.Error == "QUEUE_EXPIRED") {
 			return Status{}, ErrConflict
 		}

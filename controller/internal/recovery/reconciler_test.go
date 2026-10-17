@@ -91,15 +91,33 @@ func TestRecoveryRequiresCleanupConfirmationTableToMatchDeclaredVersion(t *testi
 	for _, kind := range []string{"missing-table", "undeclared-table"} {
 		t.Run(kind, func(t *testing.T) {
 			c, s, parent := fixture(t)
-			statement := "DROP TABLE scanner_cleanup_confirmations"
+			statement := "DROP TRIGGER scanner_generation_release_confirmed; DROP TRIGGER scanner_cleanup_confirmation_scoped; DROP TABLE scanner_cleanup_confirmations"
 			if kind == "undeclared-table" {
-				statement = "DELETE FROM migrations WHERE version=18"
+				statement = "DELETE FROM migrations WHERE version>=18"
 			}
 			if _, err := s.DB.Exec(statement); err != nil {
 				t.Fatal(err)
 			}
 			if _, err := Create(context.Background(), c, filepath.Join(parent, "refused18")); err != ErrRecovery {
 				t.Fatal("cleanup confirmation table/version mismatch accepted", err)
+			}
+		})
+	}
+}
+
+func TestRecoveryRequiresReleaseGuardsToMatchDeclaredVersion(t *testing.T) {
+	for _, kind := range []string{"missing-trigger", "undeclared-trigger"} {
+		t.Run(kind, func(t *testing.T) {
+			c, s, parent := fixture(t)
+			statement := "DROP TRIGGER scanner_generation_release_confirmed"
+			if kind == "undeclared-trigger" {
+				statement = "DELETE FROM migrations WHERE version=19"
+			}
+			if _, err := s.DB.Exec(statement); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := Create(context.Background(), c, filepath.Join(parent, "refused19")); err != ErrRecovery {
+				t.Fatal("release guard/version mismatch accepted", err)
 			}
 		})
 	}

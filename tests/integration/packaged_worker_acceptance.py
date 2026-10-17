@@ -245,7 +245,7 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
    # The reconciler gets only its own observer identity, never the broker key.
    assert not any(str(authz_engine.client_dir) in m or '/run/engine-tls' in m for m in reconcile_mounts)
    released=json.loads(helper(['reconcile-cleanup',config_path,job['job_id'],authz_engine.bound.generation],mounts=reconcile_mounts,extra=['--group-add',group],broker_tls=False).stdout)
-   assert released['dispatch_released'] is True and released['request']['job_id']==job['job_id'] and released['request']['generation_id']==authz_engine.bound.generation and len(released['request']['absent'])==1 and released['request']['absent'][0]['container']==plan['container_id']
+   assert released['dispatch_released'] is True and released['request']['job_id']==job['job_id'] and released['request']['generation_id']==authz_engine.bound.generation and len(released['request']['absent'])==1 and released['request']['absent'][0]['container']==plan['container_id'] and released['request']['absent'][0]['engine_id']==authz_engine.bound.created_engine_id
    # A released generation has no held context left to snapshot; repeating the
    # command must fail closed (controller replay is covered by queue tests).
    assert helper(['reconcile-cleanup',config_path,job['job_id'],authz_engine.bound.generation],mounts=reconcile_mounts,extra=['--group-add',group],broker_tls=False,success=False).returncode!=0
@@ -264,6 +264,10 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
    if controller_gate_mode:check('admitted_authorizer_executes_real_scanner_and_fails_closed_on_loss_and_downgrade' if admission_mode else 'bound_authorizer_executes_real_scanner_and_fails_closed_on_loss_and_downgrade')
   evidence={'schema_version':'1.0','status':'PASS','scope':'Isolated packaged nonroot bound worker executes a real static fixture only after immutable operator engine/registry provisioning; no independent cleanup release or production broker claim','recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'worker_image':image,'preflight':preflight,'operator_provisioning_input':provisioning,'operator_binding':binding,'journal_provisioning_input':journal_input,'journal_binding':journal_binding,'bound_launch_example':launch,'result':suite,'tool_ids':tools,'catalogue':catalogue,'journal':journal,'container_hardening_verified':True,'child_absence_observed':True,'controller_cleanup_admission':'RELEASED_ONCE_THEN_HELD' if reconcile_mode else 'HELD','sequential_scans':2 if reconcile_mode else 1,'all_engine_writes_mediated':False,'independent_security_signoff':False}
   if engine_proof is not None:evidence['restricted_engine']=engine_proof
+  if reconcile_mode:
+   evidence['scope']='Packaged admitted path: two sequential real scans, with one independent reconciler release between them after exact absence observation under the original registry barrier; no all-write mediation or security sign-off claim'
+   evidence['independent_cleanup_release']={'released_jobs':1,'second_scan_completed':True,'second_job_held_again':True}
+   if engine_proof is not None:engine_proof['cleanup_release_authorized']='ONCE_BY_INDEPENDENT_RECONCILER'
   if admission_mode:evidence['actual_controller_mutation_ledger_verified']=authz_engine.bound.ledger_verified
   if broker_mode:
    evidence.update(broker.proof(dispatch_outcome));evidence['scope']='Dedicated fixed scanner broker and minimal socket-only dispatch client; controller-selected worker identity; no production all-write mediation or independent cleanup claim'

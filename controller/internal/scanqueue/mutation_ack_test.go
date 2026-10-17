@@ -12,7 +12,8 @@ import (
 )
 
 func TestCompletedMutationAcknowledgementDoesNotTouchSuccessor(t *testing.T) {
-	q, l, v, r, _ := mutationFixture(t)
+	q, l, v, r, b := mutationFixture(t)
+	reconciler := enrollReconciliationFixture(t, q, b)
 	m := mustAdmit(t, q, v, r)
 	c := mustComplete(t, q, v, m)
 	start := r
@@ -27,12 +28,22 @@ func TestCompletedMutationAcknowledgementDoesNotTouchSuccessor(t *testing.T) {
 	if e := q.Cancel(l.Job.Owner, l.Job.ID); e != nil {
 		t.Fatal(e)
 	}
-	// Simulate the future independently verified release transaction only in
-	// this fixture. No production release endpoint exists or is exercised here.
-	if _, e := q.S.DB.Exec("UPDATE scanner_allocation_generations SET state='released' WHERE job=?", l.Job.ID); e != nil {
+	// Release through the evidence-bound transaction (ADR 057); the database
+	// refuses any other release.
+	now := q.now()
+	q.Now = func() time.Time { return now.Add(20 * time.Second) }
+	if e := q.Reconcile(); e != nil {
 		t.Fatal(e)
 	}
-	if _, e := q.S.DB.Exec("DELETE FROM scanner_dispatch WHERE job=?", l.Job.ID); e != nil {
+	s, e := q.ReconciliationSnapshot(context.Background(), reconciler, reconciliationRequest(l, r))
+	if e != nil {
+		t.Fatal(e)
+	}
+	absent, e := scanevidence.RequiredAbsences(s.Membership)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if _, e = q.ConfirmCleanup(context.Background(), reconciler, scanevidence.CleanupConfirmationRequest{Job: l.Job.ID, Generation: r.Generation, Membership: s.MembershipHash, Engine: s.Membership.Binding.Document.Engine, Namespace: s.Membership.Binding.Document.Namespace, Absent: absent}); e != nil {
 		t.Fatal(e)
 	}
 	if _, e := q.Enqueue(l.Job.Owner, "successor-after-release", l.Job.Input); e != nil {

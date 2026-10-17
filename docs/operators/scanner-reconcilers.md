@@ -46,9 +46,19 @@ aegis-research reconcile-cleanup PRIVATE_RECONCILE_CONFIG JOB GENERATION
 
 The private config (owner-only mode, at most 8 KiB, exact fields) names the controller socket, reconciler credential, original binding scope, canonical source root, original workspace registry, observer endpoint/identity and broker public certificate. The command reads a fresh snapshot while holding the original registry empty under its approved namespace (`workspace.WithBoundEmptyRegistry`). It derives the required absences, observes each exact engine ID and name absent on the original engine (bracketed by engine identity checks), and only then asks the controller to release. A launch whose create was never admitted is observed by name only. Run the reconciler as the scanner UID that owns the workspace registry (the barrier accepts only files owned by its caller), and give it only its own observer identity: never mount the broker's client key, worker credential or authorizer credential into it.
 
+### Limits of independence
+
+- **Shared OS identity (QA R4-2).** The registry barrier, namespace document and private-file checks require the reconciler to run as the scanner UID. So the reconciler credential and observer key sit in files that UID owns. Only container and mount boundaries separate the roles, not OS identity. The controller cannot observe absence itself, so anything that can read the reconciler credential could request a release. Run the reconciler in its own container and never mount its credential into a worker, broker or authorizer container. A separate-UID reconciler with group-readable registry access is future work.
+- **Workspace cleanup.** The controller checks container absence against retained launches. Workspace cleanup is enforced by the alpha reconciler holding the original registry empty.
+- **Restored holds stay held (QA R4-1).** Release requires the job's mutation binding and its authorizer to still be active. Restore revokes both, and a restored ledger can be missing allocations made after the bundle, so a hold restored from a bundle cannot be released.
+- **The database enforces release (migration 019).** The database refuses `closed`→`released` without a matching confirmation, and refuses confirmation rows for another job's generation or with malformed digests.
+- **Lost replies.** If a confirmation reply is lost, any later reconciler enrolled on the same binding can read it back.
+- **Released with a warning.** If the release commits but the registry barrier's closing check then fails, the command prints the confirmation, warns on stderr and exits 0. Inspect the registry before the next scan.
+- **What counts as absence.** Only the daemon's own "No such container" 404 counts. The private config and broker certificate must be absolute, non-linked, single-link files owned by the caller and unreadable by others.
+
 ## Recovery
 
-Recovery manifests support verified database prefixes 13–18 without offline upgrades. Versions 17 and 18 require the reconciler and confirmation tables respectively; older declared versions must not contain them. Restore revokes every active reconciler while preserving its immutable original scope, pending mutation records, confirmations and scanner cleanup holds. Restored credentials cannot authenticate.
+Recovery manifests support verified database prefixes 13–19 without offline upgrades. Versions 17, 18 and 19 require the reconciler table, the confirmation table and the release-guard triggers respectively; older declared versions must not contain them. Restore revokes every active reconciler while preserving its immutable original scope, pending mutation records, confirmations and scanner cleanup holds. Restored credentials cannot authenticate.
 
 Local checks include role/credential isolation, immutable scope, expiry/revocation, failed issuance and audit rollback, complete pending membership, stable/fresh snapshot identities, hostile wire shapes, actual controller/alpha Unix RPC, older migration preservation and restored-role revocation. Fixed contract samples use only synthetic labels and dates and contain no issued credential or runtime evidence.
 

@@ -192,9 +192,11 @@ func (r *Reader) VerifyAbsent(ctx context.Context, targets []Target) error {
 			if err != nil {
 				return ErrUnconfirmed
 			}
+			// Only the daemon's own not-found answer counts; a router 404
+			// ("page not found") is not evidence of absence (QA R4-7).
 			fields, err := objectFields(b)
 			var message string
-			if err != nil || len(fields) != 1 || json.Unmarshal(fields["message"], &message) != nil || message == "" {
+			if err != nil || len(fields) != 1 || json.Unmarshal(fields["message"], &message) != nil || !strings.HasPrefix(message, "No such container") {
 				return ErrUnconfirmed
 			}
 		}

@@ -98,3 +98,21 @@ func TestReleaseObservesUnderBarrierBeforeConfirming(t *testing.T) {
 		})
 	}
 }
+
+func TestCommittedReleaseIsReportedEvenIfBarrierCloseFails(t *testing.T) {
+	calls := []string{}
+	s := snapshot(t)
+	ns := s.Membership.Binding.Document.Namespace
+	r := Release{Controller: &fakeController{calls: &calls, s: s}, Observer: &fakeObserver{calls: &calls}, Registry: "/registry", Namespace: ns,
+		Barrier: func(ctx context.Context, path, namespace string, work func() error) error {
+			if err := work(); err != nil {
+				return err
+			}
+			return errors.New("registry changed while held")
+		},
+		Required: func(scanevidence.ReconciliationMembership) ([]scanevidence.CleanupAbsence, error) { return nil, nil }}
+	out, err := r.Run(context.Background(), s.Membership.Job, s.Membership.Generation.ID)
+	if err != ErrReleasedWithWarning || !out.Released {
+		t.Fatal("committed release reported as unreleased", err)
+	}
+}

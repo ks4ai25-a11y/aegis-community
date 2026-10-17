@@ -31,7 +31,9 @@ func (q *Queue) ConfirmCleanup(ctx context.Context, v scanevidence.ReconcilerIde
 	err = tx.QueryRowContext(ctx, "SELECT c.document FROM scanner_cleanup_confirmations c JOIN scanner_jobs j ON j.id=c.job WHERE c.job=? AND j.owner=?", r.Job, v.Owner).Scan(&stored)
 	if err == nil {
 		var c scanevidence.CleanupConfirmation
-		if json.Unmarshal([]byte(stored), &c) != nil || c.Reconciler != v.ID || !sameRequest(c.Request, r) {
+		// Any reconciler on the same binding may read back a lost reply.
+		var sameBinding int
+		if json.Unmarshal([]byte(stored), &c) != nil || !sameRequest(c.Request, r) || tx.QueryRowContext(ctx, "SELECT count(*) FROM scanner_reconcilers WHERE id=? AND owner=? AND binding_digest=?", c.Reconciler, v.Owner, v.Binding).Scan(&sameBinding) != nil || sameBinding != 1 {
 			return scanevidence.CleanupConfirmation{}, ErrConflict
 		}
 		return c, nil
@@ -49,6 +51,16 @@ func (q *Queue) ConfirmCleanup(ctx context.Context, v scanevidence.ReconcilerIde
 	required, err := scanevidence.RequiredAbsences(m)
 	if err != nil {
 		return scanevidence.CleanupConfirmation{}, ErrConflict
+	}
+	// Snapshots may read a revoked original scope; release may not. Restore
+	// revokes bindings and authorizers, and a restored ledger can be missing
+	// later allocations, so a restored hold stays held (QA R4-1).
+	var live int
+	if err = tx.QueryRowContext(ctx, "SELECT count(*) FROM scanner_mutation_bindings b JOIN scanner_authorizers a ON a.id=b.authorizer AND a.owner=b.owner WHERE b.digest=? AND b.owner=? AND b.state='active' AND a.state='active'", v.Binding, v.Owner).Scan(&live); err != nil {
+		return scanevidence.CleanupConfirmation{}, err
+	}
+	if live != 1 {
+		return scanevidence.CleanupConfirmation{}, ErrContextUnbound
 	}
 	b := m.Binding.Document
 	if scanevidence.ReconciliationMembershipDigest(m) != r.Membership || b.Engine != r.Engine || b.Namespace != r.Namespace || !sameAbsences(required, r.Absent) {
