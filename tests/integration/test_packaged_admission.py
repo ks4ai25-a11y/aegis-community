@@ -132,3 +132,12 @@ class PackagedAdmission(unittest.TestCase):
       self.assertNotIn('canary',repr(printed.call_args_list))
      else:
       actor.probe_unadmitted_writes();self.assertTrue(actor.mediation_verified)
+
+class CrashRepairFixture(unittest.TestCase):
+ """Synthetic checks for the ADR 057 crash repair acceptance helpers."""
+ def test_held_requires_exactly_one_exact_slot(self):
+  from packaged_crash_repair import held
+  line='Held for cleanup: job 0198e0d0-0000-7000-8000-000000000001 generation '+'a'*64+' (job tool_error, finished 2026-10-17T00:00:00Z)\n'
+  self.assertEqual(held(lambda *a:types.SimpleNamespace(stdout=line)),('0198e0d0-0000-7000-8000-000000000001','a'*64))
+  for bad in ['',line+line,'No scanner slot is held.\n',line.replace('a'*64,'a'*63)]:
+   with self.assertRaises(AssertionError):held(lambda *a,out=bad:types.SimpleNamespace(stdout=out))
