@@ -139,6 +139,11 @@ recovery_receipt=obj({'schema_version':string(const='1.0'),'status':string(enum=
 recovery_receipt['allOf']=[{'if':{'properties':{'status':{'const':'restored_offline'}}},'then':{'required':['restored_database_digest'],'properties':{'restored_authorities_invalidated':{'const':True},'scanner_cleanup_holds_preserved':{'const':True}}},'else':{'properties':{'restored_authorities_invalidated':{'const':False},'scanner_cleanup_holds_preserved':{'const':False}},'not':{'required':['restored_database_digest']}}}]
 schemas.update({'RecoveryBundleManifestV1':recovery_manifest,'RecoveryBundleEnvelopeV1':obj({'bundle_digest':hash,'document':recovery_manifest}),'RecoveryOperationReceiptV1':recovery_receipt})
 
+# Offline scanner databases (ADR 068, alpha/scannerdb). Operator-fetched, read-only mounted.
+scanner_db_file=obj({'path':string(minLength=1,maxLength=512),'sha256':hash,'size':integer(0,2147483647)})
+scanner_db=obj({'tool':string(enum=['osv_v2','trivy']),'source':string(minLength=1,maxLength=512),'upstream_built_at':string(format='date-time'),'fetched_at':string(format='date-time'),'files':array(scanner_db_file,minItems=1,maxItems=4096),'digest':hash})
+schemas['ScannerDatabaseManifestV1']=obj({'schema_version':string(const='1.0'),'created_at':string(format='date-time'),'databases':array(scanner_db,minItems=1,maxItems=2),'manifest_digest':hash})
+
 for name,body in schemas.items():
  document={'$schema':SCHEMA,'$id':'https://aegis.invalid/contracts/'+name+'.json','title':name,**body}
  (ROOT/'contracts/schemas'/f'{name}.json').write_text(json.dumps(document,indent=2)+'\n')

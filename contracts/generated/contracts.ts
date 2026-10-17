@@ -1872,3 +1872,22 @@ export interface RecoveryOperationReceiptV1 {
   publisher_signature_verified: false;
   restored_database_digest?: string;
 }
+export interface ScannerDatabaseManifestV1 {
+  schema_version: "1.0";
+  created_at: string;
+  databases: Array<ScannerDatabaseManifestV1DatabasesItem>;
+  manifest_digest: string;
+}
+export interface ScannerDatabaseManifestV1DatabasesItem {
+  tool: "osv_v2" | "trivy";
+  source: string;
+  upstream_built_at: string;
+  fetched_at: string;
+  files: Array<ScannerDatabaseManifestV1DatabasesItemFilesItem>;
+  digest: string;
+}
+export interface ScannerDatabaseManifestV1DatabasesItemFilesItem {
+  path: string;
+  sha256: string;
+  size: number;
+}

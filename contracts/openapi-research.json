@@ -1429,6 +1429,9 @@
       "ScannerCleanupContextV1": {
         "$ref": "schemas/ScannerCleanupContextV1.json"
       },
+      "ScannerDatabaseManifestV1": {
+        "$ref": "schemas/ScannerDatabaseManifestV1.json"
+      },
       "ScannerEngineBindingInputV1": {
         "$ref": "schemas/ScannerEngineBindingInputV1.json"
       },

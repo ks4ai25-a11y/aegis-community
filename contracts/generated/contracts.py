@@ -1676,3 +1676,19 @@ class RecoveryOperationReceiptV1(TypedDict):
     application_restore_verified: bool
     publisher_signature_verified: bool
     restored_database_digest: NotRequired[str]
+class ScannerDatabaseManifestV1(TypedDict):
+    schema_version: str
+    created_at: str
+    databases: list[ScannerDatabaseManifestV1DatabasesItem]
+    manifest_digest: str
+class ScannerDatabaseManifestV1DatabasesItem(TypedDict):
+    tool: str
+    source: str
+    upstream_built_at: str
+    fetched_at: str
+    files: list[ScannerDatabaseManifestV1DatabasesItemFilesItem]
+    digest: str
+class ScannerDatabaseManifestV1DatabasesItemFilesItem(TypedDict):
+    path: str
+    sha256: str
+    size: int

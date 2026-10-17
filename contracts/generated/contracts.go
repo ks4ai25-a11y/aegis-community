@@ -1874,3 +1874,22 @@ type RecoveryOperationReceiptV1 struct {
 	PublisherSignatureVerified     bool   `json:"publisher_signature_verified"`
 	RestoredDatabaseDigest         string `json:"restored_database_digest,omitempty"`
 }
+type ScannerDatabaseManifestV1 struct {
+	SchemaVersion  string                                   `json:"schema_version"`
+	CreatedAt      string                                   `json:"created_at"`
+	Databases      []ScannerDatabaseManifestV1DatabasesItem `json:"databases"`
+	ManifestDigest string                                   `json:"manifest_digest"`
+}
+type ScannerDatabaseManifestV1DatabasesItem struct {
+	Tool            string                                            `json:"tool"`
+	Source          string                                            `json:"source"`
+	UpstreamBuiltAt string                                            `json:"upstream_built_at"`
+	FetchedAt       string                                            `json:"fetched_at"`
+	Files           []ScannerDatabaseManifestV1DatabasesItemFilesItem `json:"files"`
+	Digest          string                                            `json:"digest"`
+}
+type ScannerDatabaseManifestV1DatabasesItemFilesItem struct {
+	Path   string `json:"path"`
+	Sha256 string `json:"sha256"`
+	Size   int64  `json:"size"`
+}
