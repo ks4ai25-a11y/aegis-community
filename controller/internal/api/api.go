@@ -164,7 +164,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	// Advisory model calls (assessments, patch drafts) change no policy and have
 	// their own one-at-a-time limit; they must not hold the global mutation lock
 	// for the minutes a local model can take.
-	advisory := strings.HasSuffix(path, "/assessment") || path == "/findings/remediation"
+	advisory := strings.HasSuffix(path, "/assessment") || path == "/findings/remediation" || strings.HasSuffix(path, "/research-plan")
 	if r.Method != "GET" && r.Method != "HEAD" && !advisory {
 		if !s.mutations.TryLock() {
 			fail(w, 429, "RATE_LIMITED", "Another state change is in progress")

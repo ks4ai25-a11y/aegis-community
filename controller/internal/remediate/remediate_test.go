@@ -83,22 +83,19 @@ func TestDraftPatchBuildsDiffFromBoundedEdit(t *testing.T) {
 		t.Fatal(patched, e)
 	}
 	for _, bad := range []map[string]any{
-		{"start_line": 1, "end_line": 1, "replacement_lines": []string{"x"}, "explanation": ""},            // allowed range but far? line 1 is within 6 of 4
+		{"start_line": 1, "end_line": 1, "replacement_lines": []string{"x"}, "explanation": ""},            // nearby but leaves the finding's line unchanged
 		{"start_line": 40, "end_line": 41, "replacement_lines": []string{"x"}, "explanation": ""},          // out of file
 		{"start_line": 4, "end_line": 4, "replacement_lines": []string{"a\nimport os"}, "explanation": ""}, // smuggled newline
 		{"start_line": 0, "end_line": 0, "replacement_lines": []string{}, "explanation": "no fix"},
 	} {
 		reply = bad
 		d, e := DraftPatch(context.Background(), c, f, "query.py", file)
-		if bad["start_line"] == 1 {
-			if e != nil {
-				t.Fatal("nearby edit refused", e)
-			}
-			continue
-		}
 		if e == nil {
 			t.Fatal("accepted", bad, d)
 		}
+	}
+	if _, e := Build("query.py", strings.Split(file, "\n"), 4, 3, 5, []string{"a", "b", "c"}); e != nil {
+		t.Fatal("edit covering the finding refused", e)
 	}
 	far := Finding{Category: "static_pattern", Path: "query.py", Line: 40}
 	if _, e := Build("query.py", strings.Split(file, "\n"), far.Line, 1, 1, []string{"x"}); e == nil {

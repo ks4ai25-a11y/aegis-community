@@ -37,6 +37,7 @@ export function Repositories({action,busy}:Props){
    {map.routes.length>0?<div className="table-wrap"><table><thead><tr><th>Method</th><th>Declared route</th><th>Source location</th><th>Authorization signal</th><th>Confidence</th></tr></thead><tbody>{map.routes.map((r,i)=><tr key={i}><td className="mono">{r.method==='unknown'?'—':r.method}</td><td>{r.pattern}</td><td>{r.source_path}</td><td>{r.auth_signal==='auth_middleware_named'?'Auth-named middleware':'Not assessed'}</td><td>{r.confidence}</td></tr>)}</tbody></table></div>:<p>No route conventions recognized. This does not establish that the application has no routes.</p>}
    <ul>{map.unknowns.map(u=><li key={u}>{u}</li>)}</ul>
   </section>}
+  {map&&<ResearchPlans repository={repos.find(r=>r.map_digest===map.content_digest)?.repository_id} action={action} busy={busy}/>}
  </>;
 }
 
@@ -49,4 +50,24 @@ function RescanToggle({repository,action,busy}:{repository:string}&Props){
  if(!p)return <span className="muted">…</span>;
  const set=(enabled:boolean)=>action(async()=>setP(await api<Policy>(`/repos/${repository}/rescan`,{enabled,tool_ids:enabled?RESCAN_TOOLS:[],tool_timeout_seconds:enabled?120:0})),enabled?'Automatic rescans enabled for this repository.':'Automatic rescans disabled.');
  return <label className="checkbox" title={p.last_outcome?`Last check: ${p.last_outcome.replaceAll('_',' ')}`:undefined}><input type="checkbox" aria-label={`Rescan ${repository} on change`} disabled={busy} checked={p.enabled} onChange={e=>set(e.target.checked)}/>{p.enabled?(p.last_outcome?p.last_outcome.replaceAll('_',' '):'On'):'Off'}</label>;
+}
+
+type ResearchPlan={hypothesis_id:string;claim:string;source_refs:string[];test_template_id:string;security_requirement_id:string;runner:string;next_step:string;evidence_status:string;origin:string};
+type PlanSet={plans:ResearchPlan[];planner:string;model?:string;fallback_reason?:string;rejected_model_output:string[];tool_log:{tool:string;argument?:string;result:string}[];limitations:string[];plan_set_digest:string};
+function ResearchPlans({repository,action,busy}:{repository?:string}&Props){
+ const[set,setSet]=useState<PlanSet>(),[ai,setAI]=useState(false);
+ useEffect(()=>{api<{provider:string}>('/ai/status').then(s=>setAI(s.provider!=='none')).catch(()=>setAI(false))},[]);
+ if(!repository)return null;
+ const run=(use_model:boolean)=>action(async()=>setSet(await api<PlanSet>(`/repos/${repository}/research-plan`,{use_model})),'Research plan ready. Nothing was run.');
+ return <section className="card">
+  <div className="card-heading"><h2>Research plan</h2><span className="pill">Hypotheses only</span></div>
+  <p className="muted">The planner reads this map and the latest findings and proposes what to test, using only a fixed catalogue of bundled fixture tests. It cannot run commands, contact hosts or change code.</p>
+  <div className="actions-row"><button className="button light" disabled={busy} onClick={()=>run(false)}>Plan from inventory</button>{ai&&<button className="button light" disabled={busy} onClick={()=>run(true)}>Plan with local model</button>}</div>
+  {set&&<>
+   <div className="system-row"><span>Planner</span><span>{set.planner}{set.model?' · '+set.model:''}{set.fallback_reason?' (fallback: '+set.fallback_reason+')':''}</span></div>
+   {set.plans.length===0?<p>No hypotheses. This does not mean the application has no weaknesses.</p>:<div className="table-wrap"><table><thead><tr><th>Hypothesis</th><th>Source</th><th>Test template</th><th>How to run</th></tr></thead><tbody>{set.plans.map(p=><tr key={p.hypothesis_id}><td>{p.claim}<div className="muted">{p.evidence_status.replaceAll('_',' ')} · {p.origin}</div></td><td className="mono">{p.source_refs.join(', ')}</td><td className="mono">{p.test_template_id}</td><td>{p.next_step}</td></tr>)}</tbody></table></div>}
+   {set.rejected_model_output.length>0&&<details><summary>{set.rejected_model_output.length} model suggestions rejected</summary><ul>{set.rejected_model_output.map((r,i)=><li key={i}>{r}</li>)}</ul></details>}
+   <ul>{set.limitations.map(l=><li key={l}>{l}</li>)}</ul>
+  </>}
+ </section>;
 }

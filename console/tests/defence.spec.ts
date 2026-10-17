@@ -122,3 +122,28 @@ test('an owner opts a repository into change-triggered rescans with the fixed sc
   expect(set.headers['x-csrf-token']).toBe('csrf');
   await expect(toggle).toBeChecked();
 });
+
+test('the research planner shows catalogue hypotheses and rejected model suggestions without running anything', async ({page}) => {
+  const repo = {schema_version: '1.0', repository_id: 'repo-1', owner_id: 'owner', app_id: 'app_demo', asset_id: 'shop-src', mode: 'repo_offline', map_digest: digest, created_at: '2026-10-17T00:00:00Z'};
+  const map = {schema_version: '1.0', application_id: 'app_demo', source_ref: 'mounted-asset:shop-src', commit_sha: '', observed_at: '2026-10-17T00:00:00Z', extractors: [], sensitive_ops: [], models: [], auth_boundaries: [], frameworks: ['express'], files: [{path: 'src/routes/accounts.js', digest, size: 10}], routes: [{method: 'GET', pattern: '/api/accounts/{parameter}', origin: 'declared_route', auth_signal: 'not assessed', confidence: 'medium', source_path: 'src/routes/accounts.js'}], unknowns: [], content_digest: digest};
+  const plan = {plans: [{hypothesis_id: 'hyp_1', claim: 'GET /api/accounts/{parameter} might lack object ownership validation.', source_refs: ['src/routes/accounts.js'], test_template_id: 'cross_tenant_read_fixture_v1', security_requirement_id: 'tenant_isolation_01', runner: 'operator_lab_cli', next_step: 'On the operator host run aegis-research tenant-verify owner_fix.', evidence_status: 'hypothesis_unverified', origin: 'model'}],
+    planner: 'ollama', model: 'llama3.2:3b', rejected_model_output: ['tool not in catalogue: run_shell_anywhere'], tool_log: [], limitations: ['Plans are hypotheses for a human; none is a confirmed vulnerability.'], plan_set_digest: digest};
+  const calls = await mock(page, (path, method) => {
+    if (path === '/repos/assets') return {asset_ids: ['shop-src']};
+    if (path === '/repos') return {items: [repo]};
+    if (path === '/repos/repo-1/map') return map;
+    if (path === '/repos/repo-1/rescan') return {enabled: false, tool_ids: []};
+    if (path === '/ai/status') return {provider: 'ollama'};
+    if (path === '/repos/repo-1/research-plan' && method === 'POST') return plan;
+  });
+  await page.goto('/');
+  await page.getByRole('button', {name: 'Repositories', exact: true}).click();
+  await page.getByRole('button', {name: 'View map'}).click();
+  await page.getByRole('button', {name: 'Plan with local model'}).click();
+  await expect(page.getByText('might lack object ownership validation')).toBeVisible();
+  await expect(page.getByText('hypothesis unverified · model')).toBeVisible();
+  await page.getByText('1 model suggestions rejected').click();
+  await expect(page.getByText('tool not in catalogue: run_shell_anywhere')).toBeVisible();
+  expect(calls.find(c => c.path === '/repos/repo-1/research-plan')!.body).toEqual({use_model: true});
+  expect(calls.filter(c => c.method === 'POST').map(c => c.path)).toEqual(['/repos/repo-1/research-plan']);
+});

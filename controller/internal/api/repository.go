@@ -3,8 +3,10 @@ package api
 
 import (
 	"aegis.local/controller/internal/auth"
+	"aegis.local/controller/internal/redteam"
 	"aegis.local/controller/internal/repository"
 	"aegis.local/controller/internal/scanqueue"
+	"aegis.local/source/scanevidence"
 	"database/sql"
 	"errors"
 	"net/http"
@@ -48,6 +50,8 @@ func (s *Server) repositoryOperation(w http.ResponseWriter, r *http.Request, own
 			return
 		}
 		output(w, 200, map[string]any{"items": out})
+	case strings.HasPrefix(path, "/repos/") && strings.HasSuffix(path, "/research-plan") && r.Method == "POST":
+		s.researchPlan(w, r, owner, strings.TrimSuffix(strings.TrimPrefix(path, "/repos/"), "/research-plan"))
 	case strings.HasPrefix(path, "/repos/") && strings.HasSuffix(path, "/rescan") && (r.Method == "GET" || r.Method == "POST"):
 		s.rescanPolicy(w, r, owner, strings.TrimSuffix(strings.TrimPrefix(path, "/repos/"), "/rescan"))
 	case strings.HasPrefix(path, "/repos/") && r.Method == "GET":
@@ -121,4 +125,46 @@ func (s *Server) rescanPolicy(w http.ResponseWriter, r *http.Request, owner, rep
 	default:
 		output(w, 200, p)
 	}
+}
+
+// researchPlan runs the safe red research planner (D5) over the repository's
+// current application map and its latest retained findings. It plans only;
+// tests run through the research queue after separate owner approval.
+func (s *Server) researchPlan(w http.ResponseWriter, r *http.Request, owner, repo string) {
+	var in struct {
+		UseModel bool `json:"use_model"`
+	}
+	if auth.Decode(r, &in) != nil {
+		fail(w, 400, "VALIDATION_FAILED", "Invalid research plan request")
+		return
+	}
+	m, e := s.R.Map(owner, repo)
+	if e != nil {
+		s.repositoryError(w, e)
+		return
+	}
+	findings := []scanevidence.Finding{}
+	if s.Scans != nil {
+		if page, e := s.Scans.Catalogue(r.Context(), owner, scanqueue.CatalogueQuery{Repository: repo, Limit: 50}); e == nil && page.Findings != nil {
+			for _, item := range page.Findings.Items {
+				findings = append(findings, item.Finding)
+			}
+		}
+	}
+	select {
+	case s.assessing <- struct{}{}:
+		defer func() { <-s.assessing }()
+	default:
+		fail(w, 429, "RATE_LIMITED", "Another model request is running")
+		return
+	}
+	excerpt := func(path string, line int) (repository.Excerpt, error) {
+		return s.R.Excerpt(owner, repo, path, line, 8)
+	}
+	ps := redteam.Run(r.Context(), s.AI, redteam.Inputs{Repository: repo, Map: m, Findings: findings, Excerpt: excerpt}, in.UseModel)
+	if e = s.S.Audit(owner, "research.plan", repo, ps.Planner, map[string]any{"plan_set_digest": ps.Digest, "map_digest": ps.MapDigest, "plans": len(ps.Plans), "rejected": len(ps.Rejected), "model": ps.Model}); e != nil {
+		fail(w, 500, "INTERNAL_ERROR", "Research plan audit unavailable")
+		return
+	}
+	output(w, 200, ps)
 }

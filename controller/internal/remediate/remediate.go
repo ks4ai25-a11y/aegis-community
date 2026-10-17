@@ -197,17 +197,22 @@ func attemptDraft(ctx context.Context, c assess.Config, f Finding, path, content
 	if balanced(content) && !balanced(patched) {
 		return "", "the edit leaves parentheses, brackets or braces unbalanced", "", nil
 	}
+	if why := introducedRisk(lines[out.Start-1:out.End], out.Replacement); why != "" {
+		return "", why, "", nil
+	}
 	return diff, "", out.Explanation, nil
 }
 
 // Build turns a bounded line replacement near the finding into a unified diff
-// with three lines of context. The edit must stay within six lines of the finding.
+// with three lines of context. The edit must include the finding's line.
 func Build(path string, lines []string, finding, start, end int, replacement []string) (string, error) {
 	if start < 1 || end < start || end > len(lines) || end-start > 11 {
 		return "", errors.New("line range out of bounds")
 	}
-	if finding > 0 && (start > finding+6 || end < finding-6) {
-		return "", errors.New("edit is not near the finding")
+	// The edit must replace the finding's own line; rewriting nearby code while
+	// leaving the flagged line unchanged is not a fix.
+	if finding > 0 && (start > finding || end < finding) {
+		return "", errors.New("edit must include the finding's line")
 	}
 	for _, r := range replacement {
 		if strings.ContainsAny(r, "\n\r") {
@@ -372,3 +377,46 @@ func balanced(src string) bool {
 	}
 	return len(stack) == 0
 }
+
+// riskyIntroductions are constructs a minimal fix for a static finding does not
+// need. A draft may keep ones already present in the replaced lines, but may not
+// add them: model output can be steered by text inside the file (comments,
+// strings), so a draft must not add suppressions, network access, code
+// execution, disabled verification or opaque blobs.
+var riskyIntroductions = []struct {
+	re   *regexp.Regexp
+	what string
+}{
+	{regexp.MustCompile(`(?i)(#\s*nosec|#\s*noqa|//\s*nolint|eslint-disable|@SuppressWarnings|#\s*type:\s*ignore|//\s*@ts-ignore|NOSONAR|semgrep-ignore|nosemgrep)`), "a finding suppression comment"},
+	{regexp.MustCompile(`(?i)\b(https?|ftp|wss?)://`), "a URL"},
+	{regexp.MustCompile(`\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b`), "an IP address"},
+	{regexp.MustCompile(`(?i)\b(eval|exec|execfile|compile|__import__)\s*\(|os\.(system|popen|exec\w*)\s*\(|child_process|Runtime\.getRuntime|new\s+Function\s*\(|\bcurl\b|\bwget\b|/bin/(ba)?sh`), "code or command execution"},
+	{regexp.MustCompile(`(?i)\b(socket\.|requests\.(get|post|put)|urllib|http\.client|fetch\s*\(|XMLHttpRequest|net\.Dial|http\.(Get|Post)\s*\(|axios)`), "network access"},
+	{regexp.MustCompile(`(?i)(verify\s*=\s*False|InsecureSkipVerify|rejectUnauthorized\s*:\s*false|CERT_NONE|check_hostname\s*=\s*False)`), "disabled TLS verification"},
+	{regexp.MustCompile(`[A-Za-z0-9+/]{48,}={0,2}`), "a long encoded literal"},
+}
+
+func introducedRisk(original, replacement []string) string {
+	before, after := strings.Join(original, "\n"), strings.Join(replacement, "\n")
+	// Compare each distinct construct, so swapping one execution primitive for
+	// another (eval for os.popen) still counts as adding one.
+	count := func(re *regexp.Regexp, s string) map[string]int {
+		m := map[string]int{}
+		for _, v := range re.FindAllString(s, -1) {
+			m[strings.ToLower(strings.Join(strings.Fields(v), ""))]++
+		}
+		return m
+	}
+	for _, r := range riskyIntroductions {
+		had := count(r.re, before)
+		for k, n := range count(r.re, after) {
+			if n > had[k] {
+				return "the edit adds " + r.what + ", which a minimal fix must not introduce"
+			}
+		}
+	}
+	return ""
+}
+
+// IntroducedRisk is exported for the adversarial evaluation suite.
+func IntroducedRisk(original, replacement []string) string { return introducedRisk(original, replacement) }

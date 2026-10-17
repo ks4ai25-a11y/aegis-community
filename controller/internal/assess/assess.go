@@ -154,6 +154,11 @@ func clean(v string, n int) string {
 		if unicode.IsControl(r) {
 			return ' '
 		}
+		// Format characters (bidi overrides, zero-width joiners) can make model
+		// text display differently from what it says.
+		if unicode.Is(unicode.Cf, r) {
+			return -1
+		}
 		return r
 	}, v)
 	v = strings.TrimSpace(v)

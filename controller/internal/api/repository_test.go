@@ -83,4 +83,10 @@ func TestRepositoryHTTPRejectsPathsAndUnknownFields(t *testing.T) {
 		t.Fatal(p)
 	}
 	call("GET", "/repos/unknown/rescan", nil, 404)
+	plan := call("POST", "/repos/"+id+"/research-plan", map[string]any{"use_model": false}, 200)
+	if plan["map_digest"] != repo["map_digest"] || plan["planner"] != "deterministic" {
+		t.Fatal(plan)
+	}
+	call("POST", "/repos/"+id+"/research-plan", map[string]any{"use_model": false, "tools": []string{"run_shell_anywhere"}}, 400)
+	call("POST", "/repos/unknown/research-plan", map[string]any{}, 404)
 }
