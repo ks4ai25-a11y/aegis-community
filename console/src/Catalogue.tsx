@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
+import {About} from './ui';
 import {useEffect,useRef,useState} from 'react';
 import {api,setCSRF,short} from './client';
 import {listFindingCatalogue,listRepositories} from './generated/research-client';
@@ -38,7 +39,7 @@ export function Catalogue({onOpenScan}:{onOpenScan:(id:string)=>void}){
  return <>
   <section className="card" aria-busy={busy}>
    <div className="card-heading"><h2>Retained finding observations</h2><span className="pill">Static evidence · T0</span></div>
-   <p className="muted">Browse retained scan evidence across owned repositories. Each page belongs to one immutable scan. Repeated observations from different scans are kept separate; their counts are not added into a vulnerability total.</p>
+   <About lead="Everything your scans have found, scan by scan.">Each page belongs to one scan result that cannot change afterwards. The same finding seen in different scans is listed separately, so counts are not a total number of vulnerabilities.</About>
    <div className="finding-filters"><label>Catalogue repository<select value={repository} onChange={e=>setRepository(e.target.value)}><option value="">All owned repositories</option>{repos.map(r=><option key={r.repository_id} value={r.repository_id}>{r.asset_id} · {short(r.repository_id)}</option>)}</select></label><label>Catalogue category<select value={category} onChange={e=>setCategory(e.target.value)}><option value="">All categories</option><option value="static_pattern">Static patterns</option><option value="secret_candidate">Secret candidates</option><option value="known_vulnerable_dependency">Dependency advisory claims</option></select></label><label>Catalogue severity<select value={severity} onChange={e=>setSeverity(e.target.value)}><option value="">All claimed severities</option>{['critical','high','medium','low','informational'].map(s=><option key={s}>{s}</option>)}</select></label><label>Records per catalogue page<select value={limit} onChange={e=>setLimit(Number(e.target.value))}>{[2,10,20].map(n=><option key={n} value={n}>{n}</option>)}</select></label></div>
    <div className="finding-filters"><label>Results from (local time)<input type="datetime-local" value={since} onChange={e=>setSince(e.target.value)}/></label><label>Results before (local time)<input type="datetime-local" value={until} onChange={e=>setUntil(e.target.value)}/></label></div>
    {repoError&&<p role="alert">Repository filter unavailable: {repoError}</p>}

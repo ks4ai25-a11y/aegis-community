@@ -3,7 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import {FileSearch,RefreshCw,Square} from 'lucide-react';
 import {api,key,short} from './client';
 import {Findings} from './Findings';
-import {Empty} from './ui';
+import {Empty, About} from './ui';
 import {createScan,listScans,getScan,cancelScan,getScanResult,listRepositories} from './generated/research-client';
 import type {RepositoryV1,ScannerJobV1,ScannerJobStatusV1,ScannerSuiteResultV1} from './generated/contracts';
 
@@ -102,7 +102,7 @@ export function Scans({action,busy,initialJob}:Props){
   </section>
   <section className="card">
    <div className="card-heading"><h2>Owned scan jobs</h2><button className="button light" disabled={busy||loading} onClick={()=>action(async()=>{setError('');await reload();if(jobID)await inspect(jobID)})}><RefreshCw size={15}/>Refresh scans</button></div>
-   <p className="muted">Latest 100 jobs. Tool claims are static observations, not confirmed vulnerabilities or complete coverage.</p>
+   <About lead="Your latest 100 scans.">Scanner results are what the tools report from reading the code. They are not confirmed vulnerabilities, and an empty result does not mean the code is safe.</About>
    {!jobs.length&&!loading?<Empty title="No scans yet" text="Queue a scan above; its status and results appear here." icon={<FileSearch size={22}/>}/>:<div className="table-wrap"><table><thead><tr><th>Requested</th><th>Tools</th><th>State</th><th>Inspect</th></tr></thead><tbody>{jobs.map(j=><tr key={j.job_id}><td>{new Date(j.created_at).toLocaleString()}</td><td>{j.input.tool_ids.join(', ')}</td><td><span className="badge">{label(j.state)}</span></td><td><button className="button light" disabled={busy} onClick={()=>inspect(j.job_id)}>View scan <span className="mono">{short(j.job_id)}</span></button></td></tr>)}</tbody></table></div>}
   </section>
   {reading&&<p role="status">Reading scan evidence…</p>}
@@ -131,7 +131,7 @@ export function ScanResult({result}:{result:ScannerSuiteResultV1}){
   <div className="system-row"><span>Overall tool status</span><strong>{label(d.status)}</strong></div>
   <div className="system-row"><span>Tool finding claims</span><span>{d.finding_claims}</span></div>
   <div className="scan-flags"><span>Partial coverage: {d.has_partial?'Yes':'No'}</span><span>Stale database: {d.has_stale_database?'Yes':'No'}</span><span>Tool error: {d.has_tool_error?'Yes':'No'}</span></div>
-  <p className="muted">Counts sum tool claims and may include overlap. They are not deduplicated vulnerabilities, exploit proof, or a clean-application verdict.</p>
+  <About lead="Totals across the tools in this scan.">Counts add up what each tool reported and can include the same issue more than once. They are not proof of exploitability or a verdict that the application is clean.</About>
   <div className="table-wrap"><table><thead><tr><th>Tool</th><th>Status</th><th>Claims</th><th>Inventory</th><th>Receipt</th></tr></thead><tbody>{d.tools.map(t=><tr key={t.tool_id}><td>{t.tool_id}</td><td>{label(t.status)}</td><td>{t.finding_claims}</td><td>{t.has_sbom?'SBOM present':'None'}</td><td className="mono">{short(t.receipt_digest)}</td></tr>)}</tbody></table></div>
   <p className="small mono muted">Result identity: {result.result_digest}</p><p className="small mono muted">Snapshot identity: {d.snapshot_digest}</p>
   <div className="note"><Square size={17}/><p>Cleanup verification is required. This result cannot release execution admission.</p></div>

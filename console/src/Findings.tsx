@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
+import {About} from './ui';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,RefreshCw} from 'lucide-react';
 import {listFindings} from './generated/research-client';
@@ -42,7 +43,7 @@ export function Findings({result}:{result:ScannerSuiteResultV1}){
  useEffect(()=>{mounted.current=true;setPage(undefined);load();return()=>{mounted.current=false;generation.current++}},[result.result_digest,category,severity]);
  return <section className="card finding-details" aria-busy={loading}>
   <div className="card-heading"><h2>Static finding details</h2><span className="pill">Suspected · T0</span></div>
-  <p className="muted">Equivalent dependency coordinates and advisory/lockfile claims can share one record. Static rules from different tools remain separate unless equivalence is established. Every source and its claimed severity remain visible.</p>
+  <About lead="Each record shows what a scanner reported and where.">When two tools report the same dependency, version and advisory, they share one record. Code findings from different tools stay separate unless they are known to be the same. Every tool and the severity it claimed stay visible.</About>
   <div className="finding-filters"><label>Finding category<select value={category} onChange={e=>setCategory(e.target.value as Category)}><option value="">All categories</option><option value="static_pattern">Static patterns</option><option value="secret_candidate">Secret candidates</option><option value="known_vulnerable_dependency">Dependency advisory claims</option></select></label><label>Claimed severity<select value={severity} onChange={e=>setSeverity(e.target.value as Severity)}><option value="">All severities</option>{['informational','low','medium','high','critical'].map(v=><option key={v} value={v}>{v}</option>)}</select></label></div>
   {error&&<div className="alert error" role="alert">Finding evidence unavailable: {error}. No empty or clean result is inferred. <button className="button light" disabled={loading} onClick={()=>load()}>Retry from first page</button></div>}
   {loading&&<p role="status">Reading normalized finding evidence…</p>}

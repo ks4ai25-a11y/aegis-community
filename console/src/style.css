@@ -135,6 +135,10 @@ footer span{margin-left:auto}
 .muted{color:var(--muted)}
 .small{font-size:12px}
 .teal{color:var(--accent)}
+.about{margin-bottom:12px}
+.about p{margin-bottom:4px}
+.about summary{color:var(--accent-strong);font-size:13px;font-weight:500;cursor:pointer;width:fit-content}
+.about-body{color:var(--muted);font-size:13px;margin-top:6px;max-width:760px}
 .button-reason{display:block;margin-top:6px;font-size:12px}
 .grid-3.fresh{grid-template-columns:1fr}
 .field-error{display:block;color:var(--danger);font-size:12px;margin-top:4px;font-weight:500}

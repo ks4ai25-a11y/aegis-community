@@ -4,7 +4,7 @@ import {FileCheck2,LockKeyhole,RotateCcw,Terminal} from 'lucide-react';
 import {key,short,human} from './client';
 import{createScopeGrant,listVerifications,getVerification,getVerificationReport,approveScopeGrant,revokeScopeGrant,createVerification,cancelVerification}from'./generated/research-client';
 import {Report} from './Report';
-import {Empty} from './ui';
+import {Empty, About} from './ui';
 
 import type {ScopeGrantRecordV1 as GrantRecord,ResearchJobV1 as Job,VerificationReportV1} from './generated/contracts';
 type Props={action:(work:()=>Promise<unknown>,message?:string)=>Promise<unknown>;busy:boolean;status?:{gateway_healthy:boolean;active_revision:string}};
@@ -25,7 +25,7 @@ export function Verification({action,busy,status}:Props) {
   {error&&<div className="alert error" role="alert">{error}</div>}
   <section className="card">
    <div className="card-heading"><h2>Approve a bounded test scope</h2><span className="pill">Aegis-owned fixture</span></div>
-   <p className="muted">Review the exact target and limits before testing. Each grant permits four requests in total, then it is exhausted. Production targets are unavailable.</p>
+   <About lead="Approve a small, time-limited test against the bundled fixture.">Review the exact target and limits before approving. Each approval allows four requests in total and then expires. Your production applications cannot be targeted.</About>
    <button disabled={busy||running} className="button light" onClick={()=>action(async()=>{const g=await createScopeGrant({app_id:'app_demo',mode:'test_lab',fixture_id:'crs-synthetic-sqli-pattern-v1',lifetime_minutes:10});setScope(g);setAck(false)})}><LockKeyhole size={15}/>Prepare scope for review</button>
    {scope&&<>
     <div className="system-row"><span>Target</span><span>{scope.grant.network_addresses.join(', ')}</span></div>
@@ -40,7 +40,7 @@ export function Verification({action,busy,status}:Props) {
   </section>
   <section className="card">
    <div className="card-heading"><h2>Proof of Protection</h2><span className="pill">Isolated demo only</span></div>
-   <p className="muted">The worker sends controls to separate baseline and candidate gateways. Durable status survives controller restarts. A timeout, cancellation or missing evidence cannot become a passing proof.</p>
+   <About lead="Runs the same requests with and without your candidate policy and compares the results.">The test uses separate baseline and candidate gateways. Its status survives controller restarts. A timeout, cancellation or missing evidence is never reported as a pass.</About>
    <div className="fixture"><span className="fixture-icon"><Terminal size={25}/></span><div><h3>CRS synthetic SQLi pattern</h3><p>Fixed corpus · exact policy revision {short(status?.active_revision)}</p></div></div>
    <button disabled={busy||running||!scopeUsable||!status?.gateway_healthy} className="button primary" onClick={()=>action(async()=>{if(!scope||!status)return;const j=await createVerification({schema_version:'1.0',app_id:'app_demo',scope_grant_id:scope.grant.scope_grant_id,scope_digest:scope.approved_digest,fixture_id:'crs-synthetic-sqli-pattern-v1',policy_digest:status.active_revision},key());setJob(j);setReport(undefined);setScope({...scope,requests_remaining:0});await reloadJobs()})}><FileCheck2 size={15}/>{running?'Verification in progress':'Queue scoped verification'}</button>{!busy&&!running&&(!scopeUsable?<small className="muted button-reason">Prepare and approve a test scope above first.</small>:!status?.gateway_healthy?<small className="muted button-reason">Waiting for the gateway to report healthy.</small>:null)}
    {job&&<div className="note" role="status"><FileCheck2 size={17}/><div><p>Job {short(job.job_id)}: {human(job.state)} · attempts {job.attempts}{job.error_code?' · '+job.error_code:''}</p>{running&&<button disabled={busy} className="button light" onClick={()=>action(async()=>setJob(await cancelVerification(job.job_id,{})),'Cancellation requested. The worker must stop before recording a result.')}>Cancel job</button>}{!running&&!job.report_digest&&<p>No verified report was recorded for this job.</p>}</div></div>}
