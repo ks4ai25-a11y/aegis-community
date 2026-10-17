@@ -30,6 +30,23 @@ const engineAPIVersion = "1.55"
 
 var errEngine = errors.New("tracked scanner engine operation unconfirmed")
 
+// Reads wait 5 s for response headers. A tracked mutation (create, start,
+// remove) may wait longer: the authorizer admits its intent before the daemon
+// acts, so abandoning a slow but successful reply leaves an unresolved
+// obligation and a held dispatch slot. Hosted creates took 0.9-5.5 s under
+// page-cache writeback. Each mutation context remains nested in the run or
+// cleanup deadline, so neither bound extends the dispatch deadline, and a
+// mutation is never retried.
+var (
+	engineReadBound     = 5 * time.Second
+	engineMutationBound = 15 * time.Second
+)
+
+func trackedMutation(r *http.Request) bool {
+	c, _ := r.Context().Value(captureKey{}).(*responseCapture)
+	return c != nil && (c.operation == "create" || c.operation == "start" || c.operation == "remove")
+}
+
 type responseCapture struct {
 	mu                  sync.Mutex
 	operation, id, name string
@@ -157,6 +174,7 @@ func observedCreate(c *responseCapture, id string) bool {
 
 type engineTransport struct {
 	base     *http.Transport
+	mutation *http.Transport
 	request  client.RequestHook
 	response client.ResponseHook
 	identity *enginetls.Identity
@@ -175,7 +193,11 @@ func (t *engineTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 		}
 		return nil, e
 	}
-	response, e := t.base.RoundTrip(r)
+	base := t.base
+	if trackedMutation(r) {
+		base = t.mutation
+	}
+	response, e := base.RoundTrip(r)
 	if e == nil {
 		t.response(response)
 	}
@@ -186,12 +208,14 @@ type scannerEngineClient struct {
 	*client.Client
 	http      *http.Client
 	transport *http.Transport
+	mutation  *http.Transport
 	scheme    string
 	identity  *enginetls.Identity
 }
 
 func (c *scannerEngineClient) Close() error {
 	c.transport.CloseIdleConnections()
+	c.mutation.CloseIdleConnections()
 	return c.Client.Close()
 }
 
@@ -226,7 +250,7 @@ func newRestrictedEngineSDK(endpoint string, req client.RequestHook, resp client
 	u, _ := url.Parse(raw)
 	protocols := new(http.Protocols)
 	protocols.SetHTTP1(true)
-	tr := &http.Transport{Protocols: protocols, Proxy: nil, MaxConnsPerHost: 4, MaxIdleConnsPerHost: 2, ResponseHeaderTimeout: 5 * time.Second, MaxResponseHeaderBytes: 65536, DisableCompression: true, DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+	tr := &http.Transport{Protocols: protocols, Proxy: nil, MaxConnsPerHost: 4, MaxIdleConnsPerHost: 2, ResponseHeaderTimeout: engineReadBound, MaxResponseHeaderBytes: 65536, DisableCompression: true, DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 		return (&net.Dialer{Timeout: 2 * time.Second}).DialContext(ctx, "unix", u.Path)
 	}}
 	scheme := "http"
@@ -240,13 +264,17 @@ func newRestrictedEngineSDK(endpoint string, req client.RequestHook, resp client
 		scheme = "https"
 		tr.TLSHandshakeTimeout = 3 * time.Second
 	}
-	hc := &http.Client{Transport: &engineTransport{base: tr, request: req, response: resp, identity: identity}, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	// Same dialer, TLS identity and limits; only the response header wait differs.
+	mutation := tr.Clone()
+	mutation.ResponseHeaderTimeout = engineMutationBound
+	hc := &http.Client{Transport: &engineTransport{base: tr, mutation: mutation, request: req, response: resp, identity: identity}, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	sdk, e := client.New(client.WithHost(raw), client.WithHTTPClient(hc), client.WithScheme(scheme), client.WithAPIVersion(engineAPIVersion), client.WithUserAgent("aegis-scanner-tracked/1"))
 	if e != nil {
 		tr.CloseIdleConnections()
+		mutation.CloseIdleConnections()
 		return nil, e
 	}
-	return &scannerEngineClient{Client: sdk, http: hc, transport: tr, scheme: scheme, identity: identity}, nil
+	return &scannerEngineClient{Client: sdk, http: hc, transport: tr, mutation: mutation, scheme: scheme, identity: identity}, nil
 }
 func copyEngineStreams(r io.Reader, stdout, stderr io.Writer) error {
 	header := make([]byte, 8)
@@ -352,7 +380,7 @@ func (c Config) runEngineSDK(runCtx context.Context, endpoint, engine, nameValue
 		return
 	}
 	create := &responseCapture{operation: "create", name: nameValue}
-	ctx, cancel := context.WithTimeout(context.WithValue(runCtx, captureKey{}, create), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.WithValue(runCtx, captureKey{}, create), engineMutationBound)
 	created, e := cli.ContainerCreate(ctx, options)
 	cancel()
 	if e != nil || !observationID.MatchString(created.ID) || !observedCreate(create, created.ID) {
@@ -384,6 +412,8 @@ func (c Config) runEngineSDK(runCtx context.Context, endpoint, engine, nameValue
 		if e != nil {
 			return
 		}
+		// The remove reply may use whatever remains of this 10 s window (six
+		// tools x 10 s fills the 60 s dispatch slack), not just the read bound.
 		cap := &responseCapture{operation: "remove", id: containerID}
 		ctx := context.WithValue(cleanupCtx, captureKey{}, cap)
 		_, removeErr := cli.ContainerRemove(ctx, containerID, client.ContainerRemoveOptions{Force: true, RemoveVolumes: true})
@@ -471,7 +501,7 @@ func (c Config) runEngineSDK(runCtx context.Context, endpoint, engine, nameValue
 		return
 	}
 	start := &responseCapture{operation: "start", id: containerID}
-	ctx, startCancel := context.WithTimeout(context.WithValue(runCtx, captureKey{}, start), 5*time.Second)
+	ctx, startCancel := context.WithTimeout(context.WithValue(runCtx, captureKey{}, start), engineMutationBound)
 	started := time.Now()
 	_, e = cli.ContainerStart(ctx, containerID, client.ContainerStartOptions{})
 	startCancel()
