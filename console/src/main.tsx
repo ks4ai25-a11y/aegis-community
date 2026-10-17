@@ -4,7 +4,7 @@ import {Activity, ArrowRight, ChevronRight, Clock3, Command, Eye, FileCheck2, Fi
 import {Sites} from './Sites';
 import {Exposure} from './Exposure';
 import {Assessment, AIPage, Proposals} from './Assessment';
-import {api, setCSRF, key, short} from './client';
+import {api, setCSRF, key, short, human} from './client';
 import './style.css';
 import {Report} from './Report';
 import {Verification} from './Verification';
@@ -469,7 +469,7 @@ function Policies({site, action, busy, refresh}: {site: string; action: (w: () =
     <section className="card">
       <div className="card-heading"><h2>Revision history</h2><RotateCcw size={18}/></div>
       <ol className="timeline">{history.map(p => <li className={'history-row ' + p.state.toLowerCase()} key={p.digest}>
-        <div><strong>{modeOf(p.policy) || 'not present'} <span className={'badge ' + (p.state === 'ACTIVE' ? 'allowed' : '')}>{p.state}</span></strong><p className="mono muted">{short(p.digest)} · {new Date(p.created_at).toLocaleString()}</p></div>
+        <div><strong>{modeOf(p.policy) || 'not present'} <span className={'badge ' + (p.state === 'ACTIVE' ? 'allowed' : '')}>{human(p.state)}</span></strong><p className="mono muted">{short(p.digest)} · {new Date(p.created_at).toLocaleString()}</p></div>
         {p.state === 'SUPERSEDED' && !modeOf(p.policy) && <span className="muted small">Does not include this site; rolling back would remove it</span>}
         {p.state === 'SUPERSEDED' && modeOf(p.policy) && <button disabled={busy} className="button light" onClick={() => {
           if (window.confirm('Restore this prior gateway revision? It replaces the whole policy for every site, so traffic behaviour may change. An isolated test will run first.')) action(() => api('/sites/' + site + '/policies/' + encodeURIComponent(p.digest) + '/rollback', {reason: 'Owner-approved rollback to prior policy', acknowledge_disruption_risk: true}, {'If-Match': '"' + current.digest + '"', 'Idempotency-Key': key()}), 'Rollback confirmed.');
@@ -490,7 +490,7 @@ function AuditLog({refresh}: {refresh: number}) {
       <thead><tr><th>Time</th><th>Action</th><th>Actor</th><th>Object</th><th>Result</th><th>Record hash</th></tr></thead>
       <tbody>{items.map(v => { const r = v.record || {}; return <tr key={v.seq}>
         <td title={r.occurred_at}>{r.occurred_at ? new Date(r.occurred_at).toLocaleString() : '—'}</td>
-        <td className="mono">{r.action || '—'}</td><td>{r.actor_id || '—'}</td>
+        <td className="mono">{r.action || '—'}</td><td>{!r.actor_id ? '—' : /^[0-9a-f]{8}-/.test(r.actor_id) ? 'Owner' : human(r.actor_id)}</td>
         <td className="mono muted">{r.object_id ? short(r.object_id) : '—'}</td><td>{r.result || '—'}</td>
         <td className="mono muted" title={v.hash}>{short(v.hash)}</td>
       </tr>; })}</tbody>

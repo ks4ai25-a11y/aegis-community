@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import {Bot, Cpu, ShieldAlert} from 'lucide-react';
-import {api, short} from './client';
+import {api, short, human} from './client';
 import {activateCandidate} from './Sites';
 import {Report} from './Report';
 
@@ -102,7 +102,7 @@ function Connectors() {
       <pre className="mono">{config}</pre>
     </div></div>}
     <div className="table-wrap"><table><thead><tr><th>Name</th><th>State</th><th>Expires</th><th>Last used</th><th></th></tr></thead><tbody>
-      {items.map(c => <tr key={c.connector_id}><td>{c.name}</td><td><span className="badge">{c.state}</span></td><td>{new Date(c.expires_unix * 1000).toLocaleString()}</td><td>{c.last_used_unix ? new Date(c.last_used_unix * 1000).toLocaleString() : 'Never'}</td>
+      {items.map(c => <tr key={c.connector_id}><td>{c.name}</td><td><span className="badge">{human(c.state)}</span></td><td>{new Date(c.expires_unix * 1000).toLocaleString()}</td><td>{c.last_used_unix ? new Date(c.last_used_unix * 1000).toLocaleString() : 'Never'}</td>
         <td>{c.state === 'active' && <button className="button light" onClick={() => api('/connectors/' + encodeURIComponent(c.connector_id) + '/revoke', {}).then(load).catch(e => setError(e.message))}>Revoke</button>}</td></tr>)}
     </tbody></table></div>
   </section>;

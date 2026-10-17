@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'react';
 import {FileCheck2,LockKeyhole,RotateCcw,Terminal} from 'lucide-react';
-import {key,short} from './client';
+import {key,short,human} from './client';
 import{createScopeGrant,listVerifications,getVerification,getVerificationReport,approveScopeGrant,revokeScopeGrant,createVerification,cancelVerification}from'./generated/research-client';
 import {Report} from './Report';
 
@@ -30,7 +30,7 @@ export function Verification({action,busy,status}:Props) {
     <div className="system-row"><span>Routes</span><span>{scope.grant.allowed_routes.join(', ')}</span></div>
     <div className="system-row"><span>Limits</span><span>{scope.grant.max_requests} requests total · {scope.grant.max_duration_seconds}s · one worker</span></div>
     <div className="system-row"><span>Expires</span><span>{new Date(scope.grant.expires_at).toLocaleString()}</span></div>
-    <div className="system-row"><span>State / remaining requests</span><span>{scope.state} / {scope.requests_remaining}</span></div>
+    <div className="system-row"><span>State / remaining requests</span><span>{human(scope.state)} / {scope.requests_remaining}</span></div>
     <p className="mono muted">Exact scope: {scope.approved_digest}</p>
     {scope.state==='draft'&&<><label className="checkbox"><input type="checkbox" checked={ack} onChange={e=>setAck(e.target.checked)}/>I approve these synthetic targets, routes, expiry and limits.</label><button disabled={busy||!ack} className="button primary" onClick={()=>action(async()=>setScope(await approveScopeGrant(scope.grant.scope_grant_id,{approved_digest:scope.approved_digest,acknowledge_test_scope:true})))}>Approve exact scope</button></>}
     {scope.state==='active'&&<button disabled={busy} className="button light" onClick={()=>action(async()=>{await revokeScopeGrant(scope.grant.scope_grant_id,{});setScope({...scope,state:'revoked'})},'Scope revoked. Queued and running work is being cancelled.')}><RotateCcw size={15}/>Revoke scope</button>}
@@ -41,7 +41,7 @@ export function Verification({action,busy,status}:Props) {
    <p className="muted">The worker sends controls to separate baseline and candidate gateways. Durable status survives controller restarts. A timeout, cancellation or missing evidence cannot become a passing proof.</p>
    <div className="fixture"><span className="fixture-icon"><Terminal size={25}/></span><div><h3>CRS synthetic SQLi pattern</h3><p>Fixed corpus · exact policy revision {short(status?.active_revision)}</p></div></div>
    <button disabled={busy||running||!scopeUsable||!status?.gateway_healthy} className="button primary" onClick={()=>action(async()=>{if(!scope||!status)return;const j=await createVerification({schema_version:'1.0',app_id:'app_demo',scope_grant_id:scope.grant.scope_grant_id,scope_digest:scope.approved_digest,fixture_id:'crs-synthetic-sqli-pattern-v1',policy_digest:status.active_revision},key());setJob(j);setReport(undefined);setScope({...scope,requests_remaining:0});await reloadJobs()})}><FileCheck2 size={15}/>{running?'Verification in progress':'Queue scoped verification'}</button>
-   {job&&<div className="note" role="status"><FileCheck2 size={17}/><div><p>Job {short(job.job_id)}: {job.state} · attempts {job.attempts}{job.error_code?' · '+job.error_code:''}</p>{running&&<button disabled={busy} className="button light" onClick={()=>action(async()=>setJob(await cancelVerification(job.job_id,{})),'Cancellation requested. The worker must stop before recording a result.')}>Cancel job</button>}{!running&&!job.report_digest&&<p>No verified report was recorded for this job.</p>}</div></div>}
+   {job&&<div className="note" role="status"><FileCheck2 size={17}/><div><p>Job {short(job.job_id)}: {human(job.state)} · attempts {job.attempts}{job.error_code?' · '+job.error_code:''}</p>{running&&<button disabled={busy} className="button light" onClick={()=>action(async()=>setJob(await cancelVerification(job.job_id,{})),'Cancellation requested. The worker must stop before recording a result.')}>Cancel job</button>}{!running&&!job.report_digest&&<p>No verified report was recorded for this job.</p>}</div></div>}
    {report&&<Report report={report}/>}
   </section>
   <section className="card"><div className="card-heading"><h2>Durable verification history</h2><button className="button light" onClick={()=>action(reloadJobs)}>Refresh</button></div><div className="table-wrap"><table><thead><tr><th>Job</th><th>State</th><th>Created</th><th>Evidence</th></tr></thead><tbody>{jobs.map(j=><tr key={j.job_id}><td className="mono">{short(j.job_id)}</td><td>{j.state}</td><td>{new Date(j.created_at).toLocaleString()}</td><td><button className="button light" onClick={()=>action(()=>inspect(j))}>{j.report_digest?'Inspect report':'Inspect status'}</button></td></tr>)}</tbody></table></div>{jobs.length===0&&<p className="muted">No verification jobs yet.</p>}</section>
