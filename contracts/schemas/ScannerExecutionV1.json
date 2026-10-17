@@ -498,6 +498,47 @@
       },
       "minItems": 1,
       "maxItems": 16
+    },
+    "advisory_database": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "manifest_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "database_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "upstream_built_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "age_hours": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1048576
+        },
+        "stale": {
+          "type": "boolean"
+        },
+        "container_path": {
+          "type": "string",
+          "enum": [
+            "/db/osv",
+            "/db/trivy"
+          ]
+        }
+      },
+      "required": [
+        "manifest_digest",
+        "database_digest",
+        "upstream_built_at",
+        "age_hours",
+        "stale",
+        "container_path"
+      ]
     }
   },
   "required": [

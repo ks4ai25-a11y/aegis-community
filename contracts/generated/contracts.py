@@ -514,6 +514,7 @@ class ScannerExecutionV1(TypedDict):
     container_id: str
     result: ScannerExecutionV1Result
     limitations: list[str]
+    advisory_database: NotRequired[ScannerExecutionV1AdvisoryDatabase]
 class ScannerExecutionV1Invocation(TypedDict):
     args: list[str]
     network_profile: str
@@ -577,6 +578,13 @@ class ScannerExecutionV1ResultSbomComponentsItem(TypedDict):
     name: str
     version: str
     purl: str
+class ScannerExecutionV1AdvisoryDatabase(TypedDict):
+    manifest_digest: str
+    database_digest: str
+    upstream_built_at: str
+    age_hours: int
+    stale: bool
+    container_path: str
 class ScannerJobInputV1(TypedDict):
     schema_version: str
     app_id: str

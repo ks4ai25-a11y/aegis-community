@@ -1,4 +1,4 @@
-.PHONY: mcp-build defence-verify test generate check-generated build demo-up demo-verify scoped-verify repository-verify research-build
+.PHONY: release-evidence mcp-build defence-verify test generate check-generated build demo-up demo-verify scoped-verify repository-verify research-build
 
 test: check-generated
 	cd gateway && go test -race ./...
@@ -65,3 +65,6 @@ defence-verify: mcp-build
 	cd tests/integration && python3 mcp_acceptance.py
 	cd tests/integration && python3 remediation_acceptance.py
 	python3 tests/negative-security/defence_negative.py
+
+release-evidence:
+	python3 scripts/release/release_evidence.py

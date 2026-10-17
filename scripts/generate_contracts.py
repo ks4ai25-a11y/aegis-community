@@ -159,6 +159,8 @@ schemas.update({'RecoveryBundleManifestV1':recovery_manifest,'RecoveryBundleEnve
 scanner_db_file=obj({'path':string(minLength=1,maxLength=512),'sha256':hash,'size':integer(0,2147483647)})
 scanner_db=obj({'tool':string(enum=['osv_v2','trivy']),'source':string(minLength=1,maxLength=512),'upstream_built_at':string(format='date-time'),'fetched_at':string(format='date-time'),'files':array(scanner_db_file,minItems=1,maxItems=4096),'digest':hash})
 schemas['ScannerDatabaseManifestV1']=obj({'schema_version':string(const='1.0'),'created_at':string(format='date-time'),'databases':array(scanner_db,minItems=1,maxItems=2),'manifest_digest':hash})
+# Optional on scanner receipts: the verified database mounted read-only for that run.
+execution['properties']['advisory_database']=obj({'manifest_digest':hash,'database_digest':hash,'upstream_built_at':string(format='date-time'),'age_hours':integer(0,1048576),'stale':{'type':'boolean'},'container_path':string(enum=['/db/osv','/db/trivy'])})
 
 for name,body in schemas.items():
  document={'$schema':SCHEMA,'$id':'https://aegis.invalid/contracts/'+name+'.json','title':name,**body}

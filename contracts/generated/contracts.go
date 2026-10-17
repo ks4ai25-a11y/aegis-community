@@ -558,26 +558,27 @@ type SourceSnapshotManifestV1FilesItem struct {
 	Size   int64  `json:"size"`
 }
 type ScannerExecutionV1 struct {
-	ParserVersion        string                           `json:"parser_version,omitempty"`
-	Invocation           ScannerExecutionV1Invocation     `json:"invocation"`
-	SandboxProfile       string                           `json:"sandbox_profile"`
-	SchemaVersion        string                           `json:"schema_version"`
-	ToolId               string                           `json:"tool_id"`
-	ToolVersion          string                           `json:"tool_version"`
-	ToolImageDigest      string                           `json:"tool_image_digest"`
-	ToolLockDigest       string                           `json:"tool_lock_digest"`
-	RulePackDigest       string                           `json:"rule_pack_digest,omitempty"`
-	GuardBinaryDigest    string                           `json:"guard_binary_digest"`
-	DurationLimitSeconds int64                            `json:"duration_limit_seconds"`
-	SourceSnapshot       ScannerExecutionV1SourceSnapshot `json:"source_snapshot"`
-	StartedAt            string                           `json:"started_at"`
-	DurationMs           int64                            `json:"duration_ms"`
-	ExitCode             int64                            `json:"exit_code"`
-	Status               string                           `json:"status"`
-	CleanupState         string                           `json:"cleanup_state"`
-	ContainerId          string                           `json:"container_id"`
-	Result               ScannerExecutionV1Result         `json:"result"`
-	Limitations          []string                         `json:"limitations"`
+	ParserVersion        string                             `json:"parser_version,omitempty"`
+	Invocation           ScannerExecutionV1Invocation       `json:"invocation"`
+	SandboxProfile       string                             `json:"sandbox_profile"`
+	SchemaVersion        string                             `json:"schema_version"`
+	ToolId               string                             `json:"tool_id"`
+	ToolVersion          string                             `json:"tool_version"`
+	ToolImageDigest      string                             `json:"tool_image_digest"`
+	ToolLockDigest       string                             `json:"tool_lock_digest"`
+	RulePackDigest       string                             `json:"rule_pack_digest,omitempty"`
+	GuardBinaryDigest    string                             `json:"guard_binary_digest"`
+	DurationLimitSeconds int64                              `json:"duration_limit_seconds"`
+	SourceSnapshot       ScannerExecutionV1SourceSnapshot   `json:"source_snapshot"`
+	StartedAt            string                             `json:"started_at"`
+	DurationMs           int64                              `json:"duration_ms"`
+	ExitCode             int64                              `json:"exit_code"`
+	Status               string                             `json:"status"`
+	CleanupState         string                             `json:"cleanup_state"`
+	ContainerId          string                             `json:"container_id"`
+	Result               ScannerExecutionV1Result           `json:"result"`
+	Limitations          []string                           `json:"limitations"`
+	AdvisoryDatabase     ScannerExecutionV1AdvisoryDatabase `json:"advisory_database,omitempty"`
 }
 type ScannerExecutionV1Invocation struct {
 	Args             []string `json:"args"`
@@ -650,6 +651,14 @@ type ScannerExecutionV1ResultSbomComponentsItem struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 	Purl    string `json:"purl"`
+}
+type ScannerExecutionV1AdvisoryDatabase struct {
+	ManifestDigest  string `json:"manifest_digest"`
+	DatabaseDigest  string `json:"database_digest"`
+	UpstreamBuiltAt string `json:"upstream_built_at"`
+	AgeHours        int64  `json:"age_hours"`
+	Stale           bool   `json:"stale"`
+	ContainerPath   string `json:"container_path"`
 }
 type ScannerJobInputV1 struct {
 	SchemaVersion      string   `json:"schema_version"`

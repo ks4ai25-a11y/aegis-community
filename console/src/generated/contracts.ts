@@ -576,6 +576,7 @@ export interface ScannerExecutionV1 {
   container_id: string;
   result: ScannerExecutionV1Result;
   limitations: Array<string>;
+  advisory_database?: ScannerExecutionV1AdvisoryDatabase;
 }
 export interface ScannerExecutionV1Invocation {
   args: Array<string>;
@@ -648,6 +649,14 @@ export interface ScannerExecutionV1ResultSbomComponentsItem {
   name: string;
   version: string;
   purl: string;
+}
+export interface ScannerExecutionV1AdvisoryDatabase {
+  manifest_digest: string;
+  database_digest: string;
+  upstream_built_at: string;
+  age_hours: number;
+  stale: boolean;
+  container_path: "/db/osv" | "/db/trivy";
 }
 export interface ScannerJobInputV1 {
   schema_version: "1.0";
