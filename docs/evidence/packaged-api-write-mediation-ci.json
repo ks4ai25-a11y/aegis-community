@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "source_commit": "52217c2f010a2a9985a9711f03cdfc15fac0681c",
+  "ci_run": 39021222919,
+  "ci_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/39021222919",
+  "ci_conclusion": "success",
+  "jobs": {
+    "source": "PASS",
+    "trusted-demo": "PASS",
+    "isolated-engine-authz": "PASS",
+    "packaged-worker": "PASS"
+  },
+  "checks": {
+    "native_tls_engine_refuses_enumerated_unadmitted_writes_without_state_change": {
+      "actual_packaged_native_admission_step": "PASS",
+      "two_sequential_scans_reconcile_step": "PASS"
+    }
+  },
+  "probe": {
+    "enumerated_requests": 116,
+    "routed_requests_requiring_plugin_403": 94,
+    "aliases_requiring_no_success": 22,
+    "principals": [
+      "aegis-engine-broker",
+      "aegis-engine-observer"
+    ],
+    "plugin_journal_unchanged": true,
+    "daemon_data_root_digest_unchanged": true,
+    "single_tls_api_listener": true
+  },
+  "local_tests": [
+    "TestEveryUnadmittedWriteIsRefusedInEveryLifecycleState",
+    "TestOnlyExactAdmittedFormsAreAllowedForAnyMethod",
+    "TestHiddenOrUnexpectedBodiesCannotReachAdmittedForms"
+  ],
+  "claim": "On the packaged admitted path, every enumerated Docker Engine API request that would create, start, modify, exec into or delete engine state is refused unless it is the controller-admitted create/start/remove of a registered launch",
+  "not_claimed": [
+    "host root or the daemon's private containerd socket",
+    "plugin spec or daemon configuration changes",
+    "other Docker versions than pinned 29.8.2",
+    "hosted exec against a running scanner child (local test only)"
+  ],
+  "enumerated_unadmitted_api_writes_refused": true,
+  "all_engine_writes_mediated_claimed": false,
+  "private_runtime_evidence_published": false,
+  "sealed_crash_repair_implemented": false,
+  "independent_security_signoff": false
+}

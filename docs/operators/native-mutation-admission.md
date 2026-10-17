@@ -1,6 +1,6 @@
 # Native scanner mutation admission
 
-This experimental mode connects the isolated scanner daemon's native authorization plugin to the controller's retained mutation ledger. It is a step toward ADR057 cleanup release. Independent reconciliation, release and two actual sequential packaged scans remain unfinished. Local protocol/policy tests are not proof that the packaged daemon path has passed.
+This experimental mode connects the isolated scanner daemon's native authorization plugin to the controller's retained mutation ledger. It is part of ADR 057 cleanup release. Independent reconciliation and release between two sequential packaged scans have passed hosted CI (see [reconciler operations](scanner-reconcilers.md)). Sealed crash repair is unfinished. Local protocol and policy tests do not prove that the packaged daemon path has passed.
 
 Use only a separately provisioned scanner daemon and unprivileged native Linux scanner identity. Do not enable it on a workstation or shared application daemon. The plugin receives its own controller credential and private journal, with source/registry and controller socket mounts read-only. It needs no daemon socket, engine client certificates, network access or worker credential. Its controller role is `scanner-engine-authorizer`; existing observer credentials remain read-only.
 
@@ -28,6 +28,29 @@ Enrollment writes only the private credential. Selection requires the existing e
 5. Start the plugin using the same arguments as the input command, replacing `admitted-policy-input` with `serve-admitted`. Configure only the dedicated daemon's authorization-plugin path. Successful startup authenticates the authorizer and selected binding, checks the original protocol2 namespace, and seals the journal to both the policy and selected binding digest. The selected binding is deliberately excluded from the earlier policy digest to avoid circular approval; it is included in the serving journal seal.
 
 The existing Compose `serve-bound` overlay continues to provide its older observation-only mode. The separate `deploy/compose.scanner-authorizer-admitted.yaml` overlay uses profile `operator-engine-admission` and `serve-admitted`. It requires `AEGIS_SCANNER_AUTHORIZER_ID`, `AEGIS_SCANNER_REGISTRY_NAMESPACE` and `AEGIS_SCANNER_ADMISSION_CREDENTIAL_VOLUME` in addition to the approved engine, registry, owner and authorizer-root settings. Its credential volume is mounted read-only at `/run/authorizer-credential`; no observer or worker credential is mounted there. Expand and review the configuration before starting only the dedicated daemon plugin. A generation-enabled dispatch refuses the old observer live-launch path. The new isolated Linux CI acceptance is configured to exercise actual Bandit through this admitted overlay, compare private controller/native records and retain the second-job hold; hosted run [38997831312](https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38997831312) passed for exact commit `47bf385821f9b937eb6213d765558d8e36fd41e3`, including this actual-daemon step and all existing regressions. This verifies that bounded admission test; independent reconciliation and cleanup release remain unfinished.
+
+## API write mediation
+
+The plugin is default-deny. On the dedicated daemon it allows only:
+
+- exact reads: `/info`, the pinned tool images, the tracked child, and the observer's journal-known children;
+- the broker's `wait` and output-only `attach` of its own tracked child;
+- the journalled, controller-admitted create, start and remove of one registered launch.
+
+It refuses every other method, path, version prefix, encoding alias and principal. Docker runs the authorization middleware before its version and experimental checks on every routed API handler (reviewed in the `docker-v29.0.0` source; CI pins 29.8.2). An unrouted path reaches no handler. A non-JSON or oversized body is left out of the plugin envelope. Create therefore requires an exact JSON body, and start and remove require an empty one.
+
+What is tested:
+
+- **Locally**, `alpha/engineauthz/mediation_test.go` sends 116 enumerated requests. They cover the Docker v1.55 write surface (containers, exec, images, build/session/grpc, volumes, networks, plugins, swarm services/nodes/secrets/configs and auth) plus version, case and encoding aliases of the admitted forms. Each is sent as the broker, the observer, an unknown principal and an anonymous one, in all seven lifecycle states, and also as a forged response callback. Every one is refused, and the journal and pending ticket do not change. A method sweep over every URI shows that the only allowed non-GET requests are the exact admitted forms.
+- **In hosted CI**, on the admitted packaged path (`AEGIS_PACKAGED_ADMISSION_TEST`, including the two-scan reconcile step), the fixture sends the same surface to the real TLS daemon as both broker and observer. Each of the 94 routed requests must return 403 with this plugin's refusal message. The 22 aliases must not succeed. The plugin journal and a root-read digest of the daemon's data root (outside the API) must not change. The daemon must have exactly one TCP listener, the TLS port, and no Unix listener outside its private roots. Every other socket in the fixture root must be unreachable by the scanner UID.
+
+This proves that, on that packaged path, a Docker Engine API request that would create, start, modify, exec into or delete engine state is either admitted against a controller intent or refused. It does not cover:
+
+- root on the host, the daemon's private containerd socket, or editing the plugin spec or daemon configuration and reloading it;
+- other Docker versions;
+- exec against a *running* scanner child on the real daemon. CI probes non-existent targets, and the plugin refuses by path before the daemon looks the target up. Running-state refusal is a local test.
+
+`all_engine_writes_mediated` therefore stays `false` in journal status and evidence. The narrower field `enumerated_unadmitted_api_writes_refused` records the CI result. It first passed at commit `52217c2` in hosted [run 39021222919](https://github.com/ks4ai25-a11y/aegis-community/actions/runs/39021222919). See [the evidence record](../evidence/packaged-api-write-mediation-ci.json).
 
 ## Mutation and response ordering
 
