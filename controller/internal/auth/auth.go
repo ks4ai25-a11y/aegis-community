@@ -13,6 +13,8 @@ import (
 	"golang.org/x/crypto/argon2"
 	"io"
 	"net/http"
+	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -140,11 +142,26 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request, password string) (s
 	session := Token()
 	csrf := csrfForSession(domain.Hash([]byte(session)))
 	now := time.Now().Unix()
-	_, e := a.S.DB.Exec("INSERT INTO sessions VALUES(?,?,?,?,?,?)", domain.Hash([]byte(session)), id, domain.Hash([]byte(csrf)), now, now, now+8*3600)
+	tx, e := a.S.DB.Begin()
 	if e != nil {
 		return "", e
 	}
-	http.SetCookie(w, &http.Cookie{Name: "aegis_session", Value: session, Path: "/", HttpOnly: true, Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode, MaxAge: 8 * 3600})
+	defer tx.Rollback()
+	// Expired and idle sessions are removed, and an owner keeps at most five,
+	// so an old stolen cookie does not outlive later sign-ins indefinitely.
+	if _, e = tx.Exec("DELETE FROM sessions WHERE expires<? OR seen<?", now, now-1800); e != nil {
+		return "", e
+	}
+	if _, e = tx.Exec("INSERT INTO sessions VALUES(?,?,?,?,?,?)", domain.Hash([]byte(session)), id, domain.Hash([]byte(csrf)), now, now, now+8*3600); e != nil {
+		return "", e
+	}
+	if _, e = tx.Exec("DELETE FROM sessions WHERE owner=? AND hash NOT IN (SELECT hash FROM sessions WHERE owner=? ORDER BY created DESC, seen DESC LIMIT 5)", id, id); e != nil {
+		return "", e
+	}
+	if e = tx.Commit(); e != nil {
+		return "", e
+	}
+	http.SetCookie(w, &http.Cookie{Name: "aegis_session", Value: session, Path: "/", HttpOnly: true, Secure: SecureRequest(r), SameSite: http.SameSiteStrictMode, MaxAge: 8 * 3600})
 	return csrf, nil
 }
 func (a *Auth) Session(r *http.Request) (string, string, error) {
@@ -241,4 +258,16 @@ func uniqueKeys(d *json.Decoder, depth int) error {
 	}
 	_, e = d.Token()
 	return e
+}
+
+// PublicOrigin is the console's origin as the browser sees it when a trusted
+// TLS-terminating proxy sits in front (AEGIS_PUBLIC_ORIGIN, e.g.
+// https://aegis.example.internal). Forwarded headers are never trusted.
+func PublicOrigin() string {
+	return strings.TrimRight(strings.TrimSpace(os.Getenv("AEGIS_PUBLIC_ORIGIN")), "/")
+}
+
+// SecureRequest reports whether cookies must carry the Secure attribute.
+func SecureRequest(r *http.Request) bool {
+	return r.TLS != nil || strings.HasPrefix(PublicOrigin(), "https://")
 }

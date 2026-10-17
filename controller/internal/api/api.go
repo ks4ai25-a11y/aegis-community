@@ -29,6 +29,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -81,7 +82,7 @@ func (s *Server) Handler() http.Handler {
 			if r.TLS != nil {
 				scheme = "https"
 			}
-			if origin != "" && origin != scheme+"://"+r.Host {
+			if origin != "" && origin != scheme+"://"+r.Host && (auth.PublicOrigin() == "" || origin != auth.PublicOrigin()) {
 				fail(w, 403, "FORBIDDEN", "Cross-origin mutation denied")
 				return
 			}
@@ -221,7 +222,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		output(w, 200, map[string]string{"owner_id": actor, "csrf_token": csrf})
 	case path == "/auth/logout" && r.Method == "POST":
 		s.S.DB.Exec("DELETE FROM sessions WHERE hash=?", session)
-		http.SetCookie(w, &http.Cookie{Name: "aegis_session", Path: "/", MaxAge: -1, HttpOnly: true, SameSite: http.SameSiteStrictMode})
+		http.SetCookie(w, &http.Cookie{Name: "aegis_session", Path: "/", MaxAge: -1, HttpOnly: true, Secure: auth.SecureRequest(r), SameSite: http.SameSiteStrictMode})
 		output(w, 200, map[string]bool{"logged_out": true})
 	case path == "/system/status" && r.Method == "GET":
 		s.status(w, r)
@@ -786,7 +787,7 @@ func (s *Server) preview(w http.ResponseWriter, r *http.Request, actor string) {
 	defer cancel()
 	d, e := s.P.Prepare(ctx, p)
 	if e != nil {
-		fail(w, 400, "VALIDATION_FAILED", e.Error())
+		fail(w, 400, "VALIDATION_FAILED", clientMessage(e, "The gateway refused this policy"))
 		return
 	}
 	report, e := s.V.Run(ctx, p)
@@ -876,7 +877,7 @@ func (s *Server) activate(w http.ResponseWriter, r *http.Request, actor, path, o
 		ctx, cancel := context.WithTimeout(r.Context(), 45*time.Second)
 		defer cancel()
 		if _, e = s.P.Prepare(ctx, p); e != nil {
-			fail(w, 400, "VALIDATION_FAILED", e.Error())
+			fail(w, 400, "VALIDATION_FAILED", clientMessage(e, "The gateway refused this policy"))
 			return
 		}
 		report, e := s.V.Run(ctx, p)
@@ -912,7 +913,12 @@ func (s *Server) activate(w http.ResponseWriter, r *http.Request, actor, path, o
 	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
 	defer cancel()
 	if e = s.P.Apply(ctx, p, actor); e != nil {
-		fail(w, 409, "CONFLICT", e.Error())
+		fmt.Printf("{\"event\":\"policy_apply_failed\",\"error\":%q}\n", e.Error())
+		if internalWords.MatchString(e.Error()) || strings.HasPrefix(e.Error(), "APPLY_STATUS_UNKNOWN") {
+			fail(w, 503, "DEPENDENCY_UNAVAILABLE", "Gateway activation could not be confirmed; reload the console before retrying")
+		} else {
+			fail(w, 409, "CONFLICT", clientMessage(e, "Activation was refused"))
+		}
 		return
 	}
 	if s.CanaryNow != nil {
@@ -1000,4 +1006,24 @@ func scannerStatus(s *Server) map[string]any {
 		s.S.DB.QueryRow("SELECT count(*) FROM scanner_workers WHERE state='active' AND expires>?", time.Now().Unix()).Scan(&workers)
 	}
 	return map[string]any{"service_configured": s.Scans != nil, "enrolled_workers": workers}
+}
+
+var (
+	internalPath  = regexp.MustCompile(`(/[A-Za-z0-9._-]+){2,}`)
+	internalWords = regexp.MustCompile(`(?i)sqlite|database|journal|goroutine|panic|\.go:\d+`)
+)
+
+// clientMessage keeps the first line of a validation error for the owner but
+// drops internal paths and storage errors, which are logged instead.
+func clientMessage(e error, fallback string) string {
+	msg := strings.TrimSpace(strings.SplitN(e.Error(), "\n", 2)[0])
+	if msg == "" || internalWords.MatchString(msg) {
+		fmt.Printf("{\"event\":\"validation_internal_error\",\"error\":%q}\n", e.Error())
+		return fallback
+	}
+	msg = internalPath.ReplaceAllString(msg, "…")
+	if r := []rune(msg); len(r) > 300 {
+		msg = string(r[:300]) + "…"
+	}
+	return msg
 }

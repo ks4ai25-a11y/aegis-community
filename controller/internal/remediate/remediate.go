@@ -478,4 +478,6 @@ func introducedRisk(original, replacement []string) string {
 }
 
 // IntroducedRisk is exported for the adversarial evaluation suite.
-func IntroducedRisk(original, replacement []string) string { return introducedRisk(original, replacement) }
+func IntroducedRisk(original, replacement []string) string {
+	return introducedRisk(original, replacement)
+}

@@ -1,6 +1,7 @@
 package propose
 
 import (
+	"strings"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/store"
 	"encoding/json"
@@ -41,14 +42,18 @@ func TestDemoProposalsAreValidCandidates(t *testing.T) {
 			t.Fatal(p)
 		}
 	}
-	x := r.Proposals[0]
+	// Protect (P2) is listed before the attacker-steerable exclusion (P3).
+	if r.Proposals[0].Kind != "protect" || r.Proposals[0].Candidate.Mode != "protect" || len(r.Proposals[0].Candidate.Exclusions) != 0 {
+		t.Fatal(r.Proposals[0])
+	}
+	x := r.Proposals[1]
+	if !strings.Contains(x.SideEffects[0], "attacker can choose") {
+		t.Fatal(x.SideEffects)
+	}
 	got := x.Candidate.Exclusions[0]
 	expires, _ := time.Parse(time.RFC3339, got.ExpiresAt)
 	if x.Kind != "exclusion" || len(x.Candidate.Exclusions) != 1 || got.RuleID != 942100 || got.Path != "/catalog" || got.Parameter != "query" || time.Until(expires) < 29*24*time.Hour || x.Candidate.Mode != "observe" {
 		t.Fatal(x)
-	}
-	if r.Proposals[1].Kind != "protect" || r.Proposals[1].Candidate.Mode != "protect" || len(r.Proposals[1].Candidate.Exclusions) != 0 {
-		t.Fatal(r.Proposals[1])
 	}
 }
 

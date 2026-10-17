@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"aegis.local/controller/internal/auth"
 	"aegis.local/controller/internal/store"
 	"net/http/httptest"
@@ -88,5 +89,17 @@ func TestConcurrentLoginGuessesAreSerialised(t *testing.T) {
 	}
 	if checked > 2 {
 		t.Fatal("password checks ran concurrently:", checked)
+	}
+}
+
+func TestClientMessageDropsInternals(t *testing.T) {
+	if m := clientMessage(errors.New("durable activation journal unavailable: sqlite: disk I/O error"), "fallback"); m != "fallback" {
+		t.Fatal(m)
+	}
+	if m := clientMessage(errors.New("adapting config using caddyfile: /etc/caddy/Caddyfile:12: bad directive\nstack"), "fallback"); strings.Contains(m, "/etc/caddy") || strings.Contains(m, "stack") {
+		t.Fatal(m)
+	}
+	if m := clientMessage(errors.New("stale parent revision"), "fallback"); m != "stale parent revision" {
+		t.Fatal(m)
 	}
 }

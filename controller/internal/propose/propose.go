@@ -48,7 +48,15 @@ type match struct {
 }
 
 // Propose derives proposals for one incident against the active policy.
+// Propose returns proposals ordered by priority, so the stricter control
+// (Protect, P2) is listed before an attacker-steerable exclusion (P3).
 func Propose(s *store.Store, incident string) (Result, error) {
+	res, e := propose(s, incident)
+	sort.SliceStable(res.Proposals, func(i, j int) bool { return res.Proposals[i].Priority < res.Proposals[j].Priority })
+	return res, e
+}
+
+func propose(s *store.Store, incident string) (Result, error) {
 	res := Result{Proposals: []Proposal{}, NotProposed: []string{}}
 	var notes string
 	if e := s.DB.QueryRow("SELECT notes FROM incidents WHERE id=?", incident).Scan(&notes); e != nil {
@@ -150,7 +158,7 @@ func Propose(s *store.Store, incident string) (Result, error) {
 			Title:        fmt.Sprintf("Exclude %s from rule %d on %s %s", m.parameter, m.rule, m.method, m.route),
 			Rationale:    "Use only if the matching requests are legitimate. The exclusion removes this one parameter from this one rule on this exact route; every other rule still inspects it.",
 			Impact:       "Requests whose only match was this rule on this parameter stop raising this observation and are not blocked by it in Protect.",
-			SideEffects:  []string{"A real attack carried in this parameter would no longer be detected by this rule.", "The isolated fixture preview fails if the exclusion would remove the bundled negative control.", "It expires after 30 days; Aegis then removes it automatically if the stricter revision passes the fixture."},
+			SideEffects:  exclusionSideEffects(site),
 			EvidenceRefs: refs, Tests: []string{"Validate and preview the candidate: the pinned gateway must accept it and the bundled benign and negative controls must still pass.", "Replay the legitimate request that triggered the incident in a staging copy of the application."},
 			Candidate: p}))
 		excluded = true
@@ -272,4 +280,20 @@ func proposeRateLimit(s *store.Store, incident string, det map[string]any, res R
 		EvidenceRefs: refs, Tests: []string{"Validate and preview the candidate in the isolated fixture.", "Confirm normal browsing and API clients stay well below the limit."},
 		Candidate: p}))
 	return res, nil
+}
+
+// exclusionSideEffects is honest about what the preview checks and about who
+// chose the parameter: its name comes from the request, so an attacker can
+// pick which exclusion is proposed.
+func exclusionSideEffects(site string) []string {
+	out := []string{
+		"The parameter name comes from the request itself, so an attacker can choose which exclusion this proposes. Approve it only after confirming the matching traffic is legitimate.",
+		"A real attack carried in this parameter would no longer be detected by this rule.",
+	}
+	if site == "site_demo" {
+		out = append(out, "The isolated fixture preview fails if the exclusion would remove the bundled negative control.")
+	} else {
+		out = append(out, "The isolated fixture preview tests only the bundled demo controls; it does not check this site's own routes.")
+	}
+	return append(out, "It expires after 30 days; Aegis then removes it automatically if the stricter revision passes the fixture.")
 }

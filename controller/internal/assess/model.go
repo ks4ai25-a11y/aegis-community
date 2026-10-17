@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -54,6 +55,11 @@ func (c Config) Validate() error {
 	u, e := url.Parse(c.URL)
 	if e != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
 		return fmt.Errorf("AEGIS_AI_URL must be an http(s) base URL without credentials")
+	}
+	// An API key must not travel in clear text to a host outside this machine
+	// or private network.
+	if c.KeyFile != "" && u.Scheme == "http" && !privateHost(u.Hostname()) {
+		return fmt.Errorf("AEGIS_AI_URL must use https when AEGIS_AI_KEY_FILE is set for a non-private host")
 	}
 	if c.Model == "" || len(c.Model) > 128 || strings.ContainsAny(c.Model, "\r\n\"") {
 		return fmt.Errorf("AEGIS_AI_MODEL required")
@@ -151,7 +157,9 @@ func (c Config) CompleteJSON(ctx context.Context, system, user string, schema ma
 	} else if k != "" {
 		req.Header.Set("Authorization", "Bearer "+k)
 	}
-	client := &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	// Proxy environment variables are ignored: dossiers go only to the
+	// configured model server.
+	client := &http.Client{Transport: &http.Transport{Proxy: nil, ForceAttemptHTTP2: true, TLSHandshakeTimeout: 10 * time.Second}, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	resp, e := client.Do(req)
 	if e != nil {
 		return "", fmt.Errorf("model endpoint unavailable")
@@ -399,4 +407,13 @@ func Assess(ctx context.Context, c Config, d Dossier, useModel bool) Assessment 
 	}
 	a.Provenance = Provenance{Assessor: "deterministic", DossierDigest: digest, GeneratedAt: now, Fallback: reason}
 	return a
+}
+
+// privateHost reports loopback, private-range and single-label (container) hosts.
+func privateHost(h string) bool {
+	if h == "localhost" || !strings.Contains(h, ".") {
+		return true
+	}
+	ip := net.ParseIP(h)
+	return ip != nil && (ip.IsLoopback() || ip.IsPrivate())
 }

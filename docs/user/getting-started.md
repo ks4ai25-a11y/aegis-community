@@ -53,4 +53,4 @@ Stop the stack with `scripts/quickstart.sh --down` (your data is kept).
 
 ## Reaching the console from another name
 
-The console answers only to `localhost`, `127.0.0.1` and `::1` (any port), so another web page cannot reach it by pointing its own domain at your machine. An SSH tunnel to `localhost` works unchanged. If you put the console behind a private reverse proxy or tunnel with its own host name, set `AEGIS_CONSOLE_HOSTS=console.example.internal` (comma-separated, optionally with `:port`) for the controller.
+The console answers only to `localhost`, `127.0.0.1` and `::1` (any port), so another web page cannot reach it by pointing its own domain at your machine. An SSH tunnel to `localhost` works unchanged. If you put the console behind a private reverse proxy or tunnel with its own host name, set `AEGIS_CONSOLE_HOSTS=console.example.internal` (comma-separated, optionally with `:port`) for the controller. If that proxy terminates TLS, also set `AEGIS_PUBLIC_ORIGIN=https://console.example.internal` so session cookies are marked Secure and the browser's HTTPS origin is accepted. Forwarded headers are never trusted.

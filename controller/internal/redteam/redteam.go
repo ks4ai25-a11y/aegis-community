@@ -107,7 +107,7 @@ var (
 	sourceRef = regexp.MustCompile(`(?i)[\w./-]+\.(py|js|mjs|cjs|ts|tsx|jsx|go|java|kt|rb|php|cs|rs|c|cc|cpp|h|swift|scala|sql|yaml|yml|json|toml):\d+(-\d+)?`)
 	// Command-like text in a claim is a request for the owner to run something.
 	commandLike = regexp.MustCompile(`(?i)(\b(nc|ncat|netcat|curl|wget|ssh|scp|telnet|redis-cli|psql|mysql|mongo|nmap|sqlmap|powershell|bash|sudo|chmod|chown)\b\s+\S|\brm\s+-|\bsh\s+-c\b|[|;&]\s*(sh|bash)\b|<\s*/etc/|>\s*/dev/tcp)`)
-	refShape = regexp.MustCompile(`^([^:\s]{1,512})(?::(\d{1,6})(?:-(\d{1,6}))?)?$`)
+	refShape    = regexp.MustCompile(`^([^:\s]{1,512})(?::(\d{1,6})(?:-(\d{1,6}))?)?$`)
 )
 
 func template(id string) (Template, bool) {

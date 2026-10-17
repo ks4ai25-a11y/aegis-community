@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"context"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/store"
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -233,7 +233,10 @@ func TestRefreshAuditsOnlyChanges(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	audits := func() (n int) { s.DB.QueryRow("SELECT count(*) FROM audit WHERE json_extract(document,'$.action')='repository.connect'").Scan(&n); return }
+	audits := func() (n int) {
+		s.DB.QueryRow("SELECT count(*) FROM audit WHERE json_extract(document,'$.action')='repository.connect'").Scan(&n)
+		return
+	}
 	before := audits()
 	for i := 0; i < 5; i++ {
 		if _, e = r.Refresh(context.Background(), owner, rec.ID); e != nil {
