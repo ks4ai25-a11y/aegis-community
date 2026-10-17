@@ -4,6 +4,7 @@ package api
 import (
 	"aegis.local/controller/internal/auth"
 	"aegis.local/controller/internal/repository"
+	"aegis.local/controller/internal/scanqueue"
 	"database/sql"
 	"errors"
 	"net/http"
@@ -47,6 +48,8 @@ func (s *Server) repositoryOperation(w http.ResponseWriter, r *http.Request, own
 			return
 		}
 		output(w, 200, map[string]any{"items": out})
+	case strings.HasPrefix(path, "/repos/") && strings.HasSuffix(path, "/rescan") && (r.Method == "GET" || r.Method == "POST"):
+		s.rescanPolicy(w, r, owner, strings.TrimSuffix(strings.TrimPrefix(path, "/repos/"), "/rescan"))
 	case strings.HasPrefix(path, "/repos/") && r.Method == "GET":
 		rest := strings.TrimPrefix(path, "/repos/")
 		if strings.HasSuffix(rest, "/map") {
@@ -80,5 +83,42 @@ func (s *Server) repositoryError(w http.ResponseWriter, e error) {
 		fail(w, 400, "VALIDATION_FAILED", "Repository asset or source boundary validation failed")
 	default:
 		fail(w, 500, "INTERNAL_ERROR", "Repository persistence unavailable")
+	}
+}
+
+// rescanPolicy reads or sets the owner's change-triggered rescan opt-in (D9).
+func (s *Server) rescanPolicy(w http.ResponseWriter, r *http.Request, owner, repo string) {
+	if s.Scans == nil {
+		fail(w, 503, "DEPENDENCY_UNAVAILABLE", "Scanner service is not provisioned")
+		return
+	}
+	if r.Method == "GET" {
+		p, e := s.Scans.RescanPolicyFor(owner, repo)
+		if e != nil {
+			s.repositoryError(w, e)
+			return
+		}
+		output(w, 200, p)
+		return
+	}
+	var in struct {
+		Enabled  bool     `json:"enabled"`
+		Tools    []string `json:"tool_ids"`
+		Duration int      `json:"tool_timeout_seconds"`
+	}
+	if auth.Decode(r, &in) != nil {
+		fail(w, 400, "VALIDATION_FAILED", "Provide enabled, tool_ids and tool_timeout_seconds")
+		return
+	}
+	p, e := s.Scans.SetRescanPolicy(owner, repo, in.Enabled, in.Tools, in.Duration)
+	switch {
+	case errors.Is(e, scanqueue.ErrPolicy):
+		fail(w, 400, "VALIDATION_FAILED", "Choose one to six supported scanners and a timeout of 1 to 120 seconds")
+	case errors.Is(e, scanqueue.ErrFull):
+		fail(w, 422, "RESOURCE_LIMIT", "Too many repositories have automatic rescans enabled")
+	case e != nil:
+		s.repositoryError(w, e)
+	default:
+		output(w, 200, p)
 	}
 }

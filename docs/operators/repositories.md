@@ -15,3 +15,18 @@ Local acceptance command, after demo authentication fixtures have been initializ
 ```sh
 python3 tests/integration/repository_acceptance.py
 ```
+
+## Automatic rescans when a repository changes
+
+An owner can turn on **Rescan on change** for a connected repository (console, or `POST /api/v1/repos/{id}/rescan` with `{"enabled": true, "tool_ids": [...], "tool_timeout_seconds": N}`; `GET` reads the setting). When it is on, the controller re-reads that repository every `AEGIS_RESCAN_INTERVAL` (default 5 minutes, 1 minute to 24 hours), at most 10 repositories per minute. A scan is queued only when the application map's content identity differs from the last scanned or acknowledged one. The scan is an ordinary owner scan: the same validation, queue budget and audit records apply. The setting's last check is shown as its outcome:
+
+| Outcome | Meaning |
+|---|---|
+| `unchanged` | Same content identity; nothing queued |
+| `enqueued` | A scan was queued for the new identity |
+| `deferred_active_job` | A scan for this repository is queued or running; retried on the next check |
+| `deferred_cleanup_held` | One of the owner's scanner cleanups is held; no new scan until it is resolved |
+| `deferred_queue_full` | The owner's queue budget is exhausted |
+| `refresh_failed` | The repository could not be re-read (for example, the mount was removed) |
+
+The same identity and scanner set always map to the same job, so restarts and retries do not create duplicates. Turning the setting off stops future scans but does not cancel queued ones. Rescans require the scanner service (`AEGIS_SCANNER_SOCKET`) and repository mounts to be provisioned.

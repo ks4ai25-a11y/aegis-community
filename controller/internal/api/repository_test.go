@@ -3,12 +3,14 @@ package api
 import (
 	"aegis.local/controller/internal/auth"
 	"aegis.local/controller/internal/repository"
+	"aegis.local/controller/internal/scanqueue"
 	"aegis.local/controller/internal/store"
 	"bytes"
 	"encoding/json"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -70,4 +72,15 @@ func TestRepositoryHTTPRejectsPathsAndUnknownFields(t *testing.T) {
 	call("GET", "/repos", nil, 200)
 	call("GET", "/repos/assets", nil, 200)
 	call("GET", "/repos/unknown/map", nil, 404)
+	call("GET", "/repos/"+id+"/rescan", nil, 503)
+	server.Scans = &scanqueue.Queue{S: s, LockDigest: "sha256:" + strings.Repeat("a", 64)}
+	if p := call("GET", "/repos/"+id+"/rescan", nil, 200); p["enabled"] != false {
+		t.Fatal(p)
+	}
+	call("POST", "/repos/"+id+"/rescan", map[string]any{"enabled": true, "tool_ids": []string{"shell"}, "tool_timeout_seconds": 30}, 400)
+	call("POST", "/repos/"+id+"/rescan", map[string]any{"enabled": true, "tool_ids": []string{"bandit"}, "tool_timeout_seconds": 30, "path": "/etc"}, 400)
+	if p := call("POST", "/repos/"+id+"/rescan", map[string]any{"enabled": true, "tool_ids": []string{"bandit"}, "tool_timeout_seconds": 30}, 200); p["enabled"] != true || p["baseline_map_digest"] != repo["map_digest"] {
+		t.Fatal(p)
+	}
+	call("GET", "/repos/unknown/rescan", nil, 404)
 }

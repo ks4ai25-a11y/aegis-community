@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'react';
 import {FolderLock,RefreshCw} from 'lucide-react';
-import {short} from './client';
+import {api,short} from './client';
 import {connectRepository,listRepositories,listRepositoryAssets,getApplicationMap} from './generated/research-client';
 import type {RepositoryV1,ApplicationMapV1} from './generated/contracts';
 
@@ -23,8 +23,8 @@ export function Repositories({action,busy}:Props){
   </section>
   <section className="card">
    <div className="card-heading"><h2>Connected repositories</h2><button disabled={busy} className="button light" onClick={()=>action(reload)}><RefreshCw size={15}/>Refresh</button></div>
-   <p className="muted">Reconnect a mount to capture source changes. Maps retain prior content identities. Scanner execution and findings are not yet connected to this view.</p>
-   {repos.length===0?<p>No repositories connected.</p>:<div className="table-wrap"><table><thead><tr><th>Repository</th><th>Mode</th><th>Map identity</th><th>Inspect</th></tr></thead><tbody>{repos.map(r=><tr key={r.repository_id}><td>{r.asset_id}</td><td>{r.mode}</td><td className="mono">{short(r.map_digest)}</td><td><button disabled={busy} className="button light" onClick={()=>action(async()=>setMap(await getApplicationMap(r.repository_id)))}>View map</button></td></tr>)}</tbody></table></div>}
+   <p className="muted">Reconnect a mount to capture source changes. Maps retain prior content identities. With rescan on change enabled, Aegis re-reads the repository every few minutes and queues a scan with the chosen scanners when its content identity changes. No scan runs while one for that repository is queued or running, or while a scanner cleanup is held.</p>
+   {repos.length===0?<p>No repositories connected.</p>:<div className="table-wrap"><table><thead><tr><th>Repository</th><th>Mode</th><th>Map identity</th><th>Inspect</th><th>Rescan on change</th></tr></thead><tbody>{repos.map(r=><tr key={r.repository_id}><td>{r.asset_id}</td><td>{r.mode}</td><td className="mono">{short(r.map_digest)}</td><td><button disabled={busy} className="button light" onClick={()=>action(async()=>setMap(await getApplicationMap(r.repository_id)))}>View map</button></td><td><RescanToggle repository={r.repository_id} action={action} busy={busy}/></td></tr>)}</tbody></table></div>}
   </section>
   {map&&<section className="card">
    <div className="card-heading"><h2>Application map</h2><span className="pill">Declared source facts</span></div>
@@ -38,4 +38,15 @@ export function Repositories({action,busy}:Props){
    <ul>{map.unknowns.map(u=><li key={u}>{u}</li>)}</ul>
   </section>}
  </>;
+}
+
+type Policy={enabled:boolean;tool_ids:string[];last_outcome?:string;last_checked_at?:string};
+const RESCAN_TOOLS=['bandit','gitleaks','osv_v2','semgrep_ce','syft','trivy'];
+function RescanToggle({repository,action,busy}:{repository:string}&Props){
+ const[p,setP]=useState<Policy>(),[unavailable,setUnavailable]=useState(false);
+ useEffect(()=>{let live=true;api<Policy>(`/repos/${repository}/rescan`).then(v=>{if(live)setP(v)}).catch(()=>{if(live)setUnavailable(true)});return()=>{live=false}},[repository]);
+ if(unavailable)return <span className="muted">Scanner not provisioned</span>;
+ if(!p)return <span className="muted">…</span>;
+ const set=(enabled:boolean)=>action(async()=>setP(await api<Policy>(`/repos/${repository}/rescan`,{enabled,tool_ids:enabled?RESCAN_TOOLS:[],tool_timeout_seconds:enabled?120:0})),enabled?'Automatic rescans enabled for this repository.':'Automatic rescans disabled.');
+ return <label className="checkbox" title={p.last_outcome?`Last check: ${p.last_outcome.replaceAll('_',' ')}`:undefined}><input type="checkbox" aria-label={`Rescan ${repository} on change`} disabled={busy} checked={p.enabled} onChange={e=>set(e.target.checked)}/>{p.enabled?(p.last_outcome?p.last_outcome.replaceAll('_',' '):'On'):'Off'}</label>;
 }

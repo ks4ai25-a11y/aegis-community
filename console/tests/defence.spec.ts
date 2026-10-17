@@ -99,3 +99,26 @@ test('assistant connection shows the token once and revokes', async ({page}) => 
   await expect(page.getByText('revoked')).toBeVisible();
   expect(calls.filter(c => c.path === '/connectors' && c.method === 'POST')[0].body).toEqual({name: 'Claude Desktop', lifetime_hours: 168});
 });
+
+test('an owner opts a repository into change-triggered rescans with the fixed scanner set', async ({page}) => {
+  const repo = {schema_version: '1.0', repository_id: 'repo-1', owner_id: 'owner', app_id: 'app_demo', asset_id: 'shop-src', mode: 'repo_offline', map_digest: digest, created_at: '2026-10-17T00:00:00Z'};
+  let enabled = false;
+  const calls = await mock(page, (path, method, body) => {
+    if (path === '/repos/assets') return {asset_ids: ['shop-src']};
+    if (path === '/repos') return {items: [repo]};
+    if (path === '/repos/repo-1/rescan') {
+      if (method === 'POST') enabled = body.enabled;
+      return {schema_version: '1.0', repository_id: 'repo-1', enabled, tool_ids: enabled ? body.tool_ids : [], last_outcome: undefined};
+    }
+  });
+  await page.goto('/');
+  await page.getByRole('button', {name: 'Repositories', exact: true}).click();
+  const toggle = page.getByLabel('Rescan repo-1 on change');
+  await expect(toggle).not.toBeChecked();
+  await toggle.click();
+  await expect(page.getByText('Automatic rescans enabled for this repository.')).toBeVisible();
+  const set = calls.find(c => c.path === '/repos/repo-1/rescan' && c.method === 'POST')!;
+  expect(set.body).toEqual({enabled: true, tool_ids: ['bandit', 'gitleaks', 'osv_v2', 'semgrep_ce', 'syft', 'trivy'], tool_timeout_seconds: 120});
+  expect(set.headers['x-csrf-token']).toBe('csrf');
+  await expect(toggle).toBeChecked();
+});

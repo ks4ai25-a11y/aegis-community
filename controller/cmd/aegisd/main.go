@@ -145,6 +145,41 @@ func main() {
 				}
 			}
 		}()
+		// Change-triggered rescans (D9): re-inventory opted-in repositories and
+		// enqueue an ordinary owner scan when the application map changes.
+		if repos.Root != nil {
+			interval := 5 * time.Minute
+			if d, e := time.ParseDuration(os.Getenv("AEGIS_RESCAN_INTERVAL")); e == nil && d >= time.Minute && d <= 24*time.Hour {
+				interval = d
+			}
+			refresh := func(ctx context.Context, owner, repo string) (string, error) {
+				rec, e := repos.Get(owner, repo)
+				if e != nil {
+					return "", e
+				}
+				out, e := repos.ConnectContext(ctx, owner, rec.App, rec.Asset, true)
+				return out.MapDigest, e
+			}
+			go func() {
+				ticker := time.NewTicker(time.Minute)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case <-ticker.C:
+						c, cancelCheck := context.WithTimeout(ctx, 50*time.Second)
+						out, _ := sq.CheckChanges(c, refresh, 10, interval)
+						cancelCheck()
+						for _, o := range out {
+							if o.Outcome != "unchanged" {
+								fmt.Printf("{\"event\":\"rescan_%s\",\"repository_id\":%q,\"job_id\":%q}\n", o.Outcome, o.Repository, o.Job)
+							}
+						}
+					}
+				}
+			}()
+		}
 		transport := &scantransport.Server{Q: sq, Auth: &scannerauth.Registry{S: s}}
 		private := &http.Server{Handler: transport.Handler(), ReadHeaderTimeout: 2 * time.Second, ReadTimeout: 5 * time.Second, WriteTimeout: 5 * time.Second, IdleTimeout: 10 * time.Second, MaxHeaderBytes: 8192}
 		go func() { <-ctx.Done(); private.Close() }()
