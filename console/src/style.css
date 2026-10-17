@@ -258,6 +258,8 @@ tbody tr{transition:background .1s}
 tbody tr:hover td{background:var(--surface-2)}
 tr:last-child td{border-bottom:0}
 .mono{font-family:var(--mono);font-size:12.5px;letter-spacing:-.01em}
+p.mono,div.mono,span.mono{overflow-wrap:anywhere}
+td.mono{overflow-wrap:normal}
 pre.mono{white-space:pre-wrap;word-break:break-all;background:var(--surface-2);border:1px solid var(--border);padding:12px;border-radius:var(--radius-sm);font-size:12.5px}
 .method{font-family:var(--mono);font-size:11px;font-weight:600;background:var(--surface-3);color:var(--text-2);padding:1px 6px;border-radius:4px;margin-right:8px}
 .table-note{font-size:12px;color:var(--muted);margin:14px 0 0}
