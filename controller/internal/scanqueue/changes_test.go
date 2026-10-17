@@ -227,3 +227,38 @@ func TestMapPruningKeepsMapsReferencedByJobs(t *testing.T) {
 		t.Fatal("referenced map pruned or history unbounded", kept, total)
 	}
 }
+
+// Codex/QA: the preference and its audit record commit together or not at all.
+func TestRescanPolicyAndAuditAreAtomic(t *testing.T) {
+	r := newChangeRig(t)
+	audits := func() (n int) {
+		r.q.S.DB.QueryRow("SELECT count(*) FROM audit WHERE json_extract(document,'$.action')='scanner.rescan_policy'").Scan(&n)
+		return
+	}
+	if _, e := r.q.SetRescanPolicy("owner-a", r.repo, true, []string{"bandit"}, 30); e != nil || audits() != 1 {
+		t.Fatal(e, audits())
+	}
+	// Make the audit insert fail; the policy change must roll back with it.
+	if _, e := r.q.S.DB.Exec("CREATE TRIGGER fail_audit BEFORE INSERT ON audit BEGIN SELECT RAISE(ABORT,'audit unavailable'); END"); e != nil {
+		t.Fatal(e)
+	}
+	if _, e := r.q.SetRescanPolicy("owner-a", r.repo, false, nil, 0); e == nil {
+		t.Fatal("policy saved without its audit record")
+	}
+	r.q.S.DB.Exec("DROP TRIGGER fail_audit")
+	if p, _ := r.q.RescanPolicyFor("owner-a", r.repo); !p.Enabled || audits() != 1 {
+		t.Fatal("failed change was partly kept", p.Enabled, audits())
+	}
+}
+
+// A repository id containing LIKE wildcards must not count another owner's or
+// repository's policies.
+func TestRescanPolicyPrefixIsLiteral(t *testing.T) {
+	r := newChangeRig(t)
+	for i := 0; i < 100; i++ {
+		r.q.S.DB.Exec("INSERT INTO settings VALUES(?,?)", fmt.Sprintf("rescan_policy/owner-%%/r%d", i), "{}")
+	}
+	if _, e := r.q.SetRescanPolicy("owner-a", r.repo, true, []string{"bandit"}, 30); e != nil {
+		t.Fatal("wildcard keys counted against this owner:", e)
+	}
+}

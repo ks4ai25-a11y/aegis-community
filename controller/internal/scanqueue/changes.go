@@ -3,6 +3,7 @@ package scanqueue
 
 import (
 	"aegis.local/controller/internal/domain"
+	"aegis.local/controller/internal/store"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -82,12 +83,19 @@ func (q *Queue) RescanPolicyFor(owner, repo string) (RescanPolicy, error) {
 }
 
 // SetRescanPolicy records the owner's opt-in. Enabling takes the repository's
-// current map digest as the baseline, so only later changes trigger scans.
+// current map digest as the baseline, so only later changes trigger scans. The
+// preference and its audit record are written in one transaction: if either
+// fails, neither is kept.
 func (q *Queue) SetRescanPolicy(owner, repo string, enabled bool, tools []string, duration int) (RescanPolicy, error) {
 	tools = append([]string{}, tools...)
 	sort.Strings(tools)
+	tx, e := q.S.DB.Begin()
+	if e != nil {
+		return RescanPolicy{}, e
+	}
+	defer tx.Rollback()
 	var mapDigest, app string
-	if e := q.S.DB.QueryRow("SELECT map_digest,app FROM repositories WHERE id=? AND owner=?", repo, owner).Scan(&mapDigest, &app); e != nil {
+	if e := tx.QueryRow("SELECT map_digest,app FROM repositories WHERE id=? AND owner=?", repo, owner).Scan(&mapDigest, &app); e != nil {
 		return RescanPolicy{}, e
 	}
 	if enabled && !valid(Input{Schema: "1.0", App: app, Repository: repo, MapDigest: mapDigest, Mode: "repo_offline", Tools: tools, Duration: duration}) {
@@ -95,15 +103,22 @@ func (q *Queue) SetRescanPolicy(owner, repo string, enabled bool, tools []string
 	}
 	var count int
 	prefix := rescanPrefix + owner + "/"
-	if e := q.S.DB.QueryRow("SELECT count(*) FROM settings WHERE substr(key,1,length(?))=? AND key<>?", prefix, prefix, rescanKey(owner, repo)).Scan(&count); e != nil {
+	if e := tx.QueryRow("SELECT count(*) FROM settings WHERE substr(key,1,length(?))=? AND key<>?", prefix, prefix, rescanKey(owner, repo)).Scan(&count); e != nil {
 		return RescanPolicy{}, e
 	}
 	if enabled && count >= 100 {
 		return RescanPolicy{}, ErrFull
 	}
-	p, e := q.RescanPolicyFor(owner, repo)
-	if e != nil {
+	p := RescanPolicy{Schema: "1.0", Owner: owner, Repository: repo, Tools: []string{}}
+	var stored string
+	switch e := tx.QueryRow("SELECT value FROM settings WHERE key=?", rescanKey(owner, repo)).Scan(&stored); {
+	case e == sql.ErrNoRows:
+	case e != nil:
 		return RescanPolicy{}, e
+	default:
+		if json.Unmarshal([]byte(stored), &p) != nil || p.Owner != owner || p.Repository != repo {
+			return RescanPolicy{}, ErrPolicy
+		}
 	}
 	if enabled && (!p.Enabled || p.BaselineDigest == "") {
 		p.BaselineDigest = mapDigest
@@ -112,10 +127,16 @@ func (q *Queue) SetRescanPolicy(owner, repo string, enabled bool, tools []string
 	if !enabled {
 		p.Tools, p.Duration = []string{}, 0
 	}
-	if e = q.savePolicy(p); e != nil {
+	b, _ := json.Marshal(p)
+	if _, e = tx.Exec("INSERT INTO settings VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", rescanKey(owner, repo), string(b)); e != nil {
 		return RescanPolicy{}, e
 	}
-	q.S.Audit(owner, "scanner.rescan_policy", repo, map[bool]string{true: "enabled", false: "disabled"}[enabled], map[string]any{"tool_ids": p.Tools, "tool_timeout_seconds": p.Duration, "baseline_map_digest": p.BaselineDigest})
+	if e = store.AuditTx(tx, owner, "scanner.rescan_policy", repo, map[bool]string{true: "enabled", false: "disabled"}[enabled], map[string]any{"tool_ids": p.Tools, "tool_timeout_seconds": p.Duration, "baseline_map_digest": p.BaselineDigest}); e != nil {
+		return RescanPolicy{}, e
+	}
+	if e = tx.Commit(); e != nil {
+		return RescanPolicy{}, e
+	}
 	return p, nil
 }
 
