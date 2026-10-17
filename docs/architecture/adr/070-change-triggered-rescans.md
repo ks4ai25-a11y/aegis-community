@@ -17,7 +17,7 @@ Scans ran only when an owner started one, so new code and new dependencies staye
 
 ## Consequences
 
-Policies are part of the settings table, so they are captured in snapshots and recovery bundles. A restored installation keeps them, and they enqueue only through the restored owner's normal scan path. Map digests changed once when route extractors were added (ADR on routes), so every opted-in repository rescans once after that upgrade.
+Policies are part of the settings table, so they are captured in snapshots and recovery bundles. A restored installation keeps them, and they enqueue only through the restored owner's normal scan path. Map digests changed once when the Express, FastAPI and Flask route extractors were added (`e361ad4`), so every opted-in repository rescans once after that upgrade.
 
 ## Validation
 
