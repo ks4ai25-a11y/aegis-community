@@ -24,6 +24,7 @@ type Identity struct {
 	Directory, Digest string
 	TLS               *tls.Config
 	role              string
+	root              *x509.Certificate
 }
 
 func Load(directory, role string) (*Identity, error) {
@@ -62,7 +63,7 @@ func Load(directory, role string) (*Identity, error) {
 	pair.Leaf = leaf
 	digest := source.Hash(append(append([]byte("aegis-scanner-engine-mtls-identity-v1\n"), root.Raw...), leaf.Raw...))
 	config := &tls.Config{MinVersion: tls.VersionTLS13, ServerName: ServerName, RootCAs: pool, Certificates: []tls.Certificate{pair}, NextProtos: []string{"http/1.1"}}
-	identity := &Identity{Directory: directory, Digest: digest, TLS: config, role: role}
+	identity := &Identity{Directory: directory, Digest: digest, TLS: config, role: role, root: root}
 	config.GetClientCertificate = func(*tls.CertificateRequestInfo) (*tls.Certificate, error) {
 		current, e := Load(directory, role)
 		if e != nil || current.Digest != digest {

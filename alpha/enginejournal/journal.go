@@ -89,6 +89,32 @@ type Journal struct {
 	attempts, unfinished, unresolved, bytes int
 	closed                                  bool
 	active                                  *Attempt
+	knownNames, knownIDs                    map[string]bool
+}
+
+// KnownContainer recognizes only an exact identity retained in this private
+// journal. It grants read access, not mutation, absence or cleanup authority.
+// The index is bounded by the existing attempt budget and rebuilt only from
+// validated records; it is never serialized into or substituted for evidence.
+func (j *Journal) KnownContainer(identity string) bool {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	if j.closed {
+		return false
+	}
+	return name.MatchString(identity) && j.knownNames[identity] || id.MatchString(identity) && j.knownIDs[identity]
+}
+
+// rememberContainer is called under j.mu for new positively synced records,
+// or while the journal is exclusively being loaded before it is returned.
+func (j *Journal) rememberContainer(name, id string) {
+	if j.knownNames == nil {
+		j.knownNames, j.knownIDs = map[string]bool{}, map[string]bool{}
+	}
+	j.knownNames[name] = true
+	if id != "" {
+		j.knownIDs[id] = true
+	}
 }
 
 // RequirePolicy seals a local consumer configuration only on an unused
@@ -172,6 +198,7 @@ func (j *Journal) Begin(nameValue, descriptor string) (*Attempt, error) {
 	j.active = a
 	j.attempts++
 	j.unfinished++
+	j.rememberContainer(nameValue, "")
 	return a, nil
 }
 func (j *Journal) write(dir *privateRoot, path string, value any) error {
@@ -287,6 +314,7 @@ func (t *Ticket) Confirm(status int, container string) error {
 	j.unresolved--
 	if t.operation == "create" {
 		a.container = container
+		j.rememberContainer(a.name, container)
 	}
 	return nil
 }

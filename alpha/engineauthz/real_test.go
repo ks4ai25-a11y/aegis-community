@@ -3,6 +3,7 @@ package engineauthz_test
 
 import (
 	"aegis.local/alpha/engineauthz"
+	"aegis.local/alpha/engineobserve"
 	"aegis.local/alpha/engineprofile"
 	"aegis.local/alpha/scanners"
 	"aegis.local/source"
@@ -147,12 +148,19 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 		t.Fatal("legacy unversioned gRPC upgrade not denied", response.StatusCode)
 	}
 	checks := []string{"native HTTP2/gRPC transport unavailable", "legacy unversioned gRPC upgrade denied"}
+	var engineID string
 	for _, role := range []string{"broker", "observer"} {
-		status, _ := request(role, "GET", "/info", nil)
+		status, body := request(role, "GET", "/info", nil)
 		if status != 200 {
 			t.Fatal("allowed read failed", role, status)
 		}
+		var info struct{ ID string }
+		if json.Unmarshal(body, &info) != nil || info.ID == "" || engineID != "" && engineID != info.ID {
+			t.Fatal("initial engine identity unavailable or inconsistent")
+		}
+		engineID = info.ID
 	}
+	independent := newRealObserver(t, ctx, root, u.Host, engineID)
 	status, _ := request("unknown", "GET", "/info", nil)
 	if status != 403 {
 		t.Fatal("unknown principal accepted", status)
@@ -324,6 +332,10 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 		t.Fatal("child absence unconfirmed", status)
 	}
 	checks = append(checks, "exact tracked-ID lifecycle and SDK wait", "real guarded offline Bandit B307", "observer exact-ID absence")
+	if independent.VerifyAbsent(ctx, []engineobserve.Target{{Name: name, ID: id}}) != nil {
+		t.Fatal("independent original-scope exact-name and ID absence unconfirmed")
+	}
+	checks = append(checks, "independent TLS observer original scope and exact ID/name absence")
 	status, _ = request("broker", "POST", "/containers/"+id+"/start", nil)
 	if status != 403 {
 		t.Fatal("late start accepted", status)

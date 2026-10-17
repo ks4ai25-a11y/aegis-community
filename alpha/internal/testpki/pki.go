@@ -23,6 +23,7 @@ type Fixture struct {
 	CA        []byte
 	Client    []byte
 	Key       []byte
+	issue     func(string, time.Time, time.Time) ([]byte, []byte)
 }
 
 func New(t *testing.T, directory, role string) Fixture {
@@ -50,9 +51,9 @@ func New(t *testing.T, directory, role string) Fixture {
 	if e != nil {
 		t.Fatal(e)
 	}
-	makeCert := func(name string, server bool) ([]byte, []byte) {
+	makeCert := func(name string, server bool, notBefore, notAfter time.Time) ([]byte, []byte) {
 		k := key()
-		c := &x509.Certificate{SerialNumber: serial(), Subject: pkix.Name{CommonName: name}, NotBefore: time.Now().Add(-time.Minute), NotAfter: time.Now().Add(time.Hour), KeyUsage: x509.KeyUsageDigitalSignature, ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}}
+		c := &x509.Certificate{SerialNumber: serial(), Subject: pkix.Name{CommonName: name}, NotBefore: notBefore, NotAfter: notAfter, KeyUsage: x509.KeyUsageDigitalSignature, ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}}
 		if server {
 			c.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
 			c.DNSNames = []string{"aegis-scanner-engine"}
@@ -67,8 +68,8 @@ func New(t *testing.T, directory, role string) Fixture {
 		}
 		return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: private})
 	}
-	client, private := makeCert(role, false)
-	serverCert, serverKey := makeCert("aegis-scanner-engine", true)
+	client, private := makeCert(role, false, time.Now().Add(-time.Minute), time.Now().Add(time.Hour))
+	serverCert, serverKey := makeCert("aegis-scanner-engine", true, time.Now().Add(-time.Minute), time.Now().Add(time.Hour))
 	server, e := tls.X509KeyPair(serverCert, serverKey)
 	if e != nil {
 		t.Fatal(e)
@@ -79,5 +80,26 @@ func New(t *testing.T, directory, role string) Fixture {
 			t.Fatal(e)
 		}
 	}
-	return Fixture{directory, server, caPEM, client, private}
+	return Fixture{Directory: directory, Server: server, CA: caPEM, Client: client, Key: private, issue: func(role string, before, after time.Time) ([]byte, []byte) {
+		return makeCert(role, false, before, after)
+	}}
+}
+
+// AdditionalClientAt creates a separate private identity under the same test CA.
+// The original client's key is never copied to the new identity directory.
+func (f Fixture) AdditionalClientAt(t *testing.T, directory, role string, before, after time.Time) Fixture {
+	t.Helper()
+	if f.issue == nil {
+		t.Fatal("test certificate issuer unavailable")
+	}
+	if e := os.Mkdir(directory, 0700); e != nil {
+		t.Fatal(e)
+	}
+	client, key := f.issue(role, before, after)
+	for name, b := range map[string][]byte{"ca.pem": f.CA, "client.pem": client, "client.key": key} {
+		if e := os.WriteFile(filepath.Join(directory, name), b, 0600); e != nil {
+			t.Fatal(e)
+		}
+	}
+	return Fixture{Directory: directory, Server: f.Server, CA: f.CA, Client: client, Key: key, issue: f.issue}
 }

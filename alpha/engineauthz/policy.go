@@ -201,6 +201,10 @@ func (p *Policy) read(r Request, u *url.URL) bool {
 		if p.id != "" && (u.Path == api+"/containers/"+p.id+"/json" || u.Path == api+"/containers/"+p.name+"/json") {
 			return true
 		}
+		if r.User == Observer && strings.HasPrefix(u.Path, api+"/containers/") && strings.HasSuffix(u.Path, "/json") {
+			exact := strings.TrimSuffix(strings.TrimPrefix(u.Path, api+"/containers/"), "/json")
+			return p.journal.KnownContainer(exact)
+		}
 	}
 	if p.name != "" && r.RequestMethod == "GET" && u.Path == api+"/containers/json" {
 		filter, _ := json.Marshal(map[string]map[string]bool{"name": {"^/" + p.name + "$": true}})

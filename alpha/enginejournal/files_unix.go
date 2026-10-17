@@ -422,5 +422,6 @@ func (j *Journal) load(p *privateRoot, containerName string) error {
 	if !removed {
 		j.unfinished++
 	}
+	j.rememberContainer(containerName, known)
 	return nil
 }
