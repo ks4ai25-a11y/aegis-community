@@ -114,7 +114,7 @@ export function AIPage() {
     <section className="card">
       <div className="card-heading"><h2>Incident assessment</h2><span className="badge">{ai?.provider === 'none' || !ai ? 'Deterministic only' : 'Local model: ' + ai.model}</span></div>
       <p className="muted">Every incident can be assessed deterministically with no model, account or network access. Optionally, point Aegis at a model server you run yourself, such as Ollama or llama.cpp. Aegis never calls a model in the background and never lets one change policy.</p>
-      <div className="system-row"><span>Provider</span><span className="mono">{ai?.provider || '…'}</span></div>
+      <div className="system-row"><span>Provider</span><span>{ai ? (ai.provider === 'none' ? 'Not configured' : human(ai.provider)) : '…'}</span></div>
       {ai?.endpoint_host && <div className="system-row"><span>Endpoint</span><span className="mono">{ai.endpoint_host}</span></div>}
       <div className="system-row"><span>Background model calls</span><span>Never</span></div>
       <div className="system-row"><span>What the model sees</span><span>One sanitized incident dossier</span></div>

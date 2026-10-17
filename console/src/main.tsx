@@ -11,6 +11,7 @@ import {Verification} from './Verification';
 import {Repositories} from './Repositories';
 import {Scans} from './Scans';
 import {Catalogue} from './Catalogue';
+import {Empty, Loading} from './ui';
 
 type Page = 'Overview' | 'Sites' | 'Live activity' | 'Incidents' | 'Endpoints' | 'Policies' | 'Verify' | 'Repositories' | 'Scans' | 'Findings' | 'AI Apps' | 'Settings';
 type Icon = typeof Shield;
@@ -35,8 +36,16 @@ const subtitles: Record<Page, string> = {
 };
 const slug = (p: Page) => p.toLowerCase().replace(/\s+/g, '-');
 const pages = groups.flatMap(g => g.items.map(([n]) => n));
-const fromHash = (): Page => pages.find(p => '#/' + slug(p) === window.location.hash) || 'Overview';
+const fromHash = (): Page => pages.find(p => window.location.hash === '#/' + slug(p) || window.location.hash.startsWith('#/' + slug(p) + '/')) || 'Overview';
+const hashDetail = () => decodeURIComponent(window.location.hash.split('/')[2] || '');
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+// One vocabulary for what happened to a request, used by the chart and Live activity.
+type Kind = 'passed' | 'match' | 'blocked' | 'origin_error' | 'other';
+const kindLabel: Record<Kind, string> = {passed: 'Passed', match: 'WAF rule match', blocked: 'Blocked by WAF', origin_error: 'Origin error', other: 'Unclassified'};
+const kindBadge: Record<Kind, string> = {passed: 'allowed', match: 'observed', blocked: 'blocked', origin_error: 'warn', other: ''};
+const kindOf = (e: any): Kind => e.decision === 'blocked_waf' ? 'blocked' : e.decision === 'upstream_error' ? 'origin_error' : (e.source === 'coraza' || e.rule_ids?.length) ? 'match' : (e.decision === 'allowed' || e.decision === 'observed') ? 'passed' : 'other';
+const kindRank: Record<Kind, number> = {blocked: 4, match: 3, origin_error: 2, passed: 1, other: 0};
+const cap = (v?: string) => v ? v.charAt(0).toUpperCase() + v.slice(1) : '';
 const number = (v: unknown) => typeof v === 'number' ? v.toLocaleString() : '—';
 
 type Theme = 'dark' | 'light';
@@ -59,7 +68,7 @@ class Boundary extends Component<{page: string; children: ReactNode}, {error?: s
 function App() {
   const [session, setSession] = useState(false), [loading, setLoading] = useState(true), [page, setPage] = useState<Page>(fromHash), [initialScan, setInitialScan] = useState('');
   const [status, setStatus] = useState<any>(), [error, setError] = useState(''), [statusError, setStatusError] = useState(''), [ended, setEnded] = useState(false), [busy, setBusy] = useState(false), [refresh, setRefresh] = useState(0), [toast, setToast] = useState('');
-  const [site, setSite] = useState('site_demo'), [sites, setSites] = useState<any[]>([]), [drawer, setDrawer] = useState(false), [palette, setPalette] = useState(false), [theme, setTheme] = useState<Theme>(initialTheme);
+  const [ownerId, setOwnerId] = useState(''), [detailId, setDetailId] = useState(hashDetail), [site, setSite] = useState('site_demo'), [sites, setSites] = useState<any[]>([]), [drawer, setDrawer] = useState(false), [palette, setPalette] = useState(false), [theme, setTheme] = useState<Theme>(initialTheme);
   const menuButton = useRef<HTMLButtonElement>(null), firstNav = useRef<HTMLButtonElement>(null), searchButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!drawer) return;
@@ -71,7 +80,7 @@ function App() {
   // Focus returns after the page behind stops being inert (next frame).
   const closeDrawer = () => { setDrawer(false); requestAnimationFrame(() => menuButton.current?.focus()); };
   useEffect(() => { document.documentElement.dataset.theme = theme; try { localStorage.setItem('aegis-theme', theme); } catch {} }, [theme]);
-  useEffect(() => { api('/auth/session').then(v => { setCSRF(v.csrf_token); setSession(true); }).catch(() => {}).finally(() => setLoading(false)); }, []);
+  useEffect(() => { api('/auth/session').then(v => { setCSRF(v.csrf_token); setOwnerId(v.owner_id || ''); setSession(true); }).catch(() => {}).finally(() => setLoading(false)); }, []);
   useEffect(() => {
     if (!session) return;
     api('/sites').then(v => {
@@ -106,7 +115,7 @@ function App() {
     catch (e) { setError((e as Error).message); }
     finally { setBusy(false); }
   }
-  useEffect(() => { const onHash = () => setPage(fromHash()); window.addEventListener('hashchange', onHash); return () => window.removeEventListener('hashchange', onHash); }, []);
+  useEffect(() => { const onHash = () => { setPage(fromHash()); setDetailId(hashDetail()); }; window.addEventListener('hashchange', onHash); return () => window.removeEventListener('hashchange', onHash); }, []);
   const go = (p: Page) => { if (window.location.hash !== '#/' + slug(p)) window.history.pushState(null, '', '#/' + slug(p)); setPage(p); setInitialScan(''); setToast(''); setDrawer(false); setPalette(false); window.scrollTo?.(0, 0); };
 
   if (loading) return <div className="loading"><span className="brand-mark large"><Shield size={28}/></span><p>Opening local console…</p></div>;
@@ -154,7 +163,7 @@ function App() {
             {page === 'Overview' ? <><div className="eyebrow">Defence, with evidence</div><h1>Your security, in focus.</h1></> : <h1>{page}</h1>}
             <p>{subtitles[page]}</p>
           </div>
-          {(sites.find(x => x.site_id === site)?.synthetic ?? site === 'site_demo') && page !== 'Repositories' && page !== 'Scans' && page !== 'Findings' && <span className="pill">Bundled demo · synthetic data</span>}
+          {(sites.find(x => x.site_id === site)?.synthetic ?? site === 'site_demo') && ['Overview', 'Sites', 'Live activity', 'Incidents', 'Endpoints', 'Policies'].includes(page) && <span className="pill">Bundled demo · synthetic data</span>}
         </div>
         {error && <div role="alert" className="alert error">{error}<button onClick={() => setError('')} aria-label="Dismiss error"><X size={14}/></button></div>}
         {statusError && <div role="status" className="alert warn">Live status unavailable: {statusError}. Figures shown may be stale.</div>}
@@ -163,15 +172,15 @@ function App() {
           {page === 'Overview' && <Overview status={status} statusError={statusError} site={site} refresh={refresh} busy={busy} go={go} action={action}/>}
           {page === 'Sites' && <Sites action={action} busy={busy} refresh={refresh} onSelect={id => { setSite(id); go('Live activity'); }}/>}
           {page === 'Live activity' && <Events site={site} refresh={refresh}/>}
-          {page === 'Incidents' && <Incidents site={site} refresh={refresh}/>}
-          {page === 'Endpoints' && <><Exposure site={site}/><Collection path={'/sites/' + site + '/endpoints'} title="Observed endpoints" refresh={refresh} columns={['method', 'route_template', 'requests_retained']} footnote="Observed route patterns are inventory hints. A generic WAF cannot reliably prevent BOLA without application ownership context."/></>}
+          {page === 'Incidents' && <Incidents site={site} refresh={refresh} initial={detailId} onOpen={id => { setDetailId(id); window.history.pushState(null, '', '#/incidents/' + encodeURIComponent(id)); }}/>}
+          {page === 'Endpoints' && <><Exposure site={site}/><Collection path={'/sites/' + site + '/endpoints'} title="Observed endpoints" refresh={refresh} columns={['method', 'route_template', 'requests_retained']} footnote="Observed route patterns are inventory hints. A generic WAF cannot reliably stop one customer reading another customer's records (broken object-level authorisation) without knowing who owns what."/></>}
           {page === 'Policies' && <Policies site={site} action={action} busy={busy} refresh={refresh}/>}
           {page === 'Verify' && <Verification action={action} busy={busy} status={status}/>}
           {page === 'Repositories' && <Repositories action={action} busy={busy}/>}
           {page === 'Scans' && <Scans action={action} busy={busy} initialJob={initialScan}/>}
           {page === 'Findings' && <Catalogue onOpenScan={id => { go('Scans'); setInitialScan(id); }}/>}
           {page === 'AI Apps' && <AIPage/>}
-          {page === 'Settings' && <SettingsPage refresh={refresh} theme={theme} setTheme={setTheme}/>}
+          {page === 'Settings' && <SettingsPage refresh={refresh} theme={theme} setTheme={setTheme} ownerId={ownerId}/>}
         </Boundary>
         <footer><Shield size={13}/>Aegis Community<span>Evidence speaks. Claims stay precise.</span></footer>
       </div>
@@ -226,14 +235,16 @@ function Overview({status, statusError, site, refresh, busy, go, action}: {statu
   // it was blocked, or it passed. In Observe every ordinary request is
   // "observed", so the decision alone would overstate attacks.
   const decisions = useMemo(() => {
+    // One request has an access record and possibly WAF records; count it once,
+    // by the strongest thing that happened to it.
+    const byRequest = new Map<string, Kind>();
+    items.forEach(({event: e}, i) => {
+      if (!e || e.canary) return;
+      const k = kindOf(e), id = e.request_id || 'record-' + i, prev = byRequest.get(id);
+      if (!prev || kindRank[k] > kindRank[prev]) byRequest.set(id, k);
+    });
     const c: Record<string, number> = {allowed: 0, observed: 0, blocked_waf: 0, other: 0};
-    for (const {event: e} of items) {
-      if (!e || e.canary) continue;
-      if (e.decision === 'blocked_waf') c.blocked_waf++;
-      else if (e.source === 'coraza' || e.rule_ids?.length) c.observed++;
-      else if (e.decision === 'allowed' || e.decision === 'observed') c.allowed++;
-      else c.other++;
-    }
+    for (const k of byRequest.values()) c[k === 'passed' ? 'allowed' : k === 'match' ? 'observed' : k === 'blocked' ? 'blocked_waf' : 'other']++;
     return c;
   }, [items]);
   const counted = decisions.allowed + decisions.observed + decisions.blocked_waf + decisions.other;
@@ -245,6 +256,16 @@ function Overview({status, statusError, site, refresh, busy, go, action}: {statu
     for (const t of times) { const i = Math.floor((max - t) / (span / n)); if (i >= 0 && i < n) out[n - 1 - i]++; }
     return out;
   }, [items]);
+  const fresh = counted === 0 && incidents.length === 0;
+  const start = <section className="card">
+      <div className="card-heading"><h2>Start with something verifiable.</h2><span className="step-label">Getting started</span></div>
+      <div className="journeys">
+        <div className="journey"><span className="step-num">1</span><div><strong>Observe a real rule match</strong><p>Run ordinary and synthetic negative requests.</p></div></div>
+        <div className="journey"><span className="step-num">2</span><div><strong>Review and activate Protect</strong><p>Validate the candidate, then approve blocking.</p></div></div>
+        <div className="journey"><span className="step-num">3</span><div><strong>Inspect the evidence</strong><p>Compare baseline and candidate in an isolated fixture.</p></div></div>
+      </div>
+      <button disabled={busy} className="button primary" onClick={() => action(() => api('/demo/traffic', {}), 'Demo requests sent. Inspect Live activity for actual records.')}>{busy ? 'Running…' : 'Run safe demo traffic'}<ArrowRight size={15}/></button>
+    </section>;
   return <>
     <section className={'hero ' + (protect ? 'protected' : '')}>
       <div className="hero-icon">{protect ? <ShieldCheck size={26}/> : <Eye size={26}/>}</div>
@@ -257,15 +278,16 @@ function Overview({status, statusError, site, refresh, busy, go, action}: {statu
         <button className="button light" onClick={() => go('Policies')}>Review protection<ArrowRight size={15}/></button>
       </div>
     </section>
+    {fresh && start}
     <div className="stats">
-      <Stat label="Retained source records" value={number(status?.requests_retained)} note="Access and WAF records counted separately" icon={Activity} spark={buckets}/>
+      <Stat label="Retained source records" value={number(status?.requests_retained)} note="Access and WAF records, including canary checks" icon={Activity} spark={buckets}/>
       <Stat label="Open observations" value={number(status?.open_incidents)} note="Rule matches requiring review" icon={Layers3} tone={status?.open_incidents > 0 ? 'warn' : undefined}/>
       <Stat label="Dropped telemetry" value={number(status?.events_dropped_total)} note="Missing records are not allowed requests" icon={Radio} tone={status?.events_dropped_total > 0 ? 'danger' : undefined}/>
       <Stat label="Gateway" value={status?.gateway_healthy ? 'Healthy' : 'Unknown'} note={'Revision ' + short(status?.gateway_revision) + (status?.canary ? ' · live canary ' + status.canary.outcome.toLowerCase() + ' ' + new Date(status.canary.checked_at).toLocaleTimeString() : ' · live canary pending')} icon={ShieldCheck} tone={status?.gateway_healthy ? 'ok' : 'warn'}/>
     </div>
-    <div className="grid-3">
-      <section className="card span-2">
-        <div className="card-heading"><h2>Traffic decisions</h2><span className="muted small">Last {counted} retained records · canary excluded</span></div>
+    <div className={fresh ? "grid-3 fresh" : "grid-3"}>
+      {!fresh && <section className="card span-2">
+        <div className="card-heading"><h2>Traffic decisions</h2><span className="muted small">Last {counted} requests · canary excluded</span></div>
         <div className="decision-bar" role="img" aria-label={`Passed ${decisions.allowed}, WAF rule matches ${decisions.observed}, blocked ${decisions.blocked_waf}, other ${decisions.other}`}>
           {(['allowed', 'observed', 'blocked_waf', 'other'] as const).map(k => decisions[k] > 0 && <span key={k} className={'seg ' + k} style={{width: (100 * decisions[k] / total) + '%'}}/>)}
         </div>
@@ -274,7 +296,7 @@ function Overview({status, statusError, site, refresh, busy, go, action}: {statu
         </div>
         <div className="subhead"><h3>Open incidents</h3><button className="text-link" onClick={() => go('Incidents')}>View all<ArrowRight size={13}/></button></div>
         {incidents.length === 0 ? <p className="muted small">No observations to review.</p> : <ul className="incident-mini">{incidents.slice(0, 4).map(i => <li key={i.incident_id}><span className={'sev ' + i.severity}/>{i.summary}<small>{i.detector_id} · {new Date(i.opened_at).toLocaleString()}</small></li>)}</ul>}
-      </section>
+      </section>}
       <section className="card">
         <div className="card-heading"><h2>System health</h2><ShieldCheck size={18}/></div>
         <div className="system-row"><span>Gateway & ruleset</span><span className="status-text">{status?.gateway_healthy ? 'Healthy' : 'Unconfirmed'}</span></div>
@@ -285,15 +307,7 @@ function Overview({status, statusError, site, refresh, busy, go, action}: {statu
         <div className="note"><LockKeyhole size={16}/><p>The gateway keeps its last approved configuration if the console, controller or AI app stops.</p></div>
       </section>
     </div>
-    <section className="card">
-      <div className="card-heading"><h2>Start with something verifiable.</h2><span className="step-label">Getting started</span></div>
-      <div className="journeys">
-        <div className="journey"><span className="step-num">1</span><div><strong>Observe a real rule match</strong><p>Run ordinary and synthetic negative requests.</p></div></div>
-        <div className="journey"><span className="step-num">2</span><div><strong>Review and activate Protect</strong><p>Validate the candidate, then approve blocking.</p></div></div>
-        <div className="journey"><span className="step-num">3</span><div><strong>Inspect the evidence</strong><p>Compare baseline and candidate in an isolated fixture.</p></div></div>
-      </div>
-      <button disabled={busy} className="button primary" onClick={() => action(() => api('/demo/traffic', {}), 'Demo requests sent. Inspect Live activity for actual records.')}>{busy ? 'Running…' : 'Run safe demo traffic'}<ArrowRight size={15}/></button>
-    </section>
+    {!fresh && start}
     <Events site={site} refresh={refresh} compact/>
   </>;
 }
@@ -358,10 +372,10 @@ function Events({site = 'site_demo', refresh, compact = false}: {site?: string; 
     const t = setInterval(read, 2500);
     return () => { live = false; clearInterval(t); };
   }, [site, refresh]);
-  const shown = items.filter(x => filter === 'all' || x.event.decision === filter).slice().reverse().slice(0, compact ? 7 : 100);
+  const shown = items.filter(x => filter === 'all' || kindOf(x.event) === filter).slice().reverse().slice(0, compact ? 7 : 100);
   return <section className="card activity">
     <div className="card-heading"><h2>Gateway activity</h2><div className="live-label"><span className="dot ok pulse"/>Live · every 2.5s</div></div>
-    {!compact && <label className="filter">Decision<select value={filter} onChange={e => setFilter(e.target.value)}>{['all', 'observed', 'allowed', 'blocked_waf', 'upstream_error', 'unknown'].map(v => <option key={v}>{v}</option>)}</select></label>}
+    {!compact && <label className="filter">Decision<select value={filter} onChange={e => setFilter(e.target.value)}><option value="all">All</option>{(Object.keys(kindLabel) as Kind[]).map(k => <option key={k} value={k}>{kindLabel[k]}</option>)}</select></label>}
     {error && <div role="alert" className="alert error">Telemetry unavailable: {error}. Previous records may be stale.</div>}
     <div className="table-wrap"><table>
       <thead><tr><th>Observed at</th><th>Request / route</th><th>Source</th><th>Decision</th><th>Rule / status</th><th>Revision</th></tr></thead>
@@ -369,7 +383,7 @@ function Events({site = 'site_demo', refresh, compact = false}: {site?: string; 
         <td className="mono" title={e.observed_at}>{new Date(e.observed_at).toLocaleTimeString()}</td>
         <td><span className="method">{e.method || 'WAF'}</span><span className="mono">{e.route_template || short(e.request_id)}</span>{e.canary && <span className="badge canary" title="Aegis's own live canary request, sent after each policy change">canary</span>}</td>
         <td>{e.source}</td>
-        <td><span className={'badge ' + (e.decision === 'blocked_waf' ? 'blocked' : e.decision === 'observed' ? 'observed' : e.decision === 'allowed' ? 'allowed' : '')}>{e.decision.replaceAll('_', ' ')}</span></td>
+        <td><span className={'badge ' + kindBadge[kindOf(e)]}>{kindLabel[kindOf(e)]}</span></td>
         <td className="mono">{e.rule_ids?.join(', ') || e.http_status || 'Unknown'}</td>
         <td className="mono muted" title={e.source === 'coraza' && !e.gateway_revision ? 'WAF records do not carry the revision; see the matching access record' : e.gateway_revision}>{e.source === 'coraza' && !e.gateway_revision ? '—' : short(e.gateway_revision)}</td>
       </tr>)}</tbody>
@@ -378,13 +392,6 @@ function Events({site = 'site_demo', refresh, compact = false}: {site?: string; 
   </section>;
 }
 
-function Loading() {
-  return <div className="loading-row" role="status"><span className="spinner" aria-hidden="true"/>Loading…</div>;
-}
-
-function Empty({title, text}: {title: string; text: string}) {
-  return <div className="empty"><span className="empty-icon"><Radio size={22}/></span><h3>{title}</h3><p>{text}</p></div>;
-}
 
 function Collection({path, refresh, columns, footnote, title}: {path: string; refresh: number; columns: string[]; footnote?: string; title?: string}) {
   const [data, setData] = useState<any[]>([]), [error, setError] = useState(''), [loaded, setLoaded] = useState(false);
@@ -393,34 +400,40 @@ function Collection({path, refresh, columns, footnote, title}: {path: string; re
     {title && <div className="card-heading"><h2>{title}</h2><span className="muted small">{data.length} retained</span></div>}
     {error && <div className="alert error">{error}</div>}
     <div className="table-wrap"><table>
-      <thead><tr>{columns.map(c => <th key={c}>{c.replaceAll('_', ' ')}</th>)}</tr></thead>
+      <thead><tr>{columns.map(c => <th key={c}>{cap(c.replaceAll('_', ' '))}</th>)}</tr></thead>
       <tbody>{data.map((v, i) => <tr key={i}>{columns.map(c => <td key={c} className={/hash|digest/.test(c) ? 'mono' : ''}>{typeof v[c] === 'object' ? JSON.stringify(v[c]) : typeof v[c] === 'number' ? v[c].toLocaleString() : String(v[c] ?? '—')}</td>)}</tr>)}</tbody>
     </table>{!loaded && <Loading/>}{loaded && !data.length && <Empty title="No retained records yet" text="Records appear as traffic reaches this site through the gateway."/>}</div>
     {footnote && <div className="note"><Eye size={16}/><p>{footnote}</p></div>}
   </section>;
 }
 
-function Incidents({site, refresh}: {site: string; refresh: number}) {
+function Incidents({site, refresh, initial, onOpen}: {site: string; refresh: number; initial?: string; onOpen?: (id: string) => void}) {
   const [items, setItems] = useState<any[]>([]), [detail, setDetail] = useState<any>(), [error, setError] = useState(''), [loaded, setLoaded] = useState(false);
+  const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { setDetail(undefined); api('/sites/' + site + '/incidents').then(v => setItems(Array.isArray(v.items) ? v.items : [])).catch(e => setError(e.message)).finally(() => setLoaded(true)); }, [site, refresh]);
+  // Deep links (#/incidents/<id>) open that incident; focus moves to its detail.
+  const open = (id: string, focus = true) => api('/incidents/' + encodeURIComponent(id)).then(d => { setDetail(d); if (focus) requestAnimationFrame(() => heading.current?.focus()); }).catch(e => setError(e.message));
+  useEffect(() => { if (initial && initial !== detail?.incident_id) open(initial, false); }, [initial]);
   return <>
     {error && <div className="alert error">{error}</div>}
+    <div className={detail ? 'incidents-split' : ''}>
     <section className="card">
       {!loaded && <Loading/>}
       {loaded && !items.length && <Empty title="No observations to review" text="Incidents appear when a detector or rule matches traffic for this site. On the bundled demo, Run safe demo traffic produces a genuine CRS match."/>}
-      {items.map(v => <button className={'incident-row' + (detail?.incident_id === v.incident_id ? ' selected' : '')} key={v.incident_id} onClick={() => api('/incidents/' + encodeURIComponent(v.incident_id)).then(setDetail).catch(e => setError(e.message))}>
+      {items.map(v => <button className={'incident-row' + (detail?.incident_id === v.incident_id ? ' selected' : '')} key={v.incident_id} onClick={() => { onOpen?.(v.incident_id); open(v.incident_id); }}>
         <span className={'incident-icon ' + v.severity}><Layers3 size={18}/></span>
         <span className="incident-text"><strong>{v.summary}</strong><small>{v.detector_id} · {new Date(v.opened_at).toLocaleString()} · {v.synthetic ? 'synthetic · ' : ''}{v.state}</small></span>
-        <span className={'badge sev-' + v.severity}>{v.severity} impact</span><ChevronRight size={16}/>
+        <span className={'badge sev-' + v.severity}>{cap(v.severity)} impact</span><ChevronRight size={16}/>
       </button>)}
     </section>
-    {detail && <section className="card detail">
-      <div className="card-heading"><h2>{detail.summary}</h2><span className="badge">Pattern confidence: {detail.confidence}</span></div>
+    {detail && <section className="card detail" aria-labelledby="incident-detail-heading">
+      <div className="card-heading"><h2 id="incident-detail-heading" ref={heading} tabIndex={-1}>{detail.summary}</h2><span className="badge">Pattern confidence: {detail.confidence}</span></div>
       <p className="mono muted">{detail.incident_id}</p>
       {detail.detector && <div className="note"><Eye size={16}/><p><strong>{detail.detector.detector_id}</strong> v{detail.detector.detector_version}{detail.detector.threshold ? <> · observed {detail.detector.observed} against threshold {detail.detector.threshold} in {detail.detector.window_seconds}s</> : null} · record only, no automatic blocking.{detail.detector.assumption ? <><br/>{detail.detector.assumption}</> : null}</p></div>}
       <h3>What remains unknown</h3>{(detail.unknowns || []).map((x: string) => <p className="muted" key={x}>{x}</p>)}
       <h3>Retained evidence</h3>{(detail.evidence || []).map((e: any) => <div className="evidence" key={e.event_id}><span className="mono">{e.event_id}</span><span>{e.rule_ids?.length ? 'CRS ' + e.rule_ids.join(', ') : (e.method || '') + ' ' + (e.route_template || '') + ' · ' + (e.http_status ?? '')} · {e.decision}</span></div>)}
     </section>}
+    </div>
     {detail && <Assessment incident={detail.incident_id}/>}
     {detail && <Proposals incident={detail.incident_id} onChanged={() => setDetail(undefined)}/>}
   </>;
@@ -451,7 +464,7 @@ function Policies({site, action, busy, refresh}: {site: string; action: (w: () =
         <label>Reason<input value={reason} minLength={5} maxLength={512} onChange={e => { setReason(e.target.value); setPreview(undefined); }}/></label>
       </div>
       <div className="note"><Shield size={16}/><p>CRS PL1 · anomaly threshold 5. Validation uses the pinned gateway. The shadow test runs only in the bundled isolated fixture.</p></div>
-      <button disabled={busy || !candidate || reason.length < 5 || mode === target?.requested_mode} className="button primary" onClick={() => action(async () => { const p = await api('/sites/' + site + '/policies/validate', candidate); setPreview({...p, policy: candidate, site}); return p; })}>{busy ? 'Validating & testing…' : 'Validate and preview'}<ArrowRight size={15}/></button>
+      <button disabled={busy || !candidate || reason.length < 5 || mode === target?.requested_mode} className="button primary" onClick={() => action(async () => { const p = await api('/sites/' + site + '/policies/validate', candidate); setPreview({...p, policy: candidate, site}); return p; })}>{busy ? 'Validating & testing…' : 'Validate and preview'}<ArrowRight size={15}/></button>{!busy && mode === target?.requested_mode && <small className="muted button-reason">This site is already in {mode}; choose the other mode to preview a change.</small>}{!busy && reason.length < 5 && <small className="muted button-reason">Give a reason of at least five characters.</small>}
     </section>
     {preview && <section className="card">
       <div className="card-heading"><h2>Candidate preview</h2><span className={'badge ' + (preview.fixture_result === 'PASS' ? 'allowed' : 'blocked')}>{preview.fixture_result}</span></div>
@@ -479,7 +492,7 @@ function Policies({site, action, busy, refresh}: {site: string; action: (w: () =
   </>;
 }
 
-function AuditLog({refresh}: {refresh: number}) {
+function AuditLog({refresh, ownerId}: {refresh: number; ownerId: string}) {
   const [items, setItems] = useState<any[]>(), [error, setError] = useState('');
   useEffect(() => { api('/audit').then(v => setItems(Array.isArray(v.items) ? v.items : [])).catch(e => setError(e.message)); }, [refresh]);
   return <section className="card">
@@ -490,7 +503,7 @@ function AuditLog({refresh}: {refresh: number}) {
       <thead><tr><th>Time</th><th>Action</th><th>Actor</th><th>Object</th><th>Result</th><th>Record hash</th></tr></thead>
       <tbody>{items.map(v => { const r = v.record || {}; return <tr key={v.seq}>
         <td title={r.occurred_at}>{r.occurred_at ? new Date(r.occurred_at).toLocaleString() : '—'}</td>
-        <td className="mono">{r.action || '—'}</td><td>{!r.actor_id ? '—' : /^[0-9a-f]{8}-/.test(r.actor_id) ? 'Owner' : human(r.actor_id)}</td>
+        <td className="mono">{r.action || '—'}</td><td>{!r.actor_id ? '—' : r.actor_id === ownerId || r.actor_id === 'owner' ? 'Owner' : /^[0-9a-f]{8}-/.test(r.actor_id) ? 'ID ' + r.actor_id.slice(0, 8) : human(r.actor_id)}</td>
         <td className="mono muted">{r.object_id ? short(r.object_id) : '—'}</td><td>{r.result || '—'}</td>
         <td className="mono muted" title={v.hash}>{short(v.hash)}</td>
       </tr>; })}</tbody>
@@ -499,7 +512,7 @@ function AuditLog({refresh}: {refresh: number}) {
   </section>;
 }
 
-function SettingsPage({refresh, theme, setTheme}: {refresh: number; theme: Theme; setTheme: (t: Theme) => void}) {
+function SettingsPage({refresh, theme, setTheme, ownerId}: {refresh: number; theme: Theme; setTheme: (t: Theme) => void; ownerId: string}) {
   return <>
     <section className="card">
       <div className="card-heading"><h2>Appearance</h2></div>
@@ -507,7 +520,7 @@ function SettingsPage({refresh, theme, setTheme}: {refresh: number; theme: Theme
         {(['dark', 'light'] as const).map(t => <button key={t} aria-pressed={theme === t} className={theme === t ? 'active' : ''} onClick={() => setTheme(t)}>{t === 'dark' ? <Moon size={15}/> : <Sun size={15}/>}{t === 'dark' ? 'Dark' : 'Light'}</button>)}
       </div>
     </section>
-    <AuditLog refresh={refresh}/>
+    <AuditLog refresh={refresh} ownerId={ownerId}/>
     <section className="card">
       <h2>Default privacy</h2>
       <div className="system-row"><span>Raw bodies / secret headers</span><span>Never stored by default</span></div>

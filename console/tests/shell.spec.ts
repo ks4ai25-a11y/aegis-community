@@ -4,7 +4,7 @@ async function mock(page: Page, extra: (path: string) => any = () => undefined) 
   await page.route('**/api/v1/**', async route => {
     const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
     const custom = extra(path);
-    if (custom !== undefined) return route.fulfill({json: custom});
+    if (custom !== undefined) return route.fulfill(custom && typeof custom.status === "number" && custom.json ? custom : {json: custom});
     if (path === '/auth/session') return route.fulfill({json: {owner_id: 'owner', csrf_token: 'csrf'}});
     if (path === '/system/status') return route.fulfill({json: {mode: 'observe', gateway_healthy: true, version: 'test', requests_retained: 1234567, open_incidents: 2, events_dropped_total: 0, database_bytes: 2048}});
     return route.fulfill({json: {items: []}});
@@ -184,4 +184,22 @@ test('the traffic chart counts rule matches, not ordinary Observe traffic', asyn
   await mock(page, path => path === '/sites/site_demo/events' ? {items} : undefined);
   await page.goto('/');
   await expect(page.getByRole('img', {name: 'Passed 3, WAF rule matches 1, blocked 1, other 0'})).toBeVisible();
+});
+
+test('incidents have deep links and a fresh install leads with getting started', async ({page}) => {
+  const inc = {incident_id: 'inc-7', summary: 'SQL injection pattern', detector_id: 'CRS-942', opened_at: '2026-10-17T00:00:00Z', state: 'open', severity: 'high'};
+  await mock(page, path => path === '/sites/site_demo/incidents' ? {items: [inc]} : path === '/incidents/inc-7' ? {...inc, confidence: 'medium', unknowns: [], evidence: []} : path === '/incidents/inc-7/proposals' ? {proposals: [], not_proposed: [], limitations: []} : path === '/incidents/inc-7/assessment' ? {status: 404, json: {error: {message: 'not assessed'}}} : undefined);
+  await page.goto('/#/incidents/inc-7');
+  await expect(page.locator('#incident-detail-heading')).toHaveText('SQL injection pattern');
+  await page.goto('/#/incidents');
+  await page.getByRole('button', {name: /^SQL injection pattern/}).click();
+  await expect(page).toHaveURL(/#\/incidents\/inc-7$/);
+  await expect(page.locator('#incident-detail-heading')).toBeFocused();
+});
+
+test('a fresh install shows getting started before the empty chart', async ({page}) => {
+  await mock(page);
+  await page.goto('/');
+  await expect(page.getByRole('heading', {name: 'Start with something verifiable.'})).toBeVisible();
+  await expect(page.getByRole('heading', {name: 'Traffic decisions'})).toHaveCount(0);
 });

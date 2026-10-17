@@ -2,6 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import {FileSearch,RefreshCw,Square} from 'lucide-react';
 import {api,key,short} from './client';
 import {Findings} from './Findings';
+import {Empty} from './ui';
 import {createScan,listScans,getScan,cancelScan,getScanResult,listRepositories} from './generated/research-client';
 import type {RepositoryV1,ScannerJobV1,ScannerJobStatusV1,ScannerSuiteResultV1} from './generated/contracts';
 
@@ -86,7 +87,7 @@ export function Scans({action,busy,initialJob}:Props){
   <ScannerNotice/>
   <section className="card scan-request">
    <div className="card-heading"><h2>Queue a read-only scan</h2><span className="pill">Offline static tools</span></div>
-   <p className="muted">Scanners inspect an approved source snapshot without executing repository scripts. A queued request waits for an enrolled operator worker; this preview does not deploy a background worker.</p>
+   <p className="muted">Scanners inspect an approved source snapshot without executing repository scripts.</p>
    {loading?<p role="status">Loading owned repositories and scans…</p>:repos.length===0?<p>Connect a provisioned repository on the Repositories page first.</p>:<>
     <label htmlFor="scan-repository">Connected repository</label>
     <select id="scan-repository" value={repository} disabled={busy} onChange={e=>{setRepository(e.target.value);setAck(false)}}>{repos.map(r=><option key={r.repository_id} value={r.repository_id}>{r.asset_id} · {short(r.map_digest)}</option>)}</select>
@@ -95,13 +96,13 @@ export function Scans({action,busy,initialJob}:Props){
     <label htmlFor="scan-duration">Time limit per tool (seconds)</label><input id="scan-duration" type="number" min="1" max="120" step="1" value={seconds} disabled={busy} onChange={e=>{setSeconds(e.target.value);setAck(false)}}/>
     {!validDuration&&<p role="alert">Choose a whole number from 1 to 120.</p>}
     <label className="checkbox"><input type="checkbox" checked={ack} disabled={busy} onChange={e=>setAck(e.target.checked)}/>I authorize these read-only tools on the selected repository snapshot.</label>
-    <button className="button primary" disabled={busy||loading||!repo||!selected.length||!validDuration||!ack} onClick={()=>action(submit,'Scan request accepted. A queued job does not mean a scanner ran.')}><FileSearch size={16}/>Queue scan</button>
+    <button className="button primary" disabled={busy||loading||!repo||!selected.length||!validDuration||!ack} onClick={()=>action(submit,'Scan request accepted. A queued job does not mean a scanner ran.')}><FileSearch size={16}/>Queue scan</button>{!busy&&!loading&&(!repo?<small className="muted button-reason">Connect a repository first.</small>:!selected.length?<small className="muted button-reason">Choose at least one scanner.</small>:!validDuration?<small className="muted button-reason">Set a time limit of 1–120 seconds.</small>:!ack?<small className="muted button-reason">Tick the authorisation above to queue the scan.</small>:null)}
    </>}
   </section>
   <section className="card">
    <div className="card-heading"><h2>Owned scan jobs</h2><button className="button light" disabled={busy||loading} onClick={()=>action(async()=>{setError('');await reload();if(jobID)await inspect(jobID)})}><RefreshCw size={15}/>Refresh scans</button></div>
    <p className="muted">Latest 100 jobs. Tool claims are static observations, not confirmed vulnerabilities or complete coverage.</p>
-   {!jobs.length&&!loading?<p>No retained scan requests.</p>:<div className="table-wrap"><table><thead><tr><th>Requested</th><th>Tools</th><th>State</th><th>Inspect</th></tr></thead><tbody>{jobs.map(j=><tr key={j.job_id}><td>{new Date(j.created_at).toLocaleString()}</td><td>{j.input.tool_ids.join(', ')}</td><td><span className="badge">{label(j.state)}</span></td><td><button className="button light" disabled={busy} onClick={()=>inspect(j.job_id)}>View scan <span className="mono">{short(j.job_id)}</span></button></td></tr>)}</tbody></table></div>}
+   {!jobs.length&&!loading?<Empty title="No scans yet" text="Queue a scan above; its status and results appear here." icon={<FileSearch size={22}/>}/>:<div className="table-wrap"><table><thead><tr><th>Requested</th><th>Tools</th><th>State</th><th>Inspect</th></tr></thead><tbody>{jobs.map(j=><tr key={j.job_id}><td>{new Date(j.created_at).toLocaleString()}</td><td>{j.input.tool_ids.join(', ')}</td><td><span className="badge">{label(j.state)}</span></td><td><button className="button light" disabled={busy} onClick={()=>inspect(j.job_id)}>View scan <span className="mono">{short(j.job_id)}</span></button></td></tr>)}</tbody></table></div>}
   </section>
   {reading&&<p role="status">Reading scan evidence…</p>}
   {status&&<section className="card scan-detail">
@@ -143,5 +144,5 @@ export function ScannerNotice({compact=false}:{compact?:boolean}){
  useEffect(()=>{api('/system/status').then(v=>setState(v.scanner)).catch(()=>{})},[]);
  if(!state||state.enrolled_workers>0)return null;
  const text=state.service_configured?'No scanner worker is enrolled, so queued scans will wait until an operator enrols one.':'The scanner service is not configured on this installation, so scans cannot be queued.';
- return <div role="status" className="alert warn">{text}{!compact&&<> See <span className="mono">docs/operators/packaged-scanner-worker.md</span> to enrol the packaged worker.</>}</div>;
+ return <div role="status" className="alert warn">{text}{!compact&&<> <a href="https://github.com/ks4ai25-a11y/aegis-community/blob/main/docs/operators/packaged-scanner-worker.md" target="_blank" rel="noreferrer noopener">How to enrol a scanner worker</a>.</>}</div>;
 }

@@ -40,7 +40,30 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
   const registered: any[] = current?.policy.sites || [];
   const siteID = 'site_' + form.id.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
   const hostnames = form.hosts.split(/[\s,]+/).map(h => h.trim().toLowerCase()).filter(Boolean);
-  const ready = form.id && form.name && hostnames.length && form.origin;
+  // Inline checks mirror the gateway's validation, so mistakes show at the
+  // field instead of as a refused preview.
+  const claimed = new Set([...(sites.flatMap(x => x.hostnames || [])), 'demo.example.test']);
+  const hostShape = /^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,62}$/;
+  const problems: Record<string, string> = {};
+  if (form.id && (!/[a-z0-9]/i.test(form.id) || siteID === 'site_demo')) problems.id = 'Use at least one letter or digit; "demo" is reserved.';
+  if (form.id && registered.some(r => r.site_id === siteID)) problems.id = 'A site with this ID already exists.';
+  if (hostnames.length > 8) problems.hosts = 'At most eight host names per site.';
+  const badHost = hostnames.find(h => !hostShape.test(h));
+  if (badHost) problems.hosts = `"${badHost}" is not a DNS host name (for example shop.example.com).`;
+  const taken = hostnames.find(h => claimed.has(h));
+  if (!badHost && taken) problems.hosts = `${taken} already belongs to another site.`;
+  const o = form.origin.trim().toLowerCase();
+  const om = o.match(/^\[?([a-z0-9.:-]+?)\]?:(\d{1,5})$/);
+  if (o && !om) problems.origin = 'Use host:port, for example shop-app:3000.';
+  else if (om) {
+    const host = om[1], port = Number(om[2]);
+    if (port < 1 || port > 65535) problems.origin = 'Port must be 1–65535.';
+    else if (host === 'localhost' || host.endsWith('.localhost') || /^127\./.test(host) || host === '::1' || host === '0.0.0.0') problems.origin = 'Loopback addresses point at the gateway itself. Use the name or address the gateway can reach your app on, such as its container or host name.';
+    else if (/^169\.254\./.test(host) || host === 'metadata.google.internal') problems.origin = 'Cloud metadata addresses are refused.';
+    else if (['controller', 'gateway', 'verifier', 'deployer', 'fixture-origin', 'demo-origin', 'ollama'].includes(host)) problems.origin = 'That name belongs to an Aegis service.';
+  }
+  const fieldError = (k: string) => problems[k] ? <small className="field-error" id={'site-' + k + '-error'}>{problems[k]}</small> : null;
+  const ready = form.id && form.name && hostnames.length && form.origin && !Object.keys(problems).length;
   // Optional fields are omitted when unset so the candidate stays minimal.
   function extras(f: {tls: string; email: string; limit: string; body?: string}) {
     const out: any = {};
@@ -90,10 +113,10 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
     <section className="card">
       <div className="card-heading"><h2>Register an application</h2><Globe size={18}/></div>
       <div className="form-grid">
-        <label>Site ID<input value={form.id} maxLength={32} placeholder="shop" onChange={e => setForm({...form, id: e.target.value})}/><small className="muted mono">{form.id ? siteID : 'site_…'}</small></label>
+        <label>Site ID<input value={form.id} maxLength={32} placeholder="shop" aria-invalid={!!problems.id} aria-describedby={problems.id ? 'site-id-error' : undefined} onChange={e => setForm({...form, id: e.target.value})}/><small className="muted mono">{form.id ? siteID : 'site_…'}</small>{fieldError('id')}</label>
         <label>Display name<input value={form.name} maxLength={64} placeholder="Shop" onChange={e => setForm({...form, name: e.target.value})}/></label>
-        <label>Host names<input value={form.hosts} placeholder="shop.example.com www.shop.example.com" onChange={e => setForm({...form, hosts: e.target.value})}/><small className="muted">The DNS names clients use. Up to eight.</small></label>
-        <label>Private origin<input value={form.origin} placeholder="shop-app:3000" onChange={e => setForm({...form, origin: e.target.value})}/><small className="muted">host:port reachable from the gateway network. Loopback and metadata addresses are refused.</small></label>
+        <label>Host names<input value={form.hosts} placeholder="shop.example.com www.shop.example.com" aria-invalid={!!problems.hosts} aria-describedby={problems.hosts ? 'site-hosts-error' : undefined} onChange={e => setForm({...form, hosts: e.target.value})}/><small className="muted">The DNS names clients use. Up to eight.</small>{fieldError('hosts')}</label>
+        <label>Private origin<input value={form.origin} placeholder="shop-app:3000" aria-invalid={!!problems.origin} aria-describedby={problems.origin ? 'site-origin-error' : undefined} onChange={e => setForm({...form, origin: e.target.value})}/><small className="muted">host:port reachable from the gateway network. Loopback and metadata addresses are refused.</small>{fieldError('origin')}</label>
         <TLSFields value={form} onChange={v => setForm({...form, ...v})}/>
       </div>
       <button disabled={busy || !ready || !current} className="button primary" onClick={() => stage([...registered, {site_id: siteID, display_name: form.name.trim(), hostnames, origin: form.origin.trim(), requested_mode: 'observe', crs: defaultCRS, exclusions: [], ...extras(form)}], 'Register ' + siteID + ' in Observe mode')}>
