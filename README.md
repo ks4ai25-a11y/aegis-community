@@ -1,30 +1,41 @@
 # Aegis Community
 
-Implementation in progress against the **OSS-first Engineering Master Manual v4**. Aegis combines a local Caddy/Coraza/CRS defence gateway with a separate authorized application research and verification plane. AI remains optional and never controls live traffic directly.
+**Self-hosted web defence you can inspect.** Aegis puts a pinned Caddy + Coraza + OWASP CRS gateway in front of your web applications, records every decision with its source, and helps you review, test and approve protection changes. It also reads your code offline to find what to fix. AI is optional, runs locally if you want it, and never controls live traffic.
 
-The current source is an unfinished internal alpha. See [implementation status](docs/IMPLEMENTATION_STATUS.md). Do not deploy it as production protection or assume research/scanner capabilities are available yet.
-
-## What Aegis Community does today
-
-- **Protects your own web applications.** Register sites (exact host names and a private origin) behind a pinned Caddy + Coraza + OWASP CRS gateway. New sites start in Observe; Protect is enabled per site only after Aegis has observed it. See [protecting your applications](docs/operators/sites.md).
-- **Detects and explains.** Sanitized telemetry (no bodies, query values, cookies or client addresses), deterministic detectors for CRS matches, path enumeration, brute-force candidates, bursts, 5xx spikes and sensitive routes, with every threshold recorded on the incident.
-- **Assesses incidents without spending money.** A deterministic assessment always works offline; an optional local model (bundled Ollama overlay or any OpenAI-compatible server) adds schema-checked, evidence-cited hypotheses. See [incident assessment](docs/operators/ai-assessment.md).
-- **Proposes and proves mitigations.** Incidents yield complete candidate policy revisions (parameter-scoped exclusions, Protect) that must pass the pinned validator and an isolated fixture test before an owner can approve them. Rollback is one click.
-- **Connects your desktop AI app.** `aegis-mcp` gives Claude, Codex, Kimi or any MCP client read-only access to sites, incidents, assessments and proposals using a revocable connector credential. See [assistant connections](docs/operators/assistant-connections.md).
-- **Helps fix code.** Findings get concrete remediation steps; with the free local code model, code findings get a small patch draft that Aegis checks against the exact file before offering it as a `.patch` (never applied for you).
-- **Scans code offline.** Pinned Semgrep CE, Gitleaks, Syft and Bandit run against private read-only snapshots with immutable receipts and a finding catalogue.
-- **Proves what it says.** Verification reports can be exported with an installation signature and checked offline (`aegisctl report verify`); a live canary re-checks the gateway after every change; `aegisctl diagnostics` gives a counts-only support bundle. Measured capacity is in [performance](docs/operators/performance.md).
-
-Nothing requires a paid service, model or account. Planned commercial extensions are described in the [Community → Frontier plan](docs/strategy/community-to-frontier.md).
+> **Status: internal alpha.** Not yet for production protection. Every claim below links to its evidence; what is not done is listed in [known limitations](docs/KNOWN_LIMITATIONS.md) and the [release gates](docs/release-gates.json).
 
 ## Quickstart
 
 ```sh
-scripts/quickstart.sh          # build, start and print the console URL and first-owner token
-scripts/quickstart.sh --ai     # also run a free local model for incident assessments
+scripts/quickstart.sh          # build, start, print the console URL and first-owner token
+scripts/quickstart.sh --ai     # also run free local models for assessments and patch drafts
 ```
 
-Then follow [getting started](docs/user/getting-started.md).
+Open the printed loopback URL and follow [getting started](docs/user/getting-started.md). Requirements: Docker with Compose v2. Nothing requires a paid service, model or account.
+
+## What it does
+
+| | |
+|---|---|
+| **Protect your sites** | Register applications by exact host name and private origin. New sites start in **Observe**; **Protect** is enabled per site only after you review a tested policy. Per-site HTTPS (ACME or local CA), rate limits and trusted proxies. [Sites](docs/operators/sites.md) |
+| **See what happened** | Sanitized telemetry (no bodies, query values, cookies or client addresses), deterministic detectors for CRS matches, enumeration, brute force, bursts, 5xx spikes, sensitive routes, policy regressions and origin exposure. Every threshold is recorded on the incident. |
+| **Change safely** | Every policy change is validated by the pinned gateway, tested in an isolated fixture, explicitly approved and can be rolled back in one click. A live canary re-checks the gateway after each change. |
+| **Assess incidents** | A deterministic assessment works offline; an optional local model adds schema-checked, evidence-cited hypotheses. [AI assessment](docs/operators/ai-assessment.md) |
+| **Find and fix code issues** | Pinned Semgrep CE, Gitleaks, Syft, Bandit, OSV-Scanner and Trivy (with operator-provisioned offline databases) against read-only snapshots; findings with remediation steps and checked patch drafts that Aegis never applies for you. Route discovery for Next.js, Express, FastAPI and Flask; rescans when code changes. [Repositories](docs/operators/repositories.md) · [Scanner databases](docs/operators/scanner-databases.md) |
+| **Plan research safely** | A research planner proposes what to test from a fixed catalogue of bundled fixture tests; it cannot run commands, contact hosts or change code. |
+| **Connect your AI app** | `aegis-mcp` gives Claude, Codex or any MCP client read-only access with a revocable credential. [Assistant connections](docs/operators/assistant-connections.md) |
+| **Prove it** | Signed evidence export (`aegisctl report verify`), counts-only diagnostics, measured [performance](docs/operators/performance.md), [release SBOMs and checksums](docs/operators/release-evidence.md), and an [adversarial AI evaluation](tests/ai-eval/README.md). |
+
+## What it does not claim
+
+A matched rule is not proof of exploitation, and a passing test is not proof an application is secure. A generic WAF does not enforce tenant ownership or stop upstream volumetric DDoS. Zero findings never means safe. See [known limitations](docs/KNOWN_LIMITATIONS.md).
+
+## Documentation
+
+- **Use it:** [getting started](docs/user/getting-started.md) · [operator guides](docs/operators/)
+- **Understand it:** [architecture decisions](docs/architecture/adr/) · [implementation status](docs/IMPLEMENTATION_STATUS.md) · [evidence](docs/evidence/)
+- **Develop it:** [local verification](docs/developers/local-verification.md) · [contributing](CONTRIBUTING.md) · [security policy](SECURITY.md)
+- **Roadmap:** [Community → Frontier plan](docs/strategy/community-to-frontier.md)
 
 ## Development build
 
@@ -33,34 +44,7 @@ Requirements: Go 1.27.1, Node 22.23.1 and Docker Compose.
 ```sh
 docker compose -f deploy/compose.demo.yaml build
 docker compose -f deploy/compose.demo.yaml up -d
+make test
 ```
 
-The loopback console is intended at `http://127.0.0.1:7410`; the synthetic gateway at `http://127.0.0.1:8080`. Local ARM64 Docker Desktop acceptance covers Observe/Protect, expected CRS 942100, privacy, activation retry, rollback, controller loss and gateway restart; see `docs/evidence/demo-acceptance.json`. Broader release gates remain pending. The controller prints a short-lived first-owner token only to local logs. Start in Observe; Protect requires explicit owner approval of a tested exact policy revision.
-
-The synthetic fixture contains no customer data. WAF request-level denial does not establish that application vulnerabilities are fixed. A generic HTTP WAF does not enforce tenant ownership or prevent upstream volumetric DDoS.
-
-No hidden telemetry, paid model, proprietary component or vendor account is required. Public release additionally requires signed artifacts, notices, measured tests and independent review.
-
-
-## Local verification
-
-Run module tests from each of `gateway`, `controller`, `alpha`, `shared/source` and `contracts` using `go test -race ./...`; build the console with `npm ci` and `npm run build` in `console`. Run `python3 tests/integration/demo_acceptance.py` against a dedicated demo installation in Observe mode. It temporarily activates Protect, stops the demo controller, restarts the demo gateway and restores Observe. The script creates a demo owner on first use and stores its random passphrase locally with mode 0600 at `/private/tmp/aegis-demo-test-credential`, not in source or reports. Do not use it against an existing user installation.
-
-`tools/scanners.lock.json` pins optional scanner images. `tests/integration/scanner_acceptance.py` runs their read-only static fixture checks with no network or Docker socket. It requires the images to be pulled separately and the `bin/aegis-research` CLI to be built from `alpha`. Semgrep CE, Gitleaks and Syft have local fixture evidence. OSV V2 and Trivy need approved offline database provisioning before known-advisory results are available; missing databases are explicit tool errors.
-
-`python3 scripts/generate_contracts.py` regenerates the current Draft 2020-12 schemas and Go/TypeScript/Python bindings. `python3 scripts/generate_research_api.py` generates scoped Go/Python/TypeScript REST clients from `contracts/openapi-research.json`; the console uses that client. The complete catalogue and remaining API clients are still in development.
-
-
-The Verify page supports exact scope review, approval, durable fixture jobs, cancellation, revocation and owned report history. `python3 tests/integration/scoped_jobs_acceptance.py` tests these against the named local demo services and kills/restarts only the Aegis controller to check lease recovery. It uses the synthetic demo owner credential created by the earlier acceptance script. Scope grants are fixed to the bundled test_lab and allow four requests total; arbitrary staging targets remain unavailable.
-
-`make test` verifies generated-file reproducibility, module race tests and the console build. CI workflow source is pinned to upstream action commits; an actual hosted CI run and independent installation remain release gates.
-
-The **Repositories** page connects provisioned read-only assets and shows conservative application maps using generated clients. The demo provides `safe` and `vulnerable` static scanner fixtures. See [repository operations](docs/operators/repositories.md). The owner API can now enqueue/list offline scans, read status, cancel jobs and read immutable T0 suite results through `/api/v1/scans`; see [scanner operations](docs/operators/scanner-workers.md). The **Scans** page now provides repository/tool consent, job history, cancellation and immutable T0 suite summaries. Selected immutable scans now show normalized finding details with filters, conservative dependency deduplication and original source/receipt identities. Cross-revision finding equivalence/proof lifecycle, background worker provisioning and independent cleanup verification/release remain unfinished. A queued job does not mean a worker is available, and a terminal result does not prove resource cleanup.
-
-An operator-only `scan-offline` CLI captures exact private source snapshots and runs pinned tools behind an independent container deadline/output guard. See [offline scanner operations](docs/operators/offline-scanners.md). Owners can browse [retained finding observations](docs/operators/finding-catalogue.md) across scan history, with source-bound review and local history export. An opt-in [packaged one-shot worker](docs/operators/packaged-scanner-worker.md) now provides private UID/socket enrollment, immutable operator engine/registry and journal namespace provisioning and real static execution without a Docker CLI; missing or changed provisioning refuses before claim, and independent cleanup still holds later jobs. An additional [dedicated broker profile](docs/operators/scanner-broker.md) limits dispatch to a selected enrolled broker and gives its separate client no daemon, worker credential, source or journal mounts. An [isolated daemon authorization experiment](docs/operators/isolated-engine-authorization.md) now adds a native deny-by-default Docker policy and a separate durable mutation journal; an additional [TLS broker profile](docs/operators/tls-scanner-broker.md) connects the packaged selected broker through a credential-free Unix relay and a private mTLS client identity. Controller-authenticated plugin leases and independent cleanup remain unfinished. Independent engine mediation and cleanup release remain unfinished. The opt-in [journaled engine backend](docs/operators/journaled-scanner-engine.md) records daemon request uncertainty across crashes; controller cleanup admission remains held. The [private database snapshot command](docs/operators/database-snapshots.md) captures controller state with a bounded artifact receipt. The [recovery bundle commands](docs/operators/recovery-bundles.md) bind matching demo gateway and tool configuration and restore into a fresh offline directory with restored authority revoked; an isolated database-loss drill validates this reference profile. Complete recovery release acceptance remains unfinished. It adds no Docker socket to the web controller; durable scanner orchestration, host crash workspace recovery and offline advisory databases remain incomplete.
-
-A read-only operator observe-sandbox command can compare original-engine metadata and reported guard/source files with privately exported launch context. It does not authenticate cleanup authority, exclude active leases/late starts or release scanner admission. See [scanner operations](docs/operators/scanner-workers.md) and ADR 039.
-
-Owner review now records selected-job finding assessments beside immutable T0 scanner evidence. Decisions have exact result/record binding, revision conflicts, durable retry responses and atomic audit history. See [finding review operations](docs/operators/finding-reviews.md) and ADR 040; cross-job catalogue and verified remediation remain unfinished.
-
-A separate local scanner-verifier identity can now read scope-bound controller launch/workspace context over the private Unix channel. It cannot execute scans or release cleanup admission. See [scoped verifier operations](docs/operators/scanner-verifier-context.md) and ADR 041.
+The console is at `http://127.0.0.1:7410` and the demo gateway at `http://127.0.0.1:8080`. The controller prints a short-lived first-owner token only to its local logs.
