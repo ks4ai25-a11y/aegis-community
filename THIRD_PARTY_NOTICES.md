@@ -17,4 +17,6 @@ Aegis-authored source is Apache-2.0. This file is an inventory under review, not
 | Go, Node and Alpine image contents | Dockerfiles | Build/runtime distribution | SBOM and notices pending |
 | Ollama 0.34.4 | deploy/compose.ai-local.yaml (digest-pinned image) | Optional local model server, not distributed by Aegis | MIT; model weights are downloaded by the operator under their own licences |
 
+`scripts/release/release_evidence.py` generates per-image CycloneDX SBOMs, a console npm SBOM and `THIRD_PARTY_LICENSES.txt` with the licence and NOTICE texts of every shipped Go module and production npm package (see `docs/operators/release-evidence.md`). The image contents include unmodified Alpine OS packages under GPL-2.0-only (busybox, apk-tools and others) and MPL-2.0 components (`ca-certificates`, `github.com/go-sql-driver/mysql` through Caddy's ACME server); these are listed for review in each release manifest.
+
 No GPL/AGPL scanner is linked into Aegis core by this implementation. Standalone execution does not by itself remove redistribution obligations. Review exact component licensing and the intended distribution before release.

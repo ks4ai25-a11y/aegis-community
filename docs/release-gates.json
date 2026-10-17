@@ -105,8 +105,10 @@
     {
       "gate_id": "GATE-10",
       "requirement": "Supply-chain provenance, SBOM and notices",
-      "status": "pending",
-      "evidence": []
+      "status": "partial",
+      "evidence": [
+        "docs/evidence/release-supply-chain.json"
+      ]
     },
     {
       "gate_id": "GATE-11",
