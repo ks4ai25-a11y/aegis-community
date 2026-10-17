@@ -1,0 +1,76 @@
+{
+ "schema_version": "1.0",
+ "test_scope": "scanner-executor-offline-databases",
+ "source_commit": "0b2d01bb6b762c667e98c5ebbcd4b3e6fe41721a",
+ "started_at": "2026-10-17T02:47:46Z",
+ "checks": [
+  {
+   "id": "guarded_executor_scans_with_verified_read_only_database",
+   "result": "PASS",
+   "detail": {
+    "osv_v2/vulnerable": {
+     "status": "completed",
+     "advisories": [
+      "GHSA-29mw-wpgm-hmr9",
+      "GHSA-35jh-r3h4-6jhm",
+      "GHSA-f23m-r3pf-42rh",
+      "GHSA-r5fr-rjxr-66jc",
+      "GHSA-xxjr-mmjv-4gpg"
+     ],
+     "database_digest": "sha256:506c6ffe5582e272aafc03e13f169c985eb003605763964fd4f29e4f1ac7e806",
+     "age_hours": 1
+    },
+    "osv_v2/safe": {
+     "status": "completed",
+     "advisories": [
+      "GHSA-f23m-r3pf-42rh",
+      "GHSA-r5fr-rjxr-66jc",
+      "GHSA-xxjr-mmjv-4gpg"
+     ],
+     "database_digest": "sha256:506c6ffe5582e272aafc03e13f169c985eb003605763964fd4f29e4f1ac7e806",
+     "age_hours": 1
+    },
+    "trivy/vulnerable": {
+     "status": "completed",
+     "advisories": [
+      "CVE-2020-28500",
+      "CVE-2021-23337",
+      "CVE-2025-13465",
+      "CVE-2026-2950",
+      "CVE-2026-4800"
+     ],
+     "database_digest": "sha256:35ad852795692f1a9f807b6342ff1a60b8ed26eb966353c235796a8882b2b9c4",
+     "age_hours": 25
+    },
+    "trivy/safe": {
+     "status": "completed",
+     "advisories": [
+      "CVE-2025-13465",
+      "CVE-2026-2950",
+      "CVE-2026-4800"
+     ],
+     "database_digest": "sha256:35ad852795692f1a9f807b6342ff1a60b8ed26eb966353c235796a8882b2b9c4",
+     "age_hours": 25
+    }
+   }
+  },
+  {
+   "id": "without_database_no_result_is_claimed",
+   "result": "PASS",
+   "detail": {
+    "status": "tool_error",
+    "exit": 1
+   }
+  },
+  {
+   "id": "tampered_database_refused_before_launch",
+   "result": "PASS",
+   "detail": {
+    "exit": 1,
+    "error": "scanner preflight refused"
+   }
+  }
+ ],
+ "result": "PASS",
+ "finished_at": "2026-10-17T02:48:25Z"
+}

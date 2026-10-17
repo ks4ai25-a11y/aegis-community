@@ -1,6 +1,6 @@
 # ADR 068: Offline vulnerability databases for OSV-Scanner and Trivy
 
-Status: provisioning and verification implemented and validated with real data; scanner-worker integration pending in the scanner workstream.
+Status: provisioning, verification and executor integration implemented and validated with real data; controller digest approval and the admitted SDK mount allowlist pending.
 
 ## Problem
 
@@ -17,10 +17,14 @@ OSV-Scanner and Trivy run with `--network none` and an empty tmpfs home, so they
 
 Database files are world-readable public data; Docker Desktop cannot bind-mount below a restrictive directory, so 0755/0644 is used.
 
-## Integration (scanner workstream)
+## Integration
 
-The read-only mount, arguments and environment must be added to the CLI executor, the SDK engine profile and the `engineauthz` mount allowlist, and receipts must record the manifest digest and age so `completed_stale_db` can be produced. The manifest contract is added to the generator after migration 016 lands.
+- `executor.Config.database` reads the root only from operator configuration (`DatabaseRoot` or `AEGIS_SCANNER_DB_ROOT`), requires a clean absolute path, runs `Verify` and `MountFor`, and refuses to launch on any failure or when the tool's database is missing.
+- The CLI and SDK container profiles (`engineprofile.CreateWithDatabase`) add only the read-only `/db/<tool>` bind and the OSV environment variable; with no database they are byte-identical to before.
+- `scanner-guard` switches to `scanevidence.BuildDatabaseInvocation` (Trivy gains `--cache-dir /db/trivy`; OSV argv is unchanged) only for advisory tools and only when that directory exists in the container.
+- Receipts carry the optional `advisory_database`. `Normalize` accepts the database invocation only with a well-formed database record, refuses a record whose digest differs from `Expected.Database`, and keeps `completed_stale_db` unless that digest is approved and fresh.
+- Pending: the controller must bind the approved database digest into the job's expectations, and `engineauthz` must allow the mount for admitted SDK launches.
 
 ## Validation
 
-Unit tests cover fetch layout, atomic install, verification, tampering, forged manifests, stale reporting, mount helpers and refusal of invalid archives, path-like ecosystems and unpinned images. `tests/integration/scanner_db_acceptance.py` (`docs/evidence/scanner-database-acceptance.json`) fetched real OSV (npm, PyPI) and Trivy databases, verified them, and ran both pinned images fully offline under scan hardening: both report CVE-2021-23337 (GHSA-35jh-r3h4-6jhm) for lodash 4.17.20 and not for 4.17.21; tampering is refused. Newer advisories affect lodash 4.17.21, so the "safe" fixture's expected results must change once databases are integrated.
+Unit tests cover fetch layout, atomic install, verification, tampering, forged manifests, stale reporting, mount helpers and refusal of invalid archives, path-like ecosystems and unpinned images. `tests/integration/scanner_db_acceptance.py` (`docs/evidence/scanner-database-acceptance.json`) fetched real OSV (npm, PyPI) and Trivy databases, verified them, and ran both pinned images fully offline under scan hardening: both report CVE-2021-23337 (GHSA-35jh-r3h4-6jhm) for lodash 4.17.20 and not for 4.17.21; tampering is refused. Newer advisories affect lodash 4.17.21, so the "safe" fixture's expected results must change once databases are integrated. `tests/integration/scanner_db_executor_acceptance.py` (`docs/evidence/scanner-database-executor-acceptance.json`) runs both tools through the guarded executor with the database mounted and checks the same advisories. It also checks that a run without a database claims nothing and that a tampered database is refused before launch.
