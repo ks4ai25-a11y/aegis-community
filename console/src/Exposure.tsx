@@ -21,7 +21,7 @@ export function Exposure({site}: {site: string}) {
       <div className="system-row"><span>Declared and seen</span><strong>{data.counts.both}</strong></div>
       <div className="system-row"><span>Declared, not seen</span><strong>{data.counts.declared_only}</strong></div>
       <div className="table-wrap"><table><thead><tr><th>Route</th><th>Category</th><th>Methods</th><th>Requests</th><th>Source</th></tr></thead><tbody>
-        {data.entries.map((e: any) => <tr key={e.category + e.route}><td className="mono">{e.route}</td><td><span className={'badge ' + (e.category === 'observed_only' ? 'blocked' : '')}>{e.category.replace('_', ' ')}</span></td><td>{e.observed_methods.join(', ') || '—'}</td><td>{e.requests_retained || '—'}</td><td className="mono muted">{e.source_path || e.note || ''}</td></tr>)}
+        {data.entries.map((e: any) => <tr key={e.category + e.route}><td className="mono">{e.route}</td><td><span className={'badge ' + (e.category === 'observed_only' ? 'warn' : e.category === 'both' ? 'allowed' : '')}>{e.category.replace('_', ' ')}</span></td><td>{e.observed_methods.join(', ') || '—'}</td><td>{e.requests_retained || '—'}</td><td className="mono muted">{e.source_path || e.note || ''}</td></tr>)}
       </tbody></table></div>
       {data.limitations.map((l: string) => <p key={l} className="small muted">{l}</p>)}
     </>}

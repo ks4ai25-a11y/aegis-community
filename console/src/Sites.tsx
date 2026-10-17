@@ -74,7 +74,7 @@ export function Sites({action, busy, refresh, onSelect}: {action: (w: () => Prom
           <td><strong>{s.display_name}</strong><div className="mono muted">{s.site_id}</div></td>
           <td className="mono">{s.hostnames.join(', ')}</td>
           <td className="mono">{s.origin_url}</td>
-          <td><span className={'badge ' + (s.mode === 'protect' ? 'blocked' : '')}>{s.mode}</span>{s.synthetic && <span className="badge">synthetic</span>}{(s as any).tls && <span className="badge">TLS {(s as any).tls}</span>}{(s as any).rate_limit && <span className="badge">{(s as any).rate_limit.requests}/min</span>}</td>
+          <td><span className={'badge ' + (s.mode === 'protect' ? 'allowed' : 'observed')}>{s.mode}</span>{s.synthetic && <span className="badge">synthetic</span>}{(s as any).tls && <span className="badge">TLS {(s as any).tls}</span>}{(s as any).rate_limit && <span className="badge">{(s as any).rate_limit.requests}/min</span>}</td>
           <td className="actions">
             <button className="button light" onClick={() => onSelect(s.site_id)}>View activity<ArrowRight size={14}/></button>
             {!s.synthetic && <button disabled={busy} className="button light" onClick={() => { const r = registered.find(x => x.site_id === s.site_id); setEditing({site_id: s.site_id, tls: r?.tls || '', email: r?.acme_email || '', limit: r?.rate_limit ? String(r.rate_limit.requests) : '', body: r?.max_body_kib ? String(r.max_body_kib) : ''}); }}>Settings</button>}
