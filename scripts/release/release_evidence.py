@@ -49,6 +49,23 @@ def syft(mount_src, mount_dst, source, dest, *extra):
 GOMODCACHE = pathlib.Path(subprocess.run(["go", "env", "GOMODCACHE"], capture_output=True, text=True).stdout.strip() or "/nonexistent")
 
 
+LICENCE_FILES = ("LICENSE", "LICENSE.md", "LICENSE.txt", "LICENCE", "COPYING", "LICENSE-APACHE", "LICENSE-MIT")
+
+
+def go_module_dir(purl):
+    m = re.match(r"pkg:golang/(.+)@([^?#]+)", purl or "")
+    if not m:
+        return None, None
+    escaped = re.sub(r"[A-Z]", lambda x: "!" + x.group(0).lower(), m.group(1))
+    return f"{m.group(1)}@{m.group(2)}", GOMODCACHE / f"{escaped}@{m.group(2)}"
+
+
+def notice_texts(root):
+    """Licence and NOTICE files at a package root, in a stable order."""
+    names = [n for n in LICENCE_FILES if (root / n).is_file()] + sorted(p.name for p in root.glob("NOTICE*") if p.is_file())
+    return [(n, (root / n).read_text(errors="replace")) for n in names]
+
+
 def go_licence(purl):
     """Classify a Go module's licence from its LICENSE file in the local module cache (offline)."""
     m = re.match(r"pkg:golang/(.+)@([^?#]+)", purl or "")
@@ -56,7 +73,7 @@ def go_licence(purl):
         return None
     escaped = re.sub(r"[A-Z]", lambda x: "!" + x.group(0).lower(), m.group(1))
     root = GOMODCACHE / f"{escaped}@{m.group(2)}"
-    for name in ("LICENSE", "LICENSE.md", "LICENSE.txt", "LICENCE", "COPYING", "LICENSE-APACHE", "LICENSE-MIT"):
+    for name in LICENCE_FILES:
         f = root / name
         if f.is_file():
             t = f.read_text(errors="ignore")
@@ -96,12 +113,13 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     manifest = {"schema_version": "1.0", "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "source_commit": commit, "working_tree_clean": not dirty,
                 "toolchain": {"go": run("go", "version"), "node": run("node", "--version"), "docker": run("docker", "version", "--format", "{{.Server.Version}}")},
-                "sbom_tool": SYFT, "images": [], "binaries": [], "console_npm": {}, "licences": {}, "limitations": [
+                "sbom_tool": SYFT, "images": [], "binaries": [], "console_npm": {}, "notices": {}, "licences": {}, "limitations": [
                     "SHA256SUMS is signed only when --sign-key is given; there is no publisher key or transparency log yet.",
                     "Image IDs are local build results and are not claimed reproducible; CLI binaries are rebuilt twice on this host and compared (rebuild_identical), which is not a cross-host reproducibility proof.",
                     "Licence identifiers come from package metadata as reported by Syft and are not a legal review."]}
     licences = collections.Counter()
     unknown = []
+    go_modules = {}
     for name, dockerfile, target in IMAGES:
         tag = f"aegis-community/{name}:{a.tag}"
         args = ["docker", "build", "-q", "-f", dockerfile, "-t", tag] + (["--target", target] if target else []) + ["."]
@@ -115,6 +133,9 @@ def main():
         doc = json.loads(sbom.read_text())
         comps = doc.get("components", [])
         for c in comps:
+            label, moddir = go_module_dir(c.get("purl"))
+            if moddir and not label.startswith("aegis.local/"):
+                go_modules[label] = moddir
             ids = [l.get("license", {}).get("id") or l.get("license", {}).get("name") or l.get("expression") for l in c.get("licenses", [])]
             ids = [i for i in ids if i]
             if ids:
@@ -145,6 +166,9 @@ def main():
     console_sbom = out / "console-npm.cdx.json"
     syft(ROOT / "console", "/src", "dir:/src", console_sbom, "--exclude", "./node_modules/**")
     lock = json.loads((ROOT / "console/package-lock.json").read_text())
+    if not (ROOT / "console/node_modules").is_dir():
+        # Licence texts are read from the installed packages; the npm cache is used when it has them.
+        subprocess.run(["npm", "ci", "--ignore-scripts", "--prefer-offline", "--no-audit", "--no-fund"], cwd=ROOT / "console", check=True, capture_output=True)
     npm = collections.Counter()
     for key, pkg in lock.get("packages", {}).items():
         if key and not pkg.get("dev"):
@@ -153,6 +177,26 @@ def main():
                                "note": "Licences from package-lock.json; devDependencies (build and test tools) are excluded because they are not shipped."}
     for k, n in npm.items():
         licences[k + " (npm, shipped in console)"] += n
+    # One file with the licence and NOTICE texts of every shipped Go module and npm
+    # package, read from the local module cache and node_modules (no network).
+    parts, missing = [], []
+    for label, moddir in sorted(go_modules.items()):
+        texts = notice_texts(moddir) if moddir.is_dir() else []
+        if not texts:
+            missing.append(label)
+        for n, t in texts:
+            parts.append(f"==== Go module {label} — {n} ====\n{t.rstrip()}\n")
+    for key, pkg in sorted(lock.get("packages", {}).items()):
+        if key and not pkg.get("dev"):
+            texts = notice_texts(ROOT / "console" / key) if (ROOT / "console" / key).is_dir() else []
+            if not texts:
+                missing.append(f"npm {key.removeprefix('node_modules/')}@{pkg.get('version')}")
+            for n, t in texts:
+                parts.append(f"==== npm {key.removeprefix('node_modules/')}@{pkg.get('version')} — {n} ====\n{t.rstrip()}\n")
+    parts.append("==== Alpine Linux packages ====\nThe images are based on the pinned Alpine images listed in release-manifest.json. Their OS packages (for example busybox and apk-tools, GPL-2.0-only) are unmodified Alpine builds; licence texts are in each image under /usr/share/licenses or /lib/apk/db, and corresponding source is published by the Alpine Linux project (aports) for the recorded package versions.\n")
+    notices = out / "THIRD_PARTY_LICENSES.txt"
+    notices.write_text("Aegis Community release " + commit + " — third-party licence and notice texts\n\n" + "\n".join(parts))
+    manifest["notices"] = {"file": notices.name, "sha256": sha256(notices), "go_modules": len(go_modules), "without_licence_text": missing}
     manifest["licences"] = {"by_identifier": dict(licences.most_common()), "components_without_licence_metadata": len(unknown), "examples_without_licence": unknown[:20]}
     copyleft = sorted(k for k in licences if re.search(r"(A?GPL|LGPL|MPL|EPL|CDDL)", k))
     manifest["licences"]["copyleft_identifiers_for_review"] = copyleft
@@ -164,7 +208,7 @@ def main():
         # OpenSSH signatures need no paid service or online CA; verify with
         # ssh-keygen -Y verify -f allowed_signers -I <identity> -n aegis-release -s SHA256SUMS.sig < SHA256SUMS
         subprocess.run(["ssh-keygen", "-Y", "sign", "-f", a.sign_key, "-n", "aegis-release", str(out / "SHA256SUMS")], check=True, capture_output=True)
-    print(json.dumps({"output": str(out.relative_to(ROOT)), "images": [(i["name"], i["components"]) for i in manifest["images"]], "licence_ids": len(licences), "copyleft_for_review": copyleft, "without_licence": len(unknown)}, indent=1))
+    print(json.dumps({"output": str(out.relative_to(ROOT)), "images": [(i["name"], i["components"]) for i in manifest["images"]], "licence_ids": len(licences), "copyleft_for_review": copyleft, "without_licence": len(unknown), "without_licence_text": manifest["notices"]["without_licence_text"]}, indent=1))
 
 
 if __name__ == "__main__":
