@@ -45,11 +45,11 @@ test('consent, budgets, exact retry and cancellation preserve uncertainty',async
  await page.getByRole('checkbox',{name:/I authorize these read-only tools/}).check();await queue.click();
  await expect(page.getByText(/Scan acknowledgement is unconfirmed/)).toBeVisible();
  await expect(queue).toBeEnabled();await queue.click();
- await expect(page.getByText('This job has not acquired execution admission.')).toBeVisible();
+ await expect(page.getByText('No scanner has picked up this job yet.')).toBeVisible();
  expect(keys).toHaveLength(2);expect(keys[0]).toBe(keys[1]);expect(requests[0]).toEqual(requests[1]);
  expect(requests[1]).toMatchObject({tool_ids:['bandit','osv_v2'],tool_timeout_seconds:60,map_digest:repo.map_digest,mode:'repo_offline'});
  await page.getByRole('button',{name:'Cancel selected scan'}).click();
- await expect(page.getByText('Resource cleanup is unconfirmed.')).toBeVisible();
+ await expect(page.getByText('Cleanup is unconfirmed.')).toBeVisible();
  await expect(page.getByRole('heading',{name:'Static scan evidence'})).toHaveCount(0);
 });
 
@@ -66,8 +66,8 @@ test('polling displays terminal tool-error evidence without losing cleanup hold'
  await page.getByRole('button',{name:/View scan/}).click();
  await expect(page.getByRole('heading',{name:'Static scan evidence'})).toBeVisible();
  await expect(page.getByText('Tool error: Yes',{exact:true})).toBeVisible();
- await expect(page.getByText('Admission is held for independent cleanup verification.',{exact:false})).toBeVisible();
- await expect(page.getByText('T0 · Tool claims')).toBeVisible();
+ await expect(page.getByText('The scanner slot stays held until an independent cleanup check runs.',{exact:false})).toBeVisible();
+ await expect(page.getByText('Tool-reported claims')).toBeVisible();
  await expect(page.locator('section').filter({has:page.getByRole('heading',{name:'Owned scan jobs'})}).getByText('tool error',{exact:true})).toBeVisible();
  await page.screenshot({path:test.info().outputPath('triage-phase-scanner-console-desktop.png'),fullPage:true});
  await page.setViewportSize({width:390,height:844});
@@ -118,5 +118,24 @@ test('a mismatched terminal result received by polling is never displayed',async
  await page.getByRole('button',{name:/View scan/}).click();
  await expect(page.getByRole('alert')).toContainText('Result identity or evidence classification does not match this scan');
  await expect(page.getByRole('heading',{name:'Static scan evidence'})).toHaveCount(0);
- await expect(page.locator('.scan-detail')).toContainText('cleanup required');
+ await expect(page.locator('.scan-detail')).toContainText('Held for cleanup check');
+});
+
+test('a release made after the scan finished shows without a manual refresh',async({page})=>{
+ const result=clone(evidence),id=result.document.job_id;
+ const current={...clone(sample),job_id:id,owner_id:result.document.owner_id,request_digest:result.document.request_digest,tool_lock_digest:result.document.tool_lock_digest,input:{...sample.input,repository_id:result.document.repository_id,map_digest:result.document.map_digest},state:result.document.status};
+ let admission='cleanup_required';
+ await shell(page,async route=>{
+  const path=new URL(route.request().url()).pathname;
+  if(path==='/api/v1/scans'){await route.fulfill({json:{items:[current]}});return}
+  if(path.endsWith('/result')){await route.fulfill({json:result});return}
+  await route.fulfill({json:{job:current,execution_admission:admission}});
+ });
+ await page.getByRole('button',{name:/View scan/}).click();
+ await expect(page.locator('.scan-detail')).toContainText('Held for cleanup check');
+ await expect(page.locator('.scan-result')).toContainText('A result can never release the scanner slot on its own.');
+ admission='cleanup_confirmed';
+ await expect(page.locator('.scan-detail')).toContainText('Released',{timeout:25000});
+ await expect(page.locator('.scan-result')).toContainText('It has since been confirmed and the scanner slot released.');
+ await expect(page.locator('.scan-detail')).not.toContainText('Held for cleanup check');
 });

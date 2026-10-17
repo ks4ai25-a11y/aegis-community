@@ -2,7 +2,12 @@
 
 **Self-hosted web defence you can inspect.** Aegis puts a pinned Caddy + Coraza + OWASP CRS gateway in front of your web applications, records every decision with its source, and helps you review, test and approve protection changes. It also reads your code offline to find what to fix. AI is optional, runs locally if you want it, and never controls live traffic.
 
-> **Status: internal alpha.** Not yet for production protection. Every claim below links to its evidence; what is not done is listed in [known limitations](docs/KNOWN_LIMITATIONS.md) and the [release gates](docs/release-gates.json).
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/overview-dark.png">
+  <img alt="The Aegis Community console overview: gateway mode, traffic decisions, open incidents and system health" src="docs/images/overview-light.png">
+</picture>
+
+> **Status: internal alpha.** The licence permits production use; this alpha is not yet recommended for it. Every claim below links to its evidence; what is not done is listed in [known limitations](docs/KNOWN_LIMITATIONS.md) and the [release gates](docs/release-gates.json).
 
 ## Quickstart
 

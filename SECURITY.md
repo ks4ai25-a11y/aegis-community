@@ -1,6 +1,6 @@
 # Security policy
 
-This is an internal demo preview with no supported production release. Do not deploy it for real customer traffic until the published release gates pass. See `docs/KNOWN_LIMITATIONS.md` and `docs/IMPLEMENTATION_STATUS.md`.
+Aegis Community is an internal alpha with no supported production release. Do not deploy it for real customer traffic until the published release gates pass. See `docs/KNOWN_LIMITATIONS.md` and `docs/IMPLEMENTATION_STATUS.md`.
 
 ## Reporting
 

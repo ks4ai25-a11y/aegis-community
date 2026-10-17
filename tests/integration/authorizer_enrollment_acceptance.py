@@ -92,6 +92,7 @@ with tempfile.TemporaryDirectory(prefix='aegis-authorizer-proof-') as temporary:
  denied=run('scanner-reconciler','probe',str(reconciler),ok=False)
  assert reconciler_token.strip() not in denied.stdout+denied.stderr
  run('scanner-reconciler','release','reconciler-a',ok=False)
+ assert b'No scanner slot is held for cleanup' in run('scanner-reconciler','held').stdout
  reconciler_check('compiled_reconciler_conflicts_unavailable_probe_and_release_are_refused')
  run('scanner-reconciler','revoke','reconciler-a');run('scanner-reconciler','revoke','reconciler-a')
  with sqlite3.connect(dbpath) as db:

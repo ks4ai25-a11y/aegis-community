@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 import {test,type Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 
 const out=process.env.AEGIS_PREVIEW_SHOTS||'/tmp/aegis-preview';
 const scheme=(process.env.AEGIS_PREVIEW_SCHEME||'dark') as 'dark'|'light';
 const actual=JSON.parse(readFileSync(new URL('../../docs/evidence/finding-catalogue-acceptance.json',import.meta.url),'utf8')).actual_http.default;
 const d=actual.result.document;
-const digest=(c:string)=>'sha256:'+c.repeat(64);
+// Deterministic but realistic-looking digests for screenshots.
+const digest=(c:string)=>'sha256:'+createHash('sha256').update('aegis-preview-'+c).digest('hex');
 const now=Date.parse('2026-10-17T09:30:00Z');
 const at=(s:number)=>new Date(now-s*1000).toISOString();
 const routes=['/api/accounts/{id}','/catalog','/login','/api/orders/{id}','/products','/admin','/api/users/{id}','/healthz'];
@@ -66,7 +68,7 @@ for(const width of [1440,390]){
    if(name==='Incidents')await page.getByText('SQL injection pattern on /api/{segment}').first().click().catch(()=>{});
    if(name==='Repositories')await page.getByRole('button',{name:'View map'}).click().catch(()=>{});
    await page.waitForTimeout(250);
-   await page.screenshot({path:`${out}/${scheme}-${width}-${name.replace(' ','-').toLowerCase()}.png`,fullPage:true});
+   await page.screenshot({path:`${out}/${scheme}-${width}-${name.replace(' ','-').toLowerCase()}.png`,fullPage:process.env.AEGIS_PREVIEW_FULL!=='0'});
   }
  });
 }

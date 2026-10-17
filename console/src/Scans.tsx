@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
-import {useEffect,useRef,useState} from 'react';
-import {FileSearch,RefreshCw,Square} from 'lucide-react';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
+import {CircleCheck,CircleDashed,Clock,FileSearch,Lock,RefreshCw,Square} from 'lucide-react';
 import {api,key,short} from './client';
 import {Findings} from './Findings';
 import {Empty, About} from './ui';
@@ -9,6 +9,17 @@ import type {RepositoryV1,ScannerJobV1,ScannerJobStatusV1,ScannerSuiteResultV1} 
 
 type Props={action:(work:()=>Promise<unknown>,message?:string)=>Promise<unknown>;busy:boolean;initialJob?:string};
 const tools=[['bandit','Bandit','Python patterns'],['gitleaks','Gitleaks','Secret candidates'],['osv_v2','OSV Scanner','Dependency advisories · offline database required'],['semgrep_ce','Semgrep CE','Static patterns'],['syft','Syft','Software inventory'],['trivy','Trivy','Dependency advisories · offline database required']] as const;
+const toolName=(id:string)=>tools.find(t=>t[0]===id)?.[1]??id;
+// Scanner-slot states, in buyer-facing words. Only "released" says cleanup
+// happened; anything unknown falls back to the unconfirmed wording.
+const slots:Record<string,{label:string;tone:string;icon:ReactNode;text:string}>={
+ cleanup_confirmed:{label:'Released',tone:'ok',icon:<CircleCheck size={17} aria-hidden/>,text:'An independent reconciler confirmed every scanner container for this job is gone. The scanner slot for this job is free.'},
+ cleanup_required:{label:'Held for cleanup check',tone:'warn',icon:<Lock size={17} aria-hidden/>,text:'The scanner slot stays held until an independent cleanup check runs. A finished result does not prove containers or workspaces are gone.'},
+ active:{label:'In use',tone:'',icon:<Clock size={17} aria-hidden/>,text:'A scanner worker is using the slot. Cancelling asks it to stop; cleanup is still checked separately.'},
+ not_claimed:{label:'Not started',tone:'',icon:<CircleDashed size={17} aria-hidden/>,text:'No scanner has picked up this job yet. No scan has run and no result is implied.'},
+};
+const unconfirmed={label:'Cleanup unconfirmed',tone:'warn',icon:<Lock size={17} aria-hidden/>,text:'Cleanup is unconfirmed. Cancelling a scan is not proof that its containers are gone.'};
+const slot=(v:string)=>slots[v]??unconfirmed;
 const terminalResults=new Set(['completed','completed_partial','completed_stale_db','tool_error']);
 const label=(value:string)=>value.replaceAll('_',' ');
 function checkStatus(value:ScannerJobStatusV1,id:string){
@@ -26,6 +37,7 @@ export function Scans({action,busy,initialJob}:Props){
  const repo=repos.find(r=>r.repository_id===repository),duration=Number(seconds);
  const validDuration=Number.isInteger(duration)&&duration>=1&&duration<=120;
  const active=status?.job.state==='queued'||status?.job.state==='running';
+ const held=!active&&!!status&&status.execution_admission!=='cleanup_confirmed'&&status.execution_admission!=='not_claimed';
  async function reload(){
   const [r,j]=await Promise.all([listRepositories(),listScans()]);
   if(!mounted.current)return;
@@ -48,7 +60,9 @@ export function Scans({action,busy,initialJob}:Props){
  }
  useEffect(()=>{if(initialJob)inspect(initialJob)},[initialJob]);
  useEffect(()=>{
-  if(!jobID||!active)return;
+  // Running jobs poll quickly. Held slots poll slowly so a release made by
+  // the reconciler after the job finished shows up without a manual refresh.
+  if(!jobID||(!active&&!held))return;
   let live=true,inFlight=false;
   const generation=inspection.current;
   const update=async()=>{
@@ -63,13 +77,13 @@ export function Scans({action,busy,initialJob}:Props){
     }
     if(!live||!mounted.current||generation!==inspection.current)return;
     setResult(evidence);setStatus(next);setError(resultError);
-    if(!['queued','running'].includes(next.job.state))await reload();
+    if(active&&!['queued','running'].includes(next.job.state))await reload();
    }catch(e){if(live&&mounted.current&&generation===inspection.current)setError((e as Error).message)}
    finally{inFlight=false}
   };
-  const timer=setInterval(update,2000);
+  const timer=setInterval(update,active?2000:20000);
   return()=>{live=false;clearInterval(timer)};
- },[jobID,active]);
+ },[jobID,active,held]);
  async function submit(){
   if(!repo||!selected.length||!validDuration||!ack)return;
   const body={schema_version:'1.0' as const,app_id:'app_demo' as const,repository_id:repo.repository_id,map_digest:repo.map_digest,mode:'repo_offline' as const,tool_ids:[...selected].sort() as Array<typeof tools[number][0]>,tool_timeout_seconds:duration};
@@ -103,38 +117,39 @@ export function Scans({action,busy,initialJob}:Props){
   <section className="card">
    <div className="card-heading"><h2>Owned scan jobs</h2><button className="button light" disabled={busy||loading} onClick={()=>action(async()=>{setError('');await reload();if(jobID)await inspect(jobID)})}><RefreshCw size={15}/>Refresh scans</button></div>
    <About lead="Your latest 100 scans.">Scanner results are what the tools report from reading the code. They are not confirmed vulnerabilities, and an empty result does not mean the code is safe.</About>
-   {!jobs.length&&!loading?<Empty title="No scans yet" text="Queue a scan above; its status and results appear here." icon={<FileSearch size={22}/>}/>:<div className="table-wrap"><table><thead><tr><th>Requested</th><th>Tools</th><th>State</th><th>Inspect</th></tr></thead><tbody>{jobs.map(j=><tr key={j.job_id}><td>{new Date(j.created_at).toLocaleString()}</td><td>{j.input.tool_ids.join(', ')}</td><td><span className="badge">{label(j.state)}</span></td><td><button className="button light" disabled={busy} onClick={()=>inspect(j.job_id)}>View scan <span className="mono">{short(j.job_id)}</span></button></td></tr>)}</tbody></table></div>}
+   {!jobs.length&&!loading?<Empty title="No scans yet" text="Queue a scan above; its status and results appear here." icon={<FileSearch size={22}/>}/>:<div className="table-wrap"><table><thead><tr><th>Requested</th><th>Tools</th><th>State</th><th>Inspect</th></tr></thead><tbody>{jobs.map(j=><tr key={j.job_id}><td>{new Date(j.created_at).toLocaleString()}</td><td>{j.input.tool_ids.map(toolName).join(', ')}</td><td><span className="badge">{label(j.state)}</span></td><td><button className="button light" disabled={busy} onClick={()=>inspect(j.job_id)}>View scan <span className="mono">{short(j.job_id)}</span></button></td></tr>)}</tbody></table></div>}
   </section>
   {reading&&<p role="status">Reading scan evidence…</p>}
   {status&&<section className="card scan-detail">
    <div className="card-heading"><h2>Selected scan</h2><span className="badge">{label(status.job.state)}</span></div>
    <p className="mono">{status.job.job_id}</p>
-   <div className="system-row"><span>Execution admission</span><strong>{label(status.execution_admission)}</strong></div>
+   <div className="system-row"><span>Scanner slot</span><strong role="status">{slot(status.execution_admission).label}</strong></div>
    <div className="system-row"><span>Cancellation requested</span><span>{status.job.cancel_requested?'Yes':'No'}</span></div>
    <div className="system-row"><span>Per-tool limit</span><span>{status.job.input.tool_timeout_seconds} seconds</span></div>
    <div className="system-row"><span>Request expires</span><span>{new Date(status.job.expires_at).toLocaleString()}</span></div>
    <p className="small mono muted">Source map: {status.job.input.map_digest}</p>
-   <p className="small mono muted">Tool lock: {status.job.tool_lock_digest}</p>
+   <p className="small mono muted">Pinned tool versions: {status.job.tool_lock_digest}</p>
    {status.job.error_code&&<p role="status">Recorded diagnostic: {status.job.error_code}</p>}
-   <div className="note"><Square size={17}/><p>{status.execution_admission==='cleanup_confirmed'?'An independent reconciler observed every scanner container absent and released admission. The next scan can run.':status.execution_admission==='cleanup_required'?'Admission is held for independent cleanup verification. A terminal result does not prove that containers or workspaces are gone.':status.execution_admission==='active'?'The worker holds execution admission. Cancellation asks it to stop; resource cleanup must be verified separately.':status.execution_admission==='not_claimed'?'This job has not acquired execution admission. No scanner execution or result is implied.':'Resource cleanup is unconfirmed. Cancellation is not proof of resource absence.'}</p></div>
+   <div className={'note '+slot(status.execution_admission).tone}>{slot(status.execution_admission).icon}<p>{slot(status.execution_admission).text}</p></div>
    {active&&!status.job.cancel_requested&&<button className="button light" disabled={busy} onClick={()=>action(async()=>{await cancelScan(status.job.job_id,{});await reload();await inspect(status.job.job_id)},'Cancellation requested. Cleanup is not confirmed.')}><Square size={15}/>Cancel selected scan</button>}
-   {!result&&!reading&&<p>No immutable scanner result is displayed. {terminalResults.has(status.job.state)?'Refresh to retry the result read.':'Queued, cancelled, failed and timed-out jobs do not become zero-findings results.'}</p>}
+   {!result&&!reading&&<p>No scanner result to show. {terminalResults.has(status.job.state)?'Refresh to retry the result read.':'Queued, cancelled, failed and timed-out jobs do not become zero-findings results.'}</p>}
   </section>}
-  {result&&<><ScanResult result={result}/><Findings key={result.result_digest} result={result}/></>}
+  {result&&<><ScanResult result={result} admission={status?.execution_admission}/><Findings key={result.result_digest} result={result}/></>}
  </>;
 }
 
-export function ScanResult({result}:{result:ScannerSuiteResultV1}){
+export function ScanResult({result,admission}:{result:ScannerSuiteResultV1;admission?:string}){
  const d=result.document;
  return <section className="card scan-result">
-  <div className="card-heading"><h2>Static scan evidence</h2><span className="pill">{d.evidence_tier} · Tool claims</span></div>
+  <div className="card-heading"><h2>Static scan evidence</h2><span className="pill">Tool-reported claims</span></div>
   <div className="system-row"><span>Overall tool status</span><strong>{label(d.status)}</strong></div>
   <div className="system-row"><span>Tool finding claims</span><span>{d.finding_claims}</span></div>
   <div className="scan-flags"><span>Partial coverage: {d.has_partial?'Yes':'No'}</span><span>Stale database: {d.has_stale_database?'Yes':'No'}</span><span>Tool error: {d.has_tool_error?'Yes':'No'}</span></div>
   <About lead="Totals across the tools in this scan.">Counts add up what each tool reported and can include the same issue more than once. They are not proof of exploitability or a verdict that the application is clean.</About>
-  <div className="table-wrap"><table><thead><tr><th>Tool</th><th>Status</th><th>Claims</th><th>Inventory</th><th>Receipt</th></tr></thead><tbody>{d.tools.map(t=><tr key={t.tool_id}><td>{t.tool_id}</td><td>{label(t.status)}</td><td>{t.finding_claims}</td><td>{t.has_sbom?'SBOM present':'None'}</td><td className="mono">{short(t.receipt_digest)}</td></tr>)}</tbody></table></div>
+  <div className="table-wrap"><table><thead><tr><th>Tool</th><th>Status</th><th>Claims</th><th>Inventory</th><th>Receipt</th></tr></thead><tbody>{d.tools.map(t=><tr key={t.tool_id}><td>{toolName(t.tool_id)}</td><td>{label(t.status)}</td><td>{t.finding_claims}</td><td>{t.has_sbom?'SBOM present':'None'}</td><td className="mono">{short(t.receipt_digest)}</td></tr>)}</tbody></table></div>
   <p className="small mono muted">Result identity: {result.result_digest}</p><p className="small mono muted">Snapshot identity: {d.snapshot_digest}</p>
-  <div className="note"><Square size={17}/><p>Cleanup verification is required. This result cannot release execution admission.</p></div>
+  {/* cleanup_required in the document is fixed history, not current state. */}
+  <div className="note"><Lock size={17} aria-hidden/><p>{admission==='cleanup_confirmed'?'When this result was recorded, cleanup still had to be checked. It has since been confirmed and the scanner slot released.':'When this result was recorded, cleanup still had to be checked. A result can never release the scanner slot on its own.'}</p></div>
  </section>;
 }
 

@@ -75,12 +75,18 @@ func reconcileCleanup(configPath, job, generation string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	out, err := reconcile.Release{Controller: client, Observer: observer, Barrier: workspace.WithBoundEmptyRegistry, Registry: c.WorkspaceRegistry, Namespace: c.Namespace}.Run(ctx, job, generation)
-	if errors.Is(err, reconcile.ErrReleasedWithWarning) {
-		fmt.Fprintln(os.Stderr, "warning: release committed; registry barrier closing check failed; inspect the registry before the next scan")
-	} else if err != nil {
+	if err != nil && !errors.Is(err, reconcile.ErrReleasedWithWarning) {
 		return fmt.Errorf("scanner cleanup not released")
 	}
-	return json.NewEncoder(os.Stdout).Encode(out)
+	if e := json.NewEncoder(os.Stdout).Encode(out); e != nil {
+		return e
+	}
+	if err != nil {
+		// Exit 3: released, but inspect the registry before the next scan.
+		fmt.Fprintln(os.Stderr, "warning: release committed; registry barrier closing check failed; inspect the registry before the next scan")
+		os.Exit(3)
+	}
+	return nil
 }
 
 // readPrivate opens without following links and checks the open file: a

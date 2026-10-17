@@ -241,6 +241,8 @@ textarea{font:inherit;min-height:90px}
 .note{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);margin:18px 0;padding:12px 14px;color:var(--muted)}
 .note svg{flex-shrink:0;margin-top:2px;color:var(--accent)}
 .note p{margin:0;color:var(--text-2);font-size:13px}
+.note.ok{background:var(--ok-soft);border-color:transparent}.note.ok svg{color:var(--ok)}
+.note.warn{background:var(--warn-soft);border-color:transparent}.note.warn svg{color:var(--warn)}
 .alert{display:flex;gap:12px;align-items:flex-start;padding:11px 14px;border-radius:var(--radius-sm);font-size:13.5px;line-height:1.55;margin-bottom:18px;border:1px solid transparent}
 .alert.error{background:var(--danger-soft);border-color:color-mix(in srgb,var(--danger) 35%,transparent);color:var(--text)}
 .alert.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 35%,transparent);color:var(--text)}
