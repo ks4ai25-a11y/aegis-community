@@ -26,6 +26,19 @@ def run(args,**kwargs):
  except subprocess.CalledProcessError as e:raise PrivateOperationError(e.returncode,e.cmd,output=e.output,stderr=e.stderr) from None
  except subprocess.TimeoutExpired as e:raise PrivateOperationTimeout(e.cmd,e.timeout,output=e.output,stderr=e.stderr) from None
 
+def flush_bootstrap_writes(execute=None):
+ """Write back the freshly pulled image before the authorized daemon starts.
+
+ The pull leaves hundreds of MB of dirty page cache. The authorized daemon's
+ first create then waits on that writeback inside its metadata syncs, which
+ measured 0.9-5.5 s against the 5 s client bound (2 of 10 hosted runs over).
+ After sync it measured 52-250 ms. No mutation is retried; the bound is kept."""
+ (execute or run)(['sync'])
+
+def public_create_timing(line):
+ match=re.fullmatch(r'[ \t]*real_test.go:[0-9]+: (native create timing: create_ms=[0-9]{1,6} dirty_kb=[0-9]{1,9} writeback_kb=[0-9]{1,9})',line)
+ return match[1] if match else None
+
 def public_create_failure(line):
  # Strict full-line allowlist: arbitrary client output is never sanitized into
  # an apparently safe prefix. Reject appended paths, secrets and ANSI escapes.
@@ -76,7 +89,7 @@ def main():
   tool=next(t for t in json.loads((ROOT/'tools/scanners.lock.json').read_text())['tools'] if t['id']=='bandit')
   if not re.fullmatch(r'ghcr.io/pycqa/bandit/bandit@sha256:[0-9a-f]{64}',tool['image']):raise RuntimeError('Exact Bandit pin required')
   run([engine/'bin/docker','--host','unix://'+str(bootstrap),'pull',tool['image']],env=env)
-  stop(daemon);daemon=None
+  stop(daemon);daemon=None;flush_bootstrap_writes()
   # The unauthenticated listener is removed before restarting the same private
   # data root with TLS verification and the native authorization plugin.
   if bootstrap.exists():raise RuntimeError('Bootstrap engine socket still exists')
@@ -121,6 +134,9 @@ def main():
   # Complete client/daemon diagnostics stay private, including on failure.
   # Go errors and subprocess exceptions can include runtime paths/endpoints.
   (fixture/'client-test.log').write_bytes(result.stdout+b'\n'+result.stderr)
+  for line in result.stdout.decode(errors='replace').splitlines():
+   timing=public_create_timing(line)
+   if timing:print(timing,flush=True)
   if result.returncode or b'--- PASS: TestRealDaemonAuthorizationAndStaticScanner' not in result.stdout:
    for line in result.stdout.decode(errors='replace').splitlines():
     stage=public_create_failure(line)

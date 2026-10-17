@@ -2,7 +2,7 @@
 import copy,hashlib,io,json,pathlib,sys,tarfile,tempfile,unittest
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[2]/'scripts'))
 from ci_engine import prepare,validate_lock,BINARIES
-from engine_authz_acceptance import public_create_failure,run as private_run
+from engine_authz_acceptance import flush_bootstrap_writes,public_create_failure,public_create_timing,run as private_run
 import subprocess
 class CIEngine(unittest.TestCase):
  def test_native_failure_and_timeout_do_not_publish_private_arguments(self):
@@ -26,6 +26,20 @@ class CIEngine(unittest.TestCase):
                '/private/source/real_test.go:123: '+stage,
                'authorization daemon allocation private-canary'):
    with self.subTest(line=line):self.assertIsNone(public_create_failure(line))
+ def test_public_create_timing_is_counts_only(self):
+  stage='native create timing: create_ms=64 dirty_kb=43520 writeback_kb=0'
+  self.assertEqual(public_create_timing('    real_test.go:270: '+stage),stage)
+  for line in ('real_test.go:270: '+stage+' /private/canary','real_test.go:270: native create timing: create_ms=-1 dirty_kb=0 writeback_kb=0','/src/real_test.go:270: '+stage,'real_test.go:270: '+stage.replace('64','aegis-scan-canary')):
+   with self.subTest(line=line):self.assertIsNone(public_create_timing(line))
+ def test_pulled_image_is_written_back_before_the_authorized_daemon(self):
+  calls=[];flush_bootstrap_writes(calls.append);self.assertEqual(calls,[['sync']])
+  root=pathlib.Path(__file__).resolve().parent
+  # Both private engines flush after the bootstrap pull and stop, before the
+  # authorized daemon (and so its first native create) starts.
+  for name,authorized in (('engine_authz_acceptance.py',"'--authorization-plugin='"),('packaged_engine_fixture.py',"'--authorization-plugin='")):
+   with self.subTest(fixture=name):
+    source=(root/name).read_text();pull=source.index("'pull'");flush=source.index('flush_bootstrap_writes()',pull);start=source.index(authorized)
+    self.assertLess(pull,flush);self.assertLess(flush,start)
  def fixture(self,parent,fault=''):
   archive=parent/'archive.tgz';members=[]
   with tarfile.open(archive,'w:gz') as output:

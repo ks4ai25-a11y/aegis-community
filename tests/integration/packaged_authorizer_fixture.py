@@ -131,8 +131,65 @@ class AdmittedAuthorizer(BoundAuthorizer):
   super().__init__(engine,raw,compose,project,nonce,owner,socket_volume,provisioning)
   if os.environ.get('AEGIS_PACKAGED_ADMISSION_TEST')!='1' or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,63}',worker or ''):raise RuntimeError('Explicit selected admission fixture required')
   old_volume=self.volume;old_mount=self.credential_mount
-  self.volume=project+'-authorizer-credential';self.credential_mount='/run/authorizer-credential';self.authorizer='authorizer-'+nonce;self.worker=worker;self.socket_volume=socket_volume;self.admitted=True
+  self.volume=project+'-authorizer-credential';self.credential_mount='/run/authorizer-credential';self.authorizer='authorizer-'+nonce;self.worker=worker;self.socket_volume=socket_volume;self.admitted=True;self.mediation_verified=False
   self.mounts=[m.replace('src='+old_volume+',','src='+self.volume+',').replace('dst='+old_mount+',','dst='+self.credential_mount+',') for m in self.mounts]
+ def engine_state(self):
+  """Root-only digest of the dedicated daemon's own data root, read beside the
+  API rather than through it. Only the digest leaves the private fixture."""
+  # Layer/snapshot trees are listed, not read: a new or removed image changes
+  # their membership and the content/metadata stores, which are hashed.
+  script=('import hashlib,os,sys\nroot=sys.argv[1];h=hashlib.sha256()\n'
+   'for d,dirs,files in os.walk(root):\n'
+   ' dirs.sort();rel=os.path.relpath(d,root)\n'
+   ' if rel=="tmp" or rel.startswith("tmp"+os.sep):dirs[:]=[];continue\n'
+   ' for n in sorted(dirs+files):\n'
+   '  p=os.path.join(d,n);s=os.lstat(p);h.update((os.path.relpath(p,root)+":"+oct(s.st_mode)+":"+(str(s.st_size) if not os.path.isdir(p) else "")+"\\n").encode())\n'
+   '  if os.path.isfile(p) and not os.path.islink(p) and s.st_size<=16777216:\n'
+   '   with open(p,"rb") as f:h.update(hashlib.sha256(f.read()).digest())\n'
+   ' if os.path.basename(d) in ("snapshots","overlay2","diff"):dirs[:]=[]\n'
+   'print(h.hexdigest())\n')
+  value=run(['sudo','/usr/bin/python3','-I','-c',script,self.engine.root/'data'],env=self.engine.env).stdout.decode().strip()
+  if not re.fullmatch(r'[0-9a-f]{64}',value):raise RuntimeError('Private engine state digest unavailable')
+  return value
+ def assert_single_api_listener(self):
+  """The dedicated daemon serves its API only on the one TLS port, and every
+  other Unix listener in the fixture root is unreachable by the scanner UID."""
+  pid=self.engine.pidfile.read_text().strip()
+  if not re.fullmatch(r'[1-9][0-9]*',pid):raise RuntimeError('Private daemon identity unavailable')
+  owned=lambda line:'pid='+pid+',' in line
+  tcp=[l.split()[3] for l in run(['sudo','ss','-Hltnp'],env=self.engine.env).stdout.decode().splitlines() if owned(l)]
+  if tcp!=[self.engine.endpoint.removeprefix('https://')]:raise RuntimeError('Dedicated daemon has an unexpected TCP listener')
+  unix=[l.split()[4] for l in run(['sudo','ss','-Hlxp'],env=self.engine.env).stdout.decode().splitlines() if len(l.split())>4]
+  allowed={str(self.engine.plugin_socket),self.engine.socket}
+  for path in unix:
+   if path.startswith(str(self.engine.root)+'/') and path not in allowed:
+    if subprocess.run(self.engine.as_user(['/usr/bin/test','-e',path]),stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:raise RuntimeError('Private engine listener reachable by the scanner UID')
+  if any(owned(l) and not l.split()[4].startswith(str(self.engine.root)+'/') for l in run(['sudo','ss','-Hlxp'],env=self.engine.env).stdout.decode().splitlines() if len(l.split())>4):raise RuntimeError('Dedicated daemon has a Unix listener outside its private roots')
+ def probe_unadmitted_writes(self):
+  """Send the enumerated unadmitted write surface to the actual admitted
+  engine as broker and observer; require plugin refusal and no state change."""
+  import shutil
+  identity=self.engine.root/'observer-probe';identity.mkdir(mode=0o700)
+  for source,target in [('ca.pem','ca.pem'),('observer.pem','client.pem'),('observer.key','client.key')]:
+   shutil.copyfile(self.engine.tls/source,identity/target);(identity/target).chmod(0o600)
+  run(['sudo','chown','-R','10001:10001',identity])
+  self.assert_single_api_listener()
+  before=self.engine_state();time.sleep(3)
+  if self.engine_state()!=before:raise RuntimeError('Dedicated engine state is not quiescent before the mediation probe')
+  binary=self.engine.programs/'aegis-engine-gate-tests'
+  env={'GITHUB_ACTIONS':'true','AEGIS_PACKAGED_CONTROLLER_GATE_TEST':'1','AEGIS_PACKAGED_ADMISSION_TEST':'1','AEGIS_GATE_PROBE_ENDPOINT':self.engine.endpoint,'AEGIS_GATE_PROBE_TLS':str(self.engine.client_dir),'AEGIS_GATE_PROBE_OBSERVER_TLS':str(identity),'AEGIS_GATE_PROBE_JOURNAL':str(self.journal),'AEGIS_GATE_PROBE_LOCK':str(self.engine.programs/'scanners.lock.json')}
+  args=self.engine.as_user(['/usr/bin/env',*[k+'='+v for k,v in env.items()],binary,'-test.run=^TestRealPackagedEngineRefusesUnadmittedWrites$','-test.v'])
+  try:result=subprocess.run(args,env=self.engine.env,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=120)
+  except subprocess.TimeoutExpired:raise RuntimeError('Private unadmitted-write probe exceeded its bound; fixture retained') from None
+  # Only the Go test's own failure line is public; it names a class and method,
+  # never a runtime path, identity or engine payload.
+  if result.returncode or b'--- PASS: TestRealPackagedEngineRefusesUnadmittedWrites' not in result.stdout:
+   for line in result.stdout.decode(errors='replace').splitlines():
+    if re.fullmatch(r'\s+packaged_mediation_real_test\.go:\d+: [A-Za-z0-9 .()_-]{1,160}',line):print(line.strip(),flush=True)
+   raise RuntimeError('Actual engine unadmitted-write probe failed or did not run')
+  if self.engine_state()!=before:raise RuntimeError('Refused writes changed dedicated engine state')
+  self.assert_single_api_listener()
+  self.mediation_verified=True
  def provision_credentials(self):
   # Copy only the image's owned0700 /run/scanner directory metadata into this
   # fresh labelled credential volume. No observer credential is minted/mounted.
