@@ -1,6 +1,6 @@
 # Operator-launched offline scanner executor
 
-This is an internal preview facility for Linux/macOS operators with a Linux Docker engine reachable through a local Unix socket. TCP and SSH Docker endpoints are refused. The endpoint is resolved once and bound explicitly for the entire run. It is separate from the web controller. The console does not yet schedule durable scanner jobs. Do not use it to execute application code or repository scripts; that feature remains unavailable pending a disposable VM boundary.
+This is an internal preview facility for Linux/macOS operators with a Linux Docker engine reachable through a local Unix socket. TCP and SSH Docker endpoints are refused. The endpoint is resolved once and bound explicitly for the entire run. It is separate from the web controller. The console queues durable scanner jobs for an enrolled worker (see [scanner workers](scanner-workers.md)); this CLI is the operator's direct path. Do not use it to execute application code or repository scripts; that feature remains unavailable pending a disposable VM boundary.
 
 Build the CLI and both Linux guard architectures:
 

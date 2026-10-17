@@ -53,12 +53,12 @@ echo "Aegis Community is running."
 echo "  Console:  http://127.0.0.1:$console_port"
 echo "  Gateway:  http://127.0.0.1:$gateway_port  (demo host: demo.example.test)"
 if [ -n "$token" ]; then
-  echo "  First sign-in: select 'First installation? Enroll owner' and use this one-time token"
+  echo "  First sign-in: the console opens on owner enrollment; use this one-time token"
   echo "  (valid for a short time, printed only to local logs):"
   echo "    $token"
 elif curl -fsS http://127.0.0.1:$console_port/api/v1/health/live 2>/dev/null | grep -q '"bootstrap_required":true'; then
   echo "  The first-owner token has expired. Restart the controller to get a new one:"
-  echo "    docker compose $files restart controller && $0"
+  echo "    ${COMPOSE_PROJECT_NAME:+COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME }AEGIS_CONSOLE_PORT=$console_port AEGIS_GATEWAY_PORT=$gateway_port sh -c 'docker compose $files restart controller && $0'"
 else
   echo "  Sign in with your owner passphrase."
 fi

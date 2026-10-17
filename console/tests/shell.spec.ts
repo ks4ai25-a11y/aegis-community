@@ -154,3 +154,34 @@ test('scans say plainly when no scanner worker is enrolled', async ({page}) => {
   await page.goto('/#/scans');
   await expect(page.getByText('No scanner worker is enrolled, so queued scans will wait')).toBeVisible();
 });
+
+test('palette and drawer keep keyboard focus where it belongs', async ({page}) => {
+  await mock(page);
+  await page.goto('/');
+  const opener = page.getByRole('button', {name: 'Search pages'});
+  await opener.click();
+  const combo = page.getByRole('combobox', {name: 'Search pages'});
+  await expect(combo).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(combo).toHaveAttribute('aria-activedescendant', 'palette-sites');
+  await page.keyboard.press('Tab');
+  await expect(combo).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(opener).toBeFocused();
+  await page.setViewportSize({width: 390, height: 844});
+  const menu = page.getByRole('button', {name: 'Open navigation'});
+  await menu.click();
+  await expect(menu).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByRole('button', {name: 'Overview', exact: true})).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeFocused();
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('the traffic chart counts rule matches, not ordinary Observe traffic', async ({page}) => {
+  const ev = (i: number, extra: any) => ({event: {event_id: 'e' + i, observed_at: new Date(Date.now() - i * 1000).toISOString(), source: 'caddy-access', decision: 'observed', http_status: 200, rule_ids: [], ...extra}});
+  const items = [ev(1, {}), ev(2, {}), ev(3, {}), ev(4, {source: 'coraza', decision: 'unknown', rule_ids: ['942100']}), ev(5, {decision: 'blocked_waf', rule_ids: ['942100'], http_status: 403}), ev(6, {canary: true})];
+  await mock(page, path => path === '/sites/site_demo/events' ? {items} : undefined);
+  await page.goto('/');
+  await expect(page.getByRole('img', {name: 'Passed 3, WAF rule matches 1, blocked 1, other 0'})).toBeVisible();
+});
