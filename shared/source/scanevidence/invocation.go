@@ -34,3 +34,32 @@ func BuildInvocation(tool string) (Invocation, error) {
 	}
 	return i, nil
 }
+
+// DatabaseContainerPath is where an offline advisory database is mounted read-only.
+func DatabaseContainerPath(tool string) (string, error) {
+	switch tool {
+	case "osv_v2":
+		return "/db/osv", nil
+	case "trivy":
+		return "/db/trivy", nil
+	}
+	return "", fmt.Errorf("scanner uses no advisory database")
+}
+
+// BuildDatabaseInvocation is the fixed invocation when an advisory database is
+// mounted. Trivy needs its cache directory in argv; OSV-Scanner reads it from
+// OSV_SCANNER_LOCAL_DB_CACHE_DIRECTORY, so its argv is unchanged.
+func BuildDatabaseInvocation(tool string) (Invocation, error) {
+	if _, e := DatabaseContainerPath(tool); e != nil {
+		return Invocation{}, e
+	}
+	i, e := BuildInvocation(tool)
+	if e != nil {
+		return i, e
+	}
+	if tool == "trivy" {
+		last := len(i.Args) - 1
+		i.Args = append(append(append([]string{}, i.Args[:last]...), "--cache-dir", "/db/trivy"), i.Args[last])
+	}
+	return i, nil
+}

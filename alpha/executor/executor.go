@@ -4,6 +4,8 @@
 package executor
 
 import (
+	"aegis.local/alpha/engineprofile"
+	"aegis.local/alpha/scannerdb"
 	"aegis.local/alpha/scanners"
 	"aegis.local/source"
 	"aegis.local/source/scanevidence"
@@ -43,6 +45,55 @@ type Config struct {
 	DurationSeconds           int
 	BeforeStart               func(string, string) error
 	BeforeLaunch              func(Execution, string, string) error
+	// DatabaseRoot is the operator's offline advisory database directory (ADR 068).
+	// Empty means AEGIS_SCANNER_DB_ROOT; when neither is set, OSV-Scanner and Trivy
+	// run without a database exactly as before.
+	DatabaseRoot   string
+	DatabaseMaxAge time.Duration
+}
+
+// database verifies the operator-provisioned database for an advisory tool and
+// returns what the receipt records and how the container mounts it. The root
+// comes only from operator configuration, never from a job or caller.
+func (c Config) database(toolID string, now time.Time) (*scanevidence.DatabaseUse, *engineprofile.Database, error) {
+	target, e := scanners.DatabaseContainerPath(toolID)
+	root := c.DatabaseRoot
+	if root == "" {
+		root = os.Getenv("AEGIS_SCANNER_DB_ROOT")
+	}
+	if e != nil || root == "" {
+		return nil, nil, nil
+	}
+	if !filepath.IsAbs(root) || filepath.Clean(root) != root || strings.ContainsAny(root, ":,") {
+		return nil, nil, fmt.Errorf("advisory database root must be a clean absolute path")
+	}
+	maxAge := c.DatabaseMaxAge
+	if maxAge == 0 {
+		maxAge = 7 * 24 * time.Hour
+		if h, e := strconv.Atoi(os.Getenv("AEGIS_SCANNER_DB_MAX_AGE_HOURS")); e == nil && h > 0 && h <= 24*365 {
+			maxAge = time.Duration(h) * time.Hour
+		}
+	}
+	manifest, e := scannerdb.ReadManifest(root)
+	if e != nil {
+		return nil, nil, fmt.Errorf("advisory database manifest unavailable")
+	}
+	statuses, e := scannerdb.Verify(root, maxAge, now)
+	if e != nil {
+		return nil, nil, fmt.Errorf("advisory database failed verification")
+	}
+	for _, st := range statuses {
+		if st.Tool != toolID {
+			continue
+		}
+		m, e := scannerdb.MountFor(root, toolID)
+		if e != nil || m.ContainerPath != target || strings.ContainsAny(m.HostPath, ":,") {
+			return nil, nil, fmt.Errorf("advisory database mount invalid")
+		}
+		return &scanevidence.DatabaseUse{ManifestDigest: manifest.Digest, Digest: st.Digest, BuiltAt: st.BuiltAt, AgeHours: int(st.AgeHours), Stale: st.Stale, ContainerPath: target},
+			&engineprofile.Database{Source: m.HostPath, Target: target, Env: m.Env}, nil
+	}
+	return nil, nil, fmt.Errorf("advisory database for %s not provisioned", toolID)
 }
 type Execution = scanevidence.Execution
 
@@ -114,6 +165,15 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 	if e != nil {
 		return out, e
 	}
+	dbUse, dbMount, e := c.database(toolID, time.Now())
+	if e != nil {
+		return out, e
+	}
+	if dbUse != nil {
+		if invocation, e = scanners.BuildDatabaseInvocation(toolID); e != nil {
+			return out, e
+		}
+	}
 	if !c.Deadline.IsZero() && (!c.Deadline.After(time.Now()) || c.Deadline.After(time.Now().Add(15*time.Minute))) {
 		return out, fmt.Errorf("scanner deadline invalid or expired")
 	}
@@ -142,6 +202,10 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 		return out, e
 	}
 	out = Execution{Parser: scanners.ParserVersion, Invocation: invocation, Profile: "repo_offline-network-none-v1", Schema: "1.0", Tool: tool.ID, Version: tool.Version, Image: strings.Split(tool.Image, "@")[1], LockDigest: lockDigest, Snapshot: snapshot.Manifest, Started: time.Now().UTC().Format(time.RFC3339Nano), Exit: -1, Status: "tool_error", Cleanup: "unconfirmed", Result: scanners.Result{Status: "tool_error", Findings: []scanners.Finding{}, Diagnostics: []scanners.Diagnostic{}}, Limitations: []string{"Read-only tool-reported static claims only; no exploit or remediation proof.", "Protected and generated files excluded by inventory; no complete coverage claim.", "Only operator-launched network-none scanner containers; no arbitrary repository code execution.", "Publisher signatures, licence review, offline advisory database provisioning and full scanner coverage remain pending."}}
+	if dbUse != nil {
+		out.Database = dbUse
+		out.Limitations[3] = "Publisher signatures, licence review and full scanner coverage remain pending; advisories are limited to the mounted offline database."
+	}
 	var rules *source.Snapshot
 	if toolID == "semgrep_ce" {
 		r, e := os.OpenRoot(c.RulesPath)
@@ -295,6 +359,12 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 	if rules != nil {
 		args = append(args, "--mount", "type=bind,src="+rules.Path+",dst=/rules,readonly")
 	}
+	if dbMount != nil {
+		args = append(args, "--mount", "type=bind,src="+dbMount.Source+",dst="+dbMount.Target+",readonly")
+		for _, v := range dbMount.Env {
+			args = append(args, "-e", v)
+		}
+	}
 	args = append(args, "--mount", "type=bind,src="+guardRoot+",dst=/aegis,readonly", tool.Image, tool.ID, strconv.Itoa(seconds), deadline.UTC().Format(time.RFC3339Nano))
 	runDeadline := time.Now().Add(time.Duration(seconds+5) * time.Second)
 	if deadline.Before(runDeadline) {
@@ -310,7 +380,7 @@ func (c Config) Run(ctx context.Context, toolID, app, repository string, snapsho
 		if rules != nil {
 			rulesPath = rules.Path
 		}
-		options := sdkCreateOptions(tool, name, snapshot.Path, rulesPath, guardRoot, seconds, deadline)
+		options := sdkCreateOptions(tool, name, snapshot.Path, rulesPath, guardRoot, seconds, deadline, dbMount)
 		result := c.runEngineSDK(runCtx, endpoint, engineDigest, name, options, stdout, stderr, cancel)
 		runErr = result.err
 		out.Duration = result.duration

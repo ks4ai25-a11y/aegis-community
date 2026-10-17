@@ -81,4 +81,16 @@ type Execution struct {
 	Container     string          `json:"container_id"`
 	Result        Result          `json:"result"`
 	Limitations   []string        `json:"limitations"`
+	Database      *DatabaseUse    `json:"advisory_database,omitempty"`
+}
+
+// DatabaseUse records the operator-provisioned offline advisory database
+// (ADR 068) that was verified on the worker and mounted read-only for this run.
+type DatabaseUse struct {
+	ManifestDigest string `json:"manifest_digest"`
+	Digest         string `json:"database_digest"`
+	BuiltAt        string `json:"upstream_built_at"`
+	AgeHours       int    `json:"age_hours"`
+	Stale          bool   `json:"stale"`
+	ContainerPath  string `json:"container_path"`
 }

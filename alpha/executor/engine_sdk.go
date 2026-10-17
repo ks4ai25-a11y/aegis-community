@@ -285,8 +285,8 @@ type sdkOutcome struct {
 	err      error
 }
 
-func sdkCreateOptions(tool Tool, nameValue, sourceDir, rulesDir, guardDir string, seconds int, deadline time.Time) client.ContainerCreateOptions {
-	p := engineprofile.Create(tool.ID, tool.Image, nameValue, sourceDir, rulesDir, guardDir, seconds, deadline, os.Geteuid(), os.Getegid(), os.Getpid())
+func sdkCreateOptions(tool Tool, nameValue, sourceDir, rulesDir, guardDir string, seconds int, deadline time.Time, db *engineprofile.Database) client.ContainerCreateOptions {
+	p := engineprofile.CreateWithDatabase(tool.ID, tool.Image, nameValue, sourceDir, rulesDir, guardDir, seconds, deadline, os.Geteuid(), os.Getegid(), os.Getpid(), db)
 	return client.ContainerCreateOptions{Name: nameValue, Config: p.Config, HostConfig: p.HostConfig}
 }
 func (c Config) runEngineSDK(runCtx context.Context, endpoint, engine, nameValue string, options client.ContainerCreateOptions, stdout, stderr io.Writer, cancelRun context.CancelFunc) (out sdkOutcome) {

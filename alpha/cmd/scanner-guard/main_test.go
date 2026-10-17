@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 )
@@ -65,5 +66,16 @@ func TestContainerStreamBudgetCancelsBeforeForwardingOverflow(t *testing.T) {
 	}
 	if ctx.Err() == nil || output.Len() != 0 {
 		t.Fatal("container stream budget did not stop forwarding")
+	}
+}
+
+func TestGuardUsesDatabaseInvocationOnlyWhenMounted(t *testing.T) {
+	_, plain, _ := programWith("trivy", func(string) bool { return false })
+	_, withDB, _ := programWith("trivy", func(string) bool { return true })
+	if strings.Contains(strings.Join(plain, " "), "/db/trivy") || !strings.Contains(strings.Join(withDB, " "), "--cache-dir /db/trivy") {
+		t.Fatal(plain, withDB)
+	}
+	if _, args, e := programWith("bandit", func(string) bool { return true }); e != nil || strings.Contains(strings.Join(args, " "), "/db") {
+		t.Fatal("non-advisory tool changed by a database mount", args, e)
 	}
 }

@@ -20,8 +20,24 @@ import (
 	"time"
 )
 
-func program(tool string) (string, []string, error) {
+func program(tool string) (string, []string, error) { return programWith(tool, databaseMounted) }
+
+// databaseMounted reports whether the executor mounted an advisory database
+// directory for this tool; the guard never takes a path from its arguments.
+func databaseMounted(tool string) bool {
+	path, e := scanners.DatabaseContainerPath(tool)
+	if e != nil {
+		return false
+	}
+	info, e := os.Stat(path)
+	return e == nil && info.IsDir()
+}
+
+func programWith(tool string, mounted func(string) bool) (string, []string, error) {
 	invocation, e := scanners.BuildInvocation(tool)
+	if _, advisory := scanners.DatabaseContainerPath(tool); advisory == nil && mounted(tool) {
+		invocation, e = scanners.BuildDatabaseInvocation(tool)
+	}
 	if e != nil {
 		return "", nil, e
 	}

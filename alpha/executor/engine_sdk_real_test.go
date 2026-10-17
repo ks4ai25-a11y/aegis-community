@@ -65,7 +65,7 @@ func TestRealSDKGuardDeadlineExitIsCollectedBeforeAutoRemoval(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	options := sdkCreateOptions(tool, name, dir, "", dir, 120, time.Now().Add(-time.Second))
+	options := sdkCreateOptions(tool, name, dir, "", dir, 120, time.Now().Add(-time.Second), nil)
 	out := cfg.runEngineSDK(ctx, endpoint, engine, name, options, io.Discard, io.Discard, cancel)
 	if out.err != nil || !out.cleanup || out.exit != 124 {
 		t.Fatalf("real SDK guard lifecycle: exit=%d cleanup=%t error=%v", out.exit, out.cleanup, out.err)
@@ -223,7 +223,7 @@ func TestRealSDKCreatedSandboxMatchesOriginalEngineObserver(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	created, e := sdk.ContainerCreate(createCtx, sdkCreateOptions(tool, name, metadata.Mounts[0].Source, "", guardDir, 120, deadline))
+	created, e := sdk.ContainerCreate(createCtx, sdkCreateOptions(tool, name, metadata.Mounts[0].Source, "", guardDir, 120, deadline, nil))
 	if e != nil || !observedCreate(capture, created.ID) {
 		t.Fatal("owned SDK profile fixture creation failed")
 	}

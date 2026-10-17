@@ -41,6 +41,9 @@ type Expected struct {
 	Timeout                                           int
 	Map                                               source.Map
 	NotBefore, NotAfter                               time.Time
+	// Database is the approved advisory database digest for this job. When empty,
+	// no database freshness is approved and dependency results stay completed_stale_db.
+	Database string
 }
 
 func bounded(s string, n int, required bool) bool {
@@ -88,6 +91,20 @@ func Normalize(in Execution, x Expected) (Execution, error) {
 		return bad, ErrReceipt
 	}
 	invocation, e := BuildInvocation(x.Tool)
+	if r.Database != nil {
+		invocation, e = BuildDatabaseInvocation(x.Tool)
+		mountPath, pe := DatabaseContainerPath(x.Tool)
+		d := r.Database
+		if e != nil || pe != nil || d.ContainerPath != mountPath || !hash.MatchString(d.Digest) || !hash.MatchString(d.ManifestDigest) || d.AgeHours < 0 || d.AgeHours > 1<<20 {
+			return bad, ErrReceipt
+		}
+		if _, te := time.Parse(time.RFC3339, d.BuiltAt); te != nil {
+			return bad, ErrReceipt
+		}
+		if x.Database != "" && d.Digest != x.Database {
+			return bad, ErrReceipt
+		}
+	}
 	if e != nil || r.Schema != "1.0" || r.Parser != ParserVersion || r.Tool != x.Tool || r.Version != x.Version || r.Image != x.Image || r.LockDigest != x.LockDigest || r.Profile != "repo_offline-network-none-v1" || !reflect.DeepEqual(r.Invocation, invocation) {
 		return bad, ErrReceipt
 	}
@@ -255,12 +272,17 @@ func Normalize(in Execution, x Expected) (Execution, error) {
 	if r.Status == "completed_stale_db" && r.Tool != "osv_v2" && r.Tool != "trivy" {
 		return bad, ErrReceipt
 	}
-	if (r.Tool == "osv_v2" || r.Tool == "trivy") && r.Status == "completed" {
+	// A dependency result is current only when an approved, fresh database was
+	// mounted; everything else keeps completed_stale_db.
+	fresh := r.Database != nil && !r.Database.Stale && x.Database != "" && r.Database.Digest == x.Database
+	if (r.Tool == "osv_v2" || r.Tool == "trivy") && r.Status == "completed" && !fresh {
 		r.Status = "completed_stale_db"
 		r.Result.Status = r.Status
 	}
 	r.Limitations = []string{"Unverified static tool claims; no exploitability, remediation or complete coverage proof.", "Container, guard, rule and cleanup fields are worker claims; independent cleanup confirmation is required."}
-	if r.Tool == "osv_v2" || r.Tool == "trivy" {
+	if (r.Tool == "osv_v2" || r.Tool == "trivy") && fresh {
+		r.Limitations = append(r.Limitations, "Coverage is limited to advisories in the approved offline database built at "+r.Database.BuiltAt+"; database integrity was verified by the worker before launch.")
+	} else if r.Tool == "osv_v2" || r.Tool == "trivy" {
 		r.Limitations = append(r.Limitations, "Advisory database freshness is unproven; no current-vulnerability coverage claim.")
 	}
 	return r, nil

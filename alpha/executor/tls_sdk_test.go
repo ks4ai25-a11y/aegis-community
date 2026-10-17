@@ -138,7 +138,7 @@ func TestTLSIdentityChangeBeforeCreateDoesNotAllocateAttempt(t *testing.T) {
 	cfg := Config{EngineJournalRoot: filepath.Join(filepath.Dir(f.Directory), "journal"), engineTLSIdentity: source.Hash([]byte("other-identity"))}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	options := sdkCreateOptions(metadataTool(), "aegis-scan-"+strings.Repeat("a", 32), filepath.Dir(f.Directory), "", filepath.Dir(f.Directory), 30, time.Now().Add(time.Minute))
+	options := sdkCreateOptions(metadataTool(), "aegis-scan-"+strings.Repeat("a", 32), filepath.Dir(f.Directory), "", filepath.Dir(f.Directory), 30, time.Now().Add(time.Minute), nil)
 	out := cfg.runEngineSDK(ctx, endpoint, p.Engine, options.Name, options, io.Discard, io.Discard, cancel)
 	if out.err == nil || out.cleanup || count.Load() != 2 {
 		t.Fatal("changed TLS scope reached engine mutation")

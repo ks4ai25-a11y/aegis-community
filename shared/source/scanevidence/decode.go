@@ -49,6 +49,8 @@ func canonicalKeys(b []byte, t reflect.Type) error {
 				return ErrReceipt
 			}
 		}
+	case reflect.Pointer:
+		return canonicalKeys(b, t.Elem())
 	case reflect.Slice:
 		var items []json.RawMessage
 		if json.Unmarshal(b, &items) != nil || items == nil {
