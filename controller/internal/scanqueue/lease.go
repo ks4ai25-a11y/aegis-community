@@ -106,6 +106,9 @@ func (q *Queue) Claim(worker, owner string) (Lease, error) {
 	if _, e = tx.Exec("UPDATE scanner_jobs SET state='running' WHERE id=? AND state='queued'", j.ID); e != nil {
 		return Lease{}, e
 	}
+	if e = q.createGenerationTx(tx, j, worker, domain.Hash([]byte(token)), deadline); e != nil {
+		return Lease{}, e
+	}
 	if e = store.AuditTx(tx, j.Owner, "scanner.claim", j.ID, "running", map[string]any{"worker_id": worker, "request_digest": j.RequestDigest, "map_digest": j.Input.MapDigest, "tool_lock_digest": j.LockDigest, "deadline_unix": deadline, "launch_protocol": "1.0", "workspace_protocol": "1.0", "guard_set_digest": q.Guards.Digest}); e != nil {
 		return Lease{}, e
 	}
@@ -247,6 +250,14 @@ func (q *Queue) live(tx *sql.Tx, l Lease) (Job, error) {
 	}
 	if e = q.matchBrokerTx(tx, l.Worker, j.Owner); e != nil {
 		return Job{}, e
+	}
+	var generationState string
+	ge := tx.QueryRow("SELECT state FROM scanner_allocation_generations WHERE job=?", id).Scan(&generationState)
+	if ge != nil && ge != sql.ErrNoRows {
+		return Job{}, ge
+	}
+	if ge == nil && generationState != "open" {
+		return Job{}, ErrLease
 	}
 	if j.State != "running" || j.CancelRequested || j.RequestDigest != l.Job.RequestDigest {
 		return Job{}, ErrLease

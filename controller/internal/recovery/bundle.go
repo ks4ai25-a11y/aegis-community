@@ -98,12 +98,18 @@ func databaseContext(ctx context.Context, path string) (domain.Policy, int, erro
 		return domain.Policy{}, 0, ErrRecovery
 	}
 	var version int
-	if s.DB.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version) != nil || (version < 13 || version > 15) {
+	if s.DB.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version) != nil || (version < 13 || version > 16) {
 		return domain.Policy{}, 0, ErrRecovery
 	}
 	var authorizers int
 	if s.DB.QueryRowContext(ctx, "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='scanner_authorizers'").Scan(&authorizers) != nil || version == 13 && authorizers != 0 || version >= 14 && authorizers != 1 {
 		return domain.Policy{}, 0, ErrRecovery
+	}
+	for _, name := range []string{"scanner_mutation_bindings", "scanner_allocation_generations", "scanner_mutation_intents"} {
+		var tables int
+		if s.DB.QueryRowContext(ctx, "SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?", name).Scan(&tables) != nil || (version >= 16 && tables != 1) || (version < 16 && tables != 0) {
+			return domain.Policy{}, 0, ErrRecovery
+		}
 	}
 	var integrity string
 	if s.DB.QueryRowContext(ctx, "PRAGMA integrity_check").Scan(&integrity) != nil || integrity != "ok" {
@@ -216,7 +222,7 @@ func verified(ctx context.Context, c Config, path string) (*private, Envelope, e
 		return nil, empty, ErrRecovery
 	}
 	d := m.Document
-	if d.Schema != "1.0" || d.Product != domain.Version || d.Profile != profile || (d.SchemaVersion < 13 || d.SchemaVersion > 15) || !digestPattern.MatchString(d.Policy) {
+	if d.Schema != "1.0" || d.Product != domain.Version || d.Profile != profile || (d.SchemaVersion < 13 || d.SchemaVersion > 16) || !digestPattern.MatchString(d.Policy) {
 		return nil, empty, ErrRecovery
 	}
 	stamp, e := time.Parse(time.RFC3339Nano, d.Created)

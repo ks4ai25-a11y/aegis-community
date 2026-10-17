@@ -50,6 +50,15 @@ func (q *Queue) LiveLaunch(ctx context.Context, v scanevidence.VerifierIdentity,
 	if len(ids) != 1 {
 		return scanevidence.LiveLaunchRecord{}, ErrConflict
 	}
+	// Generation-enabled dispatches require durable admission. The old
+	// observation-only serving mode must never stand in for that protocol.
+	var generations int
+	if e = tx.QueryRowContext(ctx, "SELECT count(*) FROM scanner_allocation_generations WHERE job=?", ids[0]).Scan(&generations); e != nil {
+		return scanevidence.LiveLaunchRecord{}, e
+	}
+	if generations != 0 {
+		return scanevidence.LiveLaunchRecord{}, ErrLease
+	}
 	record, e := q.cleanupContextTx(ctx, tx, v, ids[0])
 	if e != nil {
 		return scanevidence.LiveLaunchRecord{}, e

@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"testing"
@@ -346,6 +347,7 @@ func TestVersionThirteenBundleRestoresWithoutRequiringAuthorizerTable(t *testing
 	c, s, parent := fixture(t)
 	seedAuthorities(t, s)
 	// Construct the exact previously supported prefix in a disposable fixture.
+	removeAllocationSchema(t, s)
 	if _, e := s.DB.Exec("DROP TABLE scanner_authorizers"); e != nil {
 		t.Fatal(e)
 	}
@@ -403,6 +405,91 @@ func TestRecoveryRefusesAuthorizerTableOutsideDeclaredMigration(t *testing.T) {
 			}
 			if _, e := Create(context.Background(), c, filepath.Join(parent, "refused-bundle")); e == nil {
 				t.Fatal("mismatched authorizer schema accepted")
+			}
+		})
+	}
+}
+
+// Remove migration016 only in a disposable legacy fixture. Keep the actual
+// prefix and its original checksums, rather than teaching restore to upgrade.
+func removeAllocationSchema(t *testing.T, s *store.Store) {
+	t.Helper()
+	for _, statement := range []string{
+		"DROP TRIGGER scanner_generation_job_closed", "DROP TRIGGER scanner_generation_dispatch_closed",
+		"DROP TRIGGER scanner_generation_authorizer_revoked", "DROP TRIGGER scanner_generation_worker_revoked", "DROP TRIGGER scanner_generation_dispatch_held",
+		"DROP TABLE scanner_mutation_intents", "DROP TABLE scanner_allocation_generations", "DROP TABLE scanner_mutation_bindings",
+		"DELETE FROM migrations WHERE version=16",
+	} {
+		if _, e := s.DB.Exec(statement); e != nil {
+			t.Fatal(e)
+		}
+	}
+}
+
+func TestVersionSixteenRestoreClosesGenerationWithoutSettlingObligations(t *testing.T) {
+	c, s, parent := fixture(t)
+	seedAuthorities(t, s)
+	for _, statement := range []string{
+		"INSERT INTO scanner_mutation_bindings VALUES('binding','owner','authorizer','engine','registry','policy','namespace','broker','2026-10-15T00:00:00Z','active')",
+		"INSERT INTO scanner_allocation_generations(job,id,owner,worker,binding_digest,lease_hash,deadline,guard_digest,created_at,state) VALUES('scan','generation','owner','worker','binding','old-capability-hash',2147483647,'guard','2026-10-15T00:00:00Z','open')",
+		"INSERT INTO scanner_mutation_intents(id,generation,job,tool,operation,launch_digest,workspace_digest,container,descriptor_digest,target_engine_id,created_at,state) VALUES('intent','generation','scan','bandit','create','launch','workspace','container','descriptor','','2026-10-15T00:00:00Z','pending')",
+	} {
+		if _, e := s.DB.Exec(statement); e != nil {
+			t.Fatal(e)
+		}
+	}
+	path, created := makeBundle(t, c, parent)
+	destination := filepath.Join(parent, "restored-ledger")
+	if _, e := Restore(context.Background(), c, path, destination, created.Bundle); e != nil {
+		t.Fatal(e)
+	}
+	restored, e := store.OpenSnapshotSource(context.Background(), filepath.Join(destination, "data/aegis.db"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer restored.DB.Close()
+	var state, descriptor, response string
+	if e = restored.DB.QueryRow("SELECT state FROM scanner_allocation_generations WHERE id='generation'").Scan(&state); e != nil || state != "closed" {
+		t.Fatal("restore did not close admission", e)
+	}
+	if e = restored.DB.QueryRow("SELECT state FROM scanner_mutation_bindings WHERE digest='binding'").Scan(&state); e != nil || state != "revoked" {
+		t.Fatal("restore kept selected authority", e)
+	}
+	if e = restored.DB.QueryRow("SELECT state,descriptor_digest,response_digest FROM scanner_mutation_intents WHERE id='intent'").Scan(&state, &descriptor, &response); e != nil || state != "pending" || descriptor != "descriptor" || response != "" {
+		t.Fatal("restore changed unresolved mutation", e)
+	}
+	if e = restored.DB.QueryRow("SELECT state FROM scanner_dispatch WHERE job='scan'").Scan(&state); e != nil || state != "cleanup_required" {
+		t.Fatal("restore freed dispatch", e)
+	}
+}
+
+func TestLegacyFourteenAndFifteenRestoreWithoutAllocationTables(t *testing.T) {
+	for _, version := range []int{14, 15} {
+		t.Run(strconv.Itoa(version), func(t *testing.T) {
+			c, s, parent := fixture(t)
+			seedAuthorities(t, s)
+			removeAllocationSchema(t, s)
+			if version == 14 {
+				if _, e := s.DB.Exec("DROP TABLE connector_credentials; DELETE FROM migrations WHERE version=15"); e != nil {
+					t.Fatal(e)
+				}
+			}
+			path, created := makeBundle(t, c, parent)
+			destination := filepath.Join(parent, "restored-prefix")
+			if _, e := Restore(context.Background(), c, path, destination, created.Bundle); e != nil {
+				t.Fatal(e)
+			}
+			restored, e := store.OpenSnapshotSource(context.Background(), filepath.Join(destination, "data/aegis.db"))
+			if e != nil {
+				t.Fatal(e)
+			}
+			defer restored.DB.Close()
+			var actual, n int
+			if e = restored.DB.QueryRow("SELECT max(version) FROM migrations").Scan(&actual); e != nil || actual != version {
+				t.Fatal("restore upgraded prefix", e)
+			}
+			if e = restored.DB.QueryRow("SELECT count(*) FROM scanner_authorizers WHERE state='active'").Scan(&n); e != nil || n != 0 {
+				t.Fatal("legacy authorizer survived", e)
 			}
 		})
 	}

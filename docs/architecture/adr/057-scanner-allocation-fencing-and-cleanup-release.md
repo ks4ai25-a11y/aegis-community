@@ -1,6 +1,6 @@
 # ADR 057: Scanner mutation admission and confirmed cleanup release
 
-Status: partially implemented. Migration 014 and separate authorizer enrollment/private identity probing are implemented. Durable mutation admission, independent reconciliation and release remain unfinished. Scanner admission remains held after a dispatched job.
+Status: partially implemented. Migrations 014/016 implement authorizer enrollment and the controller mutation ledger. Native serving integration, independent reconciliation and release remain unfinished. Scanner admission remains held after a dispatched job.
 
 ## Problem
 
@@ -50,3 +50,13 @@ Do not expose a generic reset, SQL delete, namespace rotation or caller-provided
 - Test acknowledgement replay, process crashes, restore/revocation, migration checksum preservation and failed local journal writes. No mutation retry or fallback engine listener is introduced.
 
 Public acceptance output contains test names and statuses only. Credentials, runtime allocation records, journals, source paths and TLS material remain private. Full v4 and public beta remain NO-GO until their other gates also pass.
+
+### Migration 016 implementation increment
+
+The controller ledger now retains selected authorizer/namespace bindings, random per-dispatch generations, immutable create/start/remove intents and successful native-response confirmations. Selection is local-operator-only, requires the existing engine/journal/broker binding and live authorizer, refuses adopting any outstanding dispatch, and cannot replace active selection. A revoked selection cannot silently downgrade a later claim to the legacy path. Legacy claims receive no generation or release authority.
+
+Admission rechecks original dispatch identity, deadline, worker/broker, registered launch/workspace, guard and selected authorizer scope in the transaction that persists the intent. Starts require a confirmed create identity; tracked removal can be admitted after job closure, with no unresolved earlier mutations. Exact admission replay returns the original record with an explicit replay flag and must never cause another daemon operation. Completion records only successful native responses (create 201, start/remove 204); unsuccessful, missing or uncertain responses remain pending. Response replay is immutable. Completion does not prove independent absence.
+
+Database triggers close generations on cancellation, terminal job/dispatch transitions, worker/authorizer revocation and selected-binding revocation; obligations remain retained. Worker workspace/launch registration refuses a closed generation, and the old observer-only live-launch serving path refuses generation-enabled jobs. The dispatch remains held even after all responses are recorded. Migration 016 restore revokes selected bindings and closes generations while preserving every intent and cleanup hold; supported older schema prefixes remain unchanged during offline restore.
+
+These backend operations are not yet wired to a shipped native serving mode or operator selection command. The private authorizer transport still exposes identity only. Independent reconciliation, release, crash repair and two actual sequential packaged scans remain required before repeated-scan support is claimed.

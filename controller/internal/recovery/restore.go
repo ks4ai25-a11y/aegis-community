@@ -161,7 +161,7 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 	if e = tx.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version); e != nil {
 		return ErrRecovery
 	}
-	if version < 13 || version > 15 {
+	if version < 13 || version > 16 {
 		return ErrRecovery
 	}
 	if version >= 14 {
@@ -172,6 +172,16 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 	// Version 15 adds connector credentials; restored assistants must re-pair.
 	if version >= 15 {
 		if _, e = tx.ExecContext(ctx, "UPDATE connector_credentials SET state='revoked' WHERE state='active'"); e != nil {
+			return ErrRecovery
+		}
+	}
+	// Revocation closes open generations through migration-016 triggers. Keep
+	// every pending mutation and original scope; restore is never cleanup.
+	if version >= 16 {
+		if _, e = tx.ExecContext(ctx, "UPDATE scanner_mutation_bindings SET state='revoked' WHERE state='active'"); e != nil {
+			return ErrRecovery
+		}
+		if _, e = tx.ExecContext(ctx, "UPDATE scanner_allocation_generations SET state='closed',closed_at=? WHERE state='open'", domain.Now()); e != nil {
 			return ErrRecovery
 		}
 	}
