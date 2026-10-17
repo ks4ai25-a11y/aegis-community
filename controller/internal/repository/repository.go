@@ -313,12 +313,23 @@ var likelySecret = regexp.MustCompile(`(?i)(` +
 	`xox[abposr]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9_-]{20,}|[sr]k_(live|test)_[A-Za-z0-9]{10,}|` +
 	`eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.|` + // JWT
 	`[a-z][a-z0-9+.-]*://[^/\s:@'"]+:[^@\s'"]{3,}@|` + // URL with an embedded password
-	`xox[abposre]-[A-Za-z0-9-]{10,}|npm_[A-Za-z0-9]{30,}|AccountKey=[A-Za-z0-9+/=]{20,}|hooks\.slack\.com/services/|discord(app)?\.com/api/webhooks/|` +
+	`xox[abposre]-[A-Za-z0-9-]{10,}|npm_[A-Za-z0-9]{30,}|SG\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}|[pr]k_(live|test)_[A-Za-z0-9]{10,}|whsec_[A-Za-z0-9]{16,}|hf_[A-Za-z0-9]{20,}|ya29\.[A-Za-z0-9_-]{20,}|shp(at|ss|ca|pa)_[a-f0-9]{20,}|pypi-[A-Za-z0-9_-]{20,}|glsa_[A-Za-z0-9_]{20,}|dop_v1_[a-f0-9]{20,}|AGE-SECRET-KEY-1[A-Z0-9]{20,}|` +
+	`[a-z][a-z0-9+.-]*://:[^@\s'"]{3,}@|` + // URL with a password and no user
+	`["']?Authorization["']?\s*[:,]\s*["'](Basic|Bearer|Token)\s+[A-Za-z0-9+/=._-]{8,}|` +
+	`(curl|wget)\b[^\n]*\s(-u|--user)\s+[^\s:]+:[^\s]{3,}|\b(mysql|mysqldump)\b[^\n]*\s-p[^\s-][^\s]{2,}|` +
+	`\bpw["']?\s*[:=]\s*["'][^"']{6,}|AccountKey=[A-Za-z0-9+/=]{20,}|hooks\.slack\.com/services/|discord(app)?\.com/api/webhooks/|` +
 	`Authorization:\s*(Basic|Bearer)\s+[A-Za-z0-9+/=._-]{8,}|` +
 	`define\(\s*["'][A-Z0-9_]*(PASS|SECRET|KEY|TOKEN)[A-Z0-9_]*["']\s*,\s*["'][^"']{6,}|` + // PHP define()
 	`<(password|passwd|secret|api[_-]?key|token|connectionString)>[^<]{6,}<|` + // XML element
 	`key\s*=\s*["'][^"']*(key|secret|password|token)[^"']*["']\s+value\s*=\s*["'][^"']{6,}|` + // .NET appSettings
 	`(password|passwd|pass|pwd|passphrase|secret|api[_-]?key|access[_-]?key|private[_-]?key|signing[_-]?key|encryption[_-]?key|hmac[_-]?key|account[_-]?key|token|auth|credential)[a-z0-9_-]*["']?\s*(:=|=>|[:=])\s*["']?[^\s"',;]{6,})`)
+
+// looksSecret treats very long lines (minified bundles, embedded blobs) as
+// sensitive without scanning them: they are expensive to match and rarely
+// needed to explain a finding.
+func looksSecret(line string) bool {
+	return len(line) > 4096 || likelySecret.MatchString(line)
+}
 
 var ErrSourceChanged = errors.New("source file is not in the current inventory or changed since it was inventoried")
 
@@ -360,7 +371,7 @@ func (r *Registry) Excerpt(owner, id, path string, line, radius int) (Excerpt, e
 	all := strings.Split(string(b), "\n")
 	redacted := false
 	for _, l := range all {
-		if likelySecret.MatchString(l) {
+		if looksSecret(l) {
 			redacted = true
 		}
 	}
@@ -369,7 +380,7 @@ func (r *Registry) Excerpt(owner, id, path string, line, radius int) (Excerpt, e
 	out := Excerpt{Path: path, Digest: digest, StartLine: start, Content: string(b), Redacted: redacted}
 	for i := start; i <= end; i++ {
 		v := all[i-1]
-		if likelySecret.MatchString(v) {
+		if looksSecret(v) {
 			v = "[redacted: possible credential]"
 		}
 		if len(v) > 400 {

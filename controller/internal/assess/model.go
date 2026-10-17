@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -411,9 +412,14 @@ func Assess(ctx context.Context, c Config, d Dossier, useModel bool) Assessment 
 
 // privateHost reports loopback, private-range and single-label (container) hosts.
 func privateHost(h string) bool {
-	if h == "localhost" || !strings.Contains(h, ".") {
-		return true
+	if ip := net.ParseIP(h); ip != nil {
+		return ip.IsLoopback() || ip.IsPrivate()
 	}
-	ip := net.ParseIP(h)
-	return ip != nil && (ip.IsLoopback() || ip.IsPrivate())
+	// Integer and hex forms (134744072, 0x08080808) resolve to public
+	// addresses on some resolvers; they are never treated as private.
+	if regexp.MustCompile(`^(0x[0-9a-fA-F]+|[0-9]+)$`).MatchString(h) {
+		return false
+	}
+	// A single-label name is a container or local host name.
+	return h == "localhost" || (!strings.Contains(h, ".") && !strings.Contains(h, ":"))
 }

@@ -220,3 +220,32 @@ func TestDraftFilterRoundTwo(t *testing.T) {
 		t.Error("safe YAML fix refused:", why)
 	}
 }
+
+// QA round 3 (R3-1): the replacement waiver must not admit shells,
+// interpreters, shell options or extra calls.
+func TestSafeReplacementIsStrict(t *testing.T) {
+	sys := []string{`    os.system(cmd)`}
+	for _, line := range []string{
+		`    subprocess.check_output(["bash", "-c", cmd])`, `    subprocess.run(cmd, shell=1)`, `    subprocess.getoutput(cmd)`,
+		`    subprocess.run(["/bin/sh", "-c", cmd])`, `    subprocess.run(["python3", "-c", cmd])`,
+		"    subprocess.run([\"ls\", d]); subprocess.run([\"rm\", \"-rf\", d])",
+	} {
+		if remediate.IntroducedRisk(sys, []string{line}) == "" {
+			t.Error("accepted:", line)
+		}
+	}
+	if why := remediate.IntroducedRisk(sys, []string{`    subprocess.run(["ls", d], check=True)`}); why != "" {
+		t.Error("one-for-one argument list refused:", why)
+	}
+	if why := remediate.IntroducedRisk([]string{`  Runtime.getRuntime().exec("ls " + d);`}, []string{`  new ProcessBuilder("ls", d).start();`}); why != "" {
+		t.Error("ProcessBuilder fix refused:", why)
+	}
+	if why := remediate.IntroducedRisk([]string{`  url = "http://api.example.test/v1"`}, []string{`  url = "https://api.example.test/v1"`}); why != "" {
+		t.Error("https upgrade refused:", why)
+	}
+	for _, line := range []string{`    Open3.capture2(cmd)`, `    os.posix_spawn(p, args, env)`, `	os.StartProcess(p, args, attr)`, `    commands.getoutput(c)`, `  ({}).constructor.constructor(code)()`, `  setTimeout("run()", 10)`, `    IO.popen(c)`} {
+		if remediate.IntroducedRisk([]string{"    return v"}, []string{line}) == "" {
+			t.Error("not flagged:", line)
+		}
+	}
+}

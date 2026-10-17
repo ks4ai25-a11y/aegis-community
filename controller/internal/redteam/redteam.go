@@ -102,11 +102,11 @@ type Inputs struct {
 var (
 	resource = regexp.MustCompile(`(?i)/(accounts?|users?|orders?|invoices?|documents?|files?|projects?|tenants?|organi[sz]ations?|orgs?|customers?|profiles?|messages?|payments?|teams?)(/|$)`)
 	sqlRule  = regexp.MustCompile(`(?i)(^B608$|sql|sqli|injection\.sql|942\d{3})`)
-	urlLike  = regexp.MustCompile(`(?i)([a-z][a-z0-9+.-]*://|\bwww\.|\b\d{1,3}(\.\d{1,3}){3}\b|\blocalhost\b|\b[a-z0-9-]+(\.[a-z0-9-]+)*:\d{2,5}\b|\b[a-z0-9-]+(\.[a-z0-9-]+)*\.(com|net|org|io|dev|ai|app|co|me|xyz|info|biz|ru|cn|top|site|online|cloud|invalid|example|test|internal|local)\b)`)
+	urlLike  = regexp.MustCompile(`(?i)([a-z][a-z0-9+.-]*://|\bwww\.|\b\d{1,3}(\.\d{1,3}){3}\b|\blocalhost\b|\[[0-9a-f:.]+\]|\b[0-9a-f]{1,4}(:[0-9a-f]{0,4}){2,7}\b|\b0x[0-9a-f]{6,8}\b|\b\d{8,10}\b|\b[a-z0-9-]+(\.[a-z0-9-]+)*:\d{2,5}\b|\[\.\]|\(dot\)|\[dot\]|[。．｡]|\bxn--[a-z0-9-]+|\b[a-z0-9-]+(\.[a-z0-9-]+)*\.(com|net|org|io|dev|ai|app|co|me|xyz|info|biz|ru|cn|top|site|online|cloud|invalid|example|test|internal|local|zip|mov|ninja|tk|ml|ga|cf|gq|sh|rs|gg|ly|to|link|click|live|pro|cc|tv|ws|su|pw|onion|uk|de|fr|nl|us|br|jp|kr|eu|ch|se|no|pl|it|es|ca|au|nz|ir|kp|ua|by|cz|ro|vn)\b)`)
 	// path:line source references look like host:port; remove them before checking.
 	sourceRef = regexp.MustCompile(`(?i)[\w./-]+\.(py|js|mjs|cjs|ts|tsx|jsx|go|java|kt|rb|php|cs|rs|c|cc|cpp|h|swift|scala|sql|yaml|yml|json|toml):\d+(-\d+)?`)
 	// Command-like text in a claim is a request for the owner to run something.
-	commandLike = regexp.MustCompile(`(?i)(\b(nc|ncat|netcat|curl|wget|ssh|scp|telnet|redis-cli|psql|mysql|mongo|nmap|sqlmap|powershell|bash|sudo|chmod|chown)\b\s+\S|\brm\s+-|\bsh\s+-c\b|[|;&]\s*(sh|bash)\b|<\s*/etc/|>\s*/dev/tcp)`)
+	commandLike = regexp.MustCompile(`(?i)(\b(nc|ncat|netcat|socat|curl|wget|ssh|scp|telnet|redis-cli|psql|mysql|mongo|nmap|sqlmap|powershell|pwsh|bash|zsh|sudo|chmod|chown|dig|nslookup|host|ftp|tftp)\b\s+\S|\b(python[0-9.]*|perl|php|ruby|node|lua)\s+-[a-z]*[cemr]\b|\bpython[0-9.]*\s+-m\s+http\.server|/bin/(ba|z|k)?sh\b|\brm\s+-|\bsh\s+-c\b|[|;&]\s*(sh|bash)\b|<\s*/etc/|>\s*/dev/tcp|\x60[^\x60]*\b(nc|curl|wget|bash|sh)\b[^\x60]*\x60)`)
 	refShape    = regexp.MustCompile(`^([^:\s]{1,512})(?::(\d{1,6})(?:-(\d{1,6}))?)?$`)
 )
 
@@ -343,7 +343,7 @@ func modelRound(ctx context.Context, c assess.Config, in Inputs, ps *PlanSet) er
 			continue
 		case claim == "":
 			continue
-		case urlLike.MatchString(sourceRef.ReplaceAllString(claim, "")):
+		case urlLike.MatchString(stripInventoryRefs(in.Map, claim)):
 			ps.Rejected = append(ps.Rejected, "hypothesis names a host or network destination")
 			continue
 		case commandLike.MatchString(claim):
@@ -368,4 +368,16 @@ func modelRound(ctx context.Context, c assess.Config, in Inputs, ps *PlanSet) er
 		ps.Rejected = ps.Rejected[:20]
 	}
 	return nil
+}
+
+// stripInventoryRefs removes path:line references to files that are actually
+// in the inventory, so they are not mistaken for host:port; anything else that
+// looks like a host (including evil.rs:443) is still checked.
+func stripInventoryRefs(m source.Map, claim string) string {
+	return sourceRef.ReplaceAllStringFunc(claim, func(ref string) string {
+		if validRef(m, ref) {
+			return ""
+		}
+		return ref
+	})
 }

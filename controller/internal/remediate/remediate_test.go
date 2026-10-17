@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -95,7 +96,7 @@ func TestDraftPatchBuildsDiffFromBoundedEdit(t *testing.T) {
 			t.Fatal("accepted", bad, d)
 		}
 	}
-	if _, e := Build("query.py", strings.Split(file, "\n"), 4, 3, 5, []string{"a", "b", "c"}); e != nil {
+	if _, e := Build("query.py", strings.Split(file, "\n"), 4, 3, 4, []string{"a", "b"}); e != nil {
 		t.Fatal("edit covering the finding refused", e)
 	}
 	far := Finding{Category: "static_pattern", Path: "query.py", Line: 40}
@@ -132,7 +133,7 @@ func TestApplyRemovesSQLCommentLines(t *testing.T) {
 	if e != nil || got != "SELECT 1;\n-- reviewed comment\nSELECT 2;\n" {
 		t.Fatalf("%q %v", got, e)
 	}
-	if _, e = Apply(src, "q.sql", strings.Replace(d, "@@ -1,4 +1,4 @@", "@@ -1,9 +1,9 @@", 1)); e == nil {
+	if _, e = Apply(src, "q.sql", regexp.MustCompile(`@@ -1,\d+ \+1,\d+ @@`).ReplaceAllString(d, "@@ -1,9 +1,9 @@")); e == nil {
 		t.Fatal("hunk with wrong counts accepted")
 	}
 }
@@ -154,5 +155,20 @@ func TestLineEndingsRoundTrip(t *testing.T) {
 	}
 	if got, e := Apply(noeol, "n.py", d); e != nil || got != "a = 1\nb = int(x)" {
 		t.Fatalf("no EOL: %q %v", got, e)
+	}
+}
+
+// QA round 3 (R3-2): no phantom context line after a final newline.
+func TestBuildNearEndOfFile(t *testing.T) {
+	src := "a\nb\nc\nd\n"
+	d, e := Build("f.txt", strings.Split(src, "\n"), 4, 4, 4, []string{"D"})
+	if e != nil || !strings.Contains(d, "@@ -1,4 +1,4 @@") {
+		t.Fatal(d, e)
+	}
+	if got, e := Apply(src, "f.txt", d); e != nil || got != "a\nb\nc\nD\n" {
+		t.Fatalf("%q %v", got, e)
+	}
+	if _, e := Build("f.txt", strings.Split(src, "\n"), 4, 4, 5, []string{"X"}); e == nil {
+		t.Fatal("edit past the last line accepted")
 	}
 }

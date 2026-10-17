@@ -294,3 +294,36 @@ func TestRescanHistoryEdgeCases(t *testing.T) {
 		t.Fatal("C should be a new scan, not a retry of B", o)
 	}
 }
+
+// QA round 3 (R3-9): returning to a map whose retry already failed must not
+// report a retry or audit a scan that never ran.
+func TestNoFakeRetryForAnExistingRetryJob(t *testing.T) {
+	r := newChangeRig(t)
+	write := func(v string) { os.WriteFile(filepath.Join(r.dir, "app.py"), []byte(v), 0600) }
+	fail := func() { r.q.S.DB.Exec("UPDATE scanner_jobs SET state='tool_error' WHERE id=?", r.jobs(t)[0].ID) }
+	r.q.SetRescanPolicy("owner-a", r.repo, true, []string{"bandit"}, 30)
+	write("print('A')\n")
+	r.check(t)
+	fail()
+	if o := r.check(t); o != "retried_after_failure" {
+		t.Fatal(o)
+	}
+	fail()
+	write("print('B')\n")
+	r.check(t)
+	fail()
+	r.check(t)
+	fail()
+	before := len(r.jobs(t))
+	var audits int
+	r.q.S.DB.QueryRow("SELECT count(*) FROM audit WHERE json_extract(document,'$.action')='scanner.rescan_triggered'").Scan(&audits)
+	write("print('A')\n")
+	if o := r.check(t); o != "previously_failed" || len(r.jobs(t)) != before {
+		t.Fatal("fake retry", o, len(r.jobs(t)), before)
+	}
+	var after int
+	r.q.S.DB.QueryRow("SELECT count(*) FROM audit WHERE json_extract(document,'$.action')='scanner.rescan_triggered'").Scan(&after)
+	if after != audits {
+		t.Fatal("audited a scan that never ran")
+	}
+}

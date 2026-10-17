@@ -206,7 +206,12 @@ func attemptDraft(ctx context.Context, c assess.Config, f Finding, path, content
 // Build turns a bounded line replacement near the finding into a unified diff
 // with three lines of context. The edit must include the finding's line.
 func Build(path string, lines []string, finding, start, end int, replacement []string) (string, error) {
-	if start < 1 || end < start || end > len(lines) || end-start > 11 {
+	// Split leaves an empty element after a final newline; it is not a line.
+	n := len(lines)
+	if n > 0 && lines[n-1] == "" {
+		n--
+	}
+	if start < 1 || end < start || end > n || end-start > 11 {
 		return "", errors.New("line range out of bounds")
 	}
 	// The edit must replace the finding's own line; rewriting nearby code while
@@ -228,10 +233,10 @@ func Build(path string, lines []string, finding, start, end int, replacement []s
 		replacement = withCR
 	}
 	from := max(1, start-3)
-	to := min(len(lines), end+3)
+	to := min(n, end+3)
 	// A file without a final newline needs git's marker after its last line,
 	// or git apply and patch refuse the diff.
-	noEOL := to == len(lines) && lines[len(lines)-1] != ""
+	noEOL := to == n && n == len(lines)
 	const marker = `\ No newline at end of file`
 	var hunk []string
 	for i := from; i < start; i++ {
@@ -429,25 +434,24 @@ func balanced(src string) bool {
 var riskyIntroductions = []struct {
 	re   *regexp.Regexp
 	what string
-	// safer lists replacements accepted when the replaced lines already used
-	// this kind of construct (the fix a finding asks for, e.g. os.system →
-	// subprocess.run with an argument list).
-	safer *regexp.Regexp
 }{
 	{re: regexp.MustCompile(`(?i)(#\s*nosec|#\s*noqa|//\s*nolint|eslint-disable|@SuppressWarnings|#\s*type:\s*ignore|//\s*@ts-ignore|@ts-expect-error|@ts-nocheck|NOSONAR|semgrep-ignore|nosemgrep|pylint:\s*disable|\blgtm\b|gitleaks:allow|noinspection|codeql\[|#\s*pragma:\s*no\s*cover|@phpstan-ignore|phpcs:ignore|rubocop:disable|#\[allow\()`), what: "a finding suppression comment"},
-	{re: regexp.MustCompile(`(?i)\b(https?|ftp|wss?|file|data|gopher|ldap|smb)://|["'(=\s]//[a-z0-9-]+(\.[a-z0-9-]+)+(/|["'])`), what: "a URL"},
+	{re: regexp.MustCompile(`(?i)\b(https?|ftp|wss?|file|data|gopher|ldap|smb)://[^\s"'<>)\]]*|["'(=\s]//[a-z0-9-]+(\.[a-z0-9-]+)+(/|["'])`), what: "a URL"},
 	{re: regexp.MustCompile(`\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b`), what: "an IP address"},
-	{re: regexp.MustCompile(`(?i)\b(eval|exec|execfile|compile|__import__|assert_options|create_function|system|passthru|shell_exec|proc_open|popen|pcntl_exec)\s*\(|os\.(system|popen|spawn\w*|exec\w*|fork)\b|\bsubprocess\b|create_subprocess_(shell|exec)|shell\s*=\s*True|\bpty\.spawn|child_process|\bexec(Sync|File|FileSync)?\b|\bspawn(Sync)?\b|\bvm\.(run\w*|Script|compileFunction)|\bFunction\s*\(|Runtime\.getRuntime|ProcessBuilder|\bexec\.Command(Context)?\b|syscall\.Exec|\bcurl\b|\bwget\b|/bin/(ba)?sh|__builtins__|\bgetattr\s*\(\s*(os|subprocess|builtins|sys)\b|\bgetattr\s*\([^)]*["']__|sys\.modules|\bpickle\b|\bmarshal\.loads?\b|\bdill\b|\bshelve\b|yaml\.(unsafe_)?load(_all)?\s*\(|Loader\s*=\s*(yaml\.)?(Unsafe|Full)?Loader\b|\bctypes\b|\bimportlib\b|\bunserialize\s*\(|ObjectInputStream|BinaryFormatter`), what: "code or command execution",
-		safer: regexp.MustCompile(`(?i)^(subprocess\b|subprocess\.(run|call|check_call|check_output)|execfile|execfilesync|exec\.command|exec\.commandcontext|spawn)$`)},
+	{re: regexp.MustCompile(`(?i)\b(eval|exec|execfile|compile|__import__|assert_options|create_function|system|passthru|shell_exec|proc_open|popen|pcntl_exec)\s*\(|os\.(system|popen|spawn\w*|exec\w*|fork)\b|\bsubprocess\b|create_subprocess_(shell|exec)|shell\s*=\s*True|\bpty\.spawn|child_process|\bexec(Sync|File|FileSync)?\b|\bspawn(Sync)?\b|\bvm\.(run\w*|Script|compileFunction)|\bFunction\s*\(|Runtime\.getRuntime|ProcessBuilder|\bOpen3\b|Kernel\.(open|system|spawn|exec)|IO\.popen|%x\{|\bposix_spawnp?\b|os\.StartProcess|syscall\.(ForkExec|Exec|StartProcess)|commands\.getoutput|constructor\.constructor|set(Timeout|Interval)\s*\(\s*["'\x60]|process\.binding|Deno\.(run|Command)|Bun\.spawn|\bexec\.Command(Context)?\b|syscall\.Exec|\bcurl\b|\bwget\b|/bin/(ba)?sh|__builtins__|\bgetattr\s*\(\s*(os|subprocess|builtins|sys)\b|\bgetattr\s*\([^)]*["']__|sys\.modules|\bpickle\b|\bmarshal\.loads?\b|\bdill\b|\bshelve\b|yaml\.(unsafe_)?load(_all)?\s*\(|Loader\s*=\s*(yaml\.)?(Unsafe|Full)?Loader\b|\bctypes\b|\bimportlib\b|\bunserialize\s*\(|ObjectInputStream|BinaryFormatter`), what: "code or command execution"},
 	{re: regexp.MustCompile(`(?i)(\bsocket\b|requests\.(get|post|put|patch|delete|head|options|request|Session)|\bhttpx\b|aiohttp|urllib|http\.client|\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon|\bWebSocket\b|net\.(Dial\w*|connect|createConnection|Socket)|tls\.(connect|Dial)|\bdgram\b|require\(\s*["'](https?|net|tls|dgram|child_process)["']|http\.(Get|Post|Head|NewRequest\w*|DefaultClient)\b|\bhttp\.Client\b|axios|smtplib|ftplib|paramiko|dns\.resolver|curl_init|file_get_contents\s*\(\s*["']?(https?|ftp)|Net::HTTP|open-uri)`), what: "network access"},
 	{re: regexp.MustCompile(`(?i)(verify\s*=\s*False|InsecureSkipVerify|rejectUnauthorized\s*:\s*false|NODE_TLS_REJECT_UNAUTHORIZED|CERT_NONE|check_hostname\s*=\s*False|_create_unverified_context|CURLOPT_SSL_VERIFY(PEER|HOST)\s*,\s*(0|false)|VERIFY_NONE)`), what: "disabled TLS verification"},
 	{re: regexp.MustCompile(`[A-Za-z0-9+/]{48,}={0,2}|\\x[0-9a-f]{2}(\\x[0-9a-f]{2}){15,}`), what: "a long encoded literal"},
 }
 
+// safeExec is the replacement a shell-injection finding asks for: a process
+// started from an argument list whose program is a literal and is not a shell
+// or interpreter, with no shell option.
+var safeExec = regexp.MustCompile(`(?i)(subprocess\.(run|call|check_call|check_output)|\bexecFile(Sync)?|\bspawn(Sync)?|exec\.Command(Context)?|new\s+ProcessBuilder)\s*\(\s*(ctx\s*,\s*)?\[?\s*["']([^"']+)["']`)
+var shellOrInterpreter = regexp.MustCompile(`(?i)^(.*/)?(sh|bash|zsh|dash|ksh|fish|csh|tcsh|cmd(\.exe)?|powershell(\.exe)?|pwsh|python[0-9.]*|perl|php|ruby|node|deno|bun|lua|tclsh|osascript|env|busybox|xargs|nc|ncat|curl|wget)$`)
+
 func introducedRisk(original, replacement []string) string {
 	before, after := strings.Join(original, "\n"), strings.Join(replacement, "\n")
-	// Compare each distinct construct, so swapping one execution primitive for
-	// another (eval for os.popen) still counts as adding one.
 	count := func(re *regexp.Regexp, s string) map[string]int {
 		m := map[string]int{}
 		for _, line := range strings.Split(s, "\n") {
@@ -457,21 +461,49 @@ func introducedRisk(original, replacement []string) string {
 				if strings.HasPrefix(k, "yaml.load") && strings.Contains(line, "SafeLoader") {
 					continue
 				}
+				// A URL is judged by its host, so upgrading http to https is not new.
+				if i := strings.Index(k, "://"); i > 0 {
+					k = k[i+3:]
+				}
+				if k == "127.0.0.1" {
+					continue
+				}
 				m[k]++
 			}
 		}
 		return m
 	}
+	execRule := riskyIntroductions[3]
+	// Replacing existing execution with an argument-list call to an ordinary
+	// program is allowed, one for one: never a shell or interpreter, never a
+	// shell option, never more calls than the replaced lines made.
+	existing := 0
+	for _, n := range count(execRule.re, before) {
+		existing += n
+	}
+	if existing > 0 {
+		lines := strings.Split(after, "\n")
+		for i, line := range lines {
+			if regexp.MustCompile(`(?i)shell\s*=|getoutput|getstatusoutput`).MatchString(line) {
+				continue
+			}
+			lines[i] = safeExec.ReplaceAllStringFunc(line, func(call string) string {
+				prog := safeExec.FindStringSubmatch(call)[7]
+				if existing == 0 || shellOrInterpreter.MatchString(strings.TrimSpace(prog)) {
+					return call
+				}
+				existing--
+				return "safe_call("
+			})
+		}
+		after = strings.Join(lines, "\n")
+	}
 	for _, r := range riskyIntroductions {
 		had := count(r.re, before)
 		for k, n := range count(r.re, after) {
-			if n <= had[k] {
-				continue
+			if n > had[k] {
+				return "the edit adds " + r.what + ", which a minimal fix must not introduce"
 			}
-			if r.safer != nil && len(had) > 0 && r.safer.MatchString(strings.TrimRight(k, "(")) && !regexp.MustCompile(`(?i)shell\s*=\s*True`).MatchString(after) {
-				continue
-			}
-			return "the edit adds " + r.what + ", which a minimal fix must not introduce"
 		}
 	}
 	return ""

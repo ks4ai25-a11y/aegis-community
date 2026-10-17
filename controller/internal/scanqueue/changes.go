@@ -251,6 +251,13 @@ func (q *Queue) checkOne(ctx context.Context, refresh Refresh, p RescanPolicy, n
 	}
 	if retry {
 		key = "rescan-retry:" + key[7:]
+		// The single retry for this identity already exists: report it instead
+		// of recording a new scan that Enqueue would not create.
+		var oldID string
+		if q.S.DB.QueryRow("SELECT id FROM scanner_jobs WHERE owner=? AND idempotency_key=?", p.Owner, key).Scan(&oldID) == nil {
+			r.Job, p.BaselineDigest, p.Retried = oldID, digest, digest
+			return finish("previously_failed")
+		}
 	}
 	job, e := q.Enqueue(p.Owner, key, in)
 	switch {

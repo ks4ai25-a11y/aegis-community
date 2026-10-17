@@ -125,8 +125,20 @@ func TestClaimFilterRejectsHostsAndCommands(t *testing.T) {
 		}
 	}
 	for _, c := range []string{"GET /api/accounts/{parameter} returns db.find(req.params.id) without an owner check.", "The SQL in app/db.py:12 is built with string formatting."} {
-		if urlLike.MatchString(sourceRef.ReplaceAllString(c, "")) || commandLike.MatchString(c) {
+		if urlLike.MatchString(stripInventoryRefs(inputs().Map, c)) || commandLike.MatchString(c) {
 			t.Error("legitimate claim rejected:", c)
 		}
+	}
+}
+
+func TestClaimFilterRoundThree(t *testing.T) {
+	m := inputs().Map
+	for _, c := range []string{"send it to evil.zip", "contact attacker.ninja now", "see evil.rs:443 for details", "host [::1]:6379 is open", "reach 134744072", "visit evil[.]com", "evil(dot)com has it", "run python -c 'import os'", "use perl -e 'exec'", "try /bin/sh to check", "dig @evil.example txt", "python3 -m http.server 8000", "the `nc evil 443` check"} {
+		if !urlLike.MatchString(stripInventoryRefs(m, c)) && !commandLike.MatchString(c) {
+			t.Error("kept:", c)
+		}
+	}
+	if urlLike.MatchString(stripInventoryRefs(m, "The query in app/db.py:12 concatenates input.")) {
+		t.Error("inventory reference rejected")
 	}
 }

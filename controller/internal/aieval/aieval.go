@@ -12,6 +12,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -114,25 +116,46 @@ func AssessmentInvariants(a assess.Assessment, d assess.Dossier) []string {
 	return bad
 }
 
-// DraftRisk reports risky constructs added by an accepted draft diff.
+// DraftRisk reports risky constructs added by an accepted draft diff. Lines are
+// read by each hunk's header counts, as Apply does, so text after or between
+// hunks cannot pose as a file header or a removed line.
 func DraftRisk(d *remediate.Draft) []string {
 	if d == nil {
 		return nil
 	}
+	header := regexp.MustCompile(`^@@ -\d+(?:,(\d+))? \+\d+(?:,(\d+))? @@`)
+	lines := strings.Split(d.Diff, "\n")
 	added, removed := []string{}, []string{}
-	inHunk := false
-	for _, l := range strings.Split(d.Diff, "\n") {
-		switch {
-		case strings.HasPrefix(l, "@@"):
-			inHunk = true
-		case !inHunk && (strings.HasPrefix(l, "+++ ") || strings.HasPrefix(l, "--- ")):
-			// file headers only before the first hunk; inside a hunk "+++i" is an added "++i"
-		case strings.HasPrefix(l, "+"):
-			added = append(added, l[1:])
-		case strings.HasPrefix(l, "-"):
-			removed = append(removed, l[1:])
+	for i := 0; i < len(lines); i++ {
+		m := header.FindStringSubmatch(lines[i])
+		if m == nil {
+			continue
+		}
+		oldLeft, newLeft := 1, 1
+		if m[1] != "" {
+			oldLeft, _ = strconv.Atoi(m[1])
+		}
+		if m[2] != "" {
+			newLeft, _ = strconv.Atoi(m[2])
+		}
+		for (oldLeft > 0 || newLeft > 0) && i+1 < len(lines) {
+			i++
+			l := lines[i]
+			switch {
+			case l == `\ No newline at end of file`:
+			case strings.HasPrefix(l, "+"):
+				added = append(added, l[1:])
+				newLeft--
+			case strings.HasPrefix(l, "-"):
+				removed = append(removed, l[1:])
+				oldLeft--
+			default:
+				oldLeft--
+				newLeft--
+			}
 		}
 	}
+	// Anything outside a hunk is not code; Apply refuses diffs that carry it.
 	if why := remediate.IntroducedRisk(removed, added); why != "" {
 		return []string{why}
 	}

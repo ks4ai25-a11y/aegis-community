@@ -138,11 +138,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			fail(w, 405, "VALIDATION_FAILED", "POST required")
 			return
 		}
-		if !s.A.Throttle() {
-			fail(w, 429, "RATE_LIMITED", "Wait before retrying enrollment or login")
-			return
-		}
-		defer s.A.Release()
+		// Read the whole (bounded) body before taking the password-check slot,
+		// so a client that stalls mid-body cannot hold the slot.
 		var in struct {
 			Token    string `json:"token"`
 			Password string `json:"password"`
@@ -151,6 +148,11 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			fail(w, 400, "VALIDATION_FAILED", "Invalid authentication request")
 			return
 		}
+		if !s.A.Throttle() {
+			fail(w, 429, "RATE_LIMITED", "Wait before retrying enrollment or login")
+			return
+		}
+		defer s.A.Release()
 		if path == "/auth/bootstrap" {
 			if e := s.A.Enroll(in.Token, in.Password); e != nil {
 				s.A.Fail()
