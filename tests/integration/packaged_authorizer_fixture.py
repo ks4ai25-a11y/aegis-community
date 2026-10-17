@@ -54,9 +54,10 @@ class BoundAuthorizer:
   self.engine.journal=self.journal;self.engine.engine_digest=self.digest
  def provision_credentials(self):
   self.compose('run','--rm','--no-deps','--volume',self.volume+':/run/scanner','--entrypoint','aegisctl','init','scanner-verifier','enroll',self.verifier,'10',self.digest,self.registry_digest,'/run/scanner/observer.credential')
- def wait_ready(self):
+ def wait_ready(self,name=None):
+  name=name or self.name
   for _ in range(60):
-   state=json.loads(self.raw(['inspect',self.name]).stdout)[0]
+   state=json.loads(self.raw(['inspect',name]).stdout)[0]
    if not state['State']['Running']:raise RuntimeError('Owned bound authorizer stopped before readiness')
    if subprocess.run(['sudo','test','-S',self.engine.plugin_socket],stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:
     try:status,_=self.engine.observer('/info')
@@ -120,6 +121,7 @@ class BoundAuthorizer:
   self.raw(['rm',name])
  def cleanup(self):
   self.stop()
+  for name in getattr(self,'variants',[]):self.remove_owned(name)
   if self.created:self.remove_owned(self.name);self.created=False
   if self.volume_created:
    m=json.loads(self.raw(['volume','inspect',self.volume]).stdout)[0];assert m['Labels']['io.aegis.worker-proof']==self.nonce
@@ -260,6 +262,35 @@ class AdmittedAuthorizer(BoundAuthorizer):
    expected='sha256:'+hashlib.sha256(json.dumps({'Domain':'aegis-controller-admitted-journal-v1','Policy':self.policy,'Binding':b['digest']},separators=(',',':')).encode()).hexdigest()
    assert seal['document']['local_policy_digest']==expected
   self.ledger_verified=True
+
+class CrashableAuthorizer(AdmittedAuthorizer):
+ """The admitted authorizer plus the ADR 057 crash-repair variants: a
+ test-only faulting build, quarantine serving and offline settlement. Each
+ variant is its own nonce-owned container on the same mounts and journal."""
+ def serve_variant(self,name,mode,fault=None):
+  if os.environ.get('AEGIS_PACKAGED_CRASH_REPAIR_TEST')!='1' or mode not in ('serve-admitted','serve-quarantine'):raise RuntimeError('Explicit crash repair fixture only')
+  cmd=self.command(name,[mode,*self.args[1:]]);cmd.insert(1,'--detach')
+  if fault:
+   at=cmd.index(self.image)
+   cmd[at:at]=['--mount','type=bind,src='+str(self.engine.programs/'aegis-engine-authz-fault')+',dst=/aegis-engine-authz-fault,readonly','--env','AEGIS_AUTHZ_FAULT='+fault,'--entrypoint','/aegis-engine-authz-fault']
+  self.variants=getattr(self,'variants',[])+[name]
+  self.raw(cmd)
+  return name
+ def run_variant(self,name,mode,timeout=60):
+  """Run a short-lived variant to completion and return its result."""
+  if mode not in ('serve-admitted','quarantine-settle'):raise RuntimeError('Unexpected authorizer variant')
+  self.variants=getattr(self,'variants',[])+[name]
+  return self.raw(self.command(name,[mode,*self.args[1:]]),timeout,False)
+ def stop_variant(self,name):
+  c=json.loads(self.raw(['inspect',name]).stdout)[0]
+  if c['Config']['Labels'].get('io.aegis.worker-proof')!=self.nonce or c['Image']!=self.image:raise RuntimeError('Authorizer variant identity changed')
+  if c['State']['Running']:self.raw(['stop','--time','10',name],30)
+  return json.loads(self.raw(['inspect',name]).stdout)[0]['State']
+ def restart_admitted(self):
+  self.raw(['start',self.name],30);self.wait_ready()
+ def journal_has(self,record):
+  if not re.fullmatch(r'(quarantine|activation)\.[1-9][0-9]?\.json',record):raise RuntimeError('Unexpected journal record')
+  return subprocess.run(['sudo','test','-f',str(self.journal/record)],stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0
 
 def provision_reconciler(engine,bound,raw,compose,nonce,socket_volume,project):
  """Enroll a separate reconciler and write its private config (ADR 057).

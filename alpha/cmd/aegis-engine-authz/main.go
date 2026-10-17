@@ -22,8 +22,8 @@ func run() error {
 		return e
 	}
 	// Paths and digests are operator configuration, never caller-selected RPC data.
-	if !(len(os.Args) == 9 && os.Args[1] == "serve" || len(os.Args) == 15 && os.Args[1] == "serve-bound" || len(os.Args) == 16 && (os.Args[1] == "serve-admitted" || os.Args[1] == "admitted-policy-input")) {
-		return fmt.Errorf("usage: aegis-engine-authz init JOURNAL ENGINE_DIGEST | serve SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK | serve-bound SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK CONTROLLER_SOCKET OBSERVER_CREDENTIAL OWNER VERIFIER_ID REGISTRY_DIGEST RULES_DIGEST_OR_DASH | serve-admitted|admitted-policy-input SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK CONTROLLER_SOCKET AUTHORIZER_CREDENTIAL OWNER AUTHORIZER_ID REGISTRY_DIGEST REGISTRY_NAMESPACE_DIGEST RULES_DIGEST_OR_DASH")
+	if !(len(os.Args) == 9 && os.Args[1] == "serve" || len(os.Args) == 15 && os.Args[1] == "serve-bound" || len(os.Args) == 16 && (os.Args[1] == "serve-admitted" || os.Args[1] == "admitted-policy-input" || os.Args[1] == "serve-quarantine" || os.Args[1] == "quarantine-settle")) {
+		return fmt.Errorf("usage: aegis-engine-authz init JOURNAL ENGINE_DIGEST | serve SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK | serve-bound SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK CONTROLLER_SOCKET OBSERVER_CREDENTIAL OWNER VERIFIER_ID REGISTRY_DIGEST RULES_DIGEST_OR_DASH | serve-admitted|serve-quarantine|quarantine-settle|admitted-policy-input SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK CONTROLLER_SOCKET AUTHORIZER_CREDENTIAL OWNER AUTHORIZER_ID REGISTRY_DIGEST REGISTRY_NAMESPACE_DIGEST RULES_DIGEST_OR_DASH")
 	}
 	uid, e := strconv.Atoi(os.Args[6])
 	if e != nil {
@@ -46,7 +46,7 @@ func run() error {
 		}
 		cfg.Live = &engineauthz.LiveConfig{Socket: os.Args[9], Credential: os.Args[10], Owner: os.Args[11], Verifier: os.Args[12], Registry: os.Args[13], LockPath: os.Args[8], RulesDigest: rules}
 	}
-	if os.Args[1] == "serve-admitted" || os.Args[1] == "admitted-policy-input" {
+	if os.Args[1] == "serve-admitted" || os.Args[1] == "admitted-policy-input" || os.Args[1] == "serve-quarantine" || os.Args[1] == "quarantine-settle" {
 		rules := os.Args[15]
 		if rules == "-" {
 			rules = ""
@@ -58,6 +58,19 @@ func run() error {
 				return e
 			}
 			return json.NewEncoder(os.Stdout).Encode(map[string]any{"schema_version": "1.0", "policy_digest": digest, "controller_binding_verified": false, "engine_write_authorized": false, "cleanup_release_authorized": false})
+		}
+		// ADR 057 crash repair: the same arguments as serve-admitted.
+		cfg.Quarantine = os.Args[1] == "serve-quarantine"
+		if os.Args[1] == "quarantine-settle" {
+			observation, quarantine, e := engineauthz.SettleQuarantine(cfg)
+			out := map[string]any{"schema_version": "1.0", "journal": observation, "quarantine": quarantine, "settled": e == nil && observation.Unfinished == 0 && observation.Unresolved == 0, "cleanup_release_authorized": false}
+			if err := json.NewEncoder(os.Stdout).Encode(out); err != nil {
+				return err
+			}
+			if e != nil || observation.Unfinished != 0 || observation.Unresolved != 0 {
+				return fmt.Errorf("quarantine not settled")
+			}
+			return nil
 		}
 	}
 	policy, e := engineauthz.Open(cfg)
@@ -71,7 +84,11 @@ func run() error {
 	}
 	defer listener.Close()
 	// Public source identity only. No certificate, source or credential bytes.
-	fmt.Fprintf(os.Stderr, "scanner engine authorization ready; tool_lock_digest=%s; cleanup_release_authorized=false\n", source.Hash(b))
+	if cfg.Quarantine {
+		fmt.Fprintf(os.Stderr, "scanner engine authorization ready; mode=quarantine; tool_lock_digest=%s; cleanup_release_authorized=false\n", source.Hash(b))
+	} else {
+		fmt.Fprintf(os.Stderr, "scanner engine authorization ready; tool_lock_digest=%s; cleanup_release_authorized=false\n", source.Hash(b))
+	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	return policy.Serve(ctx, listener)

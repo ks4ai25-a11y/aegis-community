@@ -122,3 +122,21 @@ func TestRecoveryRequiresReleaseGuardsToMatchDeclaredVersion(t *testing.T) {
 		})
 	}
 }
+
+func TestRecoveryRequiresRepairTableToMatchDeclaredVersion(t *testing.T) {
+	for _, kind := range []string{"missing-table", "undeclared-table"} {
+		t.Run(kind, func(t *testing.T) {
+			c, s, parent := fixture(t)
+			statement := "DROP TABLE scanner_mutation_repairs"
+			if kind == "undeclared-table" {
+				statement = "DELETE FROM migrations WHERE version=20"
+			}
+			if _, err := s.DB.Exec(statement); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := Create(context.Background(), c, filepath.Join(parent, "refused20")); err != ErrRecovery {
+				t.Fatal("repair table/version mismatch accepted", err)
+			}
+		})
+	}
+}

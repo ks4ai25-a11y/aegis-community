@@ -593,7 +593,8 @@
             "type": "string",
             "enum": [
               "pending",
-              "completed"
+              "completed",
+              "repaired"
             ]
           },
           "response_digest": {
@@ -646,13 +647,41 @@
                   }
                 ]
               }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "completed"
+                }
+              }
             },
-            "else": {
+            "then": {
               "required": [
                 "response_digest",
                 "response_status",
                 "result_engine_id"
               ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "repaired"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "response_digest"
+              ],
+              "not": {
+                "required": [
+                  "response_status"
+                ]
+              }
             }
           },
           {

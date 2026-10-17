@@ -538,3 +538,33 @@ func (c Config) runEngineSDK(runCtx context.Context, endpoint, engine, nameValue
 	out.err = nil
 	return
 }
+
+// RemoveRepaired sends exactly one DELETE for a crash-repaired allocation
+// through the dedicated TLS engine as the broker (ADR 057). The quarantined
+// plugin admits it against the controller's retained repair, or refuses; this
+// client retries nothing and reports success only for a complete 204.
+func RemoveRepaired(ctx context.Context, name, id string) error {
+	if os.Getenv("AEGIS_SCANNER_ENGINE_TLS_DIR") == "" || !scannerName.MatchString(name) || !observationID.MatchString(id) {
+		return errEngine
+	}
+	_, endpoint, e := Config{}.engine(ctx)
+	if e != nil {
+		return errEngine
+	}
+	target := id
+	cli, e := newEngineSDK(endpoint, name, &target)
+	if e != nil {
+		return errEngine
+	}
+	defer cli.Close()
+	if cli.identity == nil {
+		return errEngine
+	}
+	capture := &responseCapture{operation: "remove", id: id}
+	bounded, cancel := context.WithTimeout(context.WithValue(ctx, captureKey{}, capture), engineMutationBound)
+	defer cancel()
+	if _, e = cli.ContainerRemove(bounded, id, client.ContainerRemoveOptions{Force: true, RemoveVolumes: true}); e != nil || !observed(capture, 204) {
+		return errEngine
+	}
+	return nil
+}

@@ -92,8 +92,18 @@ func (m MutationIntent) Valid() bool {
 	if m.State == "pending" {
 		return m.Response == "" && m.Status == 0 && m.EngineID == ""
 	}
+	// A repaired intent never carries a native status: Response is the digest
+	// of its retained repair record. A create may be repaired as not created.
+	if m.State == "repaired" {
+		return hash.MatchString(m.Response) && m.Status == 0 && ((r.Operation == "create" && (m.EngineID == "" || allocationID.MatchString(m.EngineID))) || (r.Operation != "create" && m.EngineID == r.EngineID))
+	}
 	return m.State == "completed" && hash.MatchString(m.Response) && allocationID.MatchString(m.EngineID) && ((r.Operation == "create" && m.Status == 201) || (r.Operation != "create" && m.Status == 204 && m.EngineID == r.EngineID))
 }
+
+// Settled reports a native completion or an explicit repair. Neither is
+// independent absence; release still requires exact observation.
+func (m MutationIntent) Settled() bool { return m.State == "completed" || m.State == "repaired" }
+
 func (c MutationCompletion) Valid() bool {
 	return hash.MatchString(c.Intent) && allocationID.MatchString(c.Generation) && allocationID.MatchString(c.EngineID) && hash.MatchString(c.Response) && (c.Status == 201 || c.Status == 204)
 }

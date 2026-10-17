@@ -119,3 +119,24 @@ func (c *AuthorizerClient) Complete(ctx context.Context, in scanevidence.Mutatio
 	}
 	return out, nil
 }
+
+// Intent reads one retained intent of this authorizer's original binding, so
+// a sealed quarantine can settle its local journal from controller records.
+// It never admits, completes or retries anything.
+func (c *AuthorizerClient) Intent(ctx context.Context, generation, intent string) (scanevidence.AuthorizerIntentRead, error) {
+	if e := c.configuration(); e != nil {
+		return scanevidence.AuthorizerIntentRead{}, e
+	}
+	r := scanevidence.AuthorizerIntentRequest{Generation: generation, Intent: intent}
+	if !r.Valid() {
+		return scanevidence.AuthorizerIntentRead{}, errors.New("invalid intent read")
+	}
+	var out scanevidence.AuthorizerIntentRead
+	if e := c.client.call(ctx, "authorizer/intent", r, &out, 16<<10); e != nil {
+		return scanevidence.AuthorizerIntentRead{}, e
+	}
+	if !out.Valid(r) {
+		return scanevidence.AuthorizerIntentRead{}, errors.New("intent read rejected")
+	}
+	return out, nil
+}

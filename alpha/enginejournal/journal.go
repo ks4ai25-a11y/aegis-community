@@ -90,6 +90,11 @@ type Journal struct {
 	closed                                  bool
 	active                                  *Attempt
 	knownNames, knownIDs                    map[string]bool
+	// Sealed quarantine records, in sequence order, and the unfinished
+	// attempts found at load. See quarantine.go.
+	quarantines  []envelope[quarantine]
+	activations  map[int]envelope[activation]
+	openAttempts []string
 }
 
 // KnownContainer recognizes only an exact identity retained in this private
@@ -198,6 +203,7 @@ func (j *Journal) Begin(nameValue, descriptor string) (*Attempt, error) {
 	j.active = a
 	j.attempts++
 	j.unfinished++
+	j.openAttempts = append(j.openAttempts, nameValue)
 	j.rememberContainer(nameValue, "")
 	return a, nil
 }
@@ -334,7 +340,7 @@ func (a *Attempt) Finish() error {
 	a.closed = true
 	a.dir.close()
 	j.active = nil
-	j.unfinished--
+	j.finishedLocked(a.name)
 	return nil
 }
 
@@ -349,4 +355,41 @@ func (t *Ticket) ResponseDigest() (string, error) {
 		return "", ErrJournal
 	}
 	return t.responseDigest, nil
+}
+
+// Container is the attempt's tracked engine ID, from a native create
+// response or a create repaired as created.
+func (a *Attempt) Container() string {
+	a.j.mu.Lock()
+	defer a.j.mu.Unlock()
+	return a.container
+}
+
+// Controller is the controller create intent this attempt proposed.
+func (a *Attempt) Controller() *scanevidence.MutationIntent {
+	a.j.mu.Lock()
+	defer a.j.mu.Unlock()
+	if a.controller == nil {
+		return nil
+	}
+	copy := *a.controller
+	return &copy
+}
+
+// PendingTicket is a resumed attempt's unanswered operation, if any.
+func (a *Attempt) PendingTicket() *Ticket {
+	a.j.mu.Lock()
+	defer a.j.mu.Unlock()
+	return a.pending
+}
+
+// Release drops a resumed attempt without finishing it or writing anything.
+func (j *Journal) Release(a *Attempt) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	if j.active == a && !a.closed {
+		a.closed = true
+		a.dir.close()
+		j.active = nil
+	}
 }

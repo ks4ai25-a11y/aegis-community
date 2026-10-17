@@ -5,7 +5,6 @@ package enginejournal
 
 import (
 	"aegis.local/source"
-	"aegis.local/source/scanevidence"
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
@@ -233,7 +232,7 @@ func openJournal(path, engine string, create bool) (*Journal, error) {
 	if e != nil || ce != nil || !owned(st, 0600, false) || st.Size() != 0 || !owned(currentLock, 0600, false) || !os.SameFile(st, currentLock) || beforeLock != nil && !os.SameFile(beforeLock, st) || syscall.Flock(int(lock.Fd()), syscall.LOCK_EX|syscall.LOCK_NB) != nil {
 		return nil, ErrJournal
 	}
-	items, e := p.list(maxAttempts + 3)
+	items, e := p.list(maxAttempts + 3 + 2*maxQuarantines)
 	if e != nil {
 		return nil, e
 	}
@@ -277,12 +276,15 @@ func openJournal(path, engine string, create bool) (*Journal, error) {
 	} else if !os.IsNotExist(pe) {
 		return nil, ErrJournal
 	}
-	items, e = p.list(maxAttempts + 3)
+	items, e = p.list(maxAttempts + 3 + 2*maxQuarantines)
 	if e != nil {
 		return nil, e
 	}
+	if e = j.loadQuarantines(p, items); e != nil {
+		return nil, e
+	}
 	for _, item := range items {
-		if item.Name() == ".lock" || item.Name() == "identity.json" || item.Name() == "policy.json" {
+		if item.Name() == ".lock" || item.Name() == "identity.json" || item.Name() == "policy.json" || sealRecord.MatchString(item.Name()) {
 			continue
 		}
 		if !name.MatchString(item.Name()) {
@@ -316,112 +318,152 @@ func openJournal(path, engine string, create bool) (*Journal, error) {
 	return j, nil
 }
 func (j *Journal) load(p *privateRoot, containerName string) error {
-	items, e := p.list(7)
+	st, e := j.inspectAttempt(p, containerName)
+	j.bytes += st.bytes
 	if e != nil {
 		return e
 	}
-	allowed := map[string]bool{"attempt.json": true}
+	if st.open != "" {
+		j.unresolved++
+	}
+	// Even a completed create/start needs a completed remove (or an explicit
+	// repair that nothing was created) before this run can cease blocking
+	// later attempts; a crash between writes remains uncertain.
+	if !st.finished {
+		j.unfinished++
+		j.openAttempts = append(j.openAttempts, containerName)
+	}
+	j.rememberContainer(containerName, st.known)
+	return nil
+}
+
+// inspectAttempt validates one attempt directory's complete record chain.
+// A reply to a pending operation is either the native response or, only
+// under a sealed and activated quarantine that lists this attempt, an
+// explicit repair record. It never writes.
+func (j *Journal) inspectAttempt(p *privateRoot, containerName string) (attemptState, error) {
+	st := attemptState{name: containerName, pending: map[string]envelope[intent]{}, responses: map[string]envelope[response]{}, repairs: map[string]envelope[repairRecord]{}}
+	items, e := p.list(10)
+	if e != nil {
+		return st, e
+	}
+	allowed := map[string]bool{"attempt.json": true, "release.json": true}
 	for _, op := range []string{"create", "start", "remove"} {
 		allowed[op+".pending.json"] = true
 		allowed[op+".response.json"] = true
+		allowed[op+".repair.json"] = true
 	}
 	present := map[string]bool{}
 	for _, item := range items {
 		if !allowed[item.Name()] {
-			return ErrJournal
+			return st, ErrJournal
 		}
 		present[item.Name()] = true
 	}
 	m, n, e := read[manifest](p, "attempt.json")
-	j.bytes += n
+	st.bytes += n
 	if e != nil || m.Document.Schema != "1.0" || m.Document.Name != containerName || m.Document.Engine != j.engine || m.Document.Namespace != j.namespace || m.Document.Policy != j.policy || !hash.MatchString(m.Document.Descriptor) {
-		return ErrJournal
+		return st, ErrJournal
 	}
 	created, e := time.Parse(time.RFC3339Nano, m.Document.Created)
 	if e != nil {
-		return ErrJournal
+		return st, ErrJournal
 	}
+	st.manifest = m.Digest
 	previous := m.Digest
-	unresolved := false
-	known := ""
-	started, removed := false, false
-	var controller *scanevidence.MutationIntent
+	started := false
 	for _, op := range []string{"create", "start", "remove"} {
-		pending, reply := present[op+".pending.json"], present[op+".response.json"]
+		pending, reply, fix := present[op+".pending.json"], present[op+".response.json"], present[op+".repair.json"]
 		if !pending {
-			if reply {
-				return ErrJournal
+			if reply || fix {
+				return st, ErrJournal
 			}
 			continue
 		}
-		if (op != "create" && known == "") || removed || unresolved {
-			return ErrJournal
+		if (op != "create" && st.known == "") || st.finished || st.open != "" || reply && fix {
+			return st, ErrJournal
 		}
 		in, n, e := read[intent](p, op+".pending.json")
-		j.bytes += n
-		if e != nil || in.Document.Schema != "1.0" || in.Document.Manifest != m.Digest || in.Document.Previous != previous || in.Document.Operation != op || in.Document.Container != known {
-			return ErrJournal
+		st.bytes += n
+		if e != nil || in.Document.Schema != "1.0" || in.Document.Manifest != m.Digest || in.Document.Previous != previous || in.Document.Operation != op || in.Document.Container != st.known {
+			return st, ErrJournal
 		}
 		c := in.Document.Controller
-		if op != "create" && (controller == nil) != (c == nil) {
-			return ErrJournal
+		if op != "create" && (st.controller == nil) != (c == nil) {
+			return st, ErrJournal
 		}
 		if c != nil {
-			if !c.Valid() || c.State != "pending" || c.Container != containerName || c.Request.Operation != op || c.Request.EngineID != known || m.Document.Policy == "" {
-				return ErrJournal
+			if !c.Valid() || c.State != "pending" || c.Container != containerName || c.Request.Operation != op || c.Request.EngineID != st.known || m.Document.Policy == "" {
+				return st, ErrJournal
 			}
 			if op == "create" {
-				controller = c
-			} else if c.Request.Generation != controller.Request.Generation || c.Request.Job != controller.Request.Job || c.Request.Tool != controller.Request.Tool || c.Request.Launch != controller.Request.Launch || c.Workspace != controller.Workspace {
-				return ErrJournal
+				st.controller = c
+			} else if c.Request.Generation != st.controller.Request.Generation || c.Request.Job != st.controller.Request.Job || c.Request.Tool != st.controller.Request.Tool || c.Request.Launch != st.controller.Request.Launch || c.Workspace != st.controller.Workspace {
+				return st, ErrJournal
 			}
 		}
-
 		stamp, se := time.Parse(time.RFC3339Nano, in.Document.Created)
 		if se != nil || stamp.Before(created) {
-			return ErrJournal
+			return st, ErrJournal
 		}
-		if !reply {
-			j.unresolved++
-			unresolved = true
-			if op == "create" && (present["start.pending.json"] || present["remove.pending.json"]) {
-				return ErrJournal
+		st.pending[op] = in
+		if !reply && !fix {
+			st.open = op
+			continue
+		}
+		if fix {
+			x, n, e := read[repairRecord](p, op+".repair.json")
+			st.bytes += n
+			if e != nil || !j.validRepair(x.Document, in.Digest, op, containerName, st.known, stamp) {
+				return st, ErrJournal
+			}
+			st.repairs[op] = x
+			previous = x.Digest
+			switch x.Document.Outcome {
+			case repairCreated:
+				st.known = x.Document.Container
+			case repairNotCreated, repairNotAdmitted, repairRemoved:
+				st.finished = true
 			}
 			continue
 		}
 		out, n, e := read[response](p, op+".response.json")
-		j.bytes += n
+		st.bytes += n
 		if e != nil || out.Document.Schema != "1.0" || out.Document.Intent != in.Digest || out.Document.Operation != op || !id.MatchString(out.Document.Container) {
-			return ErrJournal
+			return st, ErrJournal
 		}
 		at, ae := time.Parse(time.RFC3339Nano, out.Document.Created)
 		if ae != nil || at.Before(stamp) {
-			return ErrJournal
+			return st, ErrJournal
 		}
+		st.responses[op] = out
 		previous = out.Digest
 		switch op {
 		case "create":
 			if out.Document.Status != 201 {
-				return ErrJournal
+				return st, ErrJournal
 			}
-			known = out.Document.Container
+			st.known = out.Document.Container
 		case "start":
-			if started || out.Document.Status != 204 || out.Document.Container != known {
-				return ErrJournal
+			if started || out.Document.Status != 204 || out.Document.Container != st.known {
+				return st, ErrJournal
 			}
 			started = true
 		case "remove":
-			if (out.Document.Status != 204 && out.Document.Status != 404) || out.Document.Container != known {
-				return ErrJournal
+			if (out.Document.Status != 204 && out.Document.Status != 404) || out.Document.Container != st.known {
+				return st, ErrJournal
 			}
-			removed = true
+			st.finished = true
 		}
 	}
-	// Even a completed create/start needs a completed remove before this run can
-	// cease blocking later attempts; a crash between writes remains uncertain.
-	if !removed {
-		j.unfinished++
+	st.previous = previous
+	if present["release.json"] {
+		x, n, e := read[releaseRecord](p, "release.json")
+		st.bytes += n
+		if e != nil || st.finished || !j.validRelease(x.Document, st) {
+			return st, ErrJournal
+		}
+		st.released, st.finished, st.open = true, true, ""
 	}
-	j.rememberContainer(containerName, known)
-	return nil
+	return st, nil
 }

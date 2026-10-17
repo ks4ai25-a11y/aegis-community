@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "source_commit": "0f246eecaf9af8b455ea6bfb818681e40c38bf2b",
+  "ci_run": 39032841061,
+  "ci_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/39032841061",
+  "ci_conclusion": "success",
+  "step": "Verify sealed crash repair after a killed authorizer, then another scan",
+  "step_gating_at_this_run": false,
+  "packaged_worker_checks": 34,
+  "checks": {
+    "authorizer_killed_after_create_admission_keeps_slot_held": "PASS",
+    "crashed_journal_reopens_only_in_sealed_quarantine_and_repair_waits_for_fence": "PASS",
+    "daemon_restart_records_post_seal_plugin_activation": "PASS",
+    "pending_create_repaired_once_as_not_created_without_release": "PASS",
+    "repaired_generation_releases_after_exact_name_absence": "PASS",
+    "plugin_and_broker_journals_settle_from_retained_records": "PASS",
+    "next_real_scan_completes_after_crash_repair_and_is_held_again": "PASS"
+  },
+  "scope": "Packaged admitted path on hosted Linux AMD64 with the pinned CI daemon. A test-only aegisfault authorizer build exits after a committed create admission. Covers the not_created outcome only; created, start and removal outcomes are covered by local real-Unix tests. Also observed: no plugin activation through the pre-restart daemon, then one activation after the restart.",
+  "outcomes_hosted": ["not_created"],
+  "fault_build_in_release": false,
+  "all_engine_writes_mediated": false,
+  "independent_security_signoff": false,
+  "public_beta": "NO-GO"
+}

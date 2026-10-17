@@ -110,3 +110,32 @@ func sameConfirmationRequest(a, b scanevidence.CleanupConfirmationRequest) bool 
 	}
 	return true
 }
+
+// Repair asks the controller to resolve every pending intent of a closed
+// generation from evidence the caller gathered under the sealed quarantine
+// fence (ADR 057). The controller rechecks scope and membership; a reply is
+// accepted only when each record is exactly the resolution that was sent.
+func (c *ReconcilerClient) Repair(ctx context.Context, r scanevidence.MutationRepairRequest) (scanevidence.MutationRepairResult, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	v, err := c.Identity(ctx)
+	if err != nil {
+		return scanevidence.MutationRepairResult{}, err
+	}
+	if !r.Valid() || r.Engine != c.engine || r.Namespace != c.namespace {
+		return scanevidence.MutationRepairResult{}, errors.New("invalid mutation repair request")
+	}
+	var out scanevidence.MutationRepairResult
+	if err = c.client.call(ctx, "reconciler/repair", r, &out, 32<<10); err != nil {
+		return scanevidence.MutationRepairResult{}, err
+	}
+	if out.Schema != "1.0" || out.CleanupReleased || out.EngineWritesDone || len(out.Repairs) != len(r.Resolutions) {
+		return scanevidence.MutationRepairResult{}, errors.New("mutation repair rejected")
+	}
+	for i, rec := range out.Repairs {
+		if !rec.Valid() || rec.Reconciler != v.ID || rec.Resolution != r.Resolutions[i] || rec.Job != r.Job || rec.Generation != r.Generation || rec.Membership != r.Membership || rec.Engine != r.Engine || rec.Namespace != r.Namespace || rec.Fence != r.Fence {
+			return scanevidence.MutationRepairResult{}, errors.New("mutation repair rejected")
+		}
+	}
+	return out, nil
+}

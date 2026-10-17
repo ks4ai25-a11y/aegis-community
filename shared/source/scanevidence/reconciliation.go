@@ -133,7 +133,7 @@ func (m ReconciliationMembership) Valid() bool {
 		if !intent.Valid() || intent.ID <= previous || !exists || r.Job != m.Job || r.Generation != g.ID || r.Launch != l.Digest || intent.Workspace != w.Digest || intent.Container != l.Document.Plan.Container || mutations[key].ID != "" {
 			return false
 		}
-		if r.Operation == "create" && intent.State == "completed" {
+		if r.Operation == "create" && intent.Settled() && intent.EngineID != "" {
 			if nativeIDs[intent.EngineID] {
 				return false
 			}
@@ -146,13 +146,15 @@ func (m ReconciliationMembership) Valid() bool {
 		if r.Operation == "create" {
 			continue
 		}
+		// A start or remove targets exactly the settled create's engine ID; a
+		// create repaired as not created has none, so nothing may follow it.
 		created := mutations[r.Tool+"/create"]
-		if created.State != "completed" || created.EngineID != r.EngineID {
+		if !created.Settled() || created.EngineID == "" || created.EngineID != r.EngineID {
 			return false
 		}
 		if r.Operation == "remove" {
 			start := mutations[r.Tool+"/start"]
-			if start.ID != "" && start.State != "completed" {
+			if start.ID != "" && !start.Settled() {
 				return false
 			}
 		}

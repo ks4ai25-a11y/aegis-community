@@ -78,11 +78,71 @@ The controller refuses to release while any engine write of the scan is unresolv
 - a created container has no recorded removal;
 - the job is still running.
 
-It also refuses when the observation does not match exactly. There is no override or reset. Scanning stays blocked for that owner until the cause is resolved.
+It also refuses when the observation does not match exactly. There is no override or reset.
 
 - **If the job is still running or the lease is live:** wait. The controller closes the job when the lease expires, then retry.
-- **If a write is unresolved:** inspect the engine and the authorizer's journal by hand. Supported repair of half-finished writes is not yet available. Until it is, a slot whose writes are unknown stays held, which is deliberate: releasing it could let a second scan run beside a container that still exists.
-- **After a restore from a backup bundle:** the restored slot cannot be released, because restore revokes the binding and the restored record may be missing later scans. Start from a new binding.
+- **If a write is unresolved** (for example the authorizer, the daemon or an acknowledgement was lost mid-write): use sealed crash repair, below.
+- **After a restore from a backup bundle:** the restored slot cannot be released or repaired, because restore revokes the binding and the restored record may be missing later scans. Start from a new binding.
+
+### Sealed crash repair
+
+Repair resolves each unresolved write only from positive evidence, under a fence that rules out a late write. It never releases the slot by itself. Run the steps in order; any refusal leaves everything held and changes nothing.
+
+1. **Confirm what is held.** `aegisctl scanner-reconciler held` prints the job and generation. `reconcile-cleanup` for it fails.
+
+2. **Serve the plugin journal in quarantine.** Stop the admitted plugin if it is still running. `serve-admitted` refuses a journal with an unfinished write. Start quarantine serving with exactly the same arguments:
+
+   ```text
+   aegis-engine-authz serve-quarantine SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK CONTROLLER_SOCKET AUTHORIZER_CREDENTIAL OWNER AUTHORIZER_ID REGISTRY_DIGEST REGISTRY_NAMESPACE_DIGEST RULES_DIGEST_OR_DASH
+   ```
+
+   It writes a quarantine seal into the journal while holding the journal's lock. It allows reads and, later, only the normal admitted removal of the tracked container. It never allows a create or a start.
+
+3. **Restart the dedicated scanner daemon** (stop it, then start it; a reload is not enough). The new daemon process activates the quarantined plugin, and the plugin records that activation. This is the fence: no daemon process that received an Allow before the crash survives the restart.
+
+4. **Repair.** Give the reconciler a copy of its private config with one more field, `"authorizer_journal": "/path/to/plugin/journal"`. Mount that journal read-only in the reconciler's container. Then run:
+
+   ```text
+   aegis-research reconcile-repair /private/aegis/reconcile/repair.json JOB GENERATION
+   ```
+
+   It reads the sealed journal and observes the exact container name (and engine ID when known) on the original engine. It then asks the controller to record one repair per unresolved write:
+
+   | Unresolved write | Observed | Recorded |
+   |---|---|---|
+   | create | container present | `created`, with its exact engine ID |
+   | create | name absent, no recorded create response | `not_created` |
+   | start | container present | `started` or `not_started` |
+   | remove | container absent | `removed` |
+
+   It refuses, and records nothing, when there is no seal or activation, the journal belongs to another binding, or the evidence is uncertain or contradictory. Contradictory means, for example, a recorded create response whose container is gone. The audit log records `scanner.mutation_repaired` per write. If it reports that a removal is still outstanding, go to step 5 and then repair again.
+
+5. **Remove a container that still exists.** Do this if a create was repaired as `created`, or a removal is still outstanding. Run, as the broker identity (`AEGIS_SCANNER_ENGINE_TLS_DIR` set to the broker's TLS directory and `DOCKER_HOST` set to the engine socket):
+
+   ```text
+   aegis-research engine-repair-remove CONTAINER_NAME ENGINE_ID
+   ```
+
+   The quarantined plugin admits it against the controller's repair and completes it as a normal removal. Anything else is refused.
+
+6. **Recover the scan's workspace.** A worker that crashed with the authorizer keeps its workspace. With the registry mounted writable, run the following until it reports `"removed": 1`:
+
+   ```text
+   aegis-research recover-workspaces-observed /private/aegis/reconcile/config.json
+   ```
+
+   It deletes a preserved workspace only after the independent observer reports its bound container absent. Workspaces younger than 180 seconds are deferred.
+
+7. **Release** with the normal `reconcile-cleanup` command (see "Release a held scanner slot").
+
+8. **Settle the journals and resume.** Stop quarantine serving. Then run:
+
+   ```text
+   aegis-engine-authz quarantine-settle SAME_ARGUMENTS_AS_SERVE
+   aegis-research engine-journal-settle CONTROLLER_SOCKET WORKER_CREDENTIAL OWNER /opt/aegis BROKER_JOURNAL ENGINE_DIGEST
+   ```
+
+   The first command records the controller's repairs in the plugin journal. The second closes the broker's unfinished attempt, using the retained cleanup confirmation that observed that exact container absent. Both print `"settled": true` or zero unfinished attempts. Then start `serve-admitted` again; the next scan can run.
 
 ## Limits of independence
 
@@ -93,7 +153,7 @@ It also refuses when the observation does not match exactly. There is no overrid
 
 ## Recovery
 
-Recovery bundles support database versions 13–19. Restore revokes every active reconciler and keeps its original scope, every pending record, every confirmation and every held slot. Restored reconciler credentials cannot authenticate.
+Recovery bundles support database versions 13–20. Restore revokes every active reconciler and keeps its original scope, every pending record, every confirmation, every repair and every held slot. Restored reconciler credentials cannot authenticate.
 
 ## Reference
 
@@ -125,12 +185,18 @@ Every context retains `metadata_only=true`, `cleanup_required=true`, `cleanup_re
 - the absences equal exactly what membership requires;
 - engine and namespace equal the original binding.
 
-Only then does it record an immutable, retained confirmation (`scanner_cleanup_confirmations`), move the generation `closed`→`released`, delete the held dispatch and audit `scanner.cleanup_confirmed`. An exact replay returns the stored confirmation. A different request for a released job is refused. Unknown or pending mutations keep the hold indefinitely; there is no repair or override path.
+Only then does it record an immutable, retained confirmation (`scanner_cleanup_confirmations`), move the generation `closed`→`released`, delete the held dispatch and audit `scanner.cleanup_confirmed`. An exact replay returns the stored confirmation. A different request for a released job is refused. Unknown or pending mutations keep the hold until sealed crash repair resolves them from evidence; there is no override path.
 
 The database itself refuses to mark a generation released without a matching confirmation, and refuses confirmation rows that point at another job's generation or carry malformed digests.
+
+### Repair transaction
+
+`POST /internal/v1/scanner/reconciler/repair` takes exactly `job_id`, `generation_id`, `membership_digest`, `engine_digest`, `registry_namespace_digest`, `fence` (`journal_policy_digest`, `quarantine_digest`, `activation_digest`) and `resolutions` (one `{intent_id, operation, outcome, engine_id, evidence_digest}` per pending intent, sorted by intent ID). In one transaction the controller rechecks the enrollment and recomputes membership. It refuses unless the job is terminal, the slot is held with a closed generation, the binding and authorizer are active, the membership digest matches, the fence's journal policy equals this binding's admitted journal seal, and every pending intent is resolved with an outcome that fits its operation. It then inserts one immutable `scanner_mutation_repairs` row per intent, moves each intent to `repaired` (never a native status) and audits `scanner.mutation_repaired`. It never releases the slot.
+
+The authorizer role may read one of its own retained intents (`POST /internal/v1/scanner/authorizer/intent`), and a worker may read the retained confirmation that covered a container it launched (`POST /internal/v1/scanner/cleanup-confirmation`). Both are read-only.
 
 ### Evidence
 
 Local checks include role/credential isolation, immutable scope, expiry/revocation, failed issuance and audit rollback, complete pending membership, stable/fresh snapshot identities, hostile wire shapes, actual controller/alpha Unix RPC, older migration preservation and restored-role revocation. Fixed contract samples use only synthetic labels and dates and contain no issued credential or runtime evidence.
 
-Hosted CI run [39013987465](https://github.com/ks4ai25-a11y/aegis-community/actions/runs/39013987465) at commit `4a8c616` ran two real scans in a row through the packaged controller, authorizer and TLS engine path, with one independent release between them (26 checks). That step now gates CI. It does not prove that every engine write is mediated, and it does not cover repair of half-finished writes.
+Hosted CI run [39013987465](https://github.com/ks4ai25-a11y/aegis-community/actions/runs/39013987465) at commit `4a8c616` ran two real scans in a row through the packaged controller, authorizer and TLS engine path, with one independent release between them (26 checks). That step now gates CI. It does not prove that every engine write is mediated. Sealed crash repair has its own gating hosted step, first passed in run [39032841061](https://github.com/ks4ai25-a11y/aegis-community/actions/runs/39032841061) at `0f246ee` (the `not_created` path); see ADR 057.
