@@ -64,3 +64,57 @@ test('a page that fails to render does not blank the console', async ({page}) =>
   await expect(page.getByText('This view could not be displayed')).toBeHidden();
   await expect(page.getByRole('heading', {name: 'Review a policy change'})).toBeVisible();
 });
+
+test('an action error stays visible while status keeps polling', async ({page}) => {
+  await page.route('**/api/v1/**', async route => {
+    const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
+    if (path === '/auth/session') return route.fulfill({json: {owner_id: 'owner', csrf_token: 'csrf'}});
+    if (path === '/system/status') return route.fulfill({json: {mode: 'observe', gateway_healthy: true}});
+    if (path === '/demo/traffic') return route.fulfill({status: 422, json: {error: {message: 'Demo traffic refused'}}});
+    return route.fulfill({json: {items: []}});
+  });
+  await page.goto('/');
+  await page.getByRole('button', {name: 'Run safe demo traffic'}).click();
+  await expect(page.getByRole('alert').filter({hasText: 'Demo traffic refused'})).toBeVisible();
+  await page.waitForTimeout(6500); // more than one status poll
+  await expect(page.getByRole('alert').filter({hasText: 'Demo traffic refused'})).toBeVisible();
+  await page.getByRole('button', {name: 'Dismiss error'}).click();
+  await expect(page.getByText('Demo traffic refused')).toBeHidden();
+});
+
+test('an expired session returns to sign-in with an explanation', async ({page}) => {
+  let expired = false;
+  await page.route('**/api/v1/**', async route => {
+    const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
+    if (path === '/auth/session') return expired ? route.fulfill({status: 401, json: {error: {message: 'authentication required'}}}) : route.fulfill({json: {owner_id: 'owner', csrf_token: 'csrf'}});
+    if (expired) return route.fulfill({status: 401, json: {error: {message: 'authentication required'}}});
+    if (path === '/system/status') return route.fulfill({json: {mode: 'observe', gateway_healthy: true}});
+    return route.fulfill({json: {items: []}});
+  });
+  await page.goto('/');
+  await expect(page.getByRole('heading', {name: 'Your security, in focus.', exact: true})).toBeVisible();
+  expired = true;
+  await expect(page.getByRole('heading', {name: 'Welcome back.'})).toBeVisible({timeout: 8000});
+  await expect(page.getByText('Your session ended. Sign in again to continue.')).toBeVisible();
+});
+
+test('switching site discards a policy preview made for the other site', async ({page}) => {
+  const digest = 'sha256:' + 'a'.repeat(64);
+  const policy = {schema_version: '1.1', parent_revision: '', requested_mode: 'observe', crs: {blocking_paranoia: 1, executing_paranoia: 1, inbound_anomaly_threshold: 5}, exclusions: [], sites: [{site_id: 'site_shop', display_name: 'Shop', hostnames: ['shop.example.com'], origin: 'shop:3000', requested_mode: 'observe', crs: {blocking_paranoia: 1, executing_paranoia: 1, inbound_anomaly_threshold: 5}, exclusions: []}], metadata: {rationale: 'x', requested_by: 'system'}};
+  await page.route('**/api/v1/**', async route => {
+    const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
+    if (path === '/auth/session') return route.fulfill({json: {owner_id: 'owner', csrf_token: 'csrf'}});
+    if (path === '/system/status') return route.fulfill({json: {mode: 'observe', gateway_healthy: true}});
+    if (path === '/sites') return route.fulfill({json: {items: [{site_id: 'site_demo', display_name: 'Bundled demo'}, {site_id: 'site_shop', display_name: 'Shop'}]}});
+    if (path.endsWith('/policy')) return route.fulfill({json: {digest, policy}});
+    if (path.endsWith('/policies/validate')) return route.fulfill({json: {candidate_digest: 'sha256:' + 'b'.repeat(64), fixture_result: 'PASS', report: {overall: 'PASS', checks: [], limitations: []}}});
+    return route.fulfill({json: {items: []}});
+  });
+  await page.goto('/');
+  await page.getByLabel('Selected site').selectOption('site_shop');
+  await page.getByRole('button', {name: 'Policies', exact: true}).click();
+  await page.getByRole('button', {name: 'Validate and preview'}).click();
+  await expect(page.getByText('Candidate preview')).toBeVisible();
+  await page.getByLabel('Selected site').selectOption('site_demo');
+  await expect(page.getByText('Candidate preview')).toBeHidden();
+});

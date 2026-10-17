@@ -54,7 +54,7 @@ class Boundary extends Component<{page: string; children: ReactNode}, {error?: s
 
 function App() {
   const [session, setSession] = useState(false), [loading, setLoading] = useState(true), [page, setPage] = useState<Page>('Overview'), [initialScan, setInitialScan] = useState('');
-  const [status, setStatus] = useState<any>(), [error, setError] = useState(''), [busy, setBusy] = useState(false), [refresh, setRefresh] = useState(0), [toast, setToast] = useState('');
+  const [status, setStatus] = useState<any>(), [error, setError] = useState(''), [statusError, setStatusError] = useState(''), [ended, setEnded] = useState(false), [busy, setBusy] = useState(false), [refresh, setRefresh] = useState(0), [toast, setToast] = useState('');
   const [site, setSite] = useState('site_demo'), [sites, setSites] = useState<any[]>([]), [drawer, setDrawer] = useState(false), [palette, setPalette] = useState(false), [theme, setTheme] = useState<Theme>(initialTheme);
   useEffect(() => { document.documentElement.dataset.theme = theme; try { localStorage.setItem('aegis-theme', theme); } catch {} }, [theme]);
   useEffect(() => { api('/auth/session').then(v => { setCSRF(v.csrf_token); setSession(true); }).catch(() => {}).finally(() => setLoading(false)); }, []);
@@ -69,7 +69,8 @@ function App() {
   useEffect(() => {
     if (!session) return;
     let stopped = false;
-    const update = () => api('/system/status').then(v => { if (!stopped) { setStatus(v); setError(''); } }).catch(e => { if (!stopped) setError(e.message); });
+    // Status polling owns only its own error; it must never clear an action's error.
+    const update = () => api('/system/status').then(v => { if (!stopped) { setStatus(v); setStatusError(''); } }).catch(e => { if (!stopped) setStatusError(e.message); });
     update();
     const t = setInterval(update, 5000);
     return () => { stopped = true; clearInterval(t); };
@@ -78,6 +79,11 @@ function App() {
     const onKey = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette(p => !p); } };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  useEffect(() => {
+    const expired = () => { setSession(false); setEnded(true); };
+    window.addEventListener('aegis-session-expired', expired);
+    return () => window.removeEventListener('aegis-session-expired', expired);
   }, []);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(''), 6000); return () => clearTimeout(t); }, [toast]);
   async function action(work: () => Promise<any>, message?: string) {
@@ -89,7 +95,7 @@ function App() {
   const go = (p: Page) => { setPage(p); setInitialScan(''); setToast(''); setDrawer(false); setPalette(false); window.scrollTo?.(0, 0); };
 
   if (loading) return <div className="loading"><span className="brand-mark large"><Shield size={28}/></span><p>Opening local console…</p></div>;
-  if (!session) return <Auth onSuccess={v => { setCSRF(v); setSession(true); }}/>;
+  if (!session) return <Auth ended={ended} onSuccess={v => { setCSRF(v); setSession(true); setEnded(false); }}/>;
   const protect = status?.mode === 'protect';
   return <div className={'shell' + (drawer ? ' drawer-open' : '')}>
     <aside aria-label="Sidebar">
@@ -135,6 +141,7 @@ function App() {
           {site === 'site_demo' && page !== 'Repositories' && page !== 'Scans' && page !== 'Findings' && <span className="pill">Bundled demo · synthetic data</span>}
         </div>
         {error && <div role="alert" className="alert error">{error}<button onClick={() => setError('')} aria-label="Dismiss error"><X size={14}/></button></div>}
+        {statusError && <div role="status" className="alert warn">Live status unavailable: {statusError}. Figures shown may be stale.</div>}
         {toast && <div role="status" className="alert success">{toast}<button onClick={() => setToast('')} aria-label="Dismiss message"><X size={14}/></button></div>}
         <Boundary page={page}>
           {page === 'Overview' && <Overview status={status} site={site} refresh={refresh} busy={busy} go={go} action={action}/>}
@@ -259,7 +266,7 @@ function Overview({status, site, refresh, busy, go, action}: {status: any; site:
   </>;
 }
 
-function Auth({onSuccess}: {onSuccess: (csrf: string) => void}) {
+function Auth({onSuccess, ended}: {onSuccess: (csrf: string) => void; ended?: boolean}) {
   const [setup, setSetup] = useState(false), [token, setToken] = useState(''), [password, setPassword] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false);
   return <div className="auth-page">
     <div className="auth-art">
@@ -281,6 +288,7 @@ function Auth({onSuccess}: {onSuccess: (csrf: string) => void}) {
       <span className="brand-mark large"><Shield size={26}/></span>
       <h2>{setup ? 'Enroll the first owner' : 'Welcome back.'}</h2>
       <p className="muted">{setup ? 'Use the short-lived bootstrap token printed in the local controller logs.' : 'Sign in to your local Aegis console.'}</p>
+      {ended && !error && <div role="status" className="alert warn">Your session ended. Sign in again to continue.</div>}
       {error && <div role="alert" className="alert error">{error}</div>}
       {setup && <label>Bootstrap token<input required value={token} onChange={e => setToken(e.target.value)} autoComplete="off"/></label>}
       <label>Owner passphrase<input type="password" minLength={setup ? 14 : 1} maxLength={256} required value={password} onChange={e => setPassword(e.target.value)} autoComplete={setup ? 'new-password' : 'current-password'}/></label>
@@ -381,6 +389,8 @@ function Incidents({site, refresh}: {site: string; refresh: number}) {
 
 function Policies({site, action, busy, refresh}: {site: string; action: (w: () => Promise<any>, m?: string) => Promise<any>; busy: boolean; refresh: number}) {
   const [current, setCurrent] = useState<any>(), [history, setHistory] = useState<any[]>([]), [mode, setMode] = useState('protect'), [reason, setReason] = useState('Enable Protect after isolated fixture review'), [ack, setAck] = useState(false), [preview, setPreview] = useState<any>(), [error, setError] = useState('');
+  // A preview belongs to the site it was made for; switching site discards it.
+  useEffect(() => { setPreview(undefined); setAck(false); }, [site]);
   useEffect(() => {
     api('/sites/' + site + '/policy').then(setCurrent).catch(e => setError(e.message));
     api('/sites/' + site + '/policies/history').then(v => setHistory(Array.isArray(v.items) ? v.items : [])).catch(e => setError(e.message));
@@ -399,7 +409,7 @@ function Policies({site, action, busy, refresh}: {site: string; action: (w: () =
         <label>Reason<input value={reason} minLength={5} maxLength={512} onChange={e => { setReason(e.target.value); setPreview(undefined); }}/></label>
       </div>
       <div className="note"><Shield size={16}/><p>CRS PL1 · anomaly threshold 5. Validation uses the pinned gateway. The shadow test runs only in the bundled isolated fixture.</p></div>
-      <button disabled={busy || !candidate || reason.length < 5} className="button primary" onClick={() => action(async () => { const p = await api('/sites/' + site + '/policies/validate', candidate); setPreview({...p, policy: candidate}); return p; })}>{busy ? 'Validating & testing…' : 'Validate and preview'}<ArrowRight size={15}/></button>
+      <button disabled={busy || !candidate || reason.length < 5} className="button primary" onClick={() => action(async () => { const p = await api('/sites/' + site + '/policies/validate', candidate); setPreview({...p, policy: candidate, site}); return p; })}>{busy ? 'Validating & testing…' : 'Validate and preview'}<ArrowRight size={15}/></button>
     </section>
     {preview && <section className="card">
       <div className="card-heading"><h2>Candidate preview</h2><span className={'badge ' + (preview.fixture_result === 'PASS' ? 'allowed' : 'blocked')}>{preview.fixture_result}</span></div>
@@ -407,7 +417,8 @@ function Policies({site, action, busy, refresh}: {site: string; action: (w: () =
       <div className="system-row"><span>Mode transition</span><strong>{target?.requested_mode} → {mode}</strong></div>
       <Report report={preview.report}/>
       <label className="checkbox"><input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)}/>I understand that legitimate traffic may be interrupted.</label>
-      <button disabled={busy || !ack || preview.fixture_result !== 'PASS'} className="button primary" onClick={() => action(async () => {
+      <button disabled={busy || !ack || preview.fixture_result !== 'PASS' || preview.site !== site} className="button primary" onClick={() => action(async () => {
+        if (preview.site !== site) throw new Error('This preview was made for another site. Validate again.');
         await api('/sites/' + site + '/policies', preview.policy);
         await api('/sites/' + site + '/policies/' + encodeURIComponent(preview.candidate_digest) + '/activate', {reason, acknowledge_disruption_risk: true}, {'If-Match': '"' + current.digest + '"', 'Idempotency-Key': key()});
         setPreview(undefined); setAck(false);

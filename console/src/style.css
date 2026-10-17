@@ -224,6 +224,7 @@ textarea{font:inherit;min-height:90px}
 .note p{margin:0;color:var(--text-2);font-size:13px}
 .alert{display:flex;gap:12px;align-items:flex-start;padding:11px 14px;border-radius:var(--radius-sm);font-size:13.5px;line-height:1.55;margin-bottom:18px;border:1px solid transparent}
 .alert.error{background:var(--danger-soft);border-color:color-mix(in srgb,var(--danger) 35%,transparent);color:var(--text)}
+.alert.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 35%,transparent);color:var(--text)}
 .alert.success{background:var(--ok-soft);border-color:var(--accent-line);color:var(--text)}
 .alert button{margin-left:auto;border:0;background:none;color:var(--muted);padding:2px;display:grid;place-items:center}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;background:var(--surface-3);color:var(--text-2);border:1px solid var(--border);border-radius:999px;font-size:12px;font-weight:500;line-height:20px;white-space:nowrap}
