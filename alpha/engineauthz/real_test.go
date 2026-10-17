@@ -160,6 +160,8 @@ func TestRealDaemonAuthorizationAndStaticScanner(t *testing.T) {
 		}
 		engineID = info.ID
 	}
+	verifyRealPeerExpiry(t, endpoint, root)
+	checks = append(checks, "native reused TLS certificate expiry denied")
 	independent := newRealObserver(t, ctx, root, u.Host, engineID)
 	status, _ := request("unknown", "GET", "/info", nil)
 	if status != 403 {

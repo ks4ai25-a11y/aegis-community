@@ -48,7 +48,7 @@ func fixture(t *testing.T) (*Policy, Config, Request) {
 	t.Cleanup(p.Close)
 	profile := engineprofile.CreateTracked("bandit", testImage, testName, filepath.Join(work, "source"), "", filepath.Join(work, "guard"), 120, time.Now().UTC().Add(120*time.Second), cfg.UID, cfg.GID, 123)
 	b, _ := json.Marshal(profile)
-	return p, cfg, Request{User: Broker, UserAuthNMethod: "TLS", RequestMethod: "POST", RequestURI: api + "/containers/create?name=" + testName, RequestBody: b, RequestHeaders: map[string]string{"Content-Type": "application/json"}}
+	return p, cfg, Request{User: Broker, UserAuthNMethod: "TLS", RequestPeerCertificates: nativeTestPeer(Broker), RequestMethod: "POST", RequestURI: api + "/containers/create?name=" + testName, RequestBody: b, RequestHeaders: map[string]string{"Content-Type": "application/json"}}
 }
 func must(t *testing.T, d Decision, allow bool) {
 	t.Helper()
@@ -57,7 +57,7 @@ func must(t *testing.T, d Decision, allow bool) {
 	}
 }
 func call(method, path string) Request {
-	return Request{User: Broker, UserAuthNMethod: "TLS", RequestMethod: method, RequestURI: api + path}
+	return Request{User: Broker, UserAuthNMethod: "TLS", RequestPeerCertificates: nativeTestPeer(Broker), RequestMethod: method, RequestURI: api + path}
 }
 func created(t *testing.T, p *Policy, r Request) {
 	t.Helper()
@@ -153,6 +153,7 @@ func TestPrincipalPathAndReadBoundaries(t *testing.T) {
 	for _, user := range []string{"", Observer, "aegis-engine-admin", "root", Broker + " "} {
 		x := r
 		x.User = user
+		x.RequestPeerCertificates = nativeTestPeer(user)
 		must(t, p.AuthorizeRequest(x), false)
 	}
 	for _, method := range []string{"", "tls", "Unix", "Basic"} {
@@ -171,6 +172,7 @@ func TestPrincipalPathAndReadBoundaries(t *testing.T) {
 		for _, path := range []string{"/info", "/images/" + testImage + "/json"} {
 			x := call("GET", path)
 			x.User = user
+			x.RequestPeerCertificates = nativeTestPeer(user)
 			must(t, p.AuthorizeRequest(x), true)
 			must(t, p.AuthorizeResponse(x), true)
 		}
@@ -180,22 +182,26 @@ func TestPrincipalPathAndReadBoundaries(t *testing.T) {
 	for _, user := range []string{Broker, Observer} {
 		x := call("GET", "/containers/"+testID+"/json")
 		x.User = user
+		x.RequestPeerCertificates = nativeTestPeer(user)
 		must(t, p.AuthorizeRequest(x), true)
 	}
 	for _, user := range []string{Broker, Observer} {
 		x := call("GET", "/containers/"+testName+"/json")
 		x.User = user
+		x.RequestPeerCertificates = nativeTestPeer(user)
 		must(t, p.AuthorizeRequest(x), true)
 	}
 	must(t, p.AuthorizeRequest(call("GET", "/containers/aegis-scan-"+strings.Repeat("b", 32)+"/json")), false)
 	f, _ := json.Marshal(map[string]map[string]bool{"name": {"^/" + testName + "$": true}})
 	x := call("GET", "/containers/json?"+url.Values{"all": {"1"}, "filters": {string(f)}}.Encode())
 	x.User = Observer
+	x.RequestPeerCertificates = nativeTestPeer(Observer)
 	must(t, p.AuthorizeRequest(x), true)
 	for _, path := range []string{"/containers/" + testID + "/attach?stderr=1&stdout=1&stream=1", "/containers/" + testID + "/wait?condition=next-exit", "/containers/" + testID + "/wait?condition=removed"} {
 		x := call("POST", path)
 		must(t, p.AuthorizeRequest(x), true)
 		x.User = Observer
+		x.RequestPeerCertificates = nativeTestPeer(Observer)
 		must(t, p.AuthorizeRequest(x), false)
 	}
 	for _, path := range []string{"/containers/" + testID + "/attach?stderr=1&stdin=1&stdout=1&stream=1", "/containers/" + testID + "/wait?condition=not-running", "/containers/" + strings.Repeat("b", 64) + "/start", "/containers/" + testID + "/exec"} {

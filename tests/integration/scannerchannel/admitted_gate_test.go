@@ -186,7 +186,7 @@ func setupAdmittedEngineGate(t *testing.T, dropCompletionAck bool) gateFixture {
 	deadline, _ := time.Parse(time.RFC3339Nano, launch.Document.Deadline)
 	create := engineprofile.CreateTracked("bandit", images["bandit"], gateName, snapshot.Path, "", guard, launch.Document.Duration, deadline, cfg.UID, cfg.GID, 123)
 	raw, _ = json.Marshal(create)
-	request := engineauthz.Request{User: engineauthz.Broker, UserAuthNMethod: "TLS", RequestMethod: "POST", RequestURI: "/v1.55/containers/create?name=" + gateName, RequestBody: raw, RequestHeaders: map[string]string{"Content-Type": "application/json"}}
+	request := engineauthz.Request{User: engineauthz.Broker, UserAuthNMethod: "TLS", RequestPeerCertificates: nativeTestPeer(engineauthz.Broker), RequestMethod: "POST", RequestURI: "/v1.55/containers/create?name=" + gateName, RequestBody: raw, RequestHeaders: map[string]string{"Content-Type": "application/json"}}
 	return gateFixture{f, p, cfg, request, j.ID, snapshot.Path, guard, lock, credential}
 }
 

@@ -31,6 +31,7 @@ func TestHistoricalObserverReadsOnlyExactRetainedAllocations(t *testing.T) {
 		for _, exact := range []string{testID, testName, secondID, secondName} {
 			x := call("GET", "/containers/"+exact+"/json")
 			x.User = Observer
+			x.RequestPeerCertificates = nativeTestPeer(Observer)
 			must(t, p.AuthorizeRequest(x), true)
 			x.ResponseStatusCode = 404
 			must(t, p.AuthorizeResponse(x), true)
@@ -38,10 +39,12 @@ func TestHistoricalObserverReadsOnlyExactRetainedAllocations(t *testing.T) {
 		for _, path := range []string{"/containers/json", "/containers/" + strings.Repeat("c", 64) + "/json", "/containers/aegis-scan-" + strings.Repeat("c", 32) + "/json", "/containers/" + testID[:12] + "/json", "/containers/" + testID + "/json?all=1", "/containers/" + testID + "/json/extra"} {
 			x := call("GET", path)
 			x.User = Observer
+			x.RequestPeerCertificates = nativeTestPeer(Observer)
 			must(t, p.AuthorizeRequest(x), false)
 		}
 		for _, x := range []Request{call("POST", "/containers/"+testID+"/start"), call("DELETE", "/containers/"+testID+"?force=1&v=1"), call("POST", "/containers/"+testID+"/wait?condition=removed")} {
 			x.User = Observer
+			x.RequestPeerCertificates = nativeTestPeer(Observer)
 			must(t, p.AuthorizeRequest(x), false)
 		}
 		if p.Observation() != before {

@@ -168,13 +168,14 @@ func deny() Decision                                     { return Decision{Msg: 
 func allow() Decision                                    { return Decision{Allow: true} }
 func fingerprint(r Request) string {
 	b, _ := json.Marshal(struct {
-		User, Method, URI string
-		Body              []byte
-	}{r.User, r.RequestMethod, r.RequestURI, r.RequestBody})
+		User, Authentication, Method, URI string
+		Body                              []byte
+		PeerCertificates                  [][]byte
+	}{r.User, r.UserAuthNMethod, r.RequestMethod, r.RequestURI, r.RequestBody, r.RequestPeerCertificates})
 	return source.Hash(b)
 }
 func parsed(r Request) (*url.URL, bool) {
-	if r.UserAuthNMethod != "TLS" || (r.User != Broker && r.User != Observer) || len(r.RequestURI) > 4096 || len(r.RequestBody) > 65536 {
+	if !nativePeer(r, time.Now()) || len(r.RequestURI) > 4096 || len(r.RequestBody) > 65536 {
 		return nil, false
 	}
 	u, e := url.ParseRequestURI(r.RequestURI)
@@ -353,7 +354,7 @@ func (p *Policy) AuthorizeRequestContext(ctx context.Context, r Request) Decisio
 		return deny()
 	}
 	if r.RequestMethod == "POST" && u.Path == api+"/containers/create" && p.attempt == nil {
-		if p.create(ctx, r, u, time.Now()) {
+		if p.create(ctx, r, u, time.Now()) && nativePeer(r, time.Now()) && ctx.Err() == nil {
 			return allow()
 		}
 		return deny()
@@ -411,7 +412,7 @@ func (p *Policy) AuthorizeRequestContext(ctx context.Context, r Request) Decisio
 			return deny()
 		}
 	}
-	if ctx.Err() != nil {
+	if ctx.Err() != nil || !nativePeer(r, time.Now()) {
 		return deny()
 	}
 	return allow()
@@ -471,6 +472,9 @@ func (p *Policy) AuthorizeResponseContext(ctx context.Context, r Request) Decisi
 		if e != nil || ctx.Err() != nil {
 			return deny()
 		}
+	}
+	if ctx.Err() != nil || !nativePeer(r, time.Now()) {
+		return deny()
 	}
 	p.id = id
 	p.pending = ""
