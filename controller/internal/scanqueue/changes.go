@@ -93,7 +93,8 @@ func (q *Queue) SetRescanPolicy(owner, repo string, enabled bool, tools []string
 		return RescanPolicy{}, ErrPolicy
 	}
 	var count int
-	if e := q.S.DB.QueryRow("SELECT count(*) FROM settings WHERE key LIKE ? AND key<>?", rescanPrefix+owner+"/%", rescanKey(owner, repo)).Scan(&count); e != nil {
+	prefix := rescanPrefix + owner + "/"
+	if e := q.S.DB.QueryRow("SELECT count(*) FROM settings WHERE substr(key,1,length(?))=? AND key<>?", prefix, prefix, rescanKey(owner, repo)).Scan(&count); e != nil {
 		return RescanPolicy{}, e
 	}
 	if enabled && count >= 100 {
@@ -120,7 +121,7 @@ func (q *Queue) SetRescanPolicy(owner, repo string, enabled bool, tools []string
 // CheckChanges evaluates at most limit enabled policies, oldest check first,
 // skipping any checked within minInterval.
 func (q *Queue) CheckChanges(ctx context.Context, refresh Refresh, limit int, minInterval time.Duration) ([]RescanOutcome, error) {
-	rows, e := q.S.DB.Query("SELECT value FROM settings WHERE key LIKE ? LIMIT 10000", rescanPrefix+"%")
+	rows, e := q.S.DB.Query("SELECT value FROM settings WHERE substr(key,1,?)=? LIMIT 10000", len(rescanPrefix), rescanPrefix)
 	if e != nil {
 		return nil, e
 	}

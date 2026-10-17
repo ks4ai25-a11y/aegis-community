@@ -192,7 +192,14 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 	if _, e = tx.ExecContext(ctx, "UPDATE scanner_jobs SET state='cancelled',cancel_requested=1,finished_at=?,error_code='RESTORE_AUTHORITY_INVALIDATED' WHERE state IN ('queued','running')", now); e != nil {
 		return ErrRecovery
 	}
-	if e = store.AuditTx(tx, "local-restore", "recovery.authority_invalidated", bundle, "QUARANTINED", map[string]any{"schema_version": "1.0", "live_activated": false, "scanner_cleanup_holds_preserved": true}); e != nil {
+	rescans, e := disableRestoredRescans(ctx, tx, now)
+	if e != nil {
+		return ErrRecovery
+	}
+	if e = store.AuditTx(tx, "local-restore", "recovery.authority_invalidated", bundle, "QUARANTINED", map[string]any{"schema_version": "1.0", "live_activated": false, "scanner_cleanup_holds_preserved": true, "rescan_policies_quarantined": rescans, "automatic_rescan_reenable_required": true}); e != nil {
+		return ErrRecovery
+	}
+	if verifyRestoredRescans(ctx, tx, now, rescans) != nil {
 		return ErrRecovery
 	}
 	if e = tx.Commit(); e != nil {
