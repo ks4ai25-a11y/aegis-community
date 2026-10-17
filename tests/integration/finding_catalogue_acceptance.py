@@ -12,7 +12,7 @@ with opener.open(request,timeout=10) as response:csrf=json.load(response)['csrf_
 cookie=next(c.value for c in jar if c.name=='aegis_session');client=ResearchClient(session_cookie=cookie,csrf_token=csrf);checks=[]
 def check(name):checks.append({'id':name,'result':'PASS'});print(name+': PASS',flush=True)
 listing=client.listFindingCatalogue({'limit':20})
-assert listing['schema_version']=='1.0' and listing['scope']=='retained_static_observations' and 0<=listing['retained_result_count']<=1000 and 0<=listing['jobs_without_result']<=1000
+assert listing['schema_version']=='1.0' and listing['scope']=='retained_static_observations' and 0<=listing['retained_result_count']<=10000 and 0<=listing['jobs_without_result']<=10000
 if listing['retained_result_count']==0:assert 'result' not in listing and 'findings' not in listing and listing['next_cursor']==''
 else:
  result=client.getScanResult(listing['findings']['job_id']);assert result==listing['result'] and result['document']['owner_id']==listing['owner_id'];assert listing['findings']['result_digest']==result['result_digest']

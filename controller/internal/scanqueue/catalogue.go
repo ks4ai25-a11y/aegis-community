@@ -2,6 +2,7 @@
 package scanqueue
 
 import (
+	"fmt"
 	"aegis.local/controller/internal/domain"
 	"bytes"
 	"context"
@@ -131,7 +132,9 @@ func (q *Queue) Catalogue(ctx context.Context, owner string, in CatalogueQuery) 
 		sqlText += " AND j.repository=?"
 		args = append(args, in.Repository)
 	}
-	sqlText += " ORDER BY coalesce(r.created_at,j.created_at) DESC,j.id DESC LIMIT 1001"
+	// The roster covers every retained job (the queue budget), so the catalogue
+	// keeps working as history grows.
+	sqlText += fmt.Sprintf(" ORDER BY coalesce(r.created_at,j.created_at) DESC,j.id DESC LIMIT %d", RetainedJobBudget+1)
 	rows, e := tx.QueryContext(ctx, sqlText, args...)
 	if e != nil {
 		return CataloguePage{}, e
@@ -146,7 +149,7 @@ func (q *Queue) Catalogue(ctx context.Context, owner string, in CatalogueQuery) 
 			return CataloguePage{}, e
 		}
 		total++
-		if total > 1000 {
+		if total > RetainedJobBudget {
 			rows.Close()
 			return CataloguePage{}, ErrFindingBudget
 		}
