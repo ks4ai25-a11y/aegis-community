@@ -115,6 +115,7 @@ class EngineFixture:
   else:self.bound=BoundAuthorizer(self,raw,compose,project,nonce,owner,socket_volume,provisioning)
   self.bound.start()
   self.bound.probe_unregistered()
+  if self.bound.admitted:self.bound.probe_unadmitted_writes()
  def assert_absent(self,name):
   if not re.fullmatch(r'aegis-scan-[0-9a-f]{32}',name):raise RuntimeError('Exact child name required')
   status,_=self.observer('/containers/'+name+'/json')
@@ -129,7 +130,7 @@ class EngineFixture:
   observation=json.loads(run(self.as_user([self.programs/'aegis-research','engine-journal-status',self.journal,self.engine_digest]),env=self.env).stdout)
   if observation['attempts']!=(2 if os.environ.get('AEGIS_PACKAGED_RECONCILE_TEST')=='1' else 1) or observation['unresolved_requests'] or observation['unfinished_attempts'] or observation['all_engine_writes_mediated'] or observation['cleanup_release_authorized']:raise RuntimeError('Independent plugin journal unconfirmed')
   self.finished=True
-  self.proof={'schema_version':'1.0','separate_daemon':True,'unique_containerd_namespaces':True,'raw_bootstrap_listener_removed':not self.bootstrap.exists(),'broker_has_raw_daemon_socket':False,'broker_has_daemon_socket_group':False,'end_to_end_tls_over_opaque_unix_relay':True,'relay_has_engine_credentials':False,'daemon_http2_setting':'GODEBUG=http2server=0','plugin_journal':observation,'controller_live_preconditions_verified':self.bound is not None,'controller_plugin_lease_binding_verified':False,'actual_controller_mutation_ledger_verified':self.bound is not None and self.bound.ledger_verified,'all_engine_writes_mediated':False,'cleanup_release_authorized':False,'public_beta':'NO-GO'}
+  self.proof={'schema_version':'1.0','separate_daemon':True,'unique_containerd_namespaces':True,'raw_bootstrap_listener_removed':not self.bootstrap.exists(),'broker_has_raw_daemon_socket':False,'broker_has_daemon_socket_group':False,'end_to_end_tls_over_opaque_unix_relay':True,'relay_has_engine_credentials':False,'daemon_http2_setting':'GODEBUG=http2server=0','plugin_journal':observation,'controller_live_preconditions_verified':self.bound is not None,'controller_plugin_lease_binding_verified':False,'actual_controller_mutation_ledger_verified':self.bound is not None and self.bound.ledger_verified,'enumerated_unadmitted_api_writes_refused':self.bound is not None and self.bound.admitted and self.bound.mediation_verified,'all_engine_writes_mediated':False,'cleanup_release_authorized':False,'public_beta':'NO-GO'}
   return self.proof
  def close(self):
   # Private daemon logs may contain allocation identities and host paths.

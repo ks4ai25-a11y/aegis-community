@@ -171,6 +171,7 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
     authz_engine.bind_controller(raw,compose,project,nonce,owner,socket_volume,provisioning,worker_id)
     check('separate_packaged_authorizer_has_only_selected_admission_channel_and_readonly_source' if admission_mode else 'separate_packaged_authorizer_has_only_private_observer_channel_and_readonly_source')
     check('native_tls_engine_refuses_unregistered_profile_without_allocation')
+    if admission_mode:check('native_tls_engine_refuses_enumerated_unadmitted_writes_without_state_change')
     confirmed=True
    broker.create_client(worker_name)
    broker_env={**profile_env,'AEGIS_SCANNER_BROKER_ID':worker_id}
@@ -265,10 +266,11 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   evidence={'schema_version':'1.0','status':'PASS','scope':'Isolated packaged nonroot bound worker executes a real static fixture only after immutable operator engine/registry provisioning; no independent cleanup release or production broker claim','recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'worker_image':image,'preflight':preflight,'operator_provisioning_input':provisioning,'operator_binding':binding,'journal_provisioning_input':journal_input,'journal_binding':journal_binding,'bound_launch_example':launch,'result':suite,'tool_ids':tools,'catalogue':catalogue,'journal':journal,'container_hardening_verified':True,'child_absence_observed':True,'controller_cleanup_admission':'RELEASED_ONCE_THEN_HELD' if reconcile_mode else 'HELD','sequential_scans':2 if reconcile_mode else 1,'all_engine_writes_mediated':False,'independent_security_signoff':False}
   if engine_proof is not None:evidence['restricted_engine']=engine_proof
   if reconcile_mode:
-   evidence['scope']='Packaged admitted path: two sequential real scans, with one independent reconciler release between them after exact absence observation under the original registry barrier; no all-write mediation or security sign-off claim'
+   evidence['scope']='Packaged admitted path: two sequential real scans, with one independent reconciler release between them after exact absence observation under the original registry barrier; enumerated unadmitted Docker API writes refused without engine state change; no host-level all-write mediation or security sign-off claim'
    evidence['independent_cleanup_release']={'released_jobs':1,'second_scan_completed':True,'second_job_held_again':True}
    if engine_proof is not None:engine_proof['cleanup_release_authorized']='ONCE_BY_INDEPENDENT_RECONCILER'
   if admission_mode:evidence['actual_controller_mutation_ledger_verified']=authz_engine.bound.ledger_verified
+  if admission_mode:evidence['enumerated_unadmitted_api_writes_refused']=authz_engine.bound.mediation_verified
   if broker_mode:
    evidence.update(broker.proof(dispatch_outcome));evidence['scope']='Dedicated fixed scanner broker and minimal socket-only dispatch client; controller-selected worker identity; no production all-write mediation or independent cleanup claim'
  finally:

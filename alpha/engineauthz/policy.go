@@ -350,6 +350,11 @@ func (p *Policy) AuthorizeRequest(r Request) Decision {
 	return p.AuthorizeRequestContext(context.Background(), r)
 }
 
+// AuthorizeRequestContext is default-deny. Apart from the exact reads and the
+// broker's output-only wait/attach in read, the only allowed requests are the
+// journalled create, start and remove of one registered launch. Every other
+// method, path, alias or principal is refused; mediation_test.go pins this
+// against the enumerated Docker write surface (ADR 057).
 func (p *Policy) AuthorizeRequestContext(ctx context.Context, r Request) Decision {
 	ctx, cancel := context.WithTimeout(ctx, 4*time.Second)
 	defer cancel()
