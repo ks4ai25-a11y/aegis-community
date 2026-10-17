@@ -1,0 +1,9 @@
+{
+  "generation_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "job_id": "0198e0d0-0000-7000-8000-000000000001",
+  "tool_id": "bandit",
+  "operation": "create",
+  "launch_digest": "sha256:a34084fcebee38cd77d6f31c833724175dae8c58e17beaf71f4ab86b1b1f16dd",
+  "descriptor_digest": "sha256:81138b8406b0c4bd4de653abf0b21a31eef47cfb8ddfc20e7f6116b995684592",
+  "target_engine_id": ""
+}

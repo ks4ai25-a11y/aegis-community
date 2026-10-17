@@ -1799,6 +1799,201 @@ type ScannerLiveLaunchRecordV1DocumentBrokerBindingDocument struct {
 	JournalBindingDigest string `json:"journal_binding_digest"`
 	CreatedAt            string `json:"created_at"`
 }
+type ScannerMutationBindingV1 struct {
+	OwnerId                 string `json:"owner_id"`
+	AuthorizerId            string `json:"authorizer_id"`
+	EngineDigest            string `json:"engine_digest"`
+	RegistryDigest          string `json:"registry_digest"`
+	PolicyDigest            string `json:"policy_digest"`
+	RegistryNamespaceDigest string `json:"registry_namespace_digest"`
+	BrokerBindingDigest     string `json:"broker_binding_digest"`
+	CreatedAt               string `json:"created_at"`
+}
+type ScannerMutationBindingRecordV1 struct {
+	BindingDigest string                                 `json:"binding_digest"`
+	Document      ScannerMutationBindingRecordV1Document `json:"document"`
+}
+type ScannerMutationBindingRecordV1Document struct {
+	OwnerId                 string `json:"owner_id"`
+	AuthorizerId            string `json:"authorizer_id"`
+	EngineDigest            string `json:"engine_digest"`
+	RegistryDigest          string `json:"registry_digest"`
+	PolicyDigest            string `json:"policy_digest"`
+	RegistryNamespaceDigest string `json:"registry_namespace_digest"`
+	BrokerBindingDigest     string `json:"broker_binding_digest"`
+	CreatedAt               string `json:"created_at"`
+}
+type ScannerAllocationGenerationV1 struct {
+	GenerationId  string `json:"generation_id"`
+	JobId         string `json:"job_id"`
+	BindingDigest string `json:"binding_digest"`
+	State         string `json:"state"`
+	DeadlineUnix  int64  `json:"deadline_unix"`
+}
+type ScannerMutationRequestV1 struct {
+	GenerationId     string `json:"generation_id"`
+	JobId            string `json:"job_id"`
+	ToolId           string `json:"tool_id"`
+	Operation        string `json:"operation"`
+	LaunchDigest     string `json:"launch_digest"`
+	DescriptorDigest string `json:"descriptor_digest"`
+	TargetEngineId   string `json:"target_engine_id"`
+}
+type ScannerMutationIntentV1 struct {
+	IntentId        string                         `json:"intent_id"`
+	Request         ScannerMutationIntentV1Request `json:"request"`
+	WorkspaceDigest string                         `json:"workspace_digest"`
+	Container       string                         `json:"container"`
+	State           string                         `json:"state"`
+	ResponseDigest  string                         `json:"response_digest,omitempty"`
+	ResponseStatus  int64                          `json:"response_status,omitempty"`
+	ResultEngineId  string                         `json:"result_engine_id,omitempty"`
+}
+type ScannerMutationIntentV1Request struct {
+	GenerationId     string `json:"generation_id"`
+	JobId            string `json:"job_id"`
+	ToolId           string `json:"tool_id"`
+	Operation        string `json:"operation"`
+	LaunchDigest     string `json:"launch_digest"`
+	DescriptorDigest string `json:"descriptor_digest"`
+	TargetEngineId   string `json:"target_engine_id"`
+}
+type ScannerMutationAdmissionV1 struct {
+	Intent ScannerMutationAdmissionV1Intent `json:"intent"`
+	Replay bool                             `json:"replay"`
+}
+type ScannerMutationAdmissionV1Intent struct {
+	IntentId        string                                  `json:"intent_id"`
+	Request         ScannerMutationAdmissionV1IntentRequest `json:"request"`
+	WorkspaceDigest string                                  `json:"workspace_digest"`
+	Container       string                                  `json:"container"`
+	State           string                                  `json:"state"`
+	ResponseDigest  string                                  `json:"response_digest,omitempty"`
+	ResponseStatus  int64                                   `json:"response_status,omitempty"`
+	ResultEngineId  string                                  `json:"result_engine_id,omitempty"`
+}
+type ScannerMutationAdmissionV1IntentRequest struct {
+	GenerationId     string `json:"generation_id"`
+	JobId            string `json:"job_id"`
+	ToolId           string `json:"tool_id"`
+	Operation        string `json:"operation"`
+	LaunchDigest     string `json:"launch_digest"`
+	DescriptorDigest string `json:"descriptor_digest"`
+	TargetEngineId   string `json:"target_engine_id"`
+}
+type ScannerMutationCompletionV1 struct {
+	IntentId       string `json:"intent_id"`
+	GenerationId   string `json:"generation_id"`
+	ResponseStatus int64  `json:"response_status"`
+	EngineId       string `json:"engine_id"`
+	ResponseDigest string `json:"response_digest"`
+}
+type ScannerAuthorizerLaunchRequestV1 struct {
+	ContainerName string `json:"container_name"`
+	Challenge     string `json:"challenge"`
+	Operation     string `json:"operation"`
+}
+type ScannerAuthorizerLaunchV1 struct {
+	SchemaVersion            string                              `json:"schema_version"`
+	Challenge                string                              `json:"challenge"`
+	Operation                string                              `json:"operation"`
+	Binding                  ScannerAuthorizerLaunchV1Binding    `json:"binding"`
+	Generation               ScannerAuthorizerLaunchV1Generation `json:"generation"`
+	Launch                   ScannerAuthorizerLaunchV1Launch     `json:"launch"`
+	Workspace                ScannerAuthorizerLaunchV1Workspace  `json:"workspace"`
+	GuardSet                 ScannerAuthorizerLaunchV1GuardSet   `json:"guard_set"`
+	LeaseUntilUnix           int64                               `json:"lease_until_unix"`
+	ObservedAt               string                              `json:"observed_at"`
+	ControllerMetadataOnly   bool                                `json:"controller_metadata_only"`
+	EngineWriteAuthorized    bool                                `json:"engine_write_authorized"`
+	CleanupReleaseAuthorized bool                                `json:"cleanup_release_authorized"`
+}
+type ScannerAuthorizerLaunchV1Binding struct {
+	BindingDigest string                                   `json:"binding_digest"`
+	Document      ScannerAuthorizerLaunchV1BindingDocument `json:"document"`
+}
+type ScannerAuthorizerLaunchV1BindingDocument struct {
+	OwnerId                 string `json:"owner_id"`
+	AuthorizerId            string `json:"authorizer_id"`
+	EngineDigest            string `json:"engine_digest"`
+	RegistryDigest          string `json:"registry_digest"`
+	PolicyDigest            string `json:"policy_digest"`
+	RegistryNamespaceDigest string `json:"registry_namespace_digest"`
+	BrokerBindingDigest     string `json:"broker_binding_digest"`
+	CreatedAt               string `json:"created_at"`
+}
+type ScannerAuthorizerLaunchV1Generation struct {
+	GenerationId  string `json:"generation_id"`
+	JobId         string `json:"job_id"`
+	BindingDigest string `json:"binding_digest"`
+	State         string `json:"state"`
+	DeadlineUnix  int64  `json:"deadline_unix"`
+}
+type ScannerAuthorizerLaunchV1Launch struct {
+	LaunchDigest string                                  `json:"launch_digest"`
+	Document     ScannerAuthorizerLaunchV1LaunchDocument `json:"document"`
+}
+type ScannerAuthorizerLaunchV1LaunchDocument struct {
+	SchemaVersion        string                                      `json:"schema_version"`
+	OwnerId              string                                      `json:"owner_id"`
+	JobId                string                                      `json:"job_id"`
+	RequestDigest        string                                      `json:"request_digest"`
+	AppId                string                                      `json:"app_id"`
+	RepositoryId         string                                      `json:"repository_id"`
+	MapDigest            string                                      `json:"map_digest"`
+	ToolLockDigest       string                                      `json:"tool_lock_digest"`
+	ToolVersion          string                                      `json:"tool_version"`
+	ToolImageDigest      string                                      `json:"tool_image_digest"`
+	SandboxProfile       string                                      `json:"sandbox_profile"`
+	DurationLimitSeconds int64                                       `json:"duration_limit_seconds"`
+	Plan                 ScannerAuthorizerLaunchV1LaunchDocumentPlan `json:"plan"`
+	CreatedAt            string                                      `json:"created_at"`
+	Deadline             string                                      `json:"deadline"`
+	GuardSetDigest       string                                      `json:"guard_set_digest"`
+	GuardProtocol        string                                      `json:"guard_protocol"`
+}
+type ScannerAuthorizerLaunchV1LaunchDocumentPlan struct {
+	ToolId                       string `json:"tool_id"`
+	ContainerId                  string `json:"container_id"`
+	EngineDigest                 string `json:"engine_digest"`
+	WorkspaceId                  string `json:"workspace_id"`
+	RegistryDigest               string `json:"registry_digest"`
+	SnapshotDigest               string `json:"snapshot_digest"`
+	GuardBinaryDigest            string `json:"guard_binary_digest"`
+	GuardArchitecture            string `json:"guard_architecture"`
+	EngineJournalBindingDigest   string `json:"engine_journal_binding_digest"`
+	EngineJournalNamespaceDigest string `json:"engine_journal_namespace_digest"`
+}
+type ScannerAuthorizerLaunchV1Workspace struct {
+	WorkspaceDigest string                                     `json:"workspace_digest"`
+	Document        ScannerAuthorizerLaunchV1WorkspaceDocument `json:"document"`
+}
+type ScannerAuthorizerLaunchV1WorkspaceDocument struct {
+	SchemaVersion  string                                         `json:"schema_version"`
+	OwnerId        string                                         `json:"owner_id"`
+	JobId          string                                         `json:"job_id"`
+	RequestDigest  string                                         `json:"request_digest"`
+	AppId          string                                         `json:"app_id"`
+	RepositoryId   string                                         `json:"repository_id"`
+	MapDigest      string                                         `json:"map_digest"`
+	ToolLockDigest string                                         `json:"tool_lock_digest"`
+	Plan           ScannerAuthorizerLaunchV1WorkspaceDocumentPlan `json:"plan"`
+	CreatedAt      string                                         `json:"created_at"`
+	Deadline       string                                         `json:"deadline"`
+}
+type ScannerAuthorizerLaunchV1WorkspaceDocumentPlan struct {
+	ToolId         string `json:"tool_id"`
+	WorkspaceId    string `json:"workspace_id"`
+	RegistryDigest string `json:"registry_digest"`
+	SnapshotDigest string `json:"snapshot_digest"`
+}
+type ScannerAuthorizerLaunchV1GuardSet struct {
+	SchemaVersion  string `json:"schema_version"`
+	Protocol       string `json:"protocol"`
+	LinuxAmd64     string `json:"linux_amd64"`
+	LinuxArm64     string `json:"linux_arm64"`
+	GuardSetDigest string `json:"guard_set_digest"`
+}
 type DatabaseSnapshotReceiptV1 struct {
 	SchemaVersion                string `json:"schema_version"`
 	Status                       string `json:"status"`

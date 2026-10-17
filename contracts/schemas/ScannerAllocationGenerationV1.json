@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerAllocationGenerationV1.json",
+  "title": "ScannerAllocationGenerationV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "generation_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "binding_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ]
+    },
+    "deadline_unix": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9999999999
+    }
+  },
+  "required": [
+    "generation_id",
+    "job_id",
+    "binding_digest",
+    "state",
+    "deadline_unix"
+  ]
+}

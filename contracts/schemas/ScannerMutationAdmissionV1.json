@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerMutationAdmissionV1.json",
+  "title": "ScannerMutationAdmissionV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "intent_id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "request": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "generation_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "job_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "tool_id": {
+              "type": "string",
+              "enum": [
+                "semgrep_ce",
+                "osv_v2",
+                "trivy",
+                "syft",
+                "gitleaks",
+                "bandit"
+              ]
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "create",
+                "start",
+                "remove"
+              ]
+            },
+            "launch_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "descriptor_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "target_engine_id": {
+              "type": "string",
+              "pattern": "^(|[0-9a-f]{64})$"
+            }
+          },
+          "required": [
+            "generation_id",
+            "job_id",
+            "tool_id",
+            "operation",
+            "launch_digest",
+            "descriptor_digest",
+            "target_engine_id"
+          ],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "operation": {
+                    "const": "create"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "target_engine_id": {
+                    "const": ""
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "target_engine_id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "workspace_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "container": {
+          "type": "string",
+          "pattern": "^aegis-scan-[0-9a-f]{32}$"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "completed"
+          ]
+        },
+        "response_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "response_status": {
+          "type": "integer",
+          "minimum": 201,
+          "maximum": 204
+        },
+        "result_engine_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "intent_id",
+        "request",
+        "workspace_digest",
+        "container",
+        "state"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "pending"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "response_digest"
+                  ]
+                },
+                {
+                  "required": [
+                    "response_status"
+                  ]
+                },
+                {
+                  "required": [
+                    "result_engine_id"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "response_digest",
+              "response_status",
+              "result_engine_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "request": {
+                "properties": {
+                  "operation": {
+                    "const": "create"
+                  }
+                }
+              },
+              "state": {
+                "const": "completed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "response_status": {
+                "const": 201
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "request": {
+                "properties": {
+                  "operation": {
+                    "enum": [
+                      "start",
+                      "remove"
+                    ]
+                  }
+                }
+              },
+              "state": {
+                "const": "completed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "response_status": {
+                "const": 204
+              }
+            }
+          }
+        }
+      ]
+    },
+    "replay": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "intent",
+    "replay"
+  ]
+}

@@ -7,6 +7,7 @@ import (
 	"aegis.local/alpha/enginejournal"
 	"aegis.local/alpha/engineprofile"
 	"aegis.local/source"
+	"aegis.local/source/scanevidence"
 	"context"
 	"encoding/json"
 	"errors"
@@ -57,6 +58,7 @@ type Config struct {
 	UID, GID                            int
 	Images                              map[string]string
 	Live                                *LiveConfig
+	Admitted                            *AdmittedConfig
 }
 type Policy struct {
 	mu                           sync.Mutex
@@ -68,6 +70,9 @@ type Policy struct {
 	closed                       bool
 	live                         *liveGate
 	createBody                   []byte
+	admitted                     *admittedGate
+	mutation                     scanevidence.MutationIntent
+	confirmedResponse            string
 }
 
 func Open(c Config) (*Policy, error) {
@@ -95,6 +100,18 @@ func Open(c Config) (*Policy, error) {
 		j.Close()
 		return nil, ErrPolicy
 	}
+	if c.Live != nil && c.Admitted != nil {
+		j.Close()
+		return nil, ErrPolicy
+	}
+	var admitted *admittedGate
+	if c.Admitted != nil {
+		admitted, e = openAdmitted(c, *c.Admitted)
+		if e != nil {
+			j.Close()
+			return nil, ErrPolicy
+		}
+	}
 	var live *liveGate
 	if c.Live != nil {
 		live, e = openLive(c, *c.Live)
@@ -104,18 +121,25 @@ func Open(c Config) (*Policy, error) {
 		}
 	}
 	seal := ""
+	if admitted != nil {
+		seal = admitted.seal
+	}
 	if live != nil {
 		seal = live.policy
 	}
 	if e = j.RequirePolicy(seal); e != nil {
+		if admitted != nil {
+			admitted.client.Close()
+		}
 		if live != nil {
 			live.client.Close()
 		}
 		j.Close()
 		return nil, ErrPolicy
 	}
+	c.Admitted = nil
 	c.Live = nil // Retain only the private, validated configuration copy.
-	return &Policy{config: c, journal: j, live: live}, nil
+	return &Policy{config: c, journal: j, live: live, admitted: admitted}, nil
 }
 func canonicalDir(p string) bool {
 	if !filepath.IsAbs(p) || filepath.Clean(p) != p || strings.ContainsAny(p, "\x00\r\n:,") {
@@ -130,6 +154,9 @@ func (p *Policy) Close() {
 	defer p.mu.Unlock()
 	if !p.closed {
 		p.closed = true
+		if p.admitted != nil {
+			p.admitted.client.Close()
+		}
 		if p.live != nil {
 			p.live.client.Close()
 		}
@@ -259,6 +286,18 @@ func (p *Policy) create(ctx context.Context, r Request, u *url.URL, now time.Tim
 	if ctx.Err() != nil {
 		return false
 	}
+	var admitted scanevidence.AuthorizerLaunch
+	var mutation scanevidence.MutationIntent
+	if p.admitted != nil {
+		admitted, e = p.admitted.prepare(ctx, name, "create", r.RequestBody)
+		if e != nil {
+			return false
+		}
+		mutation, e = p.admitted.intent(admitted, fingerprint(r), "")
+		if e != nil {
+			return false
+		}
+	}
 	a, e := p.journal.Begin(name, source.Hash(r.RequestBody))
 	if e != nil {
 		return false
@@ -266,7 +305,12 @@ func (p *Policy) create(ctx context.Context, r Request, u *url.URL, now time.Tim
 	p.attempt = a
 	p.name = name
 	p.id = ""
-	t, e := a.Begin("create", "")
+	var t *enginejournal.Ticket
+	if p.admitted != nil {
+		t, e = a.BeginBound("create", "", mutation)
+	} else {
+		t, e = a.Begin("create", "")
+	}
 	if e != nil {
 		return false
 	}
@@ -274,6 +318,12 @@ func (p *Policy) create(ctx context.Context, r Request, u *url.URL, now time.Tim
 	p.pending = fingerprint(r)
 	p.operation = "create"
 	p.createBody = append([]byte(nil), r.RequestBody...)
+	if p.admitted != nil {
+		p.mutation = mutation
+		if p.admitted.admit(ctx, admitted, mutation) != nil {
+			return false
+		}
+	}
 	return ctx.Err() == nil
 }
 func (p *Policy) AuthorizeRequest(r Request) Decision {
@@ -325,19 +375,49 @@ func (p *Policy) AuthorizeRequestContext(ctx context.Context, r Request) Decisio
 	if ctx.Err() != nil {
 		return deny()
 	}
-	ticket, e := p.attempt.Begin(operation, p.id)
+	var admitted scanevidence.AuthorizerLaunch
+	var mutation scanevidence.MutationIntent
+	var e error
+	if p.admitted != nil {
+		admitted, e = p.admitted.prepare(ctx, p.name, operation, p.createBody)
+		if e != nil || admitted.Launch.Digest != p.mutation.Request.Launch || admitted.Generation.ID != p.mutation.Request.Generation {
+			return deny()
+		}
+		mutation, e = p.admitted.intent(admitted, fingerprint(r), p.id)
+		if e != nil {
+			return deny()
+		}
+	}
+	var ticket *enginejournal.Ticket
+	if p.admitted != nil {
+		ticket, e = p.attempt.BeginBound(operation, p.id, mutation)
+	} else {
+		ticket, e = p.attempt.Begin(operation, p.id)
+	}
+
 	if e != nil {
 		return deny()
 	}
 	p.ticket = ticket
 	p.pending = fingerprint(r)
 	p.operation = operation
+	if p.admitted != nil {
+		p.mutation = mutation
+		if p.admitted.admit(ctx, admitted, mutation) != nil {
+			return deny()
+		}
+	}
 	if ctx.Err() != nil {
 		return deny()
 	}
 	return allow()
 }
 func (p *Policy) AuthorizeResponse(r Request) Decision {
+	return p.AuthorizeResponseContext(context.Background(), r)
+}
+func (p *Policy) AuthorizeResponseContext(ctx context.Context, r Request) Decision {
+	ctx, cancel := context.WithTimeout(ctx, 4*time.Second)
+	defer cancel()
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.closed {
@@ -364,8 +444,29 @@ func (p *Policy) AuthorizeResponse(r Request) Decision {
 		return deny()
 	}
 
-	if p.ticket.Confirm(r.ResponseStatusCode, id) != nil {
+	responseBytes, _ := json.Marshal(struct {
+		Status int
+		Body   []byte
+	}{r.ResponseStatusCode, r.ResponseBody})
+	responseFingerprint := source.Hash(responseBytes)
+	if p.confirmedResponse != "" && p.confirmedResponse != responseFingerprint {
 		return deny()
+	}
+	if p.confirmedResponse == "" {
+		if p.ticket.Confirm(r.ResponseStatusCode, id) != nil {
+			return deny()
+		}
+		p.confirmedResponse = responseFingerprint
+	}
+	if p.admitted != nil {
+		digest, e := p.ticket.ResponseDigest()
+		if e != nil {
+			return deny()
+		}
+		_, e = p.admitted.client.Complete(ctx, scanevidence.MutationCompletion{Intent: p.mutation.ID, Generation: p.mutation.Request.Generation, Status: r.ResponseStatusCode, EngineID: id, Response: digest})
+		if e != nil || ctx.Err() != nil {
+			return deny()
+		}
 	}
 	p.id = id
 	p.pending = ""
@@ -378,5 +479,6 @@ func (p *Policy) AuthorizeResponse(r Request) Decision {
 		p.createBody = nil
 	}
 	p.operation = ""
+	p.confirmedResponse = ""
 	return allow()
 }

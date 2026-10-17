@@ -5,6 +5,7 @@ package enginejournal
 
 import (
 	"aegis.local/source"
+	"aegis.local/source/scanevidence"
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
@@ -344,6 +345,7 @@ func (j *Journal) load(p *privateRoot, containerName string) error {
 	unresolved := false
 	known := ""
 	started, removed := false, false
+	var controller *scanevidence.MutationIntent
 	for _, op := range []string{"create", "start", "remove"} {
 		pending, reply := present[op+".pending.json"], present[op+".response.json"]
 		if !pending {
@@ -360,6 +362,21 @@ func (j *Journal) load(p *privateRoot, containerName string) error {
 		if e != nil || in.Document.Schema != "1.0" || in.Document.Manifest != m.Digest || in.Document.Previous != previous || in.Document.Operation != op || in.Document.Container != known {
 			return ErrJournal
 		}
+		c := in.Document.Controller
+		if op != "create" && (controller == nil) != (c == nil) {
+			return ErrJournal
+		}
+		if c != nil {
+			if !c.Valid() || c.State != "pending" || c.Container != containerName || c.Request.Operation != op || c.Request.EngineID != known || m.Document.Policy == "" {
+				return ErrJournal
+			}
+			if op == "create" {
+				controller = c
+			} else if c.Request.Generation != controller.Request.Generation || c.Request.Job != controller.Request.Job || c.Request.Tool != controller.Request.Tool || c.Request.Launch != controller.Request.Launch || c.Workspace != controller.Workspace {
+				return ErrJournal
+			}
+		}
+
 		stamp, se := time.Parse(time.RFC3339Nano, in.Document.Created)
 		if se != nil || stamp.Before(created) {
 			return ErrJournal

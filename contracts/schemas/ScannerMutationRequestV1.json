@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerMutationRequestV1.json",
+  "title": "ScannerMutationRequestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "generation_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "tool_id": {
+      "type": "string",
+      "enum": [
+        "semgrep_ce",
+        "osv_v2",
+        "trivy",
+        "syft",
+        "gitleaks",
+        "bandit"
+      ]
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "create",
+        "start",
+        "remove"
+      ]
+    },
+    "launch_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "descriptor_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "target_engine_id": {
+      "type": "string",
+      "pattern": "^(|[0-9a-f]{64})$"
+    }
+  },
+  "required": [
+    "generation_id",
+    "job_id",
+    "tool_id",
+    "operation",
+    "launch_digest",
+    "descriptor_digest",
+    "target_engine_id"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "create"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "target_engine_id": {
+            "const": ""
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "target_engine_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    }
+  ]
+}

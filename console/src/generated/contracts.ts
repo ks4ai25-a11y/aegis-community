@@ -1797,6 +1797,201 @@ export interface ScannerLiveLaunchRecordV1DocumentBrokerBindingDocument {
   journal_binding_digest: string;
   created_at: string;
 }
+export interface ScannerMutationBindingV1 {
+  owner_id: string;
+  authorizer_id: string;
+  engine_digest: string;
+  registry_digest: string;
+  policy_digest: string;
+  registry_namespace_digest: string;
+  broker_binding_digest: string;
+  created_at: string;
+}
+export interface ScannerMutationBindingRecordV1 {
+  binding_digest: string;
+  document: ScannerMutationBindingRecordV1Document;
+}
+export interface ScannerMutationBindingRecordV1Document {
+  owner_id: string;
+  authorizer_id: string;
+  engine_digest: string;
+  registry_digest: string;
+  policy_digest: string;
+  registry_namespace_digest: string;
+  broker_binding_digest: string;
+  created_at: string;
+}
+export interface ScannerAllocationGenerationV1 {
+  generation_id: string;
+  job_id: string;
+  binding_digest: string;
+  state: "open" | "closed";
+  deadline_unix: number;
+}
+export interface ScannerMutationRequestV1 {
+  generation_id: string;
+  job_id: string;
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  operation: "create" | "start" | "remove";
+  launch_digest: string;
+  descriptor_digest: string;
+  target_engine_id: string;
+}
+export interface ScannerMutationIntentV1 {
+  intent_id: string;
+  request: ScannerMutationIntentV1Request;
+  workspace_digest: string;
+  container: string;
+  state: "pending" | "completed";
+  response_digest?: string;
+  response_status?: number;
+  result_engine_id?: string;
+}
+export interface ScannerMutationIntentV1Request {
+  generation_id: string;
+  job_id: string;
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  operation: "create" | "start" | "remove";
+  launch_digest: string;
+  descriptor_digest: string;
+  target_engine_id: string;
+}
+export interface ScannerMutationAdmissionV1 {
+  intent: ScannerMutationAdmissionV1Intent;
+  replay: boolean;
+}
+export interface ScannerMutationAdmissionV1Intent {
+  intent_id: string;
+  request: ScannerMutationAdmissionV1IntentRequest;
+  workspace_digest: string;
+  container: string;
+  state: "pending" | "completed";
+  response_digest?: string;
+  response_status?: number;
+  result_engine_id?: string;
+}
+export interface ScannerMutationAdmissionV1IntentRequest {
+  generation_id: string;
+  job_id: string;
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  operation: "create" | "start" | "remove";
+  launch_digest: string;
+  descriptor_digest: string;
+  target_engine_id: string;
+}
+export interface ScannerMutationCompletionV1 {
+  intent_id: string;
+  generation_id: string;
+  response_status: 201 | 204;
+  engine_id: string;
+  response_digest: string;
+}
+export interface ScannerAuthorizerLaunchRequestV1 {
+  container_name: string;
+  challenge: string;
+  operation: "create" | "start" | "remove";
+}
+export interface ScannerAuthorizerLaunchV1 {
+  schema_version: "1.0";
+  challenge: string;
+  operation: "create" | "start" | "remove";
+  binding: ScannerAuthorizerLaunchV1Binding;
+  generation: ScannerAuthorizerLaunchV1Generation;
+  launch: ScannerAuthorizerLaunchV1Launch;
+  workspace: ScannerAuthorizerLaunchV1Workspace;
+  guard_set: ScannerAuthorizerLaunchV1GuardSet;
+  lease_until_unix: number;
+  observed_at: string;
+  controller_metadata_only: true;
+  engine_write_authorized: false;
+  cleanup_release_authorized: false;
+}
+export interface ScannerAuthorizerLaunchV1Binding {
+  binding_digest: string;
+  document: ScannerAuthorizerLaunchV1BindingDocument;
+}
+export interface ScannerAuthorizerLaunchV1BindingDocument {
+  owner_id: string;
+  authorizer_id: string;
+  engine_digest: string;
+  registry_digest: string;
+  policy_digest: string;
+  registry_namespace_digest: string;
+  broker_binding_digest: string;
+  created_at: string;
+}
+export interface ScannerAuthorizerLaunchV1Generation {
+  generation_id: string;
+  job_id: string;
+  binding_digest: string;
+  state: "open" | "closed";
+  deadline_unix: number;
+}
+export interface ScannerAuthorizerLaunchV1Launch {
+  launch_digest: string;
+  document: ScannerAuthorizerLaunchV1LaunchDocument;
+}
+export interface ScannerAuthorizerLaunchV1LaunchDocument {
+  schema_version: "1.2";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  tool_version: string;
+  tool_image_digest: string;
+  sandbox_profile: "repo_offline-network-none-v1";
+  duration_limit_seconds: number;
+  plan: ScannerAuthorizerLaunchV1LaunchDocumentPlan;
+  created_at: string;
+  deadline: string;
+  guard_set_digest: string;
+  guard_protocol: "absolute-deadline-v1";
+}
+export interface ScannerAuthorizerLaunchV1LaunchDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  container_id: string;
+  engine_digest: string;
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+  guard_binary_digest: string;
+  guard_architecture: "amd64" | "arm64";
+  engine_journal_binding_digest: string;
+  engine_journal_namespace_digest: string;
+}
+export interface ScannerAuthorizerLaunchV1Workspace {
+  workspace_digest: string;
+  document: ScannerAuthorizerLaunchV1WorkspaceDocument;
+}
+export interface ScannerAuthorizerLaunchV1WorkspaceDocument {
+  schema_version: "1.0";
+  owner_id: string;
+  job_id: string;
+  request_digest: string;
+  app_id: "app_demo";
+  repository_id: string;
+  map_digest: string;
+  tool_lock_digest: string;
+  plan: ScannerAuthorizerLaunchV1WorkspaceDocumentPlan;
+  created_at: string;
+  deadline: string;
+}
+export interface ScannerAuthorizerLaunchV1WorkspaceDocumentPlan {
+  tool_id: "semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit";
+  workspace_id: string;
+  registry_digest: string;
+  snapshot_digest: string;
+}
+export interface ScannerAuthorizerLaunchV1GuardSet {
+  schema_version: "1.0";
+  protocol: "absolute-deadline-v1";
+  linux_amd64: string;
+  linux_arm64: string;
+  guard_set_digest: string;
+}
 export interface DatabaseSnapshotReceiptV1 {
   schema_version: "1.0";
   status: "created";

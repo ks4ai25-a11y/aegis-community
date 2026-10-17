@@ -1,6 +1,6 @@
 # ADR 057: Scanner mutation admission and confirmed cleanup release
 
-Status: partially implemented. Migrations 014/016 implement authorizer enrollment and the controller mutation ledger. Native serving integration, independent reconciliation and release remain unfinished. Scanner admission remains held after a dispatched job.
+Status: partially implemented. Migrations 014/016 implement authorizer enrollment and the controller mutation ledger. Native serving integration has local protocol/policy coverage; packaged native admission, independent reconciliation and release remain unfinished. Scanner admission remains held after a dispatched job.
 
 ## Problem
 
@@ -12,7 +12,7 @@ Release needs a controller-owned mutation ledger, a distinct authorizer capabili
 
 Migration 014 adds retained immutable authorizer enrollments, with no automatic enrollment or mutation permission. Backup/recovery validation, identity contracts, version-13/14 compatibility and restore revocation advance together. All earlier migration bodies and checksums remain unchanged. The allocation ledger needs a separately coordinated migration; restoration must preserve unresolved mutations and cleanup holds.
 
-The implemented operator surface is described in [scanner authorizer enrollment](../../operators/scanner-authorizers.md). Only the private identity operation is available for this role. Existing observer capabilities remain read-only; no current serving command interprets authorizer enrollment as permission to allocate. The remaining protocol below is the implementation contract, not a claim that fencing or release has shipped.
+The implemented operator surface is described in [scanner authorizer enrollment](../../operators/scanner-authorizers.md). Identity probing proves enrollment only; selected native serving additionally uses the private scoped launch/admission/completion operations. Existing observer capabilities remain read-only; no current serving command interprets authorizer enrollment as permission to allocate. The remaining protocol below is the implementation contract, not a claim that fencing or release has shipped.
 
 ### Implemented workspace prerequisite
 
@@ -59,4 +59,4 @@ Admission rechecks original dispatch identity, deadline, worker/broker, register
 
 Database triggers close generations on cancellation, terminal job/dispatch transitions, worker/authorizer revocation and selected-binding revocation; obligations remain retained. Worker workspace/launch registration refuses a closed generation, and the old observer-only live-launch serving path refuses generation-enabled jobs. The dispatch remains held even after all responses are recorded. Migration 016 restore revokes selected bindings and closes generations while preserving every intent and cleanup hold; supported older schema prefixes remain unchanged during offline restore.
 
-These backend operations are not yet wired to a shipped native serving mode or operator selection command. The private authorizer transport still exposes identity only. Independent reconciliation, release, crash repair and two actual sequential packaged scans remain required before repeated-scan support is claimed.
+The native `serve-admitted` mode and local `scanner-authorizer bind` selection now use these operations. Local real-Unix controller/plugin-policy tests cover admission-before-Allow, durable-response-before-completion, cancellation, uncertain admission and a lost committed response acknowledgement. Packaged native-daemon admission, independent reconciliation/release, sealed crash repair and two actual sequential packaged scans remain required before repeated-scan support is claimed. See [native mutation admission](../../operators/native-mutation-admission.md).

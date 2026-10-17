@@ -18,17 +18,7 @@ var nativeContainerID = regexp.MustCompile(`^[0-9a-f]{64}$`)
 
 // MutationBinding is selected only by a trusted local operator. Namespace is
 // the protocol-2 filesystem identity, not the legacy registry path digest.
-type MutationBinding struct {
-	Owner      string `json:"owner_id"`
-	Authorizer string `json:"authorizer_id"`
-	Engine     string `json:"engine_digest"`
-	Registry   string `json:"registry_digest"`
-	Policy     string `json:"policy_digest"`
-	Namespace  string `json:"registry_namespace_digest"`
-	Broker     string `json:"broker_binding_digest"`
-	Created    string `json:"created_at"`
-	Digest     string `json:"-"`
-}
+type MutationBinding = scanevidence.MutationBinding
 
 func mutationBindingTx(tx *sql.Tx, owner string) (MutationBinding, error) {
 	var b MutationBinding
@@ -156,13 +146,7 @@ func (q *Queue) createGenerationTx(tx *sql.Tx, j Job, worker, leaseHash string, 
 	return e
 }
 
-type AllocationGeneration struct {
-	ID       string `json:"generation_id"`
-	Job      string `json:"job_id"`
-	Binding  string `json:"binding_digest"`
-	State    string `json:"state"`
-	Deadline int64  `json:"deadline_unix"`
-}
+type AllocationGeneration = scanevidence.AllocationGeneration
 
 func (q *Queue) generationTx(tx *sql.Tx, v scanevidence.AuthorizerIdentity, job string, cleanup bool) (AllocationGeneration, MutationBinding, Job, error) {
 	var g AllocationGeneration
@@ -227,29 +211,9 @@ func (q *Queue) GenerationForAuthorizer(ctx context.Context, v scanevidence.Auth
 	return g, e
 }
 
-type MutationRequest struct {
-	Generation string `json:"generation_id"`
-	Job        string `json:"job_id"`
-	Tool       string `json:"tool_id"`
-	Operation  string `json:"operation"`
-	Launch     string `json:"launch_digest"`
-	Descriptor string `json:"descriptor_digest"`
-	EngineID   string `json:"target_engine_id"`
-}
-type MutationIntent struct {
-	ID        string          `json:"intent_id"`
-	Request   MutationRequest `json:"request"`
-	Workspace string          `json:"workspace_digest"`
-	Container string          `json:"container"`
-	State     string          `json:"state"`
-	Response  string          `json:"response_digest,omitempty"`
-	Status    int             `json:"response_status,omitempty"`
-	EngineID  string          `json:"result_engine_id,omitempty"`
-}
-type MutationAdmission struct {
-	Intent MutationIntent `json:"intent"`
-	Replay bool           `json:"replay"`
-}
+type MutationRequest = scanevidence.MutationRequest
+type MutationIntent = scanevidence.MutationIntent
+type MutationAdmission = scanevidence.MutationAdmission
 
 const intentColumns = "id,generation,job,tool,operation,launch_digest,workspace_digest,container,descriptor_digest,target_engine_id,state,response_digest,response_status,result_engine_id"
 
@@ -367,13 +331,7 @@ func (q *Queue) AdmitMutation(ctx context.Context, v scanevidence.AuthorizerIden
 	return MutationAdmission{Intent: m}, nil
 }
 
-type MutationCompletion struct {
-	Intent     string `json:"intent_id"`
-	Generation string `json:"generation_id"`
-	Status     int    `json:"response_status"`
-	EngineID   string `json:"engine_id"`
-	Response   string `json:"response_digest"`
-}
+type MutationCompletion = scanevidence.MutationCompletion
 
 // CompleteMutation records a successful native response, not independent
 // absence. Missing/error responses stay pending even after cancellation/expiry.

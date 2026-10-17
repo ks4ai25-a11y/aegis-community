@@ -8,6 +8,7 @@ import (
 	"aegis.local/source"
 	"aegis.local/source/privateipc"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
@@ -21,8 +22,8 @@ func run() error {
 		return e
 	}
 	// Paths and digests are operator configuration, never caller-selected RPC data.
-	if !(len(os.Args) == 9 && os.Args[1] == "serve" || len(os.Args) == 15 && os.Args[1] == "serve-bound") {
-		return fmt.Errorf("usage: aegis-engine-authz init JOURNAL ENGINE_DIGEST | serve SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK | serve-bound SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK CONTROLLER_SOCKET OBSERVER_CREDENTIAL OWNER VERIFIER_ID REGISTRY_DIGEST RULES_DIGEST_OR_DASH")
+	if !(len(os.Args) == 9 && os.Args[1] == "serve" || len(os.Args) == 15 && os.Args[1] == "serve-bound" || len(os.Args) == 16 && (os.Args[1] == "serve-admitted" || os.Args[1] == "admitted-policy-input")) {
+		return fmt.Errorf("usage: aegis-engine-authz init JOURNAL ENGINE_DIGEST | serve SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK | serve-bound SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK CONTROLLER_SOCKET OBSERVER_CREDENTIAL OWNER VERIFIER_ID REGISTRY_DIGEST RULES_DIGEST_OR_DASH | serve-admitted|admitted-policy-input SOCKET JOURNAL ENGINE_DIGEST WORK_ROOT UID GID TOOL_LOCK CONTROLLER_SOCKET AUTHORIZER_CREDENTIAL OWNER AUTHORIZER_ID REGISTRY_DIGEST REGISTRY_NAMESPACE_DIGEST RULES_DIGEST_OR_DASH")
 	}
 	uid, e := strconv.Atoi(os.Args[6])
 	if e != nil {
@@ -44,6 +45,20 @@ func run() error {
 			rules = ""
 		}
 		cfg.Live = &engineauthz.LiveConfig{Socket: os.Args[9], Credential: os.Args[10], Owner: os.Args[11], Verifier: os.Args[12], Registry: os.Args[13], LockPath: os.Args[8], RulesDigest: rules}
+	}
+	if os.Args[1] == "serve-admitted" || os.Args[1] == "admitted-policy-input" {
+		rules := os.Args[15]
+		if rules == "-" {
+			rules = ""
+		}
+		cfg.Admitted = &engineauthz.AdmittedConfig{Socket: os.Args[9], Credential: os.Args[10], Owner: os.Args[11], Authorizer: os.Args[12], Registry: os.Args[13], Namespace: os.Args[14], LockPath: os.Args[8], RulesDigest: rules}
+		if os.Args[1] == "admitted-policy-input" {
+			digest, e := engineauthz.AdmittedPolicyDigest(cfg, *cfg.Admitted)
+			if e != nil {
+				return e
+			}
+			return json.NewEncoder(os.Stdout).Encode(map[string]any{"schema_version": "1.0", "policy_digest": digest, "controller_binding_verified": false, "engine_write_authorized": false, "cleanup_release_authorized": false})
+		}
 	}
 	policy, e := engineauthz.Open(cfg)
 	if e != nil {

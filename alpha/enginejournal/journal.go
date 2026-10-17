@@ -5,6 +5,7 @@ package enginejournal
 
 import (
 	"aegis.local/source"
+	"aegis.local/source/scanevidence"
 	"encoding/json"
 	"errors"
 	"regexp"
@@ -47,12 +48,13 @@ type localPolicy struct {
 	Created   string `json:"created_at"`
 }
 type intent struct {
-	Schema    string `json:"schema_version"`
-	Manifest  string `json:"attempt_digest"`
-	Previous  string `json:"previous_digest"`
-	Operation string `json:"operation"`
-	Container string `json:"container_id"`
-	Created   string `json:"created_at"`
+	Controller *scanevidence.MutationIntent `json:"controller_intent,omitempty"`
+	Schema     string                       `json:"schema_version"`
+	Manifest   string                       `json:"attempt_digest"`
+	Previous   string                       `json:"previous_digest"`
+	Operation  string                       `json:"operation"`
+	Container  string                       `json:"container_id"`
+	Created    string                       `json:"created_at"`
 }
 type response struct {
 	Schema    string `json:"schema_version"`
@@ -113,6 +115,7 @@ func (j *Journal) RequirePolicy(digest string) error {
 }
 
 type Attempt struct {
+	controller                        *scanevidence.MutationIntent
 	j                                 *Journal
 	dir                               *privateRoot
 	digest, name, container, previous string
@@ -124,6 +127,7 @@ type Attempt struct {
 type Ticket struct {
 	attempt           *Attempt
 	operation, digest string
+	responseDigest    string
 	done              bool
 }
 
@@ -185,11 +189,31 @@ func (j *Journal) write(dir *privateRoot, path string, value any) error {
 	return nil
 }
 func (a *Attempt) Begin(operation, container string) (*Ticket, error) {
+	return a.begin(operation, container, nil)
+}
+
+// BeginBound durably records the exact proposed controller obligation before
+// admission is requested. It is not evidence that admission or execution won.
+func (a *Attempt) BeginBound(operation, container string, m scanevidence.MutationIntent) (*Ticket, error) {
+	if !m.Valid() || m.State != "pending" || m.Container != a.name || m.Request.Operation != operation || m.Request.EngineID != container {
+		return nil, ErrJournal
+	}
+	return a.begin(operation, container, &m)
+}
+func (a *Attempt) begin(operation, container string, controller *scanevidence.MutationIntent) (*Ticket, error) {
 	j := a.j
 	j.mu.Lock()
 	defer j.mu.Unlock()
-	if j.closed || a.closed || j.active != a || a.pending != nil || j.unresolved != 0 || a.begun[operation] {
+	if j.closed || a.closed || j.active != a || a.pending != nil || j.unresolved != 0 || a.begun[operation] || (controller != nil && j.policy == "") {
 		return nil, ErrJournal
+	}
+	if operation != "create" {
+		if (a.controller == nil) != (controller == nil) {
+			return nil, ErrJournal
+		}
+		if controller != nil && (controller.Request.Generation != a.controller.Request.Generation || controller.Request.Job != a.controller.Request.Job || controller.Request.Tool != a.controller.Request.Tool || controller.Request.Launch != a.controller.Request.Launch || controller.Workspace != a.controller.Workspace) {
+			return nil, ErrJournal
+		}
 	}
 	switch operation {
 	case "create":
@@ -210,9 +234,13 @@ func (a *Attempt) Begin(operation, container string) (*Ticket, error) {
 	if operation != "create" && !id.MatchString(container) {
 		return nil, ErrJournal
 	}
-	d := wrapped(intent{Schema: "1.0", Manifest: a.digest, Previous: a.previous, Operation: operation, Container: container, Created: time.Now().UTC().Format(time.RFC3339Nano)})
+	d := wrapped(intent{Controller: controller, Schema: "1.0", Manifest: a.digest, Previous: a.previous, Operation: operation, Container: container, Created: time.Now().UTC().Format(time.RFC3339Nano)})
 	if e := j.write(a.dir, operation+".pending.json", d); e != nil {
 		return nil, e
+	}
+	if operation == "create" && controller != nil {
+		copy := *controller
+		a.controller = &copy
 	}
 	ticket := &Ticket{attempt: a, operation: operation, digest: d.Digest}
 	a.pending = ticket
@@ -252,6 +280,7 @@ func (t *Ticket) Confirm(status int, container string) error {
 		return e
 	}
 	a.previous = d.Digest
+	t.responseDigest = d.Digest
 	t.done = true
 	a.pending = nil
 	a.complete[t.operation] = true
@@ -279,4 +308,17 @@ func (a *Attempt) Finish() error {
 	j.active = nil
 	j.unfinished--
 	return nil
+}
+
+// ResponseDigest identifies the positively synced local native response. It
+// may be used for idempotent controller acknowledgement, never another engine
+// mutation or independent cleanup certification.
+func (t *Ticket) ResponseDigest() (string, error) {
+	j := t.attempt.j
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	if j.closed || !t.done || !hash.MatchString(t.responseDigest) {
+		return "", ErrJournal
+	}
+	return t.responseDigest, nil
 }

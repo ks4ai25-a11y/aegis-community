@@ -1,0 +1,13 @@
+{
+  "binding_digest": "sha256:07bfea3607c3933b47deb4207cdfcc442a57a3777fdb7bc0e038b9ef183706c8",
+  "document": {
+    "owner_id": "synthetic-owner",
+    "authorizer_id": "synthetic-authorizer",
+    "engine_digest": "sha256:ee7676eb6e1cb6c15a44bb963c71da7da3a1b77b8879ac4efb08f03b773403e3",
+    "registry_digest": "sha256:0bb43341b63b7ab75d189ed43bfd1d827f7f3473d1d772235843abafebcf29a2",
+    "policy_digest": "sha256:585be8baf92682c15da67e8c328a4eb8ddc8eec2f5555311539adc31c18e458c",
+    "registry_namespace_digest": "sha256:33425344034b32a9a5fbac474b70e83249abb050963bac45278d0d3c1d2c7f1e",
+    "broker_binding_digest": "sha256:9ed87b72b52bc2d5b8a23013d8741cee2bc6f0f9bb01780a7d7e5da18d3ea366",
+    "created_at": "2026-10-17T00:00:00Z"
+  }
+}

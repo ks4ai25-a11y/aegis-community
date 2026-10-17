@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerMutationCompletionV1.json",
+  "title": "ScannerMutationCompletionV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "intent_id": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "generation_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "response_status": {
+      "type": "integer",
+      "minimum": 201,
+      "maximum": 204,
+      "enum": [
+        201,
+        204
+      ]
+    },
+    "engine_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "response_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "intent_id",
+    "generation_id",
+    "response_status",
+    "engine_id",
+    "response_digest"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/ScannerAuthorizerLaunchRequestV1.json",
+  "title": "ScannerAuthorizerLaunchRequestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "container_name": {
+      "type": "string",
+      "pattern": "^aegis-scan-[0-9a-f]{32}$"
+    },
+    "challenge": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "create",
+        "start",
+        "remove"
+      ]
+    }
+  },
+  "required": [
+    "container_name",
+    "challenge",
+    "operation"
+  ]
+}

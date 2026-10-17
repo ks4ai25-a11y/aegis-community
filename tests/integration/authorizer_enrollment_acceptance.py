@@ -28,7 +28,7 @@ with tempfile.TemporaryDirectory(prefix='aegis-authorizer-proof-') as temporary:
  credential=parent/'authorizer.credential'
  result=run('scanner-authorizer','enroll','gate-a','1',engine,registry,policy,str(credential))
  token=credential.read_bytes();assert len(token)==65 and credential.stat().st_mode&0o777==0o600
- assert b'mutation admission unavailable' in result.stdout and token.strip() not in result.stdout+result.stderr
+ assert b'native admission requires separate policy selection' in result.stdout and token.strip() not in result.stdout+result.stderr
  check('compiled_authorizer_enrollment_delivers_private_credential_only')
  with sqlite3.connect(dbpath) as db:
   row=db.execute('SELECT id,owner,state,engine_digest,registry_digest,policy_digest,token_hash FROM scanner_authorizers').fetchone()
@@ -50,9 +50,26 @@ with tempfile.TemporaryDirectory(prefix='aegis-authorizer-proof-') as temporary:
  refused=run('scanner-authorizer','probe',str(credential),ok=False)
  assert token.strip() not in refused.stdout+refused.stderr
  check('occupied_path_active_budget_invalid_policy_and_unavailable_probe_refused')
+ namespace=digest(b'synthetic-approved-protocol2-namespace')
+ run('scanner-authorizer','bind','gate-a',namespace,ok=False)
+ run('scanner-engine','bind',engine,registry)
+ run('scanner-engine','bind-journal',digest(b'synthetic-journal-root'),digest(b'synthetic-journal-namespace'))
+ worker_credential=parent/'worker.credential'
+ run('scanner-worker','enroll','worker-a','1',str(worker_credential))
+ run('scanner-engine','bind-broker','worker-a')
+ bound=run('scanner-authorizer','bind','gate-a',namespace)
+ assert token.strip() not in bound.stdout+bound.stderr
+ run('scanner-authorizer','bind','gate-a',namespace)
+ run('scanner-authorizer','bind','gate-a',digest(b'replacement-namespace'),ok=False)
+ with sqlite3.connect(dbpath) as db:
+  assert db.execute('SELECT authorizer,engine_digest,registry_digest,policy_digest,namespace_digest,state FROM scanner_mutation_bindings').fetchone()==('gate-a',engine,registry,policy,namespace,'active')
+  assert db.execute('SELECT count(*) FROM scanner_allocation_generations').fetchone()==(0,)
+  assert db.execute('SELECT count(*) FROM scanner_dispatch').fetchone()==(0,)
+ check('compiled_selection_binds_exact_scope_without_adopting_a_dispatch')
  run('scanner-authorizer','revoke','gate-a');run('scanner-authorizer','revoke','gate-a')
  with sqlite3.connect(dbpath) as db:
   assert db.execute("SELECT state FROM scanner_authorizers WHERE id='gate-a'").fetchone()==('revoked',)
+  assert db.execute("SELECT state FROM scanner_mutation_bindings WHERE authorizer='gate-a'").fetchone()==('revoked',)
   assert db.execute("SELECT count(*) FROM audit WHERE document LIKE '%scanner.authorizer_revoke%'").fetchone()==(1,)
  run('audit','verify')
  check('revocation_is_retained_idempotent_and_audited')

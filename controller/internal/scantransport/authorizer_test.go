@@ -37,8 +37,11 @@ func TestAuthorizerRoleDoesNotInheritWorkerObserverOrReleaseAuthority(t *testing
 	for _, operation := range []string{"identity", "claim", "renew", "finish", "verifier/identity", "verifier/context"} {
 		call(t, h, token, operation, "{}", 401)
 	}
-	for _, operation := range []string{"admit", "complete", "release", "reset"} {
+	for _, operation := range []string{"release", "reset"} {
 		call(t, h, token, "authorizer/"+operation, "{}", 404)
+	}
+	for _, operation := range []string{"admit", "complete", "launch"} {
+		call(t, h, token, "authorizer/"+operation, "{}", 400)
 	}
 	for _, body := range []string{"null", `{"role":"scanner-engine-authorizer"}`, `{} {}`, `{"cleanup_confirmed":true}`} {
 		call(t, h, token, "authorizer/identity", body, 400)
@@ -128,5 +131,46 @@ func TestAuthorizerPrivateUnixProbeAndRevocation(t *testing.T) {
 	}
 	if _, e = ProbeAuthorizer(context.Background(), listener.Addr().String(), credential); e == nil {
 		t.Fatal("revoked authorizer probe accepted")
+	}
+}
+
+func TestAuthorizerMutationRequestRequiresExactCompleteShape(t *testing.T) {
+	s, _, _, _, path, v := verifierHTTPFixture(t)
+	credential := filepath.Join(filepath.Dir(path), "mutation-authorizer")
+	if _, e := s.Auth.EnrollAuthorizerFile(v.Owner, "mutation-authorizer", 1, v.Engine, v.Registry, domain.Hash([]byte("policy")), credential); e != nil {
+		t.Fatal(e)
+	}
+	raw, e := os.ReadFile(credential)
+	if e != nil {
+		t.Fatal(e)
+	}
+	token := strings.TrimSpace(string(raw))
+	valid := scanevidence.MutationRequest{Generation: strings.Repeat("a", 64), Job: domain.ID(), Tool: "bandit", Operation: "create", Launch: domain.Hash([]byte("launch")), Descriptor: domain.Hash([]byte("descriptor"))}
+	body, _ := json.Marshal(valid)
+	for _, kind := range []string{"missing", "alias", "duplicate", "null", "unknown", "trailing", "huge", "wrong-operation"} {
+		hostile := string(body)
+		switch kind {
+		case "missing":
+			hostile = strings.Replace(hostile, `,"target_engine_id":""`, "", 1)
+		case "alias":
+			hostile = strings.Replace(hostile, `"generation_id"`, `"Generation_ID"`, 1)
+		case "duplicate":
+			hostile = strings.Replace(hostile, `"tool_id":"bandit"`, `"tool_id":"bandit","tool_id":"bandit"`, 1)
+		case "null":
+			hostile = strings.Replace(hostile, `"target_engine_id":""`, `"target_engine_id":null`, 1)
+		case "unknown":
+			hostile = strings.TrimSuffix(hostile, "}") + `,"cleanup_confirmed":true}`
+		case "trailing":
+			hostile += "{}"
+		case "huge":
+			hostile = strings.Repeat(" ", 8193)
+		case "wrong-operation":
+			hostile = strings.Replace(hostile, `"operation":"create"`, `"operation":"restart"`, 1)
+		}
+		call(t, s.Handler(), token, "authorizer/admit", hostile, 400)
+	}
+	var n int
+	if e = s.Q.S.DB.QueryRow("SELECT count(*) FROM scanner_mutation_intents").Scan(&n); e != nil || n != 0 {
+		t.Fatal("hostile framing created an obligation", e)
 	}
 }

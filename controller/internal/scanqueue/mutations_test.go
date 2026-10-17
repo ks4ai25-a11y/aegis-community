@@ -517,3 +517,33 @@ func TestMutationBindingRefusesAdoptingLegacyDispatch(t *testing.T) {
 		t.Fatal("legacy dispatch acquired selected binding", e)
 	}
 }
+
+func TestRepeatedRevocationWithdrawsPreviouslyRetainedActiveSelection(t *testing.T) {
+	q, l, v, r, _ := mutationFixture(t)
+	m := mustAdmit(t, q, v, r)
+	// Exact legacy behavior of the published016 backend: enrollment revoked,
+	// generation closed, but its derived selected-binding row remained active.
+	if _, e := q.S.DB.Exec("UPDATE scanner_authorizers SET state='revoked' WHERE id=?", v.ID); e != nil {
+		t.Fatal(e)
+	}
+	auth := &scannerauth.Registry{S: q.S, Now: q.Now}
+	for i := 0; i < 2; i++ {
+		if e := auth.RevokeAuthorizer(v.Owner, v.ID); e != nil {
+			t.Fatal(e)
+		}
+	}
+	var state string
+	if e := q.S.DB.QueryRow("SELECT state FROM scanner_mutation_bindings WHERE authorizer=?", v.ID).Scan(&state); e != nil || state != "revoked" {
+		t.Fatal("old selection survived explicit revocation", e)
+	}
+	if e := q.S.DB.QueryRow("SELECT state FROM scanner_mutation_intents WHERE id=?", m.ID).Scan(&state); e != nil || state != "pending" {
+		t.Fatal("revocation settled unknown mutation", e)
+	}
+	if _, e := q.Claim(l.Worker, l.Job.Owner); e != ErrCleanup {
+		t.Fatal("revocation released cleanup", e)
+	}
+	var n int
+	if e := q.S.DB.QueryRow("SELECT count(*) FROM audit WHERE document LIKE '%scanner.authorizer_binding_revoke%'").Scan(&n); e != nil || n != 1 {
+		t.Fatal("revocation was not once-only audited", e)
+	}
+}

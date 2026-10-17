@@ -1612,6 +1612,178 @@ class ScannerLiveLaunchRecordV1DocumentBrokerBindingDocument(TypedDict):
     worker_id: str
     journal_binding_digest: str
     created_at: str
+class ScannerMutationBindingV1(TypedDict):
+    owner_id: str
+    authorizer_id: str
+    engine_digest: str
+    registry_digest: str
+    policy_digest: str
+    registry_namespace_digest: str
+    broker_binding_digest: str
+    created_at: str
+class ScannerMutationBindingRecordV1(TypedDict):
+    binding_digest: str
+    document: ScannerMutationBindingRecordV1Document
+class ScannerMutationBindingRecordV1Document(TypedDict):
+    owner_id: str
+    authorizer_id: str
+    engine_digest: str
+    registry_digest: str
+    policy_digest: str
+    registry_namespace_digest: str
+    broker_binding_digest: str
+    created_at: str
+class ScannerAllocationGenerationV1(TypedDict):
+    generation_id: str
+    job_id: str
+    binding_digest: str
+    state: str
+    deadline_unix: int
+class ScannerMutationRequestV1(TypedDict):
+    generation_id: str
+    job_id: str
+    tool_id: str
+    operation: str
+    launch_digest: str
+    descriptor_digest: str
+    target_engine_id: str
+class ScannerMutationIntentV1(TypedDict):
+    intent_id: str
+    request: ScannerMutationIntentV1Request
+    workspace_digest: str
+    container: str
+    state: str
+    response_digest: NotRequired[str]
+    response_status: NotRequired[int]
+    result_engine_id: NotRequired[str]
+class ScannerMutationIntentV1Request(TypedDict):
+    generation_id: str
+    job_id: str
+    tool_id: str
+    operation: str
+    launch_digest: str
+    descriptor_digest: str
+    target_engine_id: str
+class ScannerMutationAdmissionV1(TypedDict):
+    intent: ScannerMutationAdmissionV1Intent
+    replay: bool
+class ScannerMutationAdmissionV1Intent(TypedDict):
+    intent_id: str
+    request: ScannerMutationAdmissionV1IntentRequest
+    workspace_digest: str
+    container: str
+    state: str
+    response_digest: NotRequired[str]
+    response_status: NotRequired[int]
+    result_engine_id: NotRequired[str]
+class ScannerMutationAdmissionV1IntentRequest(TypedDict):
+    generation_id: str
+    job_id: str
+    tool_id: str
+    operation: str
+    launch_digest: str
+    descriptor_digest: str
+    target_engine_id: str
+class ScannerMutationCompletionV1(TypedDict):
+    intent_id: str
+    generation_id: str
+    response_status: int
+    engine_id: str
+    response_digest: str
+class ScannerAuthorizerLaunchRequestV1(TypedDict):
+    container_name: str
+    challenge: str
+    operation: str
+class ScannerAuthorizerLaunchV1(TypedDict):
+    schema_version: str
+    challenge: str
+    operation: str
+    binding: ScannerAuthorizerLaunchV1Binding
+    generation: ScannerAuthorizerLaunchV1Generation
+    launch: ScannerAuthorizerLaunchV1Launch
+    workspace: ScannerAuthorizerLaunchV1Workspace
+    guard_set: ScannerAuthorizerLaunchV1GuardSet
+    lease_until_unix: int
+    observed_at: str
+    controller_metadata_only: bool
+    engine_write_authorized: bool
+    cleanup_release_authorized: bool
+class ScannerAuthorizerLaunchV1Binding(TypedDict):
+    binding_digest: str
+    document: ScannerAuthorizerLaunchV1BindingDocument
+class ScannerAuthorizerLaunchV1BindingDocument(TypedDict):
+    owner_id: str
+    authorizer_id: str
+    engine_digest: str
+    registry_digest: str
+    policy_digest: str
+    registry_namespace_digest: str
+    broker_binding_digest: str
+    created_at: str
+class ScannerAuthorizerLaunchV1Generation(TypedDict):
+    generation_id: str
+    job_id: str
+    binding_digest: str
+    state: str
+    deadline_unix: int
+class ScannerAuthorizerLaunchV1Launch(TypedDict):
+    launch_digest: str
+    document: ScannerAuthorizerLaunchV1LaunchDocument
+class ScannerAuthorizerLaunchV1LaunchDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    tool_version: str
+    tool_image_digest: str
+    sandbox_profile: str
+    duration_limit_seconds: int
+    plan: ScannerAuthorizerLaunchV1LaunchDocumentPlan
+    created_at: str
+    deadline: str
+    guard_set_digest: str
+    guard_protocol: str
+class ScannerAuthorizerLaunchV1LaunchDocumentPlan(TypedDict):
+    tool_id: str
+    container_id: str
+    engine_digest: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+    guard_binary_digest: str
+    guard_architecture: str
+    engine_journal_binding_digest: str
+    engine_journal_namespace_digest: str
+class ScannerAuthorizerLaunchV1Workspace(TypedDict):
+    workspace_digest: str
+    document: ScannerAuthorizerLaunchV1WorkspaceDocument
+class ScannerAuthorizerLaunchV1WorkspaceDocument(TypedDict):
+    schema_version: str
+    owner_id: str
+    job_id: str
+    request_digest: str
+    app_id: str
+    repository_id: str
+    map_digest: str
+    tool_lock_digest: str
+    plan: ScannerAuthorizerLaunchV1WorkspaceDocumentPlan
+    created_at: str
+    deadline: str
+class ScannerAuthorizerLaunchV1WorkspaceDocumentPlan(TypedDict):
+    tool_id: str
+    workspace_id: str
+    registry_digest: str
+    snapshot_digest: str
+class ScannerAuthorizerLaunchV1GuardSet(TypedDict):
+    schema_version: str
+    protocol: str
+    linux_amd64: str
+    linux_arm64: str
+    guard_set_digest: str
 class DatabaseSnapshotReceiptV1(TypedDict):
     schema_version: str
     status: str

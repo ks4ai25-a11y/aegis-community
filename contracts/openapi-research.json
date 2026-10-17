@@ -1417,8 +1417,17 @@
       "ResearchJobV1": {
         "$ref": "schemas/ResearchJobV1.json"
       },
+      "ScannerAllocationGenerationV1": {
+        "$ref": "schemas/ScannerAllocationGenerationV1.json"
+      },
       "ScannerAuthorizerIdentityV1": {
         "$ref": "schemas/ScannerAuthorizerIdentityV1.json"
+      },
+      "ScannerAuthorizerLaunchRequestV1": {
+        "$ref": "schemas/ScannerAuthorizerLaunchRequestV1.json"
+      },
+      "ScannerAuthorizerLaunchV1": {
+        "$ref": "schemas/ScannerAuthorizerLaunchV1.json"
       },
       "ScannerBrokerDispatchOutcomeV1": {
         "$ref": "schemas/ScannerBrokerDispatchOutcomeV1.json"
@@ -1503,6 +1512,24 @@
       },
       "ScannerLiveLaunchRequestV1": {
         "$ref": "schemas/ScannerLiveLaunchRequestV1.json"
+      },
+      "ScannerMutationAdmissionV1": {
+        "$ref": "schemas/ScannerMutationAdmissionV1.json"
+      },
+      "ScannerMutationBindingRecordV1": {
+        "$ref": "schemas/ScannerMutationBindingRecordV1.json"
+      },
+      "ScannerMutationBindingV1": {
+        "$ref": "schemas/ScannerMutationBindingV1.json"
+      },
+      "ScannerMutationCompletionV1": {
+        "$ref": "schemas/ScannerMutationCompletionV1.json"
+      },
+      "ScannerMutationIntentV1": {
+        "$ref": "schemas/ScannerMutationIntentV1.json"
+      },
+      "ScannerMutationRequestV1": {
+        "$ref": "schemas/ScannerMutationRequestV1.json"
       },
       "ScannerSandboxObservationV1": {
         "$ref": "schemas/ScannerSandboxObservationV1.json"

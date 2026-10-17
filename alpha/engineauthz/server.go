@@ -34,7 +34,7 @@ func (p *Policy) Handler() http.Handler {
 						if r.URL.Path == "/AuthZPlugin.AuthZReq" {
 							result = p.AuthorizeRequestContext(r.Context(), request)
 						} else {
-							result = p.AuthorizeResponse(request)
+							result = p.AuthorizeResponseContext(r.Context(), request)
 						}
 					}
 				}

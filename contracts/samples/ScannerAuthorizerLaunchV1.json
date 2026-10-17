@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0",
+  "challenge": "dddddddddddddddddddddddddddddddd",
+  "operation": "create",
+  "binding": {
+    "binding_digest": "sha256:07bfea3607c3933b47deb4207cdfcc442a57a3777fdb7bc0e038b9ef183706c8",
+    "document": {
+      "owner_id": "synthetic-owner",
+      "authorizer_id": "synthetic-authorizer",
+      "engine_digest": "sha256:ee7676eb6e1cb6c15a44bb963c71da7da3a1b77b8879ac4efb08f03b773403e3",
+      "registry_digest": "sha256:0bb43341b63b7ab75d189ed43bfd1d827f7f3473d1d772235843abafebcf29a2",
+      "policy_digest": "sha256:585be8baf92682c15da67e8c328a4eb8ddc8eec2f5555311539adc31c18e458c",
+      "registry_namespace_digest": "sha256:33425344034b32a9a5fbac474b70e83249abb050963bac45278d0d3c1d2c7f1e",
+      "broker_binding_digest": "sha256:9ed87b72b52bc2d5b8a23013d8741cee2bc6f0f9bb01780a7d7e5da18d3ea366",
+      "created_at": "2026-10-17T00:00:00Z"
+    }
+  },
+  "generation": {
+    "generation_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "job_id": "0198e0d0-0000-7000-8000-000000000001",
+    "binding_digest": "sha256:07bfea3607c3933b47deb4207cdfcc442a57a3777fdb7bc0e038b9ef183706c8",
+    "state": "open",
+    "deadline_unix": 1792195500
+  },
+  "launch": {
+    "launch_digest": "sha256:a34084fcebee38cd77d6f31c833724175dae8c58e17beaf71f4ab86b1b1f16dd",
+    "document": {
+      "schema_version": "1.2",
+      "owner_id": "synthetic-owner",
+      "job_id": "0198e0d0-0000-7000-8000-000000000001",
+      "request_digest": "sha256:da19e2a33559ea844cd5a263413ad36e010bb4e0449e28d347f426bb012b9cb4",
+      "app_id": "app_demo",
+      "repository_id": "synthetic-repository",
+      "map_digest": "sha256:44f7d4d180a62f7aa4848da09d0f302eb4f8580d2fd160e0439903245c84e85d",
+      "tool_lock_digest": "sha256:d6ebb18dedf78b4fc16c8aaac37a8a465c863f2edd67055c51bdfe915358079a",
+      "tool_version": "1.9.4",
+      "tool_image_digest": "sha256:bbb9a30ac377725931b09171c74994e4428edd32294adb6bf49285e786715299",
+      "sandbox_profile": "repo_offline-network-none-v1",
+      "duration_limit_seconds": 120,
+      "plan": {
+        "engine_journal_binding_digest": "sha256:984af7a7ce1abf51305caa3047382fa22d05396fa2bef0e14b1ef2bfc98a18ca",
+        "engine_journal_namespace_digest": "sha256:bc6e75c4fde9209a86dfdfa86dfc601a9e6a5367fab2a7e8cdbb41e55f02ba81",
+        "tool_id": "bandit",
+        "container_id": "aegis-scan-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "engine_digest": "sha256:ee7676eb6e1cb6c15a44bb963c71da7da3a1b77b8879ac4efb08f03b773403e3",
+        "workspace_id": "run-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "registry_digest": "sha256:0bb43341b63b7ab75d189ed43bfd1d827f7f3473d1d772235843abafebcf29a2",
+        "snapshot_digest": "sha256:ba8df55a7d5c3de90cea83d89ad4612cce846e63ca23bcebce761ba2b97598ba",
+        "guard_binary_digest": "sha256:b4e2404ced05be87dce527f6c8adc75b08ba0d03719ebc535a93efa204b738a8",
+        "guard_architecture": "amd64"
+      },
+      "created_at": "2026-10-17T00:00:02Z",
+      "deadline": "2026-10-17T00:05:00Z",
+      "guard_set_digest": "sha256:88cfe76126d71c4fa341cc631afbaefbcf5c479f6e2ba093b03b7f3332d7b3de",
+      "guard_protocol": "absolute-deadline-v1"
+    }
+  },
+  "workspace": {
+    "workspace_digest": "sha256:0c560cb7c80560a5b3b27e2dc63464776cca46c95938900d79ac0635d84f1cf5",
+    "document": {
+      "schema_version": "1.0",
+      "owner_id": "synthetic-owner",
+      "job_id": "0198e0d0-0000-7000-8000-000000000001",
+      "request_digest": "sha256:da19e2a33559ea844cd5a263413ad36e010bb4e0449e28d347f426bb012b9cb4",
+      "app_id": "app_demo",
+      "repository_id": "synthetic-repository",
+      "map_digest": "sha256:44f7d4d180a62f7aa4848da09d0f302eb4f8580d2fd160e0439903245c84e85d",
+      "tool_lock_digest": "sha256:d6ebb18dedf78b4fc16c8aaac37a8a465c863f2edd67055c51bdfe915358079a",
+      "plan": {
+        "tool_id": "bandit",
+        "workspace_id": "run-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "registry_digest": "sha256:0bb43341b63b7ab75d189ed43bfd1d827f7f3473d1d772235843abafebcf29a2",
+        "snapshot_digest": "sha256:ba8df55a7d5c3de90cea83d89ad4612cce846e63ca23bcebce761ba2b97598ba"
+      },
+      "created_at": "2026-10-17T00:00:01Z",
+      "deadline": "2026-10-17T00:05:00Z"
+    }
+  },
+  "guard_set": {
+    "schema_version": "1.0",
+    "protocol": "absolute-deadline-v1",
+    "linux_amd64": "sha256:b4e2404ced05be87dce527f6c8adc75b08ba0d03719ebc535a93efa204b738a8",
+    "linux_arm64": "sha256:8c2fa9136b56be3141a473e31c38c2634b8893ddd147db1a91d06b89cb3e7040",
+    "guard_set_digest": "sha256:88cfe76126d71c4fa341cc631afbaefbcf5c479f6e2ba093b03b7f3332d7b3de"
+  },
+  "lease_until_unix": 1792195495,
+  "observed_at": "2026-10-17T00:00:03Z",
+  "controller_metadata_only": true,
+  "engine_write_authorized": false,
+  "cleanup_release_authorized": false
+}

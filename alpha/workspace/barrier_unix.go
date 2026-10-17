@@ -277,3 +277,30 @@ func withEmptyRegistry(ctx context.Context, path, namespace string, work func() 
 	}
 	return ctx.Err()
 }
+
+// RegistryNamespace reads existing protocol2 identity without creating or
+// repairing state. Occupied workspaces are not proof of emptiness or cleanup.
+func RegistryNamespace(ctx context.Context, path string) (namespace string, err error) {
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+	l, e := openRegistry(path, false)
+	if e != nil {
+		return "", e
+	}
+	defer func() {
+		if e := l.Close(); err == nil {
+			err = e
+		}
+	}()
+	if l.namespace == "" {
+		return "", fmt.Errorf("provisioned registry namespace required")
+	}
+	if e = l.check(); e != nil {
+		return "", e
+	}
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+	return l.namespace, nil
+}

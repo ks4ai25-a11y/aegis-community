@@ -121,12 +121,31 @@ func (r *Registry) RevokeAuthorizer(owner, id string) error {
 		return e
 	}
 	if state == "revoked" {
-		return nil
+		// An older controller could revoke enrollment before selected-binding
+		// revocation was integrated. Explicit repeated revocation must still
+		// withdraw that derived authority, preserving its history and holds.
+		result, e := tx.Exec("UPDATE scanner_mutation_bindings SET state='revoked' WHERE authorizer=? AND owner=? AND state='active'", id, owner)
+		if e != nil {
+			return e
+		}
+		n, e := result.RowsAffected()
+		if e != nil {
+			return e
+		}
+		if n > 0 {
+			if e = store.AuditTx(tx, owner, "scanner.authorizer_binding_revoke", id, "revoked", map[string]any{"cleanup_admission_released": false}); e != nil {
+				return e
+			}
+		}
+		return tx.Commit()
 	}
 	if state != "active" {
 		return ErrDenied
 	}
 	if _, e = tx.Exec("UPDATE scanner_authorizers SET state='revoked' WHERE id=? AND owner=?", id, owner); e != nil {
+		return e
+	}
+	if _, e = tx.Exec("UPDATE scanner_mutation_bindings SET state='revoked' WHERE authorizer=? AND owner=? AND state='active'", id, owner); e != nil {
 		return e
 	}
 	if e = store.AuditTx(tx, owner, "scanner.authorizer_revoke", id, "revoked", map[string]any{"role": scanevidence.ScannerAuthorizerRole, "cleanup_admission_released": false}); e != nil {
