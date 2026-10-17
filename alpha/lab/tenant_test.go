@@ -16,6 +16,10 @@ func TestTenantClosedLoop(t *testing.T) {
 	if e != nil || r.Overall != "PASS" || !r.BaselineReproduced || len(r.Checks) != 6 {
 		t.Fatal(r, e)
 	}
+	// Selecting a compiled variant is not a tested mitigation or code fix.
+	if r.Tier != "T2" || r.CandidateApplied {
+		t.Fatal("tier overclaim", r.Tier, r.CandidateApplied)
+	}
 }
 func TestUnknownPatchCannotExecute(t *testing.T) {
 	if _, e := VerifyTenant("sh -c unsafe"); e == nil {

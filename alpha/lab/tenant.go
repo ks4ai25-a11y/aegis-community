@@ -80,6 +80,7 @@ type TenantReport struct {
 	BaselineReproduced bool          `json:"baseline_reproduced"`
 	Overall            string        `json:"overall"`
 	Tier               string        `json:"evidence_tier"`
+	CandidateApplied   bool          `json:"candidate_applied_to_code_under_test"`
 	Limitations        []string      `json:"limitations"`
 	Digest             string        `json:"report_digest"`
 }
@@ -116,7 +117,7 @@ func VerifyTenant(variant string) (TenantReport, error) {
 		{"red-cross", "red-user", "blue-object", 403}, {"blue-cross", "blue-user", "red-object", 403},
 		{"unauthenticated", "", "red-object", 401}, {"missing-object", "red-user", "missing", 404},
 	}
-	r := TenantReport{Schema: "1.0", Fixture: TenantFixture, Scope: "trusted-bundled-synthetic-fixture", Requirement: Requirement, Candidate: variant, FixtureDigest: digest(map[string]any{"corpus": corpus, "implementation_sha256": digest(string(fixtureSource)), "requirement": Requirement}), Checks: []TenantCheck{}, Overall: "PASS", Tier: "T0", Limitations: []string{"Only the bundled fixture and declared tenant ownership requirement are tested.", "No production vulnerability, arbitrary patch execution, or WAF remediation claim.", "HTTP fixture is in-process loopback; disposable VM execution for customer repositories remains unavailable."}}
+	r := TenantReport{Schema: "1.0", Fixture: TenantFixture, Scope: "trusted-bundled-synthetic-fixture", Requirement: Requirement, Candidate: variant, FixtureDigest: digest(map[string]any{"corpus": corpus, "implementation_sha256": digest(string(fixtureSource)), "requirement": Requirement}), Checks: []TenantCheck{}, Overall: "PASS", Tier: "T0", Limitations: []string{"Only the bundled fixture and declared tenant ownership requirement are tested.", "No production vulnerability, arbitrary patch execution, or WAF remediation claim.", "HTTP fixture is in-process loopback; disposable VM execution for customer repositories remains unavailable.", "The candidate is a precompiled fixture variant, not a patch applied to source, so its result does not raise the evidence tier."}}
 	client := &http.Client{Timeout: 2 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	request := func(base, subject, object string) (int, error) {
 		req, _ := http.NewRequest("GET", base+"/object?object="+object, nil)
@@ -153,8 +154,11 @@ func VerifyTenant(variant string) (TenantReport, error) {
 	if !r.BaselineReproduced {
 		r.Overall = "INCONCLUSIVE"
 	}
-	if r.Overall == "PASS" {
-		r.Tier = "T3"
+	// The baseline flaw was reproduced in isolation (T2). The candidate is a variant
+	// compiled into this binary, not a fix or mitigation applied to the code under
+	// test, so a passing candidate never raises the tier to T3 or T4.
+	if r.BaselineReproduced {
+		r.Tier = "T2"
 	}
 	r.Digest = digest(r)
 	return r, nil
