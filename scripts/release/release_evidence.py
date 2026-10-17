@@ -49,6 +49,7 @@ def syft(mount_src, mount_dst, source, dest, *extra):
 GOMODCACHE = pathlib.Path(subprocess.run(["go", "env", "GOMODCACHE"], capture_output=True, text=True).stdout.strip() or "/nonexistent")
 
 
+GOROOT = pathlib.Path(subprocess.run(["go", "env", "GOROOT"], capture_output=True, text=True).stdout.strip() or "/nonexistent")
 LICENCE_FILES = ("LICENSE", "LICENSE.md", "LICENSE.txt", "LICENCE", "COPYING", "LICENSE-APACHE", "LICENSE-MIT")
 
 
@@ -56,6 +57,8 @@ def go_module_dir(purl):
     m = re.match(r"pkg:golang/(.+)@([^?#]+)", purl or "")
     if not m:
         return None, None
+    if m.group(1) == "stdlib":
+        return f"stdlib@{m.group(2)}", GOROOT
     escaped = re.sub(r"[A-Z]", lambda x: "!" + x.group(0).lower(), m.group(1))
     return f"{m.group(1)}@{m.group(2)}", GOMODCACHE / f"{escaped}@{m.group(2)}"
 
