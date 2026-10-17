@@ -16,16 +16,18 @@ import (
 
 const ServerName = "aegis-scanner-engine"
 const Broker = "aegis-engine-broker"
+const Observer = "aegis-engine-observer"
 
 var ErrIdentity = errors.New("private scanner engine TLS identity unavailable")
 
 type Identity struct {
 	Directory, Digest string
 	TLS               *tls.Config
+	role              string
 }
 
 func Load(directory, role string) (*Identity, error) {
-	if role != Broker || !filepath.IsAbs(directory) || filepath.Clean(directory) != directory {
+	if (role != Broker && role != Observer) || !filepath.IsAbs(directory) || filepath.Clean(directory) != directory {
 		return nil, ErrIdentity
 	}
 	ca, cert, key, e := readIdentity(directory)
@@ -60,7 +62,7 @@ func Load(directory, role string) (*Identity, error) {
 	pair.Leaf = leaf
 	digest := source.Hash(append(append([]byte("aegis-scanner-engine-mtls-identity-v1\n"), root.Raw...), leaf.Raw...))
 	config := &tls.Config{MinVersion: tls.VersionTLS13, ServerName: ServerName, RootCAs: pool, Certificates: []tls.Certificate{pair}, NextProtos: []string{"http/1.1"}}
-	identity := &Identity{Directory: directory, Digest: digest, TLS: config}
+	identity := &Identity{Directory: directory, Digest: digest, TLS: config, role: role}
 	config.GetClientCertificate = func(*tls.CertificateRequestInfo) (*tls.Certificate, error) {
 		current, e := Load(directory, role)
 		if e != nil || current.Digest != digest {
@@ -77,7 +79,7 @@ func (i *Identity) Check() error {
 	if i == nil {
 		return ErrIdentity
 	}
-	current, e := Load(i.Directory, Broker)
+	current, e := Load(i.Directory, i.role)
 	if e != nil || current.Digest != i.Digest {
 		return ErrIdentity
 	}

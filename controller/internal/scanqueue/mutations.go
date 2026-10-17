@@ -333,6 +333,26 @@ func (q *Queue) AdmitMutation(ctx context.Context, v scanevidence.AuthorizerIden
 
 type MutationCompletion = scanevidence.MutationCompletion
 
+// completedMutationScopeTx authenticates a read-only acknowledgement against
+// the original retained binding. It must not depend on a successor dispatch,
+// a currently selected binding, or the current worker/guard configuration.
+func (q *Queue) completedMutationScopeTx(tx *sql.Tx, v scanevidence.AuthorizerIdentity, m MutationIntent) error {
+	if e := scannerauth.AuthorizeAuthorizerTx(tx, v, q.now().Unix()); e != nil {
+		return e
+	}
+	var b MutationBinding
+	e := tx.QueryRow(`SELECT b.digest,b.owner,b.authorizer,b.engine_digest,b.registry_digest,b.policy_digest,b.namespace_digest,b.broker_binding_digest,b.created_at
+FROM scanner_allocation_generations g JOIN scanner_mutation_bindings b ON b.digest=g.binding_digest
+WHERE g.id=? AND g.job=? AND g.owner=? AND b.owner=?`, m.Request.Generation, m.Request.Job, v.Owner, v.Owner).Scan(&b.Digest, &b.Owner, &b.Authorizer, &b.Engine, &b.Registry, &b.Policy, &b.Namespace, &b.Broker, &b.Created)
+	if e != nil {
+		return e
+	}
+	if b.Digest != domain.Digest(b) || b.Authorizer != v.ID || b.Engine != v.Engine || b.Registry != v.Registry || b.Policy != v.Policy || !digestPattern.MatchString(b.Namespace) || !digestPattern.MatchString(b.Broker) {
+		return ErrLease
+	}
+	return nil
+}
+
 // CompleteMutation records a successful native response, not independent
 // absence. Missing/error responses stay pending even after cancellation/expiry.
 // Only the original, still-enrolled authorizer may acknowledge completion.
@@ -349,6 +369,18 @@ func (q *Queue) CompleteMutation(ctx context.Context, v scanevidence.AuthorizerI
 	if e != nil {
 		return m, e
 	}
+	if m.State == "completed" {
+		if e = q.completedMutationScopeTx(tx, v, m); e != nil {
+			return MutationIntent{}, e
+		}
+		if m.Status != c.Status || m.EngineID != c.EngineID || m.Response != c.Response {
+			return MutationIntent{}, ErrConflict
+		}
+		if e = ctx.Err(); e != nil {
+			return MutationIntent{}, e
+		}
+		return m, nil
+	}
 	g, _, _, e := q.generationTx(tx, v, m.Request.Job, true)
 	if e != nil {
 		return MutationIntent{}, e
@@ -358,12 +390,6 @@ func (q *Queue) CompleteMutation(ctx context.Context, v scanevidence.AuthorizerI
 	}
 	if (m.Request.Operation == "create" && c.Status != 201) || (m.Request.Operation != "create" && (c.Status != 204 || c.EngineID != m.Request.EngineID)) {
 		return MutationIntent{}, ErrConflict
-	}
-	if m.State == "completed" {
-		if m.Status != c.Status || m.EngineID != c.EngineID || m.Response != c.Response {
-			return MutationIntent{}, ErrConflict
-		}
-		return m, nil
 	}
 	if m.State != "pending" {
 		return MutationIntent{}, ErrConflict
