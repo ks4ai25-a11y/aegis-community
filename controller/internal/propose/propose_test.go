@@ -1,11 +1,11 @@
 package propose
 
 import (
-	"strings"
 	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/store"
 	"encoding/json"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )

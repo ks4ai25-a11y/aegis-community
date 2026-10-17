@@ -1,9 +1,9 @@
 package api
 
 import (
-	"errors"
 	"aegis.local/controller/internal/auth"
 	"aegis.local/controller/internal/store"
+	"errors"
 	"net/http/httptest"
 	"path/filepath"
 	"strings"
