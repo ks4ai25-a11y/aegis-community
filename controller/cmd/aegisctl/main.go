@@ -22,7 +22,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		die("usage: aegisctl scanner-engine bind ENGINE_DIGEST REGISTRY_DIGEST | scanner-engine bind-journal JOURNAL_ROOT_DIGEST JOURNAL_NAMESPACE_DIGEST | scanner-engine bind-broker WORKER_ID | --version | init | doctor | diagnostics [--json] | policy validate FILE | audit verify | backup create ABSOLUTE_FILE [--json] | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE | scanner-launch export JOB TOOL ABSOLUTE_PRIVATE_FILE | scanner-verifier enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST PRIVATE_FILE | scanner-verifier revoke ID | scanner-verifier probe PRIVATE_FILE | scanner-authorizer enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST POLICY_DIGEST PRIVATE_FILE | scanner-authorizer revoke ID | scanner-authorizer probe PRIVATE_FILE | scanner-reconciler enroll ID MINUTES BINDING_DIGEST PRIVATE_FILE | scanner-reconciler revoke ID | scanner-reconciler probe PRIVATE_FILE")
+		die("usage: aegisctl scanner-engine bind ENGINE_DIGEST REGISTRY_DIGEST | scanner-engine bind-journal JOURNAL_ROOT_DIGEST JOURNAL_NAMESPACE_DIGEST | scanner-engine bind-broker WORKER_ID | --version | init | doctor | diagnostics [--json] | policy validate FILE | audit verify | backup create ABSOLUTE_FILE [--json] | report verify FILE | scanner-worker enroll ID MINUTES FILE | scanner-worker revoke ID | scanner-worker probe CREDENTIAL_FILE | scanner-launch export JOB TOOL ABSOLUTE_PRIVATE_FILE | scanner-verifier enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST PRIVATE_FILE | scanner-verifier revoke ID | scanner-verifier probe PRIVATE_FILE | scanner-authorizer enroll ID MINUTES ENGINE_DIGEST REGISTRY_DIGEST POLICY_DIGEST PRIVATE_FILE | scanner-authorizer revoke ID | scanner-authorizer probe PRIVATE_FILE | scanner-reconciler enroll ID MINUTES BINDING_DIGEST PRIVATE_FILE | scanner-reconciler revoke ID | scanner-reconciler probe PRIVATE_FILE | scanner-db approve MANIFEST_JSON | scanner-db list | scanner-db revoke TOOL")
 	}
 	args := os.Args[1:]
 	root := os.Getenv("AEGIS_DATA")
@@ -112,6 +112,8 @@ func main() {
 		runScannerAuthorizer(root, args)
 	case "scanner-reconciler":
 		runScannerReconciler(root, args)
+	case "scanner-db":
+		runScannerDB(root, args)
 	case "scanner-verifier":
 		if len(args) == 3 && args[1] == "probe" {
 			socket := os.Getenv("AEGIS_SCANNER_SOCKET")

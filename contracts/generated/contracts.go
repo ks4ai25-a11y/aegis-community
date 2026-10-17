@@ -661,13 +661,18 @@ type ScannerExecutionV1AdvisoryDatabase struct {
 	ContainerPath   string `json:"container_path"`
 }
 type ScannerJobInputV1 struct {
-	SchemaVersion      string   `json:"schema_version"`
-	AppId              string   `json:"app_id"`
-	RepositoryId       string   `json:"repository_id"`
-	MapDigest          string   `json:"map_digest"`
-	Mode               string   `json:"mode"`
-	ToolIds            []string `json:"tool_ids"`
-	ToolTimeoutSeconds int64    `json:"tool_timeout_seconds"`
+	SchemaVersion           string                                            `json:"schema_version"`
+	AppId                   string                                            `json:"app_id"`
+	RepositoryId            string                                            `json:"repository_id"`
+	MapDigest               string                                            `json:"map_digest"`
+	Mode                    string                                            `json:"mode"`
+	ToolIds                 []string                                          `json:"tool_ids"`
+	ToolTimeoutSeconds      int64                                             `json:"tool_timeout_seconds"`
+	AdvisoryDatabaseDigests ScannerJobStatusV1JobInputAdvisoryDatabaseDigests `json:"advisory_database_digests,omitempty"`
+}
+type ScannerJobInputV1AdvisoryDatabaseDigests struct {
+	OsvV2 string `json:"osv_v2,omitempty"`
+	Trivy string `json:"trivy,omitempty"`
 }
 type ScannerJobV1 struct {
 	SchemaVersion   string                     `json:"schema_version"`
@@ -684,13 +689,18 @@ type ScannerJobV1 struct {
 	ErrorCode       string                     `json:"error_code,omitempty"`
 }
 type ScannerJobV1Input struct {
-	SchemaVersion      string   `json:"schema_version"`
-	AppId              string   `json:"app_id"`
-	RepositoryId       string   `json:"repository_id"`
-	MapDigest          string   `json:"map_digest"`
-	Mode               string   `json:"mode"`
-	ToolIds            []string `json:"tool_ids"`
-	ToolTimeoutSeconds int64    `json:"tool_timeout_seconds"`
+	SchemaVersion           string                                            `json:"schema_version"`
+	AppId                   string                                            `json:"app_id"`
+	RepositoryId            string                                            `json:"repository_id"`
+	MapDigest               string                                            `json:"map_digest"`
+	Mode                    string                                            `json:"mode"`
+	ToolIds                 []string                                          `json:"tool_ids"`
+	ToolTimeoutSeconds      int64                                             `json:"tool_timeout_seconds"`
+	AdvisoryDatabaseDigests ScannerJobStatusV1JobInputAdvisoryDatabaseDigests `json:"advisory_database_digests,omitempty"`
+}
+type ScannerJobV1InputAdvisoryDatabaseDigests struct {
+	OsvV2 string `json:"osv_v2,omitempty"`
+	Trivy string `json:"trivy,omitempty"`
 }
 type ScannerJobListV1 struct {
 	Items []ScannerJobStatusV1Job `json:"items"`
@@ -710,13 +720,18 @@ type ScannerJobListV1ItemsItem struct {
 	ErrorCode       string                     `json:"error_code,omitempty"`
 }
 type ScannerJobListV1ItemsItemInput struct {
-	SchemaVersion      string   `json:"schema_version"`
-	AppId              string   `json:"app_id"`
-	RepositoryId       string   `json:"repository_id"`
-	MapDigest          string   `json:"map_digest"`
-	Mode               string   `json:"mode"`
-	ToolIds            []string `json:"tool_ids"`
-	ToolTimeoutSeconds int64    `json:"tool_timeout_seconds"`
+	SchemaVersion           string                                            `json:"schema_version"`
+	AppId                   string                                            `json:"app_id"`
+	RepositoryId            string                                            `json:"repository_id"`
+	MapDigest               string                                            `json:"map_digest"`
+	Mode                    string                                            `json:"mode"`
+	ToolIds                 []string                                          `json:"tool_ids"`
+	ToolTimeoutSeconds      int64                                             `json:"tool_timeout_seconds"`
+	AdvisoryDatabaseDigests ScannerJobStatusV1JobInputAdvisoryDatabaseDigests `json:"advisory_database_digests,omitempty"`
+}
+type ScannerJobListV1ItemsItemInputAdvisoryDatabaseDigests struct {
+	OsvV2 string `json:"osv_v2,omitempty"`
+	Trivy string `json:"trivy,omitempty"`
 }
 type ScannerJobStatusV1 struct {
 	Job                ScannerJobStatusV1Job `json:"job"`
@@ -737,13 +752,18 @@ type ScannerJobStatusV1Job struct {
 	ErrorCode       string                     `json:"error_code,omitempty"`
 }
 type ScannerJobStatusV1JobInput struct {
-	SchemaVersion      string   `json:"schema_version"`
-	AppId              string   `json:"app_id"`
-	RepositoryId       string   `json:"repository_id"`
-	MapDigest          string   `json:"map_digest"`
-	Mode               string   `json:"mode"`
-	ToolIds            []string `json:"tool_ids"`
-	ToolTimeoutSeconds int64    `json:"tool_timeout_seconds"`
+	SchemaVersion           string                                            `json:"schema_version"`
+	AppId                   string                                            `json:"app_id"`
+	RepositoryId            string                                            `json:"repository_id"`
+	MapDigest               string                                            `json:"map_digest"`
+	Mode                    string                                            `json:"mode"`
+	ToolIds                 []string                                          `json:"tool_ids"`
+	ToolTimeoutSeconds      int64                                             `json:"tool_timeout_seconds"`
+	AdvisoryDatabaseDigests ScannerJobStatusV1JobInputAdvisoryDatabaseDigests `json:"advisory_database_digests,omitempty"`
+}
+type ScannerJobStatusV1JobInputAdvisoryDatabaseDigests struct {
+	OsvV2 string `json:"osv_v2,omitempty"`
+	Trivy string `json:"trivy,omitempty"`
 }
 type ScannerSuiteV1 struct {
 	SchemaVersion    string                                          `json:"schema_version"`

@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"regexp"
+	"slices"
 	"sort"
 	"time"
 )
@@ -30,6 +31,9 @@ type Input struct {
 	Mode       string   `json:"mode"`
 	Tools      []string `json:"tool_ids"`
 	Duration   int      `json:"tool_timeout_seconds"`
+	// Databases is set by the controller from operator approvals when the job
+	// is queued (never by the requester): tool → approved database digest.
+	Databases map[string]string `json:"advisory_database_digests,omitempty"`
 }
 type Job struct {
 	Schema          string `json:"schema_version"`
@@ -88,6 +92,11 @@ func valid(in Input) bool {
 			return false
 		}
 	}
+	for tool, digest := range in.Databases {
+		if !databaseTool(tool) || !digestPattern.MatchString(digest) || !slices.Contains(in.Tools, tool) {
+			return false
+		}
+	}
 	return true
 }
 func requestDigest(owner string, in Input, lock string) string {
@@ -117,11 +126,22 @@ func (q *Queue) List(owner string) ([]Job, error) {
 	return out, rows.Err()
 }
 func (q *Queue) Enqueue(owner, key string, in Input) (Job, error) {
-	if !valid(in) || !keyPattern.MatchString(key) || !digestPattern.MatchString(q.LockDigest) {
+	// Database approvals come from the operator, never from the requester.
+	if in.Databases != nil || !valid(in) || !keyPattern.MatchString(key) || !digestPattern.MatchString(q.LockDigest) {
 		return Job{}, ErrInput
 	}
 	// Defensive copy: callers cannot change the bound tool list after submission.
 	in.Tools = append([]string{}, in.Tools...)
+	// An exact retry returns the original job even if approvals changed since.
+	if old, e := read(q.S.DB.QueryRow("SELECT "+columns+" FROM scanner_jobs WHERE owner=? AND idempotency_key=?", owner, key)); e == nil {
+		plain := old.Input
+		plain.Databases = nil
+		if requestDigest(owner, plain, old.LockDigest) == requestDigest(owner, in, q.LockDigest) {
+			return old, nil
+		}
+		return Job{}, ErrConflict
+	}
+	in.Databases = q.freshApprovals(in.Tools)
 	digest := requestDigest(owner, in, q.LockDigest)
 	tx, e := q.S.DB.Begin()
 	if e != nil {

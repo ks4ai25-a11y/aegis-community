@@ -2,7 +2,6 @@
 package scanqueue
 
 import (
-	"fmt"
 	"aegis.local/controller/internal/domain"
 	"bytes"
 	"context"
@@ -10,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"sort"
 	"time"

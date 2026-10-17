@@ -51,7 +51,7 @@ func fixture(t *testing.T) (*Queue, Input, string) {
 	}
 	guards, _ := scanevidence.NewGuardSet(domain.Hash([]byte("guard")), domain.Hash([]byte("arm64 guard")))
 	q := &Queue{Guards: guards, S: s, LockDigest: domain.Hash([]byte("trusted-tool-lock")), Now: func() time.Time { return now }}
-	return q, Input{"1.0", "app_demo", repo.ID, repo.MapDigest, "repo_offline", []string{"bandit", "semgrep_ce"}, 120}, db
+	return q, Input{"1.0", "app_demo", repo.ID, repo.MapDigest, "repo_offline", []string{"bandit", "semgrep_ce"}, 120, nil}, db
 }
 func TestOwnerIdempotencyAndRestart(t *testing.T) {
 	q, in, db := fixture(t)

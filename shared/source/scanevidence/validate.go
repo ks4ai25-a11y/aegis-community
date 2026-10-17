@@ -101,9 +101,8 @@ func Normalize(in Execution, x Expected) (Execution, error) {
 		if _, te := time.Parse(time.RFC3339, d.BuiltAt); te != nil {
 			return bad, ErrReceipt
 		}
-		if x.Database != "" && d.Digest != x.Database {
-			return bad, ErrReceipt
-		}
+		// A database other than the approved one is still real advisory data,
+		// but not approved: the result stays completed_stale_db (below).
 	}
 	if e != nil || r.Schema != "1.0" || r.Parser != ParserVersion || r.Tool != x.Tool || r.Version != x.Version || r.Image != x.Image || r.LockDigest != x.LockDigest || r.Profile != "repo_offline-network-none-v1" || !reflect.DeepEqual(r.Invocation, invocation) {
 		return bad, ErrReceipt

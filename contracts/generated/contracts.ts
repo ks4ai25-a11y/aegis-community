@@ -666,6 +666,11 @@ export interface ScannerJobInputV1 {
   mode: "repo_offline";
   tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
   tool_timeout_seconds: number;
+  advisory_database_digests?: ScannerJobStatusV1JobInputAdvisoryDatabaseDigests;
+}
+export interface ScannerJobInputV1AdvisoryDatabaseDigests {
+  osv_v2?: string;
+  trivy?: string;
 }
 export interface ScannerJobV1 {
   schema_version: "1.0";
@@ -689,6 +694,11 @@ export interface ScannerJobV1Input {
   mode: "repo_offline";
   tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
   tool_timeout_seconds: number;
+  advisory_database_digests?: ScannerJobStatusV1JobInputAdvisoryDatabaseDigests;
+}
+export interface ScannerJobV1InputAdvisoryDatabaseDigests {
+  osv_v2?: string;
+  trivy?: string;
 }
 export interface ScannerJobListV1 {
   items: Array<ScannerJobStatusV1Job>;
@@ -715,6 +725,11 @@ export interface ScannerJobListV1ItemsItemInput {
   mode: "repo_offline";
   tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
   tool_timeout_seconds: number;
+  advisory_database_digests?: ScannerJobStatusV1JobInputAdvisoryDatabaseDigests;
+}
+export interface ScannerJobListV1ItemsItemInputAdvisoryDatabaseDigests {
+  osv_v2?: string;
+  trivy?: string;
 }
 export interface ScannerJobStatusV1 {
   job: ScannerJobStatusV1Job;
@@ -742,6 +757,11 @@ export interface ScannerJobStatusV1JobInput {
   mode: "repo_offline";
   tool_ids: Array<"semgrep_ce" | "osv_v2" | "trivy" | "syft" | "gitleaks" | "bandit">;
   tool_timeout_seconds: number;
+  advisory_database_digests?: ScannerJobStatusV1JobInputAdvisoryDatabaseDigests;
+}
+export interface ScannerJobStatusV1JobInputAdvisoryDatabaseDigests {
+  osv_v2?: string;
+  trivy?: string;
 }
 export interface ScannerSuiteV1 {
   schema_version: "1.0";

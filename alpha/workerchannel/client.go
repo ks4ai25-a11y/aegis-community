@@ -38,6 +38,8 @@ type Input struct {
 	Mode       string   `json:"mode"`
 	Tools      []string `json:"tool_ids"`
 	Duration   int      `json:"tool_timeout_seconds"`
+	// Set by the controller from operator approvals (ADR 068).
+	Databases map[string]string `json:"advisory_database_digests,omitempty"`
 }
 type Job struct {
 	Schema          string `json:"schema_version"`

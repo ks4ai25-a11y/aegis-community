@@ -170,7 +170,7 @@ func TestRescanDefersWhileCleanupHeld(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	j, e := r.q.Enqueue("owner-a", "held-cleanup-job", Input{"1.0", "app_demo", rec.ID, rec.MapDigest, "repo_offline", []string{"bandit"}, 30})
+	j, e := r.q.Enqueue("owner-a", "held-cleanup-job", Input{"1.0", "app_demo", rec.ID, rec.MapDigest, "repo_offline", []string{"bandit"}, 30, nil})
 	if e != nil {
 		t.Fatal(e)
 	}

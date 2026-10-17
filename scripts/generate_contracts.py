@@ -171,6 +171,8 @@ schemas['ScannerDatabaseManifestV1']=obj({'schema_version':string(const='1.0'),'
 # Express/FastAPI/Flask route extraction (shared/source/routes.go): known methods,
 # a name-based authentication signal and medium confidence for same-file literal routes.
 route_ref['properties'].update({'method':string(enum=['unknown','GET','POST','PUT','PATCH','DELETE','OPTIONS','HEAD','ALL']),'auth_signal':string(enum=['not assessed','auth_middleware_named']),'confidence':string(enum=['low','medium'])})
+# Set by the controller from operator approvals when a job is queued (ADR 068); never by the requester.
+scan_input['properties']['advisory_database_digests']=obj({'osv_v2':hash,'trivy':hash},[])
 execution['properties']['advisory_database']=obj({'manifest_digest':hash,'database_digest':hash,'upstream_built_at':string(format='date-time'),'age_hours':integer(0,1048576),'stale':{'type':'boolean'},'container_path':string(enum=['/db/osv','/db/trivy'])})
 
 for name,body in schemas.items():

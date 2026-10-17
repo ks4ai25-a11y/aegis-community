@@ -32,7 +32,7 @@ func (c *Client) SubmitReceipt(ctx context.Context, l Lease, r scanevidence.Exec
 	if e != nil {
 		return ReceiptAcknowledgement{}, errors.New("invalid receipt job timestamp")
 	}
-	normalized, e := scanevidence.Normalize(r, scanevidence.Expected{Tools: l.Job.Input.Tools, App: l.Job.Input.App, Repository: l.Job.Input.Repository, LockDigest: c.lock, Tool: r.Tool, Version: r.Version, Image: r.Image, Timeout: l.Job.Input.Duration, Map: l.Map, NotBefore: started, NotAfter: time.Now().UTC()})
+	normalized, e := scanevidence.Normalize(r, scanevidence.Expected{Tools: l.Job.Input.Tools, App: l.Job.Input.App, Repository: l.Job.Input.Repository, LockDigest: c.lock, Tool: r.Tool, Version: r.Version, Image: r.Image, Timeout: l.Job.Input.Duration, Map: l.Map, NotBefore: started, NotAfter: time.Now().UTC(), Database: l.Job.Input.Databases[r.Tool]})
 	if e != nil {
 		return ReceiptAcknowledgement{}, errors.New("invalid scanner receipt")
 	}

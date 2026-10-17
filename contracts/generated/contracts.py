@@ -593,6 +593,10 @@ class ScannerJobInputV1(TypedDict):
     mode: str
     tool_ids: list[str]
     tool_timeout_seconds: int
+    advisory_database_digests: NotRequired[ScannerJobStatusV1JobInputAdvisoryDatabaseDigests]
+class ScannerJobInputV1AdvisoryDatabaseDigests(TypedDict):
+    osv_v2: NotRequired[str]
+    trivy: NotRequired[str]
 class ScannerJobV1(TypedDict):
     schema_version: str
     job_id: str
@@ -614,6 +618,10 @@ class ScannerJobV1Input(TypedDict):
     mode: str
     tool_ids: list[str]
     tool_timeout_seconds: int
+    advisory_database_digests: NotRequired[ScannerJobStatusV1JobInputAdvisoryDatabaseDigests]
+class ScannerJobV1InputAdvisoryDatabaseDigests(TypedDict):
+    osv_v2: NotRequired[str]
+    trivy: NotRequired[str]
 class ScannerJobListV1(TypedDict):
     items: list[ScannerJobStatusV1Job]
 class ScannerJobListV1ItemsItem(TypedDict):
@@ -637,6 +645,10 @@ class ScannerJobListV1ItemsItemInput(TypedDict):
     mode: str
     tool_ids: list[str]
     tool_timeout_seconds: int
+    advisory_database_digests: NotRequired[ScannerJobStatusV1JobInputAdvisoryDatabaseDigests]
+class ScannerJobListV1ItemsItemInputAdvisoryDatabaseDigests(TypedDict):
+    osv_v2: NotRequired[str]
+    trivy: NotRequired[str]
 class ScannerJobStatusV1(TypedDict):
     job: ScannerJobStatusV1Job
     execution_admission: str
@@ -661,6 +673,10 @@ class ScannerJobStatusV1JobInput(TypedDict):
     mode: str
     tool_ids: list[str]
     tool_timeout_seconds: int
+    advisory_database_digests: NotRequired[ScannerJobStatusV1JobInputAdvisoryDatabaseDigests]
+class ScannerJobStatusV1JobInputAdvisoryDatabaseDigests(TypedDict):
+    osv_v2: NotRequired[str]
+    trivy: NotRequired[str]
 class ScannerSuiteV1(TypedDict):
     schema_version: str
     owner_id: str

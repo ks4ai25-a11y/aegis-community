@@ -51,6 +51,7 @@ func TestOnlyApprovedFreshDatabaseIsCurrent(t *testing.T) {
 		cases := map[string]func(*Execution, *Expected){
 			"stale":        func(r *Execution, x *Expected) { r.Database.Stale = true },
 			"not approved": func(r *Execution, x *Expected) { x.Database = "" },
+			"other digest": func(r *Execution, x *Expected) { x.Database = source.Hash([]byte("other")) },
 		}
 		for name, change := range cases {
 			r, x := dependencyFixture(t, tool)
@@ -61,7 +62,6 @@ func TestOnlyApprovedFreshDatabaseIsCurrent(t *testing.T) {
 			}
 		}
 		refused := map[string]func(*Execution, *Expected){
-			"other digest":  func(r *Execution, x *Expected) { x.Database = source.Hash([]byte("other")) },
 			"path":          func(r *Execution, x *Expected) { r.Database.ContainerPath = "/src" },
 			"digest format": func(r *Execution, x *Expected) { r.Database.Digest = "md5:x"; x.Database = r.Database.Digest },
 			"built time":    func(r *Execution, x *Expected) { r.Database.BuiltAt = "yesterday" },

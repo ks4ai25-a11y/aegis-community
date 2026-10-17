@@ -69,6 +69,21 @@
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 120
+              },
+              "advisory_database_digests": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "osv_v2": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  },
+                  "trivy": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                  }
+                },
+                "required": []
               }
             },
             "required": [

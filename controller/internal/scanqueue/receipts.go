@@ -49,7 +49,7 @@ func expectedReceipt(j Job, m source.Map, pin Pin, tool string, until time.Time)
 	if e != nil {
 		return scanevidence.Expected{}, ErrConflict
 	}
-	return scanevidence.Expected{Tools: j.Input.Tools, App: j.Input.App, Repository: j.Input.Repository, LockDigest: j.LockDigest, Tool: tool, Version: pin.Version, Image: pin.Image, Timeout: j.Input.Duration, Map: m, NotBefore: started, NotAfter: until}, nil
+	return scanevidence.Expected{Tools: j.Input.Tools, App: j.Input.App, Repository: j.Input.Repository, LockDigest: j.LockDigest, Tool: tool, Version: pin.Version, Image: pin.Image, Timeout: j.Input.Duration, Map: m, NotBefore: started, NotAfter: until, Database: j.Input.Databases[tool]}, nil
 }
 
 // RecordReceipt validates and commits a single immutable normalized tool receipt
