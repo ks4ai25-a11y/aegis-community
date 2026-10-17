@@ -10,7 +10,7 @@ import multi_site_acceptance as m
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 BRIDGE = ROOT / "bin/aegis-mcp"
-evidence = {"schema_version": "1.0", "test_scope": "local-mcp-bridge", "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "checks": []}
+evidence = {"schema_version": "1.0", **m.source_stamp(), "test_scope": "local-mcp-bridge", "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "checks": []}
 
 
 def check(name, detail=None):

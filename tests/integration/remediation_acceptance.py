@@ -8,7 +8,7 @@ if not __debug__:
 import json, os, pathlib, time
 import multi_site_acceptance as m
 
-evidence = {"schema_version": "1.0", "test_scope": "local-remediation-synthetic", "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "checks": []}
+evidence = {"schema_version": "1.0", **m.source_stamp(), "test_scope": "local-remediation-synthetic", "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "checks": []}
 FIXTURE = pathlib.Path(__file__).resolve().parents[2] / "alpha/fixtures/scanners/vulnerable/query.py"
 
 

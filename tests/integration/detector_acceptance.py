@@ -8,7 +8,7 @@ if not __debug__:
 import json, os, pathlib, secrets, time, urllib.error, urllib.request
 import multi_site_acceptance as m
 
-evidence = {"schema_version": "1.0", "test_scope": "local-detector-synthetic", "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "checks": []}
+evidence = {"schema_version": "1.0", **m.source_stamp(), "test_scope": "local-detector-synthetic", "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "checks": []}
 
 
 def check(name, detail=None):

@@ -23,10 +23,18 @@ SITE = "site_shop"
 HOST = "shop.example.test"
 SQLI = "/test-pattern?query=1%27%20OR%20%271%27%3D%271"
 
+
+def source_stamp():
+    """Commit and cleanliness of the tree the stack was built from. Set
+    AEGIS_SOURCE_COMMIT when the stack came from a separate clean worktree."""
+    commit = os.environ.get("AEGIS_SOURCE_COMMIT") or subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    dirty = subprocess.run(["git", "status", "--porcelain", "--", "gateway", "controller", "console", "shared", "deploy"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    return {"source_commit": commit, "source_tree_clean": bool(os.environ.get("AEGIS_SOURCE_COMMIT")) or not dirty}
+
 jar = http.cookiejar.CookieJar()
 opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 csrf = ""
-evidence = {"schema_version": "1.0", "test_scope": "local-multi-site-synthetic", "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "checks": []}
+evidence = {"schema_version": "1.0", "test_scope": "local-multi-site-synthetic", **source_stamp(), "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "checks": []}
 
 
 def call(path, body=None, headers=None, expected=200, timeout=60):
