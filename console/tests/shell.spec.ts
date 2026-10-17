@@ -148,3 +148,9 @@ test('a fresh installation opens on owner enrollment', async ({page}) => {
   await expect(page.getByRole('heading', {name: 'Enroll the first owner'})).toBeVisible();
   await expect(page.getByText('at least 14 characters')).toBeVisible();
 });
+
+test('scans say plainly when no scanner worker is enrolled', async ({page}) => {
+  await mock(page, path => path === '/system/status' ? {mode: 'observe', gateway_healthy: true, scanner: {service_configured: true, enrolled_workers: 0}} : undefined);
+  await page.goto('/#/scans');
+  await expect(page.getByText('No scanner worker is enrolled, so queued scans will wait')).toBeVisible();
+});

@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {FileSearch,RefreshCw,Square} from 'lucide-react';
-import {key,short} from './client';
+import {api,key,short} from './client';
 import {Findings} from './Findings';
 import {createScan,listScans,getScan,cancelScan,getScanResult,listRepositories} from './generated/research-client';
 import type {RepositoryV1,ScannerJobV1,ScannerJobStatusV1,ScannerSuiteResultV1} from './generated/contracts';
@@ -83,6 +83,7 @@ export function Scans({action,busy,initialJob}:Props){
  }
  return <>
   {error&&<div className="alert error" role="alert">{error}. Displayed status may be stale; refresh before relying on it.</div>}
+  <ScannerNotice/>
   <section className="card scan-request">
    <div className="card-heading"><h2>Queue a read-only scan</h2><span className="pill">Offline static tools</span></div>
    <p className="muted">Scanners inspect an approved source snapshot without executing repository scripts. A queued request waits for an enrolled operator worker; this preview does not deploy a background worker.</p>
@@ -133,4 +134,14 @@ export function ScanResult({result}:{result:ScannerSuiteResultV1}){
   <p className="small mono muted">Result identity: {result.result_digest}</p><p className="small mono muted">Snapshot identity: {d.snapshot_digest}</p>
   <div className="note"><Square size={17}/><p>Cleanup verification is required. This result cannot release execution admission.</p></div>
  </section>;
+}
+
+// Queued scans only run when an operator has enrolled a scanner worker. The
+// bundled demo has none, so say so before anyone waits on a queued job.
+export function ScannerNotice({compact=false}:{compact?:boolean}){
+ const[state,setState]=useState<{service_configured:boolean;enrolled_workers:number}>();
+ useEffect(()=>{api('/system/status').then(v=>setState(v.scanner)).catch(()=>{})},[]);
+ if(!state||state.enrolled_workers>0)return null;
+ const text=state.service_configured?'No scanner worker is enrolled, so queued scans will wait until an operator enrols one.':'The scanner service is not configured on this installation, so scans cannot be queued.';
+ return <div role="status" className="alert warn">{text}{!compact&&<> See <span className="mono">docs/operators/packaged-scanner-worker.md</span> to enrol the packaged worker.</>}</div>;
 }

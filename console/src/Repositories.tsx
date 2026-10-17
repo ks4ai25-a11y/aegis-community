@@ -1,6 +1,7 @@
 import {useEffect,useState} from 'react';
 import {FolderLock,RefreshCw} from 'lucide-react';
 import {api,short} from './client';
+import {ScannerNotice} from './Scans';
 import {connectRepository,listRepositories,listRepositoryAssets,getApplicationMap} from './generated/research-client';
 import type {RepositoryV1,ApplicationMapV1} from './generated/contracts';
 
@@ -23,6 +24,7 @@ export function Repositories({action,busy}:Props){
   </section>
   <section className="card">
    <div className="card-heading"><h2>Connected repositories</h2><button disabled={busy} className="button light" onClick={()=>action(reload)}><RefreshCw size={15}/>Refresh</button></div>
+   <ScannerNotice compact/>
    <p className="muted">Reconnect a mount to capture source changes. Maps retain prior content identities. With rescan on change enabled, Aegis re-reads the repository every few minutes and queues a scan with the chosen scanners when its content identity changes. No scan runs while one for that repository is queued or running, or while a scanner cleanup is held.</p>
    {repos.length===0?<p>No repositories connected.</p>:<div className="table-wrap"><table><thead><tr><th>Repository</th><th>Mode</th><th>Map identity</th><th>Inspect</th><th>Rescan on change</th></tr></thead><tbody>{repos.map(r=><tr key={r.repository_id}><td>{r.asset_id}</td><td>{r.mode}</td><td className="mono">{short(r.map_digest)}</td><td><button disabled={busy} className="button light" onClick={()=>action(async()=>setMap(await getApplicationMap(r.repository_id)))}>View map</button></td><td><RescanToggle repository={r.repository_id} action={action} busy={busy}/></td></tr>)}</tbody></table></div>}
   </section>

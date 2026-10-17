@@ -42,7 +42,7 @@ Follow [protecting your applications](../operators/sites.md):
 | --- | --- |
 | A local AI assessor | `scripts/quickstart.sh --ai`, then use **Assess with llama3.2:3b** on an incident ([details](../operators/ai-assessment.md)) |
 | Your desktop AI app to read Aegis | **AI Apps → Assistant connections**, then configure `aegis-mcp` ([details](../operators/assistant-connections.md)) |
-| Code scanning | **Repositories** and **Scans** ([details](../operators/offline-scanners.md)) |
+| Code scanning | **Repositories** and **Scans**. Scans run only after an operator enrols a scanner worker; the demo has none, and the console says so ([worker setup](../operators/packaged-scanner-worker.md), [offline scanners](../operators/offline-scanners.md)) |
 | Backups | [database snapshots](../operators/database-snapshots.md) and [recovery bundles](../operators/recovery-bundles.md) |
 
 ## What Aegis does not claim

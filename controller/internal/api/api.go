@@ -370,7 +370,7 @@ func (s *Server) status(w http.ResponseWriter, r *http.Request) {
 	if st, e := os.Stat(s.S.Path); e == nil {
 		size = st.Size()
 	}
-	output(w, 200, map[string]any{"version": domain.Version, "release_maturity": "internal-alpha", "mode": p.Mode, "active_revision": d, "gateway_revision": g, "gateway_healthy": ge == nil && g == d, "apply_frozen": s.P.Frozen.Load(), "requests_retained": total, "counter_definition": "retained source records; WAF and access are separate records, not total requests", "open_incidents": incidents, "events_dropped_total": s.I.Dropped.Load(), "ingest_rejected_total": s.I.Rejected.Load(), "last_ingest_unix": s.I.Last.Load(), "detector_state_evicted": evicted, "detector_version": detect.Version, "canary": canaryStatus(s.S), "origin_exposure": originStatus(s.S), "database_bytes": size, "external_services_required": false})
+	output(w, 200, map[string]any{"version": domain.Version, "release_maturity": "internal-alpha", "mode": p.Mode, "active_revision": d, "gateway_revision": g, "gateway_healthy": ge == nil && g == d, "apply_frozen": s.P.Frozen.Load(), "requests_retained": total, "counter_definition": "retained source records; WAF and access are separate records, not total requests", "open_incidents": incidents, "events_dropped_total": s.I.Dropped.Load(), "ingest_rejected_total": s.I.Rejected.Load(), "last_ingest_unix": s.I.Last.Load(), "detector_state_evicted": evicted, "detector_version": detect.Version, "canary": canaryStatus(s.S), "origin_exposure": originStatus(s.S), "database_bytes": size, "external_services_required": false, "scanner": scannerStatus(s)})
 }
 
 func originStatus(st *store.Store) any {
@@ -980,4 +980,15 @@ func allowedHost(h string) bool {
 		}
 	}
 	return false
+}
+
+// scannerStatus says whether queued scans can run: the scanner service must be
+// configured and at least one enrolled, unexpired worker must exist. It does
+// not prove a worker is currently connected.
+func scannerStatus(s *Server) map[string]any {
+	var workers int
+	if s.Scans != nil {
+		s.S.DB.QueryRow("SELECT count(*) FROM scanner_workers WHERE state='active' AND expires>?", time.Now().Unix()).Scan(&workers)
+	}
+	return map[string]any{"service_configured": s.Scans != nil, "enrolled_workers": workers}
 }
