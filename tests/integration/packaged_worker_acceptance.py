@@ -2,6 +2,7 @@
 """Explicit isolated worker execution. No retained demo resources are selected."""
 import datetime,json,os,pathlib,re,secrets,subprocess,tempfile,time,urllib.error,urllib.request
 from recovery_isolation import prepare,validate
+from engine_authz_acceptance import PrivateOperationTimeout
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 if not __debug__ or os.environ.get('AEGIS_PACKAGED_WORKER_TEST')!='1':raise SystemExit('Set AEGIS_PACKAGED_WORKER_TEST=1 with assertions enabled')
 context=os.environ.get('DOCKER_CONTEXT','');endpoint=os.environ.get('DOCKER_HOST','') if not context else ''
@@ -12,12 +13,15 @@ env={k:v for k,v in os.environ.items() if k not in {'DOCKER_HOST','DOCKER_CONTEX
 nonce=secrets.token_hex(12);project='aegis-worker-'+nonce;secret_volume=project+'-credential';helpers=[];checks=[];namespace_verified=False;started=False;confirmed=False;worker_name=project+'-runner';work_root=None;evidence=None
 opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
 def raw(args,timeout=120,success=True):
- result=subprocess.run(['docker','--host',endpoint,*args],cwd=ROOT,env=env,capture_output=True,text=True,timeout=timeout)
+ try:result=subprocess.run(['docker','--host',endpoint,*args],cwd=ROOT,env=env,capture_output=True,text=True,timeout=timeout)
+ except subprocess.TimeoutExpired as error:raise PrivateOperationTimeout(error.cmd,error.timeout,output=error.output,stderr=error.stderr) from None
  if success and result.returncode:raise RuntimeError('Owned packaged worker operation failed')
  return result
 broker_mode=os.environ.get('AEGIS_PACKAGED_BROKER_TEST')=='1';broker=None
 authz_mode=os.environ.get('AEGIS_PACKAGED_ENGINE_AUTHZ_TEST')=='1';authz_engine=None
 controller_gate_mode=os.environ.get('AEGIS_PACKAGED_CONTROLLER_GATE_TEST')=='1'
+admission_mode=os.environ.get('AEGIS_PACKAGED_ADMISSION_TEST')=='1'
+if admission_mode and not (controller_gate_mode and authz_mode and broker_mode):raise SystemExit('Native admission fixture requires all explicit broker/controller/engine guards')
 if controller_gate_mode and not authz_mode:raise SystemExit('Controller gate fixture requires the explicit restricted TLS fixture')
 if authz_mode:
  from packaged_engine_fixture import require_ci
@@ -161,8 +165,8 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
    confirmed=True
    if controller_gate_mode:
     confirmed=False;started=True
-    authz_engine.bind_controller(raw,compose,project,nonce,owner,socket_volume,provisioning)
-    check('separate_packaged_authorizer_has_only_private_observer_channel_and_readonly_source')
+    authz_engine.bind_controller(raw,compose,project,nonce,owner,socket_volume,provisioning,worker_id)
+    check('separate_packaged_authorizer_has_only_selected_admission_channel_and_readonly_source' if admission_mode else 'separate_packaged_authorizer_has_only_private_observer_channel_and_readonly_source')
     check('native_tls_engine_refuses_unregistered_profile_without_allocation')
     confirmed=True
    broker.create_client(worker_name)
@@ -193,17 +197,31 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   for item in catalogue['findings']['items']:assert item['finding']['evidence_tier']=='T0' and item['finding']['status']=='suspected'
   check('packaged_result_reaches_owned_catalogue_without_proof_promotion')
   export_directory='/var/lib/aegis/worker-export-'+nonce;compose('exec','-T','controller','mkdir','-m','700',export_directory)
-  plans=[]
+  plans=[];launch_records=[]
   for tool in tools:
    launch_file=export_directory+'/'+tool+'.json';compose('exec','-T','controller','aegisctl','scanner-launch','export',job['job_id'],tool,launch_file)
    launch=json.loads(compose('exec','-T','controller','cat',launch_file).stdout);plan=launch['document']['plan'];assert launch['document']['schema_version']=='1.2' and plan['engine_journal_binding_digest']==journal_binding['journal_binding_digest'] and plan['engine_journal_namespace_digest']==journal_input['journal_namespace_digest'];assert re.fullmatch(r'aegis-scan-[0-9a-f]{32}',plan['container_id'])
    if authz_engine is not None:authz_engine.assert_absent(plan['container_id'])
    else:assert not raw(['ps','--all','--filter','name=^/'+plan['container_id']+'$','--format','{{.Names}}']).stdout.strip()
-   plans.append(plan)
+   plans.append(plan);launch_records.append(launch)
   plan=plans[0]
   journal=json.loads(helper(['engine-journal-status',str(work_root/'engine-journal'),plan['engine_digest']],mounts=[root_mount]).stdout)
   assert journal['namespace_digest']==journal_input['journal_namespace_digest'] and journal['attempts']==len(tools) and journal['unfinished_attempts']==0 and journal['unresolved_requests']==0 and journal['cleanup_release_authorized'] is False
   confirmed=True;check('exact_child_absence_and_settled_journal_remain_non_authoritative')
+  if admission_mode:
+   confirmed=False
+   snapshot_path=export_directory+'/admission-ledger.db'
+   compose('exec','-T','controller','aegisctl','backup','create',snapshot_path,'--json')
+   private_snapshot=directory/'admission-ledger.db'
+   controller_id=compose('ps','--all','--quiet','controller').stdout.strip()
+   raw(['cp',controller_id+':'+snapshot_path,str(private_snapshot)])
+   private_snapshot.chmod(0o600)
+   authz_engine.bound.verify_ledger(private_snapshot,job['job_id'],launch_records)
+   private_snapshot.unlink();compose('exec','-T','controller','rm','--',snapshot_path)
+   confirmed=True
+   check('actual_native_create_start_remove_have_matching_durable_controller_and_plugin_records')
+   check('terminal_generation_is_closed_without_freeing_dispatch')
+
   initialized_again=helper(['engine-journal-init',str(work_root/'engine-journal')],mounts=journal_mounts,extra=['--group-add',group],success=False);assert initialized_again.returncode!=0
   assert json.loads(helper(['engine-journal-status',str(work_root/'engine-journal'),plan['engine_digest']],mounts=[root_mount]).stdout)==journal
   check('used_bound_journal_cannot_be_reinitialized_or_reset')
@@ -221,9 +239,10 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
   if authz_engine is not None:
    confirmed=False;engine_proof=authz_engine.finish();confirmed=True
    check('separate_restricted_engine_and_plugin_journal_settle_without_cleanup_release')
-   if controller_gate_mode:check('bound_authorizer_executes_real_scanner_and_fails_closed_on_loss_and_downgrade')
+   if controller_gate_mode:check('admitted_authorizer_executes_real_scanner_and_fails_closed_on_loss_and_downgrade' if admission_mode else 'bound_authorizer_executes_real_scanner_and_fails_closed_on_loss_and_downgrade')
   evidence={'schema_version':'1.0','status':'PASS','scope':'Isolated packaged nonroot bound worker executes a real static fixture only after immutable operator engine/registry provisioning; no independent cleanup release or production broker claim','recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'worker_image':image,'preflight':preflight,'operator_provisioning_input':provisioning,'operator_binding':binding,'journal_provisioning_input':journal_input,'journal_binding':journal_binding,'bound_launch_example':launch,'result':suite,'tool_ids':tools,'catalogue':catalogue,'journal':journal,'container_hardening_verified':True,'child_absence_observed':True,'controller_cleanup_admission':'HELD','all_engine_writes_mediated':False,'independent_security_signoff':False}
   if engine_proof is not None:evidence['restricted_engine']=engine_proof
+  if admission_mode:evidence['actual_controller_mutation_ledger_verified']=authz_engine.bound.ledger_verified
   if broker_mode:
    evidence.update(broker.proof(dispatch_outcome));evidence['scope']='Dedicated fixed scanner broker and minimal socket-only dispatch client; controller-selected worker identity; no production all-write mediation or independent cleanup claim'
  finally:
@@ -258,4 +277,13 @@ if evidence is not None:
  assert work_root is not None and not work_root.exists()
  if broker is not None:broker.verify_removed()
  evidence['owned_fixture_resources_cleaned']=True
- path=pathlib.Path(os.environ.get('AEGIS_PACKAGED_WORKER_EVIDENCE',str(ROOT/('docs/evidence/bound-authorizer-acceptance.json' if controller_gate_mode else 'docs/evidence/tls-broker-acceptance.json' if authz_mode else 'docs/evidence/broker-dispatch-acceptance.json' if broker_mode else 'docs/evidence/journal-bound-worker-acceptance.json'))));path.write_text(json.dumps(evidence,indent=2)+'\n');print('packaged_worker_checks: '+str(len(checks)),flush=True)
+ if admission_mode:
+  destination=os.environ.get('AEGIS_PACKAGED_WORKER_EVIDENCE')
+  if destination:
+   from packaged_authorizer_fixture import write_private_admission_evidence
+   write_private_admission_evidence(destination,evidence)
+  else:
+   with tempfile.NamedTemporaryFile(mode='w',prefix='aegis-admitted-private-',suffix='.json',delete=False) as output:json.dump(evidence,output,indent=2);output.write('\n')
+  print('packaged_worker_checks: '+str(len(checks)),flush=True)
+ else:
+  path=pathlib.Path(os.environ.get('AEGIS_PACKAGED_WORKER_EVIDENCE',str(ROOT/('docs/evidence/bound-authorizer-acceptance.json' if controller_gate_mode else 'docs/evidence/tls-broker-acceptance.json' if authz_mode else 'docs/evidence/broker-dispatch-acceptance.json' if broker_mode else 'docs/evidence/journal-bound-worker-acceptance.json'))));path.write_text(json.dumps(evidence,indent=2)+'\n');print('packaged_worker_checks: '+str(len(checks)),flush=True)

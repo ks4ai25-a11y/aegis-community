@@ -150,6 +150,16 @@ jobs:
           AEGIS_PACKAGED_ENGINE_AUTHZ_TEST: '1'
           AEGIS_PACKAGED_CONTROLLER_GATE_TEST: '1'
         run: python3 tests/integration/packaged_worker_acceptance.py
+      - name: Verify actual packaged native mutation admission and held cleanup
+        env:
+          AEGIS_PACKAGED_WORKER_TEST: '1'
+          AEGIS_PACKAGED_BROKER_TEST: '1'
+          AEGIS_PACKAGED_ENGINE_AUTHZ_TEST: '1'
+          AEGIS_PACKAGED_CONTROLLER_GATE_TEST: '1'
+          AEGIS_PACKAGED_ADMISSION_TEST: '1'
+        run: |
+          mkdir -m 700 "$RUNNER_TEMP/aegis-native-admission-private"
+          AEGIS_PACKAGED_WORKER_EVIDENCE="$RUNNER_TEMP/aegis-native-admission-private/acceptance.json" python3 tests/integration/packaged_worker_acceptance.py
       - name: Stop only this disposable job engine
         if: always()
         run: |
