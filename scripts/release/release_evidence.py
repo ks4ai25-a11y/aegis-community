@@ -31,6 +31,21 @@ def sha256(path):
     return h.hexdigest()
 
 
+def syft(mount_src, mount_dst, source, dest, *extra):
+    """Run the pinned Syft image with no network. Docker Desktop can briefly refuse a bind
+    mount of a directory that was deleted and recreated, so that error is retried."""
+    args = ["docker", "run", "--rm", "--network", "none", "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
+            "--tmpfs", "/tmp:rw,size=256m", "-e", "HOME=/tmp", "--mount", f"type=bind,src={mount_src},dst={mount_dst},readonly", SYFT, source, *extra, "-o", "cyclonedx-json", "-q"]
+    for attempt in range(6):
+        r = subprocess.run(args, capture_output=True, timeout=900)
+        if r.returncode == 0:
+            dest.write_bytes(r.stdout)
+            return
+        if b"bind source path does not exist" not in r.stderr or attempt == 5:
+            sys.exit(f"syft failed for {source}: {r.stderr.decode(errors='replace')[-2000:]}")
+        time.sleep(5)
+
+
 GOMODCACHE = pathlib.Path(subprocess.run(["go", "env", "GOMODCACHE"], capture_output=True, text=True).stdout.strip() or "/nonexistent")
 
 
@@ -94,10 +109,7 @@ def main():
         tar = out / f"{name}.image.tar"
         run("docker", "save", "-o", str(tar), tag)
         sbom = out / f"{name}.cdx.json"
-        with open(sbom, "w") as f:
-            subprocess.run(["docker", "run", "--rm", "--network", "none", "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
-                            "--tmpfs", "/tmp:rw,size=256m", "-e", "HOME=/tmp", "--mount", f"type=bind,src={out},dst=/in,readonly", SYFT,
-                            f"docker-archive:/in/{tar.name}", "-o", "cyclonedx-json", "-q"], check=True, stdout=f, timeout=900)
+        syft(out, "/in", f"docker-archive:/in/{tar.name}", sbom)
         doc = json.loads(sbom.read_text())
         comps = doc.get("components", [])
         for c in comps:
@@ -129,10 +141,7 @@ def main():
     # The console's JavaScript is compiled into the controller image, so the image SBOM
     # does not list its npm packages; catalogue them from the lock file.
     console_sbom = out / "console-npm.cdx.json"
-    with open(console_sbom, "w") as f:
-        subprocess.run(["docker", "run", "--rm", "--network", "none", "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
-                        "--tmpfs", "/tmp:rw,size=256m", "-e", "HOME=/tmp", "--mount", f"type=bind,src={ROOT / 'console'},dst=/src,readonly", SYFT,
-                        "dir:/src", "--exclude", "./node_modules/**", "-o", "cyclonedx-json", "-q"], check=True, stdout=f, timeout=900)
+    syft(ROOT / "console", "/src", "dir:/src", console_sbom, "--exclude", "./node_modules/**")
     lock = json.loads((ROOT / "console/package-lock.json").read_text())
     npm = collections.Counter()
     for key, pkg in lock.get("packages", {}).items():
