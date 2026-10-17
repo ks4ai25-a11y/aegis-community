@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 //go:build linux || darwin
 
 // Package workspace journals private operator scanner workspaces. Kernel leases

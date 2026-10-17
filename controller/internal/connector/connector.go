@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package connector issues owner-scoped, read-only bearer credentials for local
 // assistants (for example an MCP bridge started by a desktop AI app). A credential
 // can only read defence data through an explicit route allowlist; it can never

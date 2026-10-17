@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package workerchannel is the scanner-side private protocol. It has no
 // controller database dependency and never sends credentials over TCP.
 package workerchannel

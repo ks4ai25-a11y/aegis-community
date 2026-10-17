@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package engineobserve reads one explicitly selected TLS scanner engine using
 // only an observer identity. Absence is an observation, not cleanup release.
 package engineobserve

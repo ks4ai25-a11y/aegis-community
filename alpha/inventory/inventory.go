@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package inventory exposes the shared non-executing inventory layer.
 package inventory
 

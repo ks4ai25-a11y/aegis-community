@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package propose turns an incident's retained evidence into MitigationProposalV1
 // records: complete candidate policy revisions an owner can preview in the isolated
 // fixture and then explicitly approve. A proposal is data; it never activates itself.

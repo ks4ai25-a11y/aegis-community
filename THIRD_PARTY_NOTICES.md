@@ -1,6 +1,6 @@
 # Third-party component inventory
 
-Aegis-authored source is Apache-2.0. This file is an inventory under review, not a completed legal approval or substitute for upstream licence/notice text. Container distributions include additional OS and transitive dependencies; `scripts/release/release_evidence.py` produces their SBOMs and licence texts for each release.
+Aegis-authored source is source-available under the Business Source License 1.1 (see LICENSE and NOTICE); earlier published versions remain Apache-2.0. This file is an inventory under review, not a completed legal approval or substitute for upstream licence/notice text. Container distributions include additional OS and transitive dependencies; `scripts/release/release_evidence.py` produces their SBOMs and licence texts for each release.
 
 | Component | Pinned source | Distribution/use | Review state |
 |---|---|---|---|

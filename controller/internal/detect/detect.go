@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package detect implements the bounded deterministic behavioural detectors of
 // the v4 catalogue (E4). Detectors only record incidents: none blocks traffic,
 // and none relies on a model. Thresholds are explicit, versioned knobs.

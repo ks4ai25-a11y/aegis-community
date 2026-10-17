@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 package main
 import (
  caddycmd "github.com/caddyserver/caddy/v2/cmd"

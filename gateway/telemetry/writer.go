@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package telemetry sanitizes pinned Caddy/Coraza log records before any write.
 package telemetry
 

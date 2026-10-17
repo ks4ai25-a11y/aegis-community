@@ -1,0 +1,12 @@
+Aegis Community
+Copyright (c) 2026 the Licensor named in LICENSE.
+
+Aegis Community is source-available under the Business Source License 1.1
+(see LICENSE). Each version converts to the Apache License, Version 2.0 four
+years after its first public release. Versions published before the licence
+change (git history up to and including the commit that introduced this NOTICE)
+were released under the Apache License, Version 2.0, and remain available
+under that licence.
+
+Third-party components keep their own licences; see THIRD_PARTY_NOTICES.md and
+the THIRD_PARTY_LICENSES.txt produced for each release.

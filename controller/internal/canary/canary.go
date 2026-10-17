@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package canary implements DET-07: it sends the bundled synthetic benign and
 // negative controls through the live gateway (demo host only) and checks that the
 // active revision still produces the expected outcome. A failure records an

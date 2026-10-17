@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package expiry removes exclusions whose owner-approved expiry has passed. The
 // stricter revision still has to pass the isolated fixture before activation; if it
 // does not, the exclusion stays and an incident asks the owner to decide.

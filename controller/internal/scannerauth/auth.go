@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package scannerauth defines a separate worker role. Browser owner sessions
 // cannot create this role. Enrollment is reserved for a local operator channel.
 package scannerauth

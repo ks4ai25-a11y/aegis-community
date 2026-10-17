@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // scanner-guard is the PID-1 deadline boundary inside an offline scanner
 // container. It cannot accept an arbitrary command or execute repository code.
 package main

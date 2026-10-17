@@ -1,6 +1,6 @@
 //go:build linux || darwin
 
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // These integration tests connect the real alpha client to the real controller
 // handler, enrollment registry and migrated SQLite queue over a private socket.
 package scannerchannelacceptance

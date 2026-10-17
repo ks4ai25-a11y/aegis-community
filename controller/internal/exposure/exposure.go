@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package exposure compares routes declared in a repository's application map
 // with route templates observed at the gateway (v4 manual E3). The comparison
 // prioritises review; it is not evidence of an authorization weakness.

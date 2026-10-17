@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package executor runs only fixed read-only scanner invocations. It is a
 // privileged local operator facility, never linked into the public controller.
 package executor

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // An opt-in experimental plugin for a separately provisioned scanner daemon.
 package main
 

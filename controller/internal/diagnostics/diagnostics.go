@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package diagnostics builds a privacy-preserving support bundle (v4 manual I4):
 // versions, health, counters and counts only. It never includes events, request
 // data, host names, origins, owner identities, credentials, tokens or policy text.

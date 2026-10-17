@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package enginerelay forwards opaque TLS bytes from one private Unix listener
 // to one fixed loopback TCP endpoint. It has no key, HTTP parser or engine API.
 package enginerelay

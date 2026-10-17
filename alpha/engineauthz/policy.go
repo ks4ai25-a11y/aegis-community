@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package engineauthz implements Docker's native authorization protocol for an
 // isolated experimental scanner daemon. It is not cleanup release authority.
 package engineauthz

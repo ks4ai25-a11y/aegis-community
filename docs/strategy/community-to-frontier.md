@@ -57,7 +57,7 @@ Rules:
 
 - Community never imports Frontier. CI in Community fails if any `aegis-frontier` import appears.
 - Frontier pins Community by release tag and runs Community's own test suite against that tag in its CI.
-- If Community moves from Apache-2.0 to a source-available licence (BUSL/FSL), do it **before** outside contributions arrive, and add a CLA. Frontier stays proprietary. Third-party notices remain per component.
+- Community is now under BUSL-1.1 (production use allowed except Competing Offerings; each version converts to Apache-2.0 after four years), with a CLA for contributions, so Frontier can reuse Community code under proprietary terms. Versions published before the change remain Apache-2.0. Frontier stays proprietary. Third-party notices remain per component.
 
 ## 5. Phased plan with exit evidence
 

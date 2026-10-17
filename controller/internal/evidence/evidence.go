@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package evidence signs exported evidence with an installation-local Ed25519 key
 // so a third party can check that a report came unchanged from this installation.
 // A signature proves origin and integrity of the bytes, not that the claim is true.

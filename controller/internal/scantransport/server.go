@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package scantransport serves an authenticated finite worker API on a private
 // Unix socket. It must never be mounted on the browser-facing HTTP listener.
 package scantransport

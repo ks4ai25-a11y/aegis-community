@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package enginejournal records local operator engine request uncertainty. A
 // journal is not controller-authorized cleanup evidence or a release capability.
 package enginejournal

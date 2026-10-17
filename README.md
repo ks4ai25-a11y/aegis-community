@@ -48,3 +48,7 @@ make test
 ```
 
 The console is at `http://127.0.0.1:7410` and the demo gateway at `http://127.0.0.1:8080`. The controller prints a short-lived first-owner token only to its local logs.
+
+## Licence
+
+Source-available under the [Business Source License 1.1](LICENSE): you may run Aegis in production to protect, scan and verify applications you or your affiliates operate; offering it to others as a competing hosted or embedded product needs a commercial licence. Each version becomes Apache-2.0 four years after release. See [NOTICE](NOTICE) and [CLA](CLA.md).

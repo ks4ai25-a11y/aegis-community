@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // aegis-mcp is a local stdio MCP server that a desktop AI application starts. It
 // exposes read-only Aegis tools backed by an owner-issued connector credential.
 // It loads no model, stores nothing, and cannot change policy: the controller

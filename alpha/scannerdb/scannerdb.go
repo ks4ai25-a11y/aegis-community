@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package scannerdb provisions and verifies offline vulnerability databases for
 // the pinned OSV-Scanner and Trivy images. Fetching is an explicit operator step
 // (network, free public sources); scanner jobs only ever receive a verified,

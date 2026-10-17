@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // aegis-scanner-db provisions and verifies offline OSV and Trivy databases.
 //
 //	aegis-scanner-db fetch ROOT [--tools osv_v2,trivy] [--ecosystems npm,PyPI] [--lock tools/scanners.lock.json]

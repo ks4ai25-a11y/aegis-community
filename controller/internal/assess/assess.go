@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package assess builds a bounded, sanitized incident dossier and produces an
 // IncidentAssessmentV1, either deterministically or with an optional local model.
 // Assessments are advice: they never change policy, and the deterministic path

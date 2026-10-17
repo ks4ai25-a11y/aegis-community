@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package aieval is the adversarial evaluation suite for Aegis's optional model
 // features: incident assessment (assess) and patch drafts (remediate). It drives
 // the production code paths with a scripted adversarial model and, when a local

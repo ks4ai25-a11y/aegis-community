@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package scanbroker owns the privileged fixed scanner orchestrator. Its client
 // supplies no execution arguments and receives no enrollment/lease capability.
 package scanbroker

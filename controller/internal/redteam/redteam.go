@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package redteam is the safe AI red research agent (v4 manual D5): an
 // investigation planner, not an attacker. It reads the owner's application map
 // and normalised scanner findings, proposes hypotheses that cite real source

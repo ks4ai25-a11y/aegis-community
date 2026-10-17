@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package enginetls loads one private scanner engine client identity. There is
 // no remote endpoint selection, ambient Docker TLS configuration or fallback.
 package enginetls

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package worker executes owner-authorized static scans through the private
 // channel. It has no controller database access or arbitrary command facility.
 package worker

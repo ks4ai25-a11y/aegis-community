@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package scanqueue persists owner-authorized offline scan requests. Execution
 // belongs to a separate scanner worker; this package never accesses Docker.
 package scanqueue

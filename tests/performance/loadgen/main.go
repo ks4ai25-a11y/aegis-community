@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // loadgen is an open-loop, fixed-rate HTTP load generator for the Aegis gateway
 // benchmark (v4 manual H5). It schedules requests at exact intervals so slow
 // responses cannot hide latency (no coordinated omission) and prints JSON.

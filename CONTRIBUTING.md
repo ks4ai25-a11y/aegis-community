@@ -6,4 +6,8 @@ Run relevant tests and include real evidence with the change. Security-sensitive
 
 Use synthetic fixtures only in automated tests. Do not connect test jobs to public targets or production data. Do not execute repository install scripts during inventory/scanning. Do not mount a Docker socket into a service.
 
-The repository has not yet been published, so contribution branches, issue templates and review ownership will be established with its maintainer before public launch.
+## Licence and contributor agreement
+
+Aegis Community is source-available under the [Business Source License 1.1](LICENSE). Contributions are accepted only under the [Contributor Licence Agreement](CLA.md), so that the project can also be offered commercially. New source files start with `// SPDX-License-Identifier: BUSL-1.1` (or the comment syntax of the file type).
+
+Contribution branches, issue templates and review ownership will be established with the maintainer before public launch.

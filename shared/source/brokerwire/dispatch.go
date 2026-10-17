@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package brokerwire contains only bounded dispatch metadata. It has no engine,
 // worker enrollment, source execution or controller database dependency.
 package brokerwire

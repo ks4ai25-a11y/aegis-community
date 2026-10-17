@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Package remediate produces RemediationV1 records for static findings: fixed,
 // reviewable guidance per category, and optionally a unified-diff draft from an
 // owner-run local model. A draft is only returned if it applies cleanly to the
