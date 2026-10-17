@@ -87,11 +87,7 @@ func (s *Server) authorizer(w http.ResponseWriter, r *http.Request, token string
 			queueError(w, e)
 			return
 		}
-		out := scanevidence.AuthorizerIntentRead{Schema: "1.0", Found: found}
-		if found {
-			out.Intent, out.Repair = &m, repair
-		}
-		reply(w, 200, out)
+		reply(w, 200, scanevidence.NewAuthorizerIntentRead(found, m, repair))
 	default:
 		failure(w, 404, "AUTHORIZER_OPERATION_UNAVAILABLE")
 	}

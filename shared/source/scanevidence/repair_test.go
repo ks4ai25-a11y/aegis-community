@@ -115,7 +115,7 @@ func TestRepairRequestAndResolutionValidation(t *testing.T) {
 		t.Fatal("extended repair accepted")
 	}
 	intent := RepairedIntent(create, rec)
-	read := AuthorizerIntentRead{Schema: "1.0", Found: true, Intent: &intent, Repair: &rec}
+	read := NewAuthorizerIntentRead(true, intent, &rec)
 	ask := AuthorizerIntentRequest{Generation: create.Request.Generation, Intent: create.ID}
 	if !read.Valid(ask) {
 		t.Fatal("repaired read refused")
@@ -123,7 +123,9 @@ func TestRepairRequestAndResolutionValidation(t *testing.T) {
 	other := rec
 	other.Resolution.EngineID = strings.Repeat("9", 64)
 	other.Digest = repairDigest(other)
-	if (AuthorizerIntentRead{Schema: "1.0", Found: true, Intent: &intent, Repair: &other}).Valid(ask) || (AuthorizerIntentRead{Schema: "1.0", Found: false, Intent: &intent}).Valid(ask) || !(AuthorizerIntentRead{Schema: "1.0"}).Valid(ask) {
+	notFound := NewAuthorizerIntentRead(false, intent, nil)
+	notFound.Intents = []MutationIntent{intent}
+	if NewAuthorizerIntentRead(true, intent, &other).Valid(ask) || notFound.Valid(ask) || !NewAuthorizerIntentRead(false, MutationIntent{}, nil).Valid(ask) || (AuthorizerIntentRead{Schema: "1.0"}).Valid(ask) {
 		t.Fatal("intent read validation")
 	}
 }

@@ -277,7 +277,7 @@ func TestMutationForAuthorizerReadsRepairAndNeverAdmittedIntent(t *testing.T) {
 	}
 	id := out.Repairs[0].Resolution.Intent
 	m, rec, found, e := q.MutationForAuthorizer(context.Background(), authorizer, r.Generation, id)
-	read := scanevidence.AuthorizerIntentRead{Schema: "1.0", Found: found, Intent: &m, Repair: rec}
+	read := scanevidence.NewAuthorizerIntentRead(found, m, rec)
 	if e != nil || !found || rec == nil || !read.Valid(scanevidence.AuthorizerIntentRequest{Generation: r.Generation, Intent: id}) || m.State != "repaired" {
 		t.Fatal("repaired intent unreadable", e)
 	}

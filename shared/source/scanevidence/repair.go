@@ -181,31 +181,64 @@ type AuthorizerIntentRequest struct {
 }
 
 type AuthorizerIntentRead struct {
-	Schema string          `json:"schema_version"`
-	Found  bool            `json:"found"`
-	Intent *MutationIntent `json:"intent"`
-	Repair *MutationRepair `json:"repair"`
+	Schema  string           `json:"schema_version"`
+	Found   bool             `json:"found"`
+	Intents []MutationIntent `json:"intents"`
+	Repairs []MutationRepair `json:"repairs"`
 }
 
 func (r AuthorizerIntentRequest) Valid() bool {
 	return allocationID.MatchString(r.Generation) && hash.MatchString(r.Intent)
 }
 
+// NewAuthorizerIntentRead encodes "never admitted" as found=false with empty
+// lists; the private channel carries no null or optional objects.
+func NewAuthorizerIntentRead(found bool, m MutationIntent, repair *MutationRepair) AuthorizerIntentRead {
+	out := AuthorizerIntentRead{Schema: "1.0", Found: found, Intents: []MutationIntent{}, Repairs: []MutationRepair{}}
+	if found {
+		out.Intents = append(out.Intents, m)
+		if repair != nil {
+			out.Repairs = append(out.Repairs, *repair)
+		}
+	}
+	return out
+}
+
+// Intent returns the single retained intent of a found read.
+func (a AuthorizerIntentRead) Intent() MutationIntent {
+	if len(a.Intents) != 1 {
+		return MutationIntent{}
+	}
+	return a.Intents[0]
+}
+
+// Repair returns the single retained repair of a repaired intent.
+func (a AuthorizerIntentRead) Repair() (MutationRepair, bool) {
+	if len(a.Repairs) != 1 {
+		return MutationRepair{}, false
+	}
+	return a.Repairs[0], true
+}
+
 // Valid checks the read answers exactly the request: absent means no intent
 // was ever admitted under that closed generation; a repair matches its intent.
 func (a AuthorizerIntentRead) Valid(r AuthorizerIntentRequest) bool {
-	if a.Schema != "1.0" || !r.Valid() {
+	if a.Schema != "1.0" || !r.Valid() || a.Intents == nil || a.Repairs == nil {
 		return false
 	}
 	if !a.Found {
-		return a.Intent == nil && a.Repair == nil
+		return len(a.Intents) == 0 && len(a.Repairs) == 0
 	}
-	if a.Intent == nil || !a.Intent.Valid() || a.Intent.ID != r.Intent || a.Intent.Request.Generation != r.Generation {
+	if len(a.Intents) != 1 || len(a.Repairs) > 1 {
 		return false
 	}
-	if a.Intent.State != "repaired" {
-		return a.Repair == nil
+	m := a.Intents[0]
+	if !m.Valid() || m.ID != r.Intent || m.Request.Generation != r.Generation {
+		return false
 	}
-	x := a.Repair
-	return x != nil && x.Valid() && x.Digest == a.Intent.Response && x.Resolution.Intent == r.Intent && x.Resolution.EngineID == a.Intent.EngineID && x.Resolution.Operation == a.Intent.Request.Operation && x.Generation == r.Generation && x.Job == a.Intent.Request.Job
+	if m.State != "repaired" {
+		return len(a.Repairs) == 0
+	}
+	x, ok := a.Repair()
+	return ok && x.Valid() && x.Digest == m.Response && x.Resolution.Intent == r.Intent && x.Resolution.EngineID == m.EngineID && x.Resolution.Operation == m.Request.Operation && x.Generation == r.Generation && x.Job == m.Request.Job
 }

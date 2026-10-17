@@ -99,6 +99,7 @@ func (m MutationIntent) Valid() bool {
 	}
 	return m.State == "completed" && hash.MatchString(m.Response) && allocationID.MatchString(m.EngineID) && ((r.Operation == "create" && m.Status == 201) || (r.Operation != "create" && m.Status == 204 && m.EngineID == r.EngineID))
 }
+
 // Settled reports a native completion or an explicit repair. Neither is
 // independent absence; release still requires exact observation.
 func (m MutationIntent) Settled() bool { return m.State == "completed" || m.State == "repaired" }

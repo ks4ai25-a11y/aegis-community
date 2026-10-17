@@ -114,7 +114,7 @@ func TestReconcilerHTTPRequiresSeparateRoleAndExactContextShape(t *testing.T) {
 	}
 	read, _ := json.Marshal(scanevidence.AuthorizerIntentRequest{Generation: generation, Intent: domain.Hash([]byte("never admitted"))})
 	got := call(t, h, strings.TrimSpace(string(authorizerToken)), "authorizer/intent", string(read), 200)
-	if got["found"] != false || got["intent"] != nil {
+	if got["found"] != false || len(got["intents"].([]any)) != 0 {
 		t.Fatal("never-admitted intent reported", got)
 	}
 	call(t, h, token, "authorizer/intent", string(read), 401)

@@ -147,11 +147,19 @@ func TestRepairRefusesUnfencedUncertainOrContradictoryEvidence(t *testing.T) {
 		seen    *inspector
 		want    error
 	}{
-		"no activation":       {clone(func(e *enginejournal.Evidence) { e.Quarantine.Activation = "" }), &inspector{}, ErrUnrepaired},
-		"no quarantine":       {clone(func(e *enginejournal.Evidence) { e.Quarantine = enginejournal.QuarantineState{} }), &inspector{}, ErrUnrepaired},
-		"other binding seal":  {clone(func(e *enginejournal.Evidence) { e.Policy = source.Hash([]byte("other")) }), &inspector{}, ErrUnrepaired},
-		"attempt not sealed":  {clone(func(e *enginejournal.Evidence) { e.Quarantine.Attempts = []string{"aegis-scan-" + strings.Repeat("1", 32)} }), &inspector{}, ErrUnrepaired},
-		"other proposal":      {clone(func(e *enginejournal.Evidence) { p := e.Attempt.Pending["create"]; c := *p.Controller; c.ID = source.Hash([]byte("x")); p.Controller = &c; e.Attempt.Pending["create"] = p }), &inspector{}, ErrUnrepaired},
+		"no activation":      {clone(func(e *enginejournal.Evidence) { e.Quarantine.Activation = "" }), &inspector{}, ErrUnrepaired},
+		"no quarantine":      {clone(func(e *enginejournal.Evidence) { e.Quarantine = enginejournal.QuarantineState{} }), &inspector{}, ErrUnrepaired},
+		"other binding seal": {clone(func(e *enginejournal.Evidence) { e.Policy = source.Hash([]byte("other")) }), &inspector{}, ErrUnrepaired},
+		"attempt not sealed": {clone(func(e *enginejournal.Evidence) {
+			e.Quarantine.Attempts = []string{"aegis-scan-" + strings.Repeat("1", 32)}
+		}), &inspector{}, ErrUnrepaired},
+		"other proposal": {clone(func(e *enginejournal.Evidence) {
+			p := e.Attempt.Pending["create"]
+			c := *p.Controller
+			c.ID = source.Hash([]byte("x"))
+			p.Controller = &c
+			e.Attempt.Pending["create"] = p
+		}), &inspector{}, ErrUnrepaired},
 		"no local proposal":   {clone(func(e *enginejournal.Evidence) { delete(e.Attempt.Pending, "create") }), &inspector{}, ErrUnrepaired},
 		"already repaired":    {clone(func(e *enginejournal.Evidence) { e.Attempt.Repairs["create"] = enginejournal.RepairEvidenceEntry{} }), &inspector{}, ErrUnrepaired},
 		"finished attempt":    {clone(func(e *enginejournal.Evidence) { e.Attempt.Finished = true }), &inspector{}, ErrUnrepaired},

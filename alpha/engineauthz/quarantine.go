@@ -58,14 +58,15 @@ func (p *Policy) resumeRemove(ctx context.Context, r Request, u *url.URL) (resum
 			break
 		}
 		read, e := p.admitted.client.Intent(ctx, intent.Request.Generation, intent.ID)
-		if e != nil || !read.Found || read.Intent.State != "repaired" || read.Repair == nil {
+		repair, repaired := read.Repair()
+		if e != nil || !read.Found || read.Intent().State != "repaired" || !repaired {
 			return false, false
 		}
-		outcome := read.Repair.Resolution.Outcome
-		if operation == "create" && (outcome != scanevidence.RepairCreated || read.Intent.EngineID != engineID) || operation == "start" && read.Intent.EngineID != engineID {
+		outcome, engine := repair.Resolution.Outcome, read.Intent().EngineID
+		if operation == "create" && (outcome != scanevidence.RepairCreated || engine != engineID) || operation == "start" && engine != engineID {
 			return false, false
 		}
-		if p.journal.RecordRepair(attempt, operation, outcome, read.Intent.EngineID, read.Repair.Digest) != nil {
+		if p.journal.RecordRepair(attempt, operation, outcome, engine, repair.Digest) != nil {
 			return false, false
 		}
 	}
@@ -79,10 +80,11 @@ func (p *Policy) resumeRemove(ctx context.Context, r Request, u *url.URL) (resum
 		// daemon that received any earlier Allow is gone, so if the
 		// allocation still exists this is its first effective execution.
 		read, e := p.admitted.client.Intent(ctx, intent.Request.Generation, intent.ID)
-		if e != nil || !read.Found || read.Intent.State != "pending" || read.Intent.Request != intent.Request || read.Intent.Request.EngineID != engineID {
+		current := read.Intent()
+		if e != nil || !read.Found || current.State != "pending" || current.Request != intent.Request || current.Request.EngineID != engineID {
 			return false, false
 		}
-		pendingRemove = read.Intent
+		pendingRemove = &current
 	}
 	a, e := p.journal.Resume(attempt)
 	if e != nil {
@@ -147,8 +149,9 @@ func SettleQuarantine(c Config) (enginejournal.Observation, enginejournal.Quaran
 		switch {
 		case !read.Found && operation == "create":
 			e = j.RecordRepair(attempt, operation, "not_admitted", "", "")
-		case read.Found && read.Intent.State == "repaired" && read.Repair != nil:
-			e = j.RecordRepair(attempt, operation, read.Repair.Resolution.Outcome, read.Intent.EngineID, read.Repair.Digest)
+		case read.Found && read.Intent().State == "repaired":
+			repair, _ := read.Repair()
+			e = j.RecordRepair(attempt, operation, repair.Resolution.Outcome, read.Intent().EngineID, repair.Digest)
 		default:
 			// Still pending or natively completed without a local response:
 			// nothing here may settle it.
