@@ -80,26 +80,35 @@ func (r *Reader) Close() {
 }
 
 func (r *Reader) get(ctx context.Context, path string, status int) ([]byte, error) {
-	if r.closed.Load() || r.identity.Check() != nil {
-		return nil, ErrUnconfirmed
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://"+enginetls.ServerName+"/v1.55"+path, nil)
-	if err != nil {
-		return nil, ErrUnconfirmed
-	}
-	response, err := r.client.Do(req)
-	if err != nil {
-		return nil, ErrUnconfirmed
-	}
-	defer response.Body.Close()
-	if response.StatusCode != status || response.ProtoMajor != 1 || response.TLS == nil || response.TLS.Version != tls.VersionTLS13 || response.Uncompressed || response.Header.Get("Content-Encoding") != "" {
-		return nil, ErrUnconfirmed
-	}
-	b, err := io.ReadAll(io.LimitReader(response.Body, 65537))
-	if err != nil || len(b) == 0 || len(b) > 65536 || r.closed.Load() || r.identity.Check() != nil || ctx.Err() != nil {
+	got, b, err := r.read(ctx, path)
+	if err != nil || got != status {
 		return nil, ErrUnconfirmed
 	}
 	return b, nil
+}
+
+// read performs one bounded TLS 1.3 GET and returns its status and body.
+func (r *Reader) read(ctx context.Context, path string) (int, []byte, error) {
+	if r.closed.Load() || r.identity.Check() != nil {
+		return 0, nil, ErrUnconfirmed
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://"+enginetls.ServerName+"/v1.55"+path, nil)
+	if err != nil {
+		return 0, nil, ErrUnconfirmed
+	}
+	response, err := r.client.Do(req)
+	if err != nil {
+		return 0, nil, ErrUnconfirmed
+	}
+	defer response.Body.Close()
+	if response.ProtoMajor != 1 || response.TLS == nil || response.TLS.Version != tls.VersionTLS13 || response.Uncompressed || response.Header.Get("Content-Encoding") != "" {
+		return 0, nil, ErrUnconfirmed
+	}
+	b, err := io.ReadAll(io.LimitReader(response.Body, 65537))
+	if err != nil || len(b) == 0 || len(b) > 65536 || r.closed.Load() || r.identity.Check() != nil || ctx.Err() != nil {
+		return 0, nil, ErrUnconfirmed
+	}
+	return response.StatusCode, b, nil
 }
 
 // objectFields accepts exactly one bounded JSON object, refusing ambiguous
@@ -202,4 +211,94 @@ func (r *Reader) VerifyAbsent(ctx context.Context, targets []Target) error {
 		}
 	}
 	return r.sameEngine(ctx)
+}
+
+// ContainerState is one exact observation of a retained allocation name.
+type ContainerState struct {
+	Present bool
+	ID      string
+	Started bool
+}
+
+// getEither is get for an exact read whose only acceptable answers are the
+// object (200) or the daemon's own "No such container" (404).
+func (r *Reader) getEither(ctx context.Context, path string) (map[string]json.RawMessage, bool, error) {
+	status, b, err := r.read(ctx, path)
+	if err != nil || status != http.StatusOK && status != http.StatusNotFound {
+		return nil, false, ErrUnconfirmed
+	}
+	if status == http.StatusOK {
+		fields, err := objectFields(b)
+		if err != nil {
+			return nil, false, ErrUnconfirmed
+		}
+		return fields, true, nil
+	}
+	fields, err := objectFields(b)
+	var message string
+	if err != nil || len(fields) != 1 || json.Unmarshal(fields["message"], &message) != nil || !strings.HasPrefix(message, "No such container") {
+		return nil, false, ErrUnconfirmed
+	}
+	return nil, false, nil
+}
+
+// Inspect observes one exact retained name and, when known, its exact engine
+// ID, bracketed by original engine identity checks (ADR 057 crash repair).
+// Present requires the name to resolve to exactly one container whose name
+// and ID match; a known ID must agree. Absent requires the daemon's own
+// not-found answer for every exact identity. Anything else is unconfirmed.
+// A two-request read can race a concurrent write; the caller must hold the
+// quarantine fence that excludes engine writes for this allocation.
+func (r *Reader) Inspect(ctx context.Context, target Target) (ContainerState, error) {
+	if r == nil || ctx == nil || r.closed.Load() || !namePattern.MatchString(target.Name) || (target.ID != "" && !idPattern.MatchString(target.ID)) {
+		return ContainerState{}, ErrUnconfirmed
+	}
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	if r.sameEngine(ctx) != nil {
+		return ContainerState{}, ErrUnconfirmed
+	}
+	read := func(exact string) (ContainerState, error) {
+		fields, present, err := r.getEither(ctx, "/containers/"+exact+"/json")
+		if err != nil || !present {
+			return ContainerState{}, err
+		}
+		var id, name string
+		var state map[string]json.RawMessage
+		if json.Unmarshal(fields["Id"], &id) != nil || json.Unmarshal(fields["Name"], &name) != nil || json.Unmarshal(fields["State"], &state) != nil || !idPattern.MatchString(id) || name != "/"+target.Name {
+			return ContainerState{}, ErrUnconfirmed
+		}
+		var status, startedAt string
+		if json.Unmarshal(state["Status"], &status) != nil || json.Unmarshal(state["StartedAt"], &startedAt) != nil {
+			return ContainerState{}, ErrUnconfirmed
+		}
+		started, err := time.Parse(time.RFC3339Nano, startedAt)
+		if err != nil {
+			return ContainerState{}, ErrUnconfirmed
+		}
+		out := ContainerState{Present: true, ID: id}
+		switch {
+		case status == "created" && started.Year() <= 1:
+		case (status == "running" || status == "exited" || status == "paused" || status == "restarting") && started.Year() > 1:
+			out.Started = true
+		default:
+			// Removing, dead or contradictory state is not positive evidence.
+			return ContainerState{}, ErrUnconfirmed
+		}
+		return out, nil
+	}
+	byName, err := read(target.Name)
+	if err != nil {
+		return ContainerState{}, ErrUnconfirmed
+	}
+	if target.ID != "" {
+		byID, err := read(target.ID)
+		if err != nil || byID != byName || byName.Present && byName.ID != target.ID {
+			return ContainerState{}, ErrUnconfirmed
+		}
+	}
+	if r.sameEngine(ctx) != nil {
+		return ContainerState{}, ErrUnconfirmed
+	}
+	return byName, nil
 }

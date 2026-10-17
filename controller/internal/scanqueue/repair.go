@@ -152,3 +152,39 @@ func (q *Queue) MutationForAuthorizer(ctx context.Context, v scanevidence.Author
 	}
 	return m, &rec, true, nil
 }
+
+// CleanupConfirmationForWorker returns the retained independent cleanup
+// confirmation that covered one exact container launched by this worker. The
+// worker may use it to close the matching attempt in its own local journal
+// after a crash; it is read-only and grants no engine or release authority.
+func (q *Queue) CleanupConfirmationForWorker(ctx context.Context, worker, owner, container string) (scanevidence.CleanupConfirmation, error) {
+	if !containerID.MatchString(container) {
+		return scanevidence.CleanupConfirmation{}, ErrInput
+	}
+	tx, err := q.S.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return scanevidence.CleanupConfirmation{}, err
+	}
+	defer tx.Rollback()
+	if err = workerAuthority(tx, worker, owner, q.now().Unix()); err != nil {
+		return scanevidence.CleanupConfirmation{}, err
+	}
+	var job, generation, state, ran, document string
+	if err = tx.QueryRowContext(ctx, "SELECT l.job FROM scanner_launches l JOIN scanner_jobs j ON j.id=l.job WHERE j.owner=? AND l.container=?", owner, container).Scan(&job); err != nil {
+		return scanevidence.CleanupConfirmation{}, err
+	}
+	if err = tx.QueryRowContext(ctx, "SELECT id,state,worker FROM scanner_allocation_generations WHERE job=? AND owner=?", job, owner).Scan(&generation, &state, &ran); err != nil {
+		return scanevidence.CleanupConfirmation{}, err
+	}
+	if state != "released" || ran != worker {
+		return scanevidence.CleanupConfirmation{}, ErrContextUnbound
+	}
+	if err = tx.QueryRowContext(ctx, "SELECT document FROM scanner_cleanup_confirmations WHERE job=? AND generation=?", job, generation).Scan(&document); err != nil {
+		return scanevidence.CleanupConfirmation{}, err
+	}
+	var c scanevidence.CleanupConfirmation
+	if json.Unmarshal([]byte(document), &c) != nil || c.Request.Job != job || c.Request.Generation != generation || !c.Covers(container) {
+		return scanevidence.CleanupConfirmation{}, ErrConflict
+	}
+	return c, nil
+}

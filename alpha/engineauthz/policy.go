@@ -63,6 +63,10 @@ type Config struct {
 	// DatabaseRoot is the operator's offline advisory database directory
 	// (ADR 068); empty means database mounts are refused.
 	DatabaseRoot string
+	// Quarantine serves a crashed admitted journal sealed in quarantine
+	// (ADR 057): reads only, plus the normal admitted removal of its tracked
+	// allocation. It requires Admitted and never allows create or start.
+	Quarantine bool
 }
 type Policy struct {
 	mu                           sync.Mutex
@@ -77,6 +81,7 @@ type Policy struct {
 	admitted                     *admittedGate
 	mutation                     scanevidence.MutationIntent
 	confirmedResponse            string
+	quarantine                   bool
 }
 
 func Open(c Config) (*Policy, error) {
@@ -100,7 +105,9 @@ func Open(c Config) (*Policy, error) {
 	if e != nil {
 		return nil, ErrPolicy
 	}
-	if o := j.Observe(); o.Unresolved != 0 || o.Unfinished != 0 {
+	// Only a sealed quarantine may open a journal with unfinished work, and
+	// only with exactly the one attempt the journal can leave unfinished.
+	if o := j.Observe(); !c.Quarantine && (o.Unresolved != 0 || o.Unfinished != 0) || c.Quarantine && (o.Unfinished != 1 || c.Admitted == nil) {
 		j.Close()
 		return nil, ErrPolicy
 	}
@@ -141,9 +148,19 @@ func Open(c Config) (*Policy, error) {
 		j.Close()
 		return nil, ErrPolicy
 	}
+	// The seal is written while this process holds the journal's exclusive
+	// lifetime lock, after the admitted policy seal matched exactly.
+	if c.Quarantine {
+		if _, e = j.SealQuarantine(); e != nil {
+			admitted.client.Close()
+			j.Close()
+			return nil, ErrPolicy
+		}
+	}
+	quarantined := c.Quarantine
 	c.Admitted = nil
 	c.Live = nil // Retain only the private, validated configuration copy.
-	return &Policy{config: c, journal: j, live: live, admitted: admitted}, nil
+	return &Policy{config: c, journal: j, live: live, admitted: admitted, quarantine: quarantined}, nil
 }
 func canonicalDir(p string) bool {
 	if !filepath.IsAbs(p) || filepath.Clean(p) != p || strings.ContainsAny(p, "\x00\r\n:,") {
@@ -373,7 +390,19 @@ func (p *Policy) AuthorizeRequestContext(ctx context.Context, r Request) Decisio
 	if r.User != Broker || p.pending != "" {
 		return deny()
 	}
-	if r.RequestMethod == "POST" && u.Path == api+"/containers/create" && p.attempt == nil {
+	if p.quarantine && p.attempt == nil {
+		resumed, ok := p.resumeRemove(ctx, r, u)
+		if !ok {
+			return deny()
+		}
+		if resumed {
+			if ctx.Err() != nil || !nativePeer(r, time.Now()) {
+				return deny()
+			}
+			return allow()
+		}
+	}
+	if r.RequestMethod == "POST" && u.Path == api+"/containers/create" && p.attempt == nil && !p.quarantine {
 		if p.create(ctx, r, u, time.Now()) && nativePeer(r, time.Now()) && ctx.Err() == nil {
 			return allow()
 		}
@@ -383,7 +412,7 @@ func (p *Policy) AuthorizeRequestContext(ctx context.Context, r Request) Decisio
 		return deny()
 	}
 	operation := ""
-	if r.RequestMethod == "POST" && u.Path == api+"/containers/"+p.id+"/start" && u.RawQuery == "" {
+	if r.RequestMethod == "POST" && u.Path == api+"/containers/"+p.id+"/start" && u.RawQuery == "" && !p.quarantine {
 		operation = "start"
 	}
 	if r.RequestMethod == "DELETE" && u.Path == api+"/containers/"+p.id && exactQuery(u, url.Values{"force": {"1"}, "v": {"1"}}) {

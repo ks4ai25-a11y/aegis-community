@@ -25,6 +25,7 @@ func (p *Policy) Handler() http.Handler {
 				if r.URL.Path == "/Plugin.Activate" {
 					var object map[string]json.RawMessage
 					if len(bytes.TrimSpace(raw)) == 0 || strict(raw, &object, 262144) == nil && object != nil && len(object) == 0 {
+						p.activated()
 						io.WriteString(w, `{"Implements":["authz"]}`)
 						return
 					}

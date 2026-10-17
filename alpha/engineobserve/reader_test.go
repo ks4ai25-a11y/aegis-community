@@ -121,6 +121,29 @@ func newFixture(t *testing.T, mode string) *fixture {
 			return
 		}
 		status, body := http.StatusNotFound, `{"message":"No such container"}`
+		if strings.HasPrefix(mode, "state-") {
+			t1 := target(1)
+			state, name := `{"Status":"created","Running":false,"StartedAt":"0001-01-01T00:00:00Z"}`, "/"+t1.Name
+			switch mode {
+			case "state-running":
+				state = `{"Status":"running","Running":true,"StartedAt":"2026-10-17T00:00:00.5Z"}`
+			case "state-exited":
+				state = `{"Status":"exited","Running":false,"StartedAt":"2026-10-17T00:00:00.5Z"}`
+			case "state-dead":
+				state = `{"Status":"dead","Running":false,"StartedAt":"2026-10-17T00:00:00.5Z"}`
+			case "state-created-but-started":
+				state = `{"Status":"created","Running":false,"StartedAt":"2026-10-17T00:00:00.5Z"}`
+			case "state-other-name":
+				name = "/" + target(2).Name
+			}
+			present := req.URL.Path == "/v1.55/containers/"+t1.Name+"/json" || req.URL.Path == "/v1.55/containers/"+t1.ID+"/json"
+			if mode == "state-split" && strings.Contains(req.URL.Path, t1.ID) {
+				present = false
+			}
+			if present {
+				status, body = http.StatusOK, `{"Id":"`+t1.ID+`","Name":"`+name+`","State":`+state+`,"Config":{"Image":"ignored"}}`
+			}
+		}
 		switch mode {
 		case "id-present":
 			if n == 2 {
@@ -358,4 +381,51 @@ func TestObserverCloseCancellationAndUnavailableEngine(t *testing.T) {
 			t.Fatal("closed reader retained authority")
 		}
 	})
+}
+
+func TestObserverInspectReportsExactPresenceAndStartState(t *testing.T) {
+	for mode, want := range map[string]ContainerState{
+		"":              {},
+		"state-created": {Present: true, ID: target(1).ID},
+		"state-running": {Present: true, ID: target(1).ID, Started: true},
+		"state-exited":  {Present: true, ID: target(1).ID, Started: true},
+	} {
+		t.Run(mode, func(t *testing.T) {
+			f := newFixture(t, mode)
+			r := openReader(t, f)
+			// By name only (a lost create response), then name plus known ID.
+			got, err := r.Inspect(context.Background(), Target{Name: target(1).Name})
+			if err != nil || got != want {
+				t.Fatal("name observation", got, err)
+			}
+			got, err = r.Inspect(context.Background(), target(1))
+			if err != nil || got != want {
+				t.Fatal("name and ID observation", got, err)
+			}
+			calls := f.calls()
+			if calls[0] != "GET /v1.55/info" || calls[len(calls)-1] != "GET /v1.55/info" {
+				t.Fatal("observation not bracketed by engine identity", calls)
+			}
+		})
+	}
+}
+
+func TestObserverInspectRefusesContradictoryOrUncertainState(t *testing.T) {
+	for _, mode := range []string{"state-dead", "state-created-but-started", "state-other-name", "state-split", "wrong-engine", "changed-engine", "inspect-denied", "inspect-error", "router-404", "html-404", "redirect"} {
+		t.Run(mode, func(t *testing.T) {
+			f := newFixture(t, mode)
+			r := openReader(t, f)
+			if got, err := r.Inspect(context.Background(), target(1)); err != ErrUnconfirmed || got != (ContainerState{}) {
+				t.Fatal("uncertain observation accepted", got, err)
+			}
+		})
+	}
+	f := newFixture(t, "state-created")
+	r := openReader(t, f)
+	if _, err := r.Inspect(context.Background(), Target{Name: target(1).Name, ID: target(3).ID}); err != ErrUnconfirmed {
+		t.Fatal("name resolved to another engine ID than the known one")
+	}
+	if _, err := r.Inspect(context.Background(), Target{Name: "other"}); err != ErrUnconfirmed {
+		t.Fatal("non-allocation name inspected")
+	}
 }

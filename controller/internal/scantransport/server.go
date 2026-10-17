@@ -136,6 +136,20 @@ func (s *Server) Handler() http.Handler {
 			// Explicit private wire DTO: only this enrolled channel receives the lease
 			// capability. General Lease serialization deliberately omits it.
 			reply(w, 200, map[string]any{"schema_version": "1.0", "launch_protocol": "1.0", "workspace_protocol": "1.0", "guard_set": lease.Guards, "job": lease.Job, "application_map": lease.Map, "lease_token": lease.Token, "deadline": lease.Deadline})
+		case "/internal/v1/scanner/cleanup-confirmation":
+			var in struct {
+				Container string `json:"container_name"`
+			}
+			if decode(r, &in, map[string]bool{"container_name": true}) != nil {
+				failure(w, 400, "INVALID_WORKER_REQUEST")
+				return
+			}
+			c, e := s.Q.CleanupConfirmationForWorker(r.Context(), worker.ID, worker.Owner, in.Container)
+			if e != nil {
+				queueError(w, e)
+				return
+			}
+			reply(w, 200, c)
 		case "/internal/v1/scanner/guard", "/internal/v1/scanner/fail", "/internal/v1/scanner/finish":
 			var in LeaseRequest
 			keys := map[string]bool{"job_id": true, "request_digest": true, "lease_token": true}

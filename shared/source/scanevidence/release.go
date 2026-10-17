@@ -126,3 +126,27 @@ func NewCleanupConfirmation(reconciler string, r CleanupConfirmationRequest, now
 	}{c.Schema, c.Reconciler, c.Request, c.Confirmed})
 	return c
 }
+
+// Covers reports whether this confirmation observed the exact container
+// name absent. Callers that know an engine ID must also compare it.
+func (c CleanupConfirmation) Covers(container string) bool {
+	if !c.Released || !c.Request.Valid() {
+		return false
+	}
+	for _, a := range c.Request.Absent {
+		if a.Container == container {
+			return true
+		}
+	}
+	return false
+}
+
+// Absence returns the confirmed absence for one exact container name.
+func (c CleanupConfirmation) Absence(container string) (CleanupAbsence, bool) {
+	for _, a := range c.Request.Absent {
+		if c.Released && a.Container == container {
+			return a, true
+		}
+	}
+	return CleanupAbsence{}, false
+}

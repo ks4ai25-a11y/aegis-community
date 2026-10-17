@@ -37,30 +37,41 @@ type reconcileConfig struct {
 	ObserverEndpoint  string `json:"observer_endpoint"`
 	ObserverIdentity  string `json:"observer_identity_directory"`
 	BrokerCertificate string `json:"broker_certificate_file"`
+	// AuthorizerJournal is the sealed plugin journal, read without its lock
+	// and only for crash repair (ADR 057). Release never reads it.
+	AuthorizerJournal string `json:"authorizer_journal,omitempty"`
 }
 
-func reconcileCleanup(configPath, job, generation string) error {
+func loadReconcile(configPath string) (reconcileConfig, string, []byte, error) {
 	raw, err := readPrivate(configPath, 8192)
 	if err != nil {
-		return fmt.Errorf("private reconcile configuration required")
+		return reconcileConfig{}, "", nil, fmt.Errorf("private reconcile configuration required")
 	}
 	var c reconcileConfig
 	d := json.NewDecoder(bytes.NewReader(raw))
 	d.DisallowUnknownFields()
 	if d.Decode(&c) != nil {
-		return fmt.Errorf("invalid reconcile configuration")
+		return reconcileConfig{}, "", nil, fmt.Errorf("invalid reconcile configuration")
 	}
 	root, err := filepath.EvalSymlinks(c.SourceRoot)
 	if err != nil || root != c.SourceRoot || !filepath.IsAbs(root) {
-		return fmt.Errorf("canonical source root required")
+		return reconcileConfig{}, "", nil, fmt.Errorf("canonical source root required")
 	}
 	lock, err := executor.ConfiguredToolLockDigest(filepath.Join(root, "tools/scanners.lock.json"))
 	if err != nil {
-		return fmt.Errorf("trusted tool lock unavailable")
+		return reconcileConfig{}, "", nil, fmt.Errorf("trusted tool lock unavailable")
 	}
 	certificate, err := readPrivate(c.BrokerCertificate, 16<<10)
 	if err != nil {
-		return fmt.Errorf("broker certificate unavailable")
+		return reconcileConfig{}, "", nil, fmt.Errorf("broker certificate unavailable")
+	}
+	return c, lock, certificate, nil
+}
+
+func reconcileCleanup(configPath, job, generation string) error {
+	c, lock, certificate, err := loadReconcile(configPath)
+	if err != nil {
+		return err
 	}
 	client, err := workerchannel.NewReconciler(c.Socket, c.Credential, c.Owner, c.Reconciler, c.Binding, c.Engine, c.Registry, c.Policy, c.Namespace, lock)
 	if err != nil {

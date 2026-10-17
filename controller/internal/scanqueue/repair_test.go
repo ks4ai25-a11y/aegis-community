@@ -291,3 +291,28 @@ func TestMutationForAuthorizerReadsRepairAndNeverAdmittedIntent(t *testing.T) {
 		t.Fatal("absence reported while admission is open")
 	}
 }
+
+func TestWorkerReadsRetainedConfirmationOnlyAfterReleaseOfItsOwnContainer(t *testing.T) {
+	q, l, _, v, r, b := crashedFixture(t, "create")
+	s := snapshotFor(t, q, v, l, r)
+	name := s.Membership.Launches[0].Document.Plan.Container
+	if _, e := q.CleanupConfirmationForWorker(context.Background(), l.Worker, l.Job.Owner, name); e == nil {
+		t.Fatal("held allocation reported as confirmed")
+	}
+	if _, e := q.RepairMutations(context.Background(), v, repairRequest(s, b, scanevidence.RepairNotCreated, "")); e != nil {
+		t.Fatal(e)
+	}
+	if _, e := confirmFor(t, q, v, l, r); e != nil {
+		t.Fatal(e)
+	}
+	c, e := q.CleanupConfirmationForWorker(context.Background(), l.Worker, l.Job.Owner, name)
+	if a, ok := c.Absence(name); e != nil || !ok || a.EngineID != "" {
+		t.Fatal("released confirmation unreadable for its own container", e)
+	}
+	if _, e = q.CleanupConfirmationForWorker(context.Background(), "other-worker", l.Job.Owner, name); e == nil {
+		t.Fatal("another worker read the confirmation")
+	}
+	if _, e = q.CleanupConfirmationForWorker(context.Background(), l.Worker, l.Job.Owner, "aegis-scan-"+strings.Repeat("0", 32)); e == nil {
+		t.Fatal("unknown container reported as confirmed")
+	}
+}
