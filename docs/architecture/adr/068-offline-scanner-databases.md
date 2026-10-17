@@ -1,6 +1,6 @@
 # ADR 068: Offline vulnerability databases for OSV-Scanner and Trivy
 
-Status: provisioning, verification and executor integration implemented and validated with real data; controller digest approval and the admitted SDK mount allowlist pending.
+Status: implemented end to end: provisioning, verification, executor integration, controller approval and admitted-path mount authorization.
 
 ## Problem
 
@@ -23,7 +23,8 @@ Database files are world-readable public data; Docker Desktop cannot bind-mount 
 - The CLI and SDK container profiles (`engineprofile.CreateWithDatabase`) add only the read-only `/db/<tool>` bind and the OSV environment variable; with no database they are byte-identical to before.
 - `scanner-guard` switches to `scanevidence.BuildDatabaseInvocation` (Trivy gains `--cache-dir /db/trivy`; OSV argv is unchanged) only for advisory tools and only when that directory exists in the container.
 - Receipts carry the optional `advisory_database`. `Normalize` accepts the database invocation only with a well-formed database record, refuses a record whose digest differs from `Expected.Database`, and keeps `completed_stale_db` unless that digest is approved and fresh.
-- Pending: the controller must bind the approved database digest into the job's expectations, and `engineauthz` must allow the mount for admitted SDK launches.
+- Controller approval: `aegisctl scanner-db approve MANIFEST_JSON` records the verified digests (audited). Fresh approvals are written into each job's request when it is queued (`advisory_database_digests`, never set by the requester), so receipt validation on the worker and the controller is reproducible: only a scan that used that exact, fresh database reports `completed`; any other database stays `completed_stale_db`.
+- Admitted path: `aegis-engine-authz` accepts at most one database mount, at the fixed `/db/<tool>` path for the request's own tool, read-only, from `AEGIS_SCANNER_DB_ROOT`, after re-verifying every file itself.
 
 ## Validation
 

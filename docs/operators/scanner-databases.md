@@ -32,7 +32,13 @@ Set `AEGIS_SCANNER_DB_ROOT` to the database directory for the operator scan comm
 AEGIS_SCANNER_DB_ROOT=/srv/aegis/scanner-db bin/aegis-research scan-offline trivy /path/to/repo "$PWD"
 ```
 
-The scan receipt records `advisory_database`: manifest and database digests, upstream build time, age in hours, the stale flag and the mount path. A result counts as current (`completed`) only when the job's approved database digest matches and the database is fresh. Otherwise it stays `completed_stale_db`. The controller does not bind an approved digest yet, so results it ingests are still `completed_stale_db`. The admitted SDK engine path also refuses database mounts until its mount allowlist is extended. Without `AEGIS_SCANNER_DB_ROOT`, the tools run as before and report no result.
+The scan receipt records `advisory_database`: manifest and database digests, upstream build time, age in hours, the stale flag and the mount path. A result counts as current (`completed`) only when the operator approved that exact database and it is fresh. Approve after each fetch:
+
+```bash
+AEGIS_DATA=/path/to/controller/data aegisctl scanner-db approve /srv/aegis/scanner-db/manifest.json
+```
+
+`aegisctl scanner-db list` shows approvals and `aegisctl scanner-db revoke trivy` removes one. Jobs record the approvals current when they are queued. Any other database stays `completed_stale_db`. For the admitted authorizer path, start `aegis-engine-authz` with the same `AEGIS_SCANNER_DB_ROOT`; it re-verifies the database before allowing the read-only mount. Without `AEGIS_SCANNER_DB_ROOT`, the tools run as before and report no result.
 
 Recorded run: `docs/evidence/scanner-database-executor-acceptance.json`. Both tools report CVE-2021-23337 / GHSA-35jh-r3h4-6jhm for lodash 4.17.20 and not for 4.17.21, a run without a database claims nothing, and a tampered database is refused before launch.
 

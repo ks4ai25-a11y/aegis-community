@@ -38,7 +38,7 @@ func run() error {
 		return e
 	}
 
-	cfg := engineauthz.Config{WorkRoot: os.Args[5], JournalRoot: os.Args[3], EngineDigest: os.Args[4], UID: uid, GID: gid, Images: images}
+	cfg := engineauthz.Config{WorkRoot: os.Args[5], JournalRoot: os.Args[3], EngineDigest: os.Args[4], UID: uid, GID: gid, Images: images, DatabaseRoot: os.Getenv("AEGIS_SCANNER_DB_ROOT")}
 	if os.Args[1] == "serve-bound" {
 		rules := os.Args[14]
 		if rules == "-" {

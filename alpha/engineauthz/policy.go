@@ -6,6 +6,7 @@ package engineauthz
 import (
 	"aegis.local/alpha/enginejournal"
 	"aegis.local/alpha/engineprofile"
+	"aegis.local/alpha/scannerdb"
 	"aegis.local/source"
 	"aegis.local/source/scanevidence"
 	"context"
@@ -59,6 +60,9 @@ type Config struct {
 	Images                              map[string]string
 	Live                                *LiveConfig
 	Admitted                            *AdmittedConfig
+	// DatabaseRoot is the operator's offline advisory database directory
+	// (ADR 068); empty means database mounts are refused.
+	DatabaseRoot string
 }
 type Policy struct {
 	mu                           sync.Mutex
@@ -262,7 +266,18 @@ func (p *Policy) create(ctx context.Context, r Request, u *url.URL, now time.Tim
 		return false
 	}
 	paths := []string{}
+	var db *engineprofile.Database
 	for _, m := range c.HostConfig.Mounts {
+		// One read-only database mount is allowed, only at the fixed path for
+		// this request's own tool and only from the configured, verified root.
+		if m.Target == "/db/osv" || m.Target == "/db/trivy" {
+			d, ok := p.databaseMount(c.Cmd[0], m.Source, m.Target, m.ReadOnly)
+			if !ok || db != nil {
+				return false
+			}
+			db = d
+			continue
+		}
 		rel, e := filepath.Rel(p.config.WorkRoot, m.Source)
 		if e != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || !canonicalDir(m.Source) {
 			return false
@@ -273,7 +288,7 @@ func (p *Policy) create(ctx context.Context, r Request, u *url.URL, now time.Tim
 	if len(paths) == 3 {
 		rules = paths[2]
 	}
-	expected := engineprofile.CreateTracked(c.Cmd[0], image, name, paths[0], rules, paths[1], seconds, deadline, p.config.UID, p.config.GID, pid)
+	expected := engineprofile.CreateTrackedWithDatabase(c.Cmd[0], image, name, paths[0], rules, paths[1], seconds, deadline, p.config.UID, p.config.GID, pid, db)
 	// Compare exact JSON object shapes as well as typed values: nulls, aliased or
 	// additional keys and omitted safety fields cannot acquire zero-value meaning.
 	var actual, prototype any
@@ -489,4 +504,29 @@ func (p *Policy) AuthorizeResponseContext(ctx context.Context, r Request) Decisi
 	p.operation = ""
 	p.confirmedResponse = ""
 	return allow()
+}
+
+// databaseMount admits the advisory database for tool only when the operator
+// configured a database root, the source is exactly that root's directory for
+// the tool, the mount is read-only, and the database re-verifies now (every
+// file rehashed against its manifest).
+func (p *Policy) databaseMount(tool, source, target string, readOnly bool) (*engineprofile.Database, bool) {
+	root := p.config.DatabaseRoot
+	if root == "" || !readOnly || !canonicalDir(root) {
+		return nil, false
+	}
+	m, e := scannerdb.MountFor(root, tool)
+	if e != nil || m.ContainerPath != target || m.HostPath != source || !canonicalDir(source) {
+		return nil, false
+	}
+	statuses, e := scannerdb.Verify(root, 365*24*time.Hour, time.Now())
+	if e != nil {
+		return nil, false
+	}
+	for _, st := range statuses {
+		if st.Tool == tool {
+			return &engineprofile.Database{Source: m.HostPath, Target: m.ContainerPath, Env: m.Env}, true
+		}
+	}
+	return nil, false
 }
