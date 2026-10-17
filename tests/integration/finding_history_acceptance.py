@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Opt-in read-only history refusals against the named synthetic local demo."""
 import datetime,http.cookiejar,json,os,pathlib,sys,urllib.error,urllib.parse,urllib.request
 from local_context import CREDENTIAL_FILE

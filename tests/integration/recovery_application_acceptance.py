@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Opt-in isolated reference-demo recovery drill. Never selects existing app volumes."""
 import datetime,hashlib,http.cookiejar,json,os,pathlib,re,secrets,subprocess,tempfile,time,urllib.error,urllib.parse,urllib.request
 from recovery_isolation import prepare,validate

@@ -5,6 +5,7 @@ RUN go mod download
 COPY gateway/ ./
 RUN CGO_ENABLED=0 go build -trimpath -o /out/caddy ./cmd/caddy
 FROM alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
+LABEL org.opencontainers.image.title="Aegis Community gateway" org.opencontainers.image.vendor="Kynthia AI" org.opencontainers.image.licenses="BUSL-1.1" org.opencontainers.image.source="https://github.com/ks4ai25-a11y/aegis-community"
 RUN addgroup -g 10001 aegis && adduser -D -u 10001 -G aegis aegis && mkdir -p /run/gateway /var/log/aegis /data /config /var/lib/aegis && chown -R 10001:10001 /run/gateway /var/log/aegis /data /config /var/lib/aegis
 COPY --from=build /out/caddy /usr/local/bin/caddy
 USER 10001:10001

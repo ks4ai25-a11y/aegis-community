@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import type {ReactNode} from 'react';
 import {Radio} from 'lucide-react';
 

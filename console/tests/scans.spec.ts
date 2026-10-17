@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {test,expect,type Page,type Route} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 const sample=JSON.parse(readFileSync(new URL('../../contracts/samples/ScannerJobV1.json',import.meta.url),'utf8'));

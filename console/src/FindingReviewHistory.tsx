@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {useEffect,useRef,useState} from 'react';
 import {getFindingTriageHistory} from './generated/research-client';
 import type {FindingTriageHistoryV1,FindingTriageRecordV1} from './generated/contracts';

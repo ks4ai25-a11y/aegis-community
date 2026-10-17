@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Supply-chain release evidence (release gate GATE-10).
 
 From a clean checkout, builds the release images, exports each to a tar archive, and runs the

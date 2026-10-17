@@ -23,6 +23,7 @@ COPY shared/source/ /src/shared/source/
 COPY alpha/ ./
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -buildvcs=false -o /guards/scanner-guard-linux-amd64 ./cmd/scanner-guard && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -buildvcs=false -o /guards/scanner-guard-linux-arm64 ./cmd/scanner-guard
 FROM alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
+LABEL org.opencontainers.image.title="Aegis Community controller and console" org.opencontainers.image.vendor="Kynthia AI" org.opencontainers.image.licenses="BUSL-1.1" org.opencontainers.image.source="https://github.com/ks4ai25-a11y/aegis-community"
 RUN addgroup -g 10001 aegis && adduser -D -u 10001 -G aegis aegis && mkdir -p /run/scanner /var/lib/aegis /run/verifier /var/log/aegis /run/gateway /run/deployer /var/lib/deployer /data /config && chmod 700 /run/scanner && chown -R 10001:10001 /run/scanner /var/lib/aegis /run/verifier /var/log/aegis /run/gateway /run/deployer /var/lib/deployer /data /config
 COPY --from=gateway-build /out/caddy /usr/local/bin/caddy
 COPY --from=controller-build /out/ /usr/local/bin/

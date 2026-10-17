@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {test,expect} from '@playwright/test';
 
 for(const value of [{job:{state:'completed'}},{items:null},{items:[null]},{items:[{site_id:12,display_name:{}}]}]) {

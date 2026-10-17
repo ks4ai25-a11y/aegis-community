@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Generate OpenAPI 3.1 and clients for the implemented scoped research surface."""
 import json,pathlib,subprocess
 root=pathlib.Path(__file__).resolve().parents[1]

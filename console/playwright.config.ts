@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {defineConfig} from '@playwright/test';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';

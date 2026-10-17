@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {useEffect, useState} from 'react';
 import {Bot, Cpu, ShieldAlert} from 'lucide-react';
 import {api, short, human} from './client';

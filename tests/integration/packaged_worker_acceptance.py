@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Explicit isolated worker execution. No retained demo resources are selected."""
 import datetime,json,os,pathlib,re,secrets,subprocess,tempfile,time,urllib.error,urllib.request
 from recovery_isolation import prepare,validate

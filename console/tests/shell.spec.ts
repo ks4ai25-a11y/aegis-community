@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {test, expect, Page} from '@playwright/test';
 
 async function mock(page: Page, extra: (path: string) => any = () => undefined) {

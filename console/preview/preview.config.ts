@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 // Design preview: screenshots every console page with realistic mocked data.
 // Not part of the test suite. Run: npx playwright test -c preview/preview.config.ts
 import {defineConfig} from '@playwright/test';

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 import copy,hashlib,io,json,pathlib,sys,tarfile,tempfile,unittest
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[2]/'scripts'))
 from ci_engine import prepare,validate_lock,BINARIES

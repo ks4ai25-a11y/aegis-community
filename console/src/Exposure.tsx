@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {useEffect, useState} from 'react';
 import {GitCompareArrows} from 'lucide-react';
 import {api} from './client';

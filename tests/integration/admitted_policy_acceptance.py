@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Native policy provisioning input; no controller or engine is contacted."""
 import hashlib,json,os,pathlib,tempfile
 from engine_authz_acceptance import run,PrivateOperationError

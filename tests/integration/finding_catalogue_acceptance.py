@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Explicit read-only catalogue checks against the named local synthetic demo."""
 import datetime,http.cookiejar,json,os,pathlib,sys,urllib.error,urllib.parse,urllib.request
 from local_context import CREDENTIAL_FILE

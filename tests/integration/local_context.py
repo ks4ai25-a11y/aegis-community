@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Shared local test context. No production credential fallback."""
 import os,pathlib,tempfile
 credential_root=pathlib.Path('/private/tmp') if pathlib.Path('/private/tmp').is_dir() else pathlib.Path(tempfile.gettempdir())

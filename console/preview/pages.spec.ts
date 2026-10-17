@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {test,type Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 

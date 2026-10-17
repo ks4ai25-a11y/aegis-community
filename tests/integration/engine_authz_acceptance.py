@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Opt-in authorization proof on a NEW daemon in a disposable GitHub runner.
 
 Never runs on a workstation, never stops the runner's existing daemon, and never

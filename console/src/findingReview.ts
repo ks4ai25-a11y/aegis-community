@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import type {FindingTriageInputV1,FindingTriageRecordV1} from './generated/contracts';
 export type State=FindingTriageInputV1['state'];
 const states:State[]=['suspected','unverified','false_positive','accepted_risk'];

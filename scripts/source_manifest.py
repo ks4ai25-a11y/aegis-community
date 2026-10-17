@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Record source identity without generated caches, runtime state or credentials."""
 import hashlib,json,pathlib
 root=pathlib.Path(__file__).resolve().parents[1]

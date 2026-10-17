@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """TLS-only dedicated scanner engine for an explicitly enabled packaged CI run.
 
 The package/orchestration daemon is untouched. The second daemon has a new data

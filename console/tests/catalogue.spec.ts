@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {test,expect,type Page,type Route} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 const actual=JSON.parse(readFileSync(new URL('../../docs/evidence/finding-catalogue-acceptance.json',import.meta.url),'utf8')).actual_http;

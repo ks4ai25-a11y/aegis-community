@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Reproducible gateway latency benchmark (v4 manual H5, A5 target: added p95 <= 15 ms at 100 RPS).
 
 Compares, over the same Docker network path, requests sent straight to the synthetic demo origin

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Pure namespace safety checks for the disposable recovery drill."""
 import copy,re
 SERVICES={'init','deployer','controller','gateway','verifier','demo-origin','fixture-origin'}

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {useState} from 'react';
 import {Wrench} from 'lucide-react';
 import {api} from './client';

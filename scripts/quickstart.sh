@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+# SPDX-License-Identifier: BUSL-1.1
 # Aegis Community quickstart: build and start the local stack, then print where to
 # sign in. Uses only Docker; no account, paid service or model is required.
 #   scripts/quickstart.sh            start (or restart) the local stack

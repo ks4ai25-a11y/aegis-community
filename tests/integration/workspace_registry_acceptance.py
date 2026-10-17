@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Fresh-only native registry provisioning; no engine or controller connection."""
 import hashlib,json,os,pathlib,stat,subprocess,tempfile
 

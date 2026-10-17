@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Generate deterministic type bindings for the bounded JSON-schema subset used here."""
 import json,pathlib,subprocess
 ROOT=pathlib.Path(__file__).resolve().parents[1]

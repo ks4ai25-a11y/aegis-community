@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import React, {Component, useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Activity, ArrowRight, ChevronRight, Clock3, Command, Eye, FileCheck2, FileSearch, FolderLock, Globe, Layers3, LayoutDashboard, LockKeyhole, LogOut, Menu, Moon, Radio, RefreshCw, RotateCcw, Search, Settings, Shield, ShieldCheck, Sun, Terminal, X, Zap} from 'lucide-react';

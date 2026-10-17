@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {useEffect,useState} from 'react';
 import {FolderLock,RefreshCw} from 'lucide-react';
 import {api,human,short} from './client';

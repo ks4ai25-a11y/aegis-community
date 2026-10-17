@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Native recovery CLI proof using private synthetic state; no live services."""
 import datetime,hashlib,json,os,pathlib,secrets,sqlite3,subprocess,tempfile
 ROOT=pathlib.Path(__file__).resolve().parents[2]

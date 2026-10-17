@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Synthetic verifier/privacy tests; never start Docker or an engine daemon."""
 import copy,hashlib,json,os,pathlib,re,sqlite3,stat,tempfile,types,unittest
 from unittest import mock

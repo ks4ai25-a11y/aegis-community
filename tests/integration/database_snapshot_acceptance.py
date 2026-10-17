@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Exercise the compiled local snapshot CLI using only private synthetic state."""
 import datetime, hashlib, json, os, pathlib, re, sqlite3, stat, subprocess, tempfile
 

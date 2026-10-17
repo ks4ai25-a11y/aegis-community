@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {useEffect,useRef,useState} from 'react';
 import {api,setCSRF,short} from './client';
 import {listFindingCatalogue,listRepositories} from './generated/research-client';

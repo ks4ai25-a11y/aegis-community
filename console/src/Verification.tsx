@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {useEffect,useState} from 'react';
 import {FileCheck2,LockKeyhole,RotateCcw,Terminal} from 'lucide-react';
 import {key,short,human} from './client';

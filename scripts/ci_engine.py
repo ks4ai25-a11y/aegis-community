@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Verify/extract a fixed engine for a disposable GitHub Linux CI job only."""
 import hashlib,json,os,pathlib,platform,re,shutil,tarfile,tempfile,urllib.request
 ROOT=pathlib.Path(__file__).resolve().parents[1]

@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: BUSL-1.1
 # Adversarial AI evaluation against the local model overlay (deploy/compose.ai-local.yaml).
 # Builds the evaluation test binary and runs it on the model's private network with no
 # other network access, writing evidence JSON to OUT_DIR. Usage:

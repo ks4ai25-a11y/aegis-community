@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Explicit local Docker snapshot proof; database bytes remain inside private Aegis storage."""
 import hashlib,json,pathlib,re,secrets,subprocess,time,urllib.request,urllib.parse,datetime,os
 ROOT=pathlib.Path(__file__).resolve().parents[2]

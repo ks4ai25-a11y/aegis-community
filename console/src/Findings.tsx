@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,RefreshCw} from 'lucide-react';
 import {listFindings} from './generated/research-client';

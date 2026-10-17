@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Compiled operator CLI, using only fresh private synthetic controller state."""
 import hashlib,os,pathlib,sqlite3,subprocess,tempfile
 
