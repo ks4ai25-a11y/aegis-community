@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "source_commit": "47bf385821f9b937eb6213d765558d8e36fd41e3",
+  "ci_run": 38997831312,
+  "ci_url": "https://github.com/ks4ai25-a11y/aegis-community/actions/runs/38997831312",
+  "ci_conclusion": "success",
+  "jobs": {
+    "source": "PASS",
+    "trusted-demo": "PASS",
+    "isolated-engine-authz": "PASS",
+    "packaged-worker": "PASS"
+  },
+  "actual_packaged_native_admission_test": "PASS",
+  "private_runtime_evidence_published": false,
+  "independent_cleanup_release_implemented": false,
+  "actual_two_sequential_scans_verified": false,
+  "all_engine_writes_mediated_claimed": false,
+  "full_v4_complete": false
+}
