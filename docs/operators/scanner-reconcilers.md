@@ -44,7 +44,7 @@ The operator runs the release with the reconciler's own credential and the obser
 aegis-research reconcile-cleanup PRIVATE_RECONCILE_CONFIG JOB GENERATION
 ```
 
-The private config (owner-only mode, at most 8 KiB, exact fields) names the controller socket, reconciler credential, original binding scope, canonical source root, original workspace registry, observer endpoint/identity and broker public certificate. The command reads a fresh snapshot while holding the original registry empty under its approved namespace (`workspace.WithBoundEmptyRegistry`). It derives the required absences, observes each exact engine ID and name absent on the original engine (bracketed by engine identity checks), and only then asks the controller to release. A launch whose create was never admitted is observed by name only.
+The private config (owner-only mode, at most 8 KiB, exact fields) names the controller socket, reconciler credential, original binding scope, canonical source root, original workspace registry, observer endpoint/identity and broker public certificate. The command reads a fresh snapshot while holding the original registry empty under its approved namespace (`workspace.WithBoundEmptyRegistry`). It derives the required absences, observes each exact engine ID and name absent on the original engine (bracketed by engine identity checks), and only then asks the controller to release. A launch whose create was never admitted is observed by name only. Run the reconciler as the scanner UID that owns the workspace registry (the barrier accepts only files owned by its caller), and give it only its own observer identity: never mount the broker's client key, worker credential or authorizer credential into it.
 
 ## Recovery
 

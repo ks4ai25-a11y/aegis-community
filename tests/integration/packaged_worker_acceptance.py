@@ -35,12 +35,12 @@ if not re.fullmatch(r'sha256:[0-9a-f]{64}',image):raise SystemExit('Build the pi
 engine_socket=os.environ.get('AEGIS_WORKER_TEST_ENGINE_SOCKET','/var/run/docker.sock')
 if not pathlib.PurePosixPath(engine_socket).is_absolute() or any(c in engine_socket for c in ',:\r\n'):raise SystemExit('Canonical daemon-host Unix socket path required')
 def check(name):checks.append({'id':name,'result':'PASS'});print(name+': PASS',flush=True)
-def helper(args,mounts=(),entry='aegis-research',user='10001:10001',caps=(),extra=(),success=True):
+def helper(args,mounts=(),entry='aegis-research',user='10001:10001',caps=(),extra=(),success=True,broker_tls=True):
  name=project+'-helper-'+str(len(helpers));helpers.append(name)
  command=['run','--rm','--pull=never','--name',name,'--label','io.aegis.worker-proof='+nonce,'--network','none','--read-only','--user',user,'--cap-drop','ALL','--security-opt','no-new-privileges','--memory','192m','--pids-limit','64','--log-driver','none']
  for cap in caps:command+=['--cap-add',cap]
  for mount in mounts:command+=['--mount',mount]
- if authz_engine is not None and entry=='aegis-research':command+=['--mount','type=bind,src='+str(authz_engine.client_dir)+',dst=/run/engine-tls,readonly','--env','AEGIS_SCANNER_ENGINE_TLS_DIR=/run/engine-tls']
+ if authz_engine is not None and entry=='aegis-research' and broker_tls:command+=['--mount','type=bind,src='+str(authz_engine.client_dir)+',dst=/run/engine-tls,readonly','--env','AEGIS_SCANNER_ENGINE_TLS_DIR=/run/engine-tls']
  return raw(command+list(extra)+['--entrypoint',entry,image,*args],90,success)
 with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
  directory=pathlib.Path(temporary).resolve();spec=prepare(json.loads(raw(['compose','-f','deploy/compose.demo.yaml','config','--format','json']).stdout));configuration=directory/'compose.json';configuration.write_text(json.dumps(spec));prefix=['compose','-p',project,'-f',str(configuration)]
@@ -242,11 +242,13 @@ with tempfile.TemporaryDirectory(prefix='aegis-worker-config-') as temporary:
    from packaged_authorizer_fixture import provision_reconciler
    confirmed=False
    reconciler_volume,config_path,reconcile_mounts=provision_reconciler(authz_engine,authz_engine.bound,raw,compose,nonce,socket_volume,project)
-   released=json.loads(helper(['reconcile-cleanup',config_path,job['job_id'],authz_engine.bound.generation],mounts=reconcile_mounts,extra=['--group-add',group]).stdout)
+   # The reconciler gets only its own observer identity, never the broker key.
+   assert not any(str(authz_engine.client_dir) in m or '/run/engine-tls' in m for m in reconcile_mounts)
+   released=json.loads(helper(['reconcile-cleanup',config_path,job['job_id'],authz_engine.bound.generation],mounts=reconcile_mounts,extra=['--group-add',group],broker_tls=False).stdout)
    assert released['dispatch_released'] is True and released['request']['job_id']==job['job_id'] and released['request']['generation_id']==authz_engine.bound.generation and len(released['request']['absent'])==1 and released['request']['absent'][0]['container']==plan['container_id']
    # A released generation has no held context left to snapshot; repeating the
    # command must fail closed (controller replay is covered by queue tests).
-   assert helper(['reconcile-cleanup',config_path,job['job_id'],authz_engine.bound.generation],mounts=reconcile_mounts,extra=['--group-add',group],success=False).returncode!=0
+   assert helper(['reconcile-cleanup',config_path,job['job_id'],authz_engine.bound.generation],mounts=reconcile_mounts,extra=['--group-add',group],broker_tls=False,success=False).returncode!=0
    status,_=request(base,'/scans/'+job['job_id'],cookie=cookie);assert status['execution_admission']!='cleanup_required'
    confirmed=True;check('independent_reconciler_observes_absence_under_registry_barrier_and_releases_once')
    confirmed=False;started=True;result=raw(['start','--attach',worker_name],120,False)
