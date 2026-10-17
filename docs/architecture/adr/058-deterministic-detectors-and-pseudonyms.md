@@ -1,6 +1,6 @@
 # ADR 058: Deterministic behavioural detectors and keyed pseudonyms
 
-Status: implemented; DET-01…06 unit-tested, DET-02 validated live. DET-07 (policy regression) and DET-08 (origin drift) remain open.
+Status: implemented; DET-01…06 unit-tested, DET-02 validated live. DET-07 is the live canary (ADR 063). DET-08 is implemented as an origin exposure check (below).
 
 ## Problem
 
@@ -32,3 +32,7 @@ Each signal fires at most once per detector, key and window bucket. The incident
 ## Validation
 
 `controller/internal/detect` tests cover each detector's positive case, negative controls (successful browsing, failures spread across clients, slow failures, minority errors, refused admin routes, partial segment names), ineligible records and bounded cardinality. `gateway/telemetry` tests check that pseudonyms replace addresses and paths and are stable within a day and distinct across clients. `tests/integration/detector_acceptance.py` records a live DET-02 incident with pseudonymous evidence only (`docs/evidence/detector-acceptance.json`).
+
+## Addendum: DET-08 origin exposure
+
+On each canary cycle the controller attempts a 2-second TCP connection to every registered site's origin. In the reference deployment the controller shares no network with origins, so a successful connection means some clients may reach the application without passing the gateway. It records one DET-08 incident per site and day (record only) and reports results in `/system/status` as `origin_exposure`. A port published on the Docker host is not visible from inside the stack, so "unreachable" is not proof the origin is private. Live: a site whose origin shared a network with the controller was flagged; a site on the gateway-only network was not.

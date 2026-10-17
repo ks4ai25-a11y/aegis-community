@@ -26,7 +26,7 @@ Then start Aegis with the site overlay, which adds that network to the gateway o
 docker compose -f deploy/compose.demo.yaml -f deploy/compose.sites.yaml up -d
 ```
 
-Do not publish your application's own port to the host if Aegis is meant to be the only entry point; otherwise clients can bypass the gateway.
+Do not publish your application's own port to the host if Aegis is meant to be the only entry point; otherwise clients can bypass the gateway. Aegis checks every 15 minutes whether each origin is reachable from outside the gateway's network and opens a DET-08 incident if it is.
 
 ## 2. Register the site in Observe
 
