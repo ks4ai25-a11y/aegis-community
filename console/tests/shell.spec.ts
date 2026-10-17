@@ -118,3 +118,22 @@ test('switching site discards a policy preview made for the other site', async (
   await page.getByLabel('Selected site').selectOption('site_demo');
   await expect(page.getByText('Candidate preview')).toBeHidden();
 });
+
+test('pages have their own URL, so refresh, deep links and Back work', async ({page}) => {
+  await mock(page);
+  await page.goto('/#/policies');
+  await expect(page.getByRole('heading', {name: 'Review a policy change'})).toBeVisible();
+  await page.getByRole('button', {name: 'Live activity', exact: true}).click();
+  await expect(page).toHaveURL(/#\/live-activity$/);
+  await page.reload();
+  await expect(page.getByRole('button', {name: 'Live activity', exact: true})).toHaveAttribute('aria-current', 'page');
+  await page.goBack();
+  await expect(page.getByRole('heading', {name: 'Review a policy change'})).toBeVisible();
+});
+
+test('settings shows a readable audit log', async ({page}) => {
+  await mock(page, path => path === '/audit' ? {items: [{seq: 2, hash: 'sha256:' + 'c'.repeat(64), previous_hash: '', record: {occurred_at: '2026-10-17T09:00:00Z', action: 'policy.activate', actor_id: 'owner', object_id: 'sha256:' + 'd'.repeat(64), result: 'ACTIVE'}}]} : undefined);
+  await page.goto('/#/settings');
+  await expect(page.getByRole('cell', {name: 'policy.activate'})).toBeVisible();
+  await expect(page.getByRole('cell', {name: 'ACTIVE'})).toBeVisible();
+});

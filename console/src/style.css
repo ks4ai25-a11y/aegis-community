@@ -134,6 +134,10 @@ footer span{margin-left:auto}
 .muted{color:var(--muted)}
 .small{font-size:12px}
 .teal{color:var(--accent)}
+.warn-text{color:var(--warn);font-weight:500}
+.loading-row{display:flex;gap:10px;align-items:center;justify-content:center;padding:28px;color:var(--muted);font-size:13px}
+.spinner{width:14px;height:14px;border-radius:50%;border:2px solid var(--border-strong);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 .status-text{color:var(--ok);font-weight:500}
 .step-label{font-size:12px;color:var(--muted);font-weight:500}
 .subhead{display:flex;align-items:center;justify-content:space-between;margin-top:22px}

@@ -52,13 +52,14 @@ export function Proposals({incident, onChanged}: {incident: string; onChanged: (
   const [preview, setPreview] = useState<any>();
   const [ack, setAck] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  useEffect(() => { setPreview(undefined); api('/incidents/' + encodeURIComponent(incident) + '/proposals').then(setData).catch(e => setError(e.message)); }, [incident]);
+  const [error, setError] = useState(''), [done, setDone] = useState('');
+  useEffect(() => { setPreview(undefined); setDone(''); api('/incidents/' + encodeURIComponent(incident) + '/proposals').then(setData).catch(e => setError(e.message)); }, [incident]);
   async function work(f: () => Promise<any>) { setBusy(true); setError(''); try { await f(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } }
   if (!data) return null;
   return <section className="card">
     <div className="card-heading"><h2>Mitigation proposals</h2><span className="badge">{data.proposals.length} proposed</span></div>
     {error && <div role="alert" className="alert error">{error}</div>}
+    {done && <div role="status" className="alert success">{done}</div>}
     {data.proposals.map((p: any) => <div className="history-row" key={p.proposal_id}>
       <div><strong>{p.title} <span className="badge">{p.kind}</span> <span className="badge">{p.priority}</span></strong>
         <p className="muted">{p.rationale}</p>
@@ -71,7 +72,7 @@ export function Proposals({incident, onChanged}: {incident: string; onChanged: (
       <div className="system-row"><span>Candidate digest</span><span className="mono">{short(preview.candidate_digest)}</span></div>
       <Report report={preview.report}/>
       <label className="checkbox"><input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)}/>I reviewed the side effects and understand legitimate traffic may be affected.</label>
-      <button disabled={busy || !ack || preview.fixture_result !== 'PASS'} className="button primary" onClick={() => work(async () => { await activateCandidate(preview.proposal.site_id, preview, preview.policy.parent_revision, preview.proposal.title); setPreview(undefined); onChanged(); })}>Approve and activate</button>
+      <button disabled={busy || !ack || preview.fixture_result !== 'PASS'} className="button primary" onClick={() => work(async () => { await activateCandidate(preview.proposal.site_id, preview, preview.policy.parent_revision, preview.proposal.title); setPreview(undefined); setDone('Gateway activation confirmed. The incident stays open for your review.'); })}>Approve and activate</button>
     </div>}
   </section>;
 }
@@ -120,8 +121,10 @@ export function AIPage() {
     </section>
     <section className="card">
       <h2>Enable a free local model</h2>
-      <p className="muted">Start the bundled Ollama overlay and pull a small model once:</p>
-      <pre className="mono">docker compose -f deploy/compose.demo.yaml -f deploy/compose.ai-local.yaml up -d{'\n'}docker compose -f deploy/compose.demo.yaml -f deploy/compose.ai-local.yaml exec ollama ollama pull llama3.2:3b</pre>
+      <p className="muted">From the Aegis folder, run the quickstart with the local model overlay. It downloads the assessment and code models once (about 4 GB) in a separate job; the model server itself has no internet access.</p>
+      <pre className="mono">scripts/quickstart.sh --ai</pre>
+      <p className="muted">Or the two steps by hand:</p>
+      <pre className="mono">docker compose -f deploy/compose.demo.yaml -f deploy/compose.ai-local.yaml --profile ai-pull run --rm ollama-pull{'\n'}docker compose -f deploy/compose.demo.yaml -f deploy/compose.ai-local.yaml up -d</pre>
       <p className="muted">See docs/operators/ai-assessment.md for llama.cpp and other OpenAI-compatible servers.</p>
     </section>
     <Connectors/>

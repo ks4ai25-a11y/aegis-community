@@ -14,7 +14,7 @@ export function Verification({action,busy,status}:Props) {
  useEffect(()=>{reloadJobs().catch(e=>setError(e.message));const t=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(t)},[]);
  useEffect(()=>{
   if(!job||!running)return;let alive=true;
-  const update=async()=>{try{const next=await getVerification(job.job_id);if(!alive)return;setJob(next);if(!['queued','running'].includes(next.state)){await reloadJobs();if(next.report_digest){const r=await getVerificationReport(next.report_digest);if(alive)setReport(r)}}}catch(e){if(alive)setError((e as Error).message)}};
+  const update=async()=>{try{const next=await getVerification(job.job_id);if(!alive)return;setJob(next);if(!['queued','running'].includes(next.state)){await reloadJobs();if(next.report_digest){const r=await getVerificationReport(next.report_digest);setReport(r)}}}catch(e){if(alive)setError((e as Error).message)}};
   const t=setInterval(update,750);return()=>{alive=false;clearInterval(t)};
  },[job?.job_id,running]);
  const scopeUsable=scope?.state==='active'&&scope.requests_remaining>=4&&new Date(scope.grant.expires_at).getTime()>now;

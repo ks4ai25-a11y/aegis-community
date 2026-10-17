@@ -33,6 +33,9 @@ const subtitles: Record<Page, string> = {
   'AI Apps': 'Optional, local and advisory: assess incidents with or without a model.',
   'Settings': 'Local configuration, privacy and operational health.',
 };
+const slug = (p: Page) => p.toLowerCase().replace(/\s+/g, '-');
+const pages = groups.flatMap(g => g.items.map(([n]) => n));
+const fromHash = (): Page => pages.find(p => '#/' + slug(p) === window.location.hash) || 'Overview';
 const number = (v: unknown) => typeof v === 'number' ? v.toLocaleString() : '—';
 
 type Theme = 'dark' | 'light';
@@ -53,7 +56,7 @@ class Boundary extends Component<{page: string; children: ReactNode}, {error?: s
 }
 
 function App() {
-  const [session, setSession] = useState(false), [loading, setLoading] = useState(true), [page, setPage] = useState<Page>('Overview'), [initialScan, setInitialScan] = useState('');
+  const [session, setSession] = useState(false), [loading, setLoading] = useState(true), [page, setPage] = useState<Page>(fromHash), [initialScan, setInitialScan] = useState('');
   const [status, setStatus] = useState<any>(), [error, setError] = useState(''), [statusError, setStatusError] = useState(''), [ended, setEnded] = useState(false), [busy, setBusy] = useState(false), [refresh, setRefresh] = useState(0), [toast, setToast] = useState('');
   const [site, setSite] = useState('site_demo'), [sites, setSites] = useState<any[]>([]), [drawer, setDrawer] = useState(false), [palette, setPalette] = useState(false), [theme, setTheme] = useState<Theme>(initialTheme);
   useEffect(() => { document.documentElement.dataset.theme = theme; try { localStorage.setItem('aegis-theme', theme); } catch {} }, [theme]);
@@ -92,7 +95,8 @@ function App() {
     catch (e) { setError((e as Error).message); }
     finally { setBusy(false); }
   }
-  const go = (p: Page) => { setPage(p); setInitialScan(''); setToast(''); setDrawer(false); setPalette(false); window.scrollTo?.(0, 0); };
+  useEffect(() => { const onHash = () => setPage(fromHash()); window.addEventListener('hashchange', onHash); return () => window.removeEventListener('hashchange', onHash); }, []);
+  const go = (p: Page) => { if (window.location.hash !== '#/' + slug(p)) window.history.pushState(null, '', '#/' + slug(p)); setPage(p); setInitialScan(''); setToast(''); setDrawer(false); setPalette(false); window.scrollTo?.(0, 0); };
 
   if (loading) return <div className="loading"><span className="brand-mark large"><Shield size={28}/></span><p>Opening local console…</p></div>;
   if (!session) return <Auth ended={ended} onSuccess={v => { setCSRF(v); setSession(true); setEnded(false); }}/>;
@@ -138,13 +142,13 @@ function App() {
             {page === 'Overview' ? <><div className="eyebrow">Defence, with evidence</div><h1>Your security, in focus.</h1></> : <h1>{page}</h1>}
             <p>{subtitles[page]}</p>
           </div>
-          {site === 'site_demo' && page !== 'Repositories' && page !== 'Scans' && page !== 'Findings' && <span className="pill">Bundled demo · synthetic data</span>}
+          {(sites.find(x => x.site_id === site)?.synthetic ?? site === 'site_demo') && page !== 'Repositories' && page !== 'Scans' && page !== 'Findings' && <span className="pill">Bundled demo · synthetic data</span>}
         </div>
         {error && <div role="alert" className="alert error">{error}<button onClick={() => setError('')} aria-label="Dismiss error"><X size={14}/></button></div>}
         {statusError && <div role="status" className="alert warn">Live status unavailable: {statusError}. Figures shown may be stale.</div>}
         {toast && <div role="status" className="alert success">{toast}<button onClick={() => setToast('')} aria-label="Dismiss message"><X size={14}/></button></div>}
         <Boundary page={page}>
-          {page === 'Overview' && <Overview status={status} site={site} refresh={refresh} busy={busy} go={go} action={action}/>}
+          {page === 'Overview' && <Overview status={status} statusError={statusError} site={site} refresh={refresh} busy={busy} go={go} action={action}/>}
           {page === 'Sites' && <Sites action={action} busy={busy} refresh={refresh} onSelect={id => { setSite(id); go('Live activity'); }}/>}
           {page === 'Live activity' && <Events site={site} refresh={refresh}/>}
           {page === 'Incidents' && <Incidents site={site} refresh={refresh}/>}
@@ -190,8 +194,9 @@ function Palette({onClose, onGo}: {onClose: () => void; onGo: (p: Page) => void}
   </div>;
 }
 
-function Overview({status, site, refresh, busy, go, action}: {status: any; site: string; refresh: number; busy: boolean; go: (p: Page) => void; action: (w: () => Promise<any>, m?: string) => Promise<any>}) {
-  const [items, setItems] = useState<any[]>([]), [incidents, setIncidents] = useState<any[]>([]);
+function Overview({status, statusError, site, refresh, busy, go, action}: {status: any; statusError: string; site: string; refresh: number; busy: boolean; go: (p: Page) => void; action: (w: () => Promise<any>, m?: string) => Promise<any>}) {
+  const [items, setItems] = useState<any[]>([]), [incidents, setIncidents] = useState<any[]>([]), [ai, setAI] = useState<any>();
+  useEffect(() => { api('/ai/status').then(setAI).catch(() => setAI(undefined)); }, []);
   useEffect(() => {
     let live = true;
     const read = () => api('/sites/' + site + '/events?limit=100').then(v => { if (live && Array.isArray(v.items)) setItems(v.items); }).catch(() => {});
@@ -247,8 +252,9 @@ function Overview({status, site, refresh, busy, go, action}: {status: any; site:
       <section className="card">
         <div className="card-heading"><h2>System health</h2><ShieldCheck size={18}/></div>
         <div className="system-row"><span>Gateway & ruleset</span><span className="status-text">{status?.gateway_healthy ? 'Healthy' : 'Unconfirmed'}</span></div>
-        <div className="system-row"><span>Control plane</span><span className="status-text">Connected</span></div>
+        <div className="system-row"><span>Control plane</span>{statusError ? <span className="warn-text">Unreachable</span> : <span className="status-text">Connected</span>}</div>
         <div className="system-row"><span>Storage</span><span>{status ? ((status.database_bytes / 1048576).toFixed(1) + ' MiB') : '—'}</span></div>
+        <div className="system-row"><span>Local model</span><span className="muted">{ai && ai.provider !== 'none' ? (ai.model || ai.provider) + ' · on request only' : 'Not configured'}</span></div>
         <div className="system-row"><span>External services</span><span className="muted">None required</span></div>
         <div className="note"><LockKeyhole size={16}/><p>The gateway keeps its last approved configuration if the console, controller or AI app stops.</p></div>
       </section>
@@ -316,10 +322,10 @@ function Stat({label, value, note, icon: Icon, tone, spark}: {label: string; val
 }
 
 function Events({site = 'site_demo', refresh, compact = false}: {site?: string; refresh: number; compact?: boolean}) {
-  const [items, setItems] = useState<any[]>([]), [filter, setFilter] = useState('all'), [error, setError] = useState('');
+  const [items, setItems] = useState<any[]>([]), [filter, setFilter] = useState('all'), [error, setError] = useState(''), [loaded, setLoaded] = useState(false);
   useEffect(() => {
     let live = true;
-    const read = () => api('/sites/' + site + '/events?limit=100').then(v => { if (live) { setItems(Array.isArray(v.items) ? v.items : []); setError(''); } }).catch(e => { if (live) setError(e.message); });
+    const read = () => api('/sites/' + site + '/events?limit=100').then(v => { if (live) { setItems(Array.isArray(v.items) ? v.items : []); setError(''); } }).catch(e => { if (live) setError(e.message); }).finally(() => { if (live) setLoaded(true); });
     read();
     const t = setInterval(read, 2500);
     return () => { live = false; clearInterval(t); };
@@ -339,9 +345,13 @@ function Events({site = 'site_demo', refresh, compact = false}: {site?: string; 
         <td className="mono">{e.rule_ids?.join(', ') || e.http_status || 'Unknown'}</td>
         <td className="mono muted">{short(e.gateway_revision)}</td>
       </tr>)}</tbody>
-    </table>{!shown.length && <Empty title="Waiting for gateway evidence" text="Run safe demo traffic to generate actual, sanitized source records."/>}</div>
+    </table>{!loaded && <Loading/>}{loaded && !shown.length && <Empty title="Waiting for gateway evidence" text="Run safe demo traffic to generate actual, sanitized source records."/>}</div>
     <p className="table-note">Access and WAF records are separate sources. Missing telemetry never implies an allowed request.</p>
   </section>;
+}
+
+function Loading() {
+  return <div className="loading-row" role="status"><span className="spinner" aria-hidden="true"/>Loading…</div>;
 }
 
 function Empty({title, text}: {title: string; text: string}) {
@@ -349,26 +359,27 @@ function Empty({title, text}: {title: string; text: string}) {
 }
 
 function Collection({path, refresh, columns, footnote, title}: {path: string; refresh: number; columns: string[]; footnote?: string; title?: string}) {
-  const [data, setData] = useState<any[]>([]), [error, setError] = useState('');
-  useEffect(() => { api(path).then(v => setData(Array.isArray(v.items) ? v.items : [])).catch(e => setError(e.message)); }, [path, refresh]);
+  const [data, setData] = useState<any[]>([]), [error, setError] = useState(''), [loaded, setLoaded] = useState(false);
+  useEffect(() => { api(path).then(v => setData(Array.isArray(v.items) ? v.items : [])).catch(e => setError(e.message)).finally(() => setLoaded(true)); }, [path, refresh]);
   return <section className="card">
     {title && <div className="card-heading"><h2>{title}</h2><span className="muted small">{data.length} retained</span></div>}
     {error && <div className="alert error">{error}</div>}
     <div className="table-wrap"><table>
       <thead><tr>{columns.map(c => <th key={c}>{c.replaceAll('_', ' ')}</th>)}</tr></thead>
       <tbody>{data.map((v, i) => <tr key={i}>{columns.map(c => <td key={c} className={/hash|digest/.test(c) ? 'mono' : ''}>{typeof v[c] === 'object' ? JSON.stringify(v[c]) : typeof v[c] === 'number' ? v[c].toLocaleString() : String(v[c] ?? '—')}</td>)}</tr>)}</tbody>
-    </table>{!data.length && <Empty title="No retained records yet" text="Generate synthetic demo traffic, then refresh."/>}</div>
+    </table>{!loaded && <Loading/>}{loaded && !data.length && <Empty title="No retained records yet" text="Generate synthetic demo traffic, then refresh."/>}</div>
     {footnote && <div className="note"><Eye size={16}/><p>{footnote}</p></div>}
   </section>;
 }
 
 function Incidents({site, refresh}: {site: string; refresh: number}) {
-  const [items, setItems] = useState<any[]>([]), [detail, setDetail] = useState<any>(), [error, setError] = useState('');
-  useEffect(() => { setDetail(undefined); api('/sites/' + site + '/incidents').then(v => setItems(Array.isArray(v.items) ? v.items : [])).catch(e => setError(e.message)); }, [site, refresh]);
+  const [items, setItems] = useState<any[]>([]), [detail, setDetail] = useState<any>(), [error, setError] = useState(''), [loaded, setLoaded] = useState(false);
+  useEffect(() => { setDetail(undefined); api('/sites/' + site + '/incidents').then(v => setItems(Array.isArray(v.items) ? v.items : [])).catch(e => setError(e.message)).finally(() => setLoaded(true)); }, [site, refresh]);
   return <>
     {error && <div className="alert error">{error}</div>}
     <section className="card">
-      {!items.length && <Empty title="No observations to review" text="The safe demo can generate a genuine CRS pattern match."/>}
+      {!loaded && <Loading/>}
+      {loaded && !items.length && <Empty title="No observations to review" text="The safe demo can generate a genuine CRS pattern match."/>}
       {items.map(v => <button className={'incident-row' + (detail?.incident_id === v.incident_id ? ' selected' : '')} key={v.incident_id} onClick={() => api('/incidents/' + encodeURIComponent(v.incident_id)).then(setDetail).catch(e => setError(e.message))}>
         <span className={'incident-icon ' + v.severity}><Layers3 size={18}/></span>
         <span className="incident-text"><strong>{v.summary}</strong><small>{v.detector_id} · {new Date(v.opened_at).toLocaleString()} · {v.synthetic ? 'synthetic · ' : ''}{v.state}</small></span>
@@ -395,7 +406,10 @@ function Policies({site, action, busy, refresh}: {site: string; action: (w: () =
     api('/sites/' + site + '/policy').then(setCurrent).catch(e => setError(e.message));
     api('/sites/' + site + '/policies/history').then(v => setHistory(Array.isArray(v.items) ? v.items : [])).catch(e => setError(e.message));
   }, [site, refresh]);
+  const modeOf = (policy: any) => site === 'site_demo' ? policy?.requested_mode : policy?.sites?.find((x: any) => x.site_id === site)?.requested_mode;
   const target = site === 'site_demo' ? current?.policy : current?.policy.sites?.find((x: any) => x.site_id === site);
+  // Default the candidate to the other mode, so the form never proposes a no-op.
+  useEffect(() => { if (!target?.requested_mode) return; const next = target.requested_mode === 'protect' ? 'observe' : 'protect'; setMode(next); setReason(next === 'protect' ? 'Enable Protect after isolated fixture review' : 'Return to Observe while reviewing matches'); }, [site, target?.requested_mode]);
   const candidate = !current || !target ? null : site === 'site_demo'
     ? {...current.policy, parent_revision: current.digest, requested_mode: mode, metadata: {rationale: reason, requested_by: 'local-owner'}}
     : {...current.policy, parent_revision: current.digest, sites: current.policy.sites.map((x: any) => x.site_id === site ? {...x, requested_mode: mode} : x), metadata: {rationale: reason, requested_by: 'local-owner'}};
@@ -409,7 +423,7 @@ function Policies({site, action, busy, refresh}: {site: string; action: (w: () =
         <label>Reason<input value={reason} minLength={5} maxLength={512} onChange={e => { setReason(e.target.value); setPreview(undefined); }}/></label>
       </div>
       <div className="note"><Shield size={16}/><p>CRS PL1 · anomaly threshold 5. Validation uses the pinned gateway. The shadow test runs only in the bundled isolated fixture.</p></div>
-      <button disabled={busy || !candidate || reason.length < 5} className="button primary" onClick={() => action(async () => { const p = await api('/sites/' + site + '/policies/validate', candidate); setPreview({...p, policy: candidate, site}); return p; })}>{busy ? 'Validating & testing…' : 'Validate and preview'}<ArrowRight size={15}/></button>
+      <button disabled={busy || !candidate || reason.length < 5 || mode === target?.requested_mode} className="button primary" onClick={() => action(async () => { const p = await api('/sites/' + site + '/policies/validate', candidate); setPreview({...p, policy: candidate, site}); return p; })}>{busy ? 'Validating & testing…' : 'Validate and preview'}<ArrowRight size={15}/></button>
     </section>
     {preview && <section className="card">
       <div className="card-heading"><h2>Candidate preview</h2><span className={'badge ' + (preview.fixture_result === 'PASS' ? 'allowed' : 'blocked')}>{preview.fixture_result}</span></div>
@@ -427,13 +441,33 @@ function Policies({site, action, busy, refresh}: {site: string; action: (w: () =
     <section className="card">
       <div className="card-heading"><h2>Revision history</h2><RotateCcw size={18}/></div>
       <ol className="timeline">{history.map(p => <li className={'history-row ' + p.state.toLowerCase()} key={p.digest}>
-        <div><strong>{p.policy.requested_mode} <span className={'badge ' + (p.state === 'ACTIVE' ? 'allowed' : '')}>{p.state}</span></strong><p className="mono muted">{short(p.digest)} · {new Date(p.created_at).toLocaleString()}</p></div>
+        <div><strong>{modeOf(p.policy) || 'not present'} <span className={'badge ' + (p.state === 'ACTIVE' ? 'allowed' : '')}>{p.state}</span></strong><p className="mono muted">{short(p.digest)} · {new Date(p.created_at).toLocaleString()}</p></div>
         {p.state === 'SUPERSEDED' && <button disabled={busy} className="button light" onClick={() => {
           if (window.confirm('Restore this prior policy? Traffic behavior may change. An isolated test will run first.')) action(() => api('/sites/' + site + '/policies/' + encodeURIComponent(p.digest) + '/rollback', {reason: 'Owner-approved rollback to prior policy', acknowledge_disruption_risk: true}, {'If-Match': '"' + current.digest + '"', 'Idempotency-Key': key()}), 'Rollback confirmed.');
         }}>Rollback<RotateCcw size={14}/></button>}
       </li>)}</ol>
     </section>
   </>;
+}
+
+function AuditLog({refresh}: {refresh: number}) {
+  const [items, setItems] = useState<any[]>(), [error, setError] = useState('');
+  useEffect(() => { api('/audit').then(v => setItems(Array.isArray(v.items) ? v.items : [])).catch(e => setError(e.message)); }, [refresh]);
+  return <section className="card">
+    <div className="card-heading"><h2>Audit log</h2><span className="muted small">Latest {items?.length ?? 0} records · hash-chained</span></div>
+    {error && <div className="alert error">{error}</div>}
+    {!items && !error && <Loading/>}
+    {items && <div className="table-wrap"><table>
+      <thead><tr><th>Time</th><th>Action</th><th>Actor</th><th>Object</th><th>Result</th><th>Record hash</th></tr></thead>
+      <tbody>{items.map(v => { const r = v.record || {}; return <tr key={v.seq}>
+        <td title={r.occurred_at}>{r.occurred_at ? new Date(r.occurred_at).toLocaleString() : '—'}</td>
+        <td className="mono">{r.action || '—'}</td><td>{r.actor_id || '—'}</td>
+        <td className="mono muted">{r.object_id ? short(r.object_id) : '—'}</td><td>{r.result || '—'}</td>
+        <td className="mono muted" title={v.hash}>{short(v.hash)}</td>
+      </tr>; })}</tbody>
+    </table>{!items.length && <Empty title="No audit records yet" text="Sign-ins, policy changes and scans are recorded here."/>}</div>}
+    <div className="note"><Eye size={16}/><p>The local audit chain detects individual record changes under stated trust assumptions. It cannot prevent a host administrator replacing the entire chain.</p></div>
+  </section>;
 }
 
 function SettingsPage({refresh, theme, setTheme}: {refresh: number; theme: Theme; setTheme: (t: Theme) => void}) {
@@ -444,7 +478,7 @@ function SettingsPage({refresh, theme, setTheme}: {refresh: number; theme: Theme
         {(['dark', 'light'] as const).map(t => <button key={t} role="radio" aria-checked={theme === t} className={theme === t ? 'active' : ''} onClick={() => setTheme(t)}>{t === 'dark' ? <Moon size={15}/> : <Sun size={15}/>}{t === 'dark' ? 'Dark' : 'Light'}</button>)}
       </div>
     </section>
-    <Collection path="/audit" title="Audit chain" refresh={refresh} columns={['seq', 'hash', 'previous_hash']} footnote="The local audit chain detects individual record changes under stated trust assumptions. It cannot prevent a host administrator replacing the entire chain."/>
+    <AuditLog refresh={refresh}/>
     <section className="card">
       <h2>Default privacy</h2>
       <div className="system-row"><span>Raw bodies / secret headers</span><span>Never stored by default</span></div>
