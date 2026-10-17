@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Scanner guard failure tests. Only created Aegis-labelled containers are touched."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import json,os,pathlib,shutil,subprocess,tempfile,time,secrets
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 BINARY=ROOT/'bin/aegis-research'

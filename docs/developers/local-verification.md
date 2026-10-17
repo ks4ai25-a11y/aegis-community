@@ -4,6 +4,10 @@ Moved from the README so the README can describe the product. Status of each cap
 
 ## Module tests and acceptance scripts
 
+Acceptance scripts require Python assertions enabled and refuse `python -O`, `python -OO` and `PYTHONOPTIMIZE`. Contract, Bandit and snapshot-scanner schema validation uses the declared `tests/requirements.txt` dependency. Create a private virtual environment with `python3 -m venv .venv-test`, then run `.venv-test/bin/python -m pip install -r tests/requirements.txt` and invoke those scripts with `.venv-test/bin/python`. No dependency is imported from a shared temporary directory. The regular `make test` target does not require this optional schema-validator environment.
+
+`python3 scripts/check_generated.py` regenerates into a fresh private temporary tree and compares all generated schemas, bindings, clients and the Python package marker. It leaves the checkout unchanged on success, stale output or generator failure. Run `make generate` explicitly to update generated files.
+
 Run module tests from each of `gateway`, `controller`, `alpha`, `shared/source` and `contracts` using `go test -race ./...`; build the console with `npm ci` and `npm run build` in `console`. Run `python3 tests/integration/demo_acceptance.py` against a dedicated demo installation in Observe mode. It temporarily activates Protect, stops the demo controller, restarts the demo gateway and restores Observe. The script creates a demo owner on first use and stores its random passphrase locally with mode 0600 at `/private/tmp/aegis-demo-test-credential`, not in source or reports. Do not use it against an existing user installation.
 
 `tools/scanners.lock.json` pins optional scanner images. `tests/integration/scanner_acceptance.py` runs their read-only static fixture checks with no network or Docker socket. It requires the images to be pulled separately and the `bin/aegis-research` CLI to be built from `alpha`. Semgrep CE, Gitleaks and Syft have local fixture evidence. OSV V2 and Trivy need approved offline database provisioning before known-advisory results are available; missing databases are explicit tool errors.

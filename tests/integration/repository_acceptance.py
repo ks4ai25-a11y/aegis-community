@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Actual local owner-scoped repository registration and read-only mount evidence."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import hashlib,http.cookiejar,json,pathlib,subprocess,sys,time,urllib.request,urllib.error
 from local_context import CREDENTIAL_FILE
 ROOT=pathlib.Path(__file__).resolve().parents[2]

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Pinned Bandit integration over trusted inert, test-owned source only."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import json,pathlib,subprocess,sys,tempfile,time
 ROOT=pathlib.Path(__file__).resolve().parents[2]
-sys.path.insert(0,'/private/tmp/aegis-contract-qa')
 import jsonschema
 validator=jsonschema.Draft202012Validator(json.loads((ROOT/'contracts/schemas/ScannerExecutionV1.json').read_text()))
 checks=[]

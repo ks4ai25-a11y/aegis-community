@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Register a second site behind the local demo gateway and check isolation, attribution and
 Observe-before-Protect. Uses only the bundled synthetic origin under a reserved .test host name.
 
@@ -8,6 +9,8 @@ Environment (defaults match deploy/compose.demo.yaml):
   AEGIS_COMPOSE_FILES colon-separated compose files (for reading the bootstrap token)
   AEGIS_CREDENTIAL    private file holding the demo owner passphrase
 """
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import http.cookiejar, json, os, pathlib, secrets, subprocess, time, urllib.error, urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]

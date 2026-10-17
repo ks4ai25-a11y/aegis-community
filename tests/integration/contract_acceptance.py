@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Validate live owner-scoped API payloads and fixtures with Draft 2020-12 schemas."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import http.cookiejar,json,pathlib,sys,urllib.request
 from local_context import CREDENTIAL_FILE
 ROOT=pathlib.Path(__file__).resolve().parents[2]
-sys.path.insert(0,str(ROOT));sys.path.insert(0,'/private/tmp/aegis-contract-qa')
+sys.path.insert(0,str(ROOT))
 import jsonschema
 from contracts.generated.research_client import ResearchClient
 schemas={p.stem:json.loads(p.read_text()) for p in (ROOT/'contracts/schemas').glob('*.json')}

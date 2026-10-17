@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Offline advisory databases through the guarded scanner executor (ADR 068).
 
 Runs `aegis-research scan-offline` for OSV-Scanner and Trivy against the synthetic
@@ -6,6 +7,8 @@ Runs `aegis-research scan-offline` for OSV-Scanner and Trivy against the synthet
 database, then once without it as a control, and once with a tampered copy.
 Needs a fetched database (bin/aegis-scanner-db fetch) and `make research-build`.
 Environment: AEGIS_SCANNER_DB_ROOT (required), AEGIS_SCANNER_DB_EVIDENCE_OUT."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import json, os, pathlib, subprocess, time
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Exercise only the local bundled demo. Never submits arbitrary targets or commands."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import hashlib, http.cookiejar, json, os, pathlib, secrets, subprocess, time, urllib.request, urllib.error
 from local_context import CREDENTIAL_FILE
 ROOT = pathlib.Path(__file__).resolve().parents[2]

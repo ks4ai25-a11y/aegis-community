@@ -1,6 +1,8 @@
 .PHONY: release-evidence mcp-build defence-verify test generate check-generated build demo-up demo-verify scoped-verify repository-verify research-build
 
 test: check-generated
+	python3 -m unittest discover -s tests/integration -p test_generated_check.py
+	python3 -m unittest discover -s tests/integration -p test_acceptance_assertions.py
 	cd gateway && go test -race ./...
 	cd controller && go test -race ./...
 	python3 tests/integration/database_snapshot_acceptance.py

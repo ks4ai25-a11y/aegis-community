@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Real fixed scanners over private snapshots, with guard and cleanup receipts."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import hashlib,json,os,pathlib,subprocess,sys,tempfile,time
 ROOT=pathlib.Path(__file__).resolve().parents[2]
-sys.path.insert(0,'/private/tmp/aegis-contract-qa')
 import jsonschema
 schema=json.loads((ROOT/'contracts/schemas/ScannerExecutionV1.json').read_text())
 validator=jsonschema.Draft202012Validator(schema)

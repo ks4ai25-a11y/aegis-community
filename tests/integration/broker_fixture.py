@@ -1,4 +1,7 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Nonce-owned broker/client extension of the isolated packaged worker proof."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import json,re,time
 class BrokerFixture:
  def __init__(self,raw,compose,helper,check,helpers,project,nonce,worker_id,owner,group,mounts,root_mount,work_root,secret_volume,arguments,engine_fixture=None):

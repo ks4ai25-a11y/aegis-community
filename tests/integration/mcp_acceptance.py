@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Pair the real bin/aegis-mcp bridge with a connector credential and drive it over stdio the way a
 desktop AI app would. Checks read-only tools, the untrusted-data notice, refusal of writes and
 revocation. Build the bridge first with `make mcp-build`. Uses multi_site_acceptance.py variables."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import json, os, pathlib, subprocess, tempfile, time
 import multi_site_acceptance as m
 

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Drive bounded synthetic traffic at the local demo gateway and check that the deterministic
 detectors record reproducible incidents from pseudonymous evidence. Uses the same environment
 variables as multi_site_acceptance.py; never contacts anything but the local gateway/console."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import json, os, pathlib, secrets, time, urllib.error, urllib.request
 import multi_site_acceptance as m
 

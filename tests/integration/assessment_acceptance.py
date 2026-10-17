@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Closed defensive loop on the local demo: a synthetic CRS match becomes an incident, is assessed
 (deterministically and, if configured, by the local model), and yields mitigation proposals whose
 candidate revisions are checked by the isolated fixture. Nothing is activated.
 Uses the environment variables documented in multi_site_acceptance.py."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import json, os, pathlib, time
 import multi_site_acceptance as m
 

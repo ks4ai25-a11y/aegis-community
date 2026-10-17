@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Real local fixture job acceptance. Only affects named Aegis demo services."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import http.cookiejar,json,pathlib,secrets,subprocess,time,urllib.request,urllib.error
 from local_context import CREDENTIAL_FILE
 ROOT=pathlib.Path(__file__).resolve().parents[2]

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Local operator enrollment only; never reads or exports worker credentials."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import json,pathlib,re,secrets,subprocess,time
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 COMPOSE=['docker','compose','-f',str(ROOT/'deploy/compose.demo.yaml'),'exec','-T','controller']

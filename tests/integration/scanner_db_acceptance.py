@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Offline OSV/Trivy database provisioning: fetch (operator, network) with bin/aegis-scanner-db,
 verify, then run the pinned images with no network, read-only root, all capabilities dropped,
 UID 10001 and the database mounted read-only, against the synthetic `vulnerable` and `safe`
 fixtures. Also checks tampering is detected. Build first: (cd alpha && go build -o ../bin/aegis-scanner-db ./cmd/aegis-scanner-db).
 Environment: AEGIS_SCANNER_DB_ROOT (scratch directory), AEGIS_SCANNER_DB_EVIDENCE_OUT."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import json, os, pathlib, shutil, subprocess, time
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]

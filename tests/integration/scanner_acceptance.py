@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Operator-launched pinned tools; only the trusted bundled inert fixture is mounted."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import hashlib,json,pathlib,resource,subprocess,tempfile,time
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 TOOLS=json.loads((ROOT/'tools/scanners.lock.json').read_text())['tools']
@@ -33,4 +36,25 @@ for tool in TOOLS:
    report['checks'].append(result)
    print(result['id']+': '+result['status']+' findings='+str(len(result.get('findings',[]))),flush=True)
 report['completed_at']=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())
+# The run must show the tools actually work on the fixtures: static tools find
+# more in the vulnerable fixture than in the safe one, Syft produces an SBOM.
+# OSV/Trivy without a provisioned database must be tool_error, never "clean".
+by={c['id']:c for c in report['checks']}
+failures=[]
+for tool in TOOLS:
+ vul,safe=by.get(tool['id']+'-vulnerable',{}),by.get(tool['id']+'-safe',{})
+ if tool['id'] in ('semgrep_ce','gitleaks','bandit'):
+  if vul.get('status')=='tool_error' or len(vul.get('findings',[]))<=len(safe.get('findings',[])):
+   failures.append(tool['id']+': vulnerable fixture did not produce more findings than safe')
+ elif tool['id']=='syft':
+  if vul.get('status')=='tool_error' or not vul.get('sbom'):
+   failures.append('syft: no SBOM produced')
+ elif tool['id'] in ('osv_v2','trivy'):
+  if vul.get('status') not in ('tool_error','completed_stale_db','completed'):
+   failures.append(tool['id']+': unexpected status '+str(vul.get('status')))
+report['result']='FAIL' if failures else 'PASS'
+report['failures']=failures
+if failures:
+ # Keep the last good evidence; print what failed instead.
+ raise SystemExit('Scanner acceptance FAILED: '+'; '.join(failures))
 (ROOT/'docs/evidence/scanner-acceptance.json').write_text(json.dumps(report,indent=2)+'\n')

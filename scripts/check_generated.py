@@ -1,13 +1,60 @@
 #!/usr/bin/env python3
-"""Verify generated files are reproducible without requiring a Git checkout."""
-import hashlib,pathlib,subprocess,sys
-root=pathlib.Path(__file__).resolve().parents[1]
-def generated_state():
- paths=list((root/'contracts/schemas').glob('*.json'))+list((root/'contracts/generated').glob('contracts.*'))+list((root/'contracts/generated').glob('research_client.*'))+[root/'contracts/openapi-research.json',root/'console/src/generated/contracts.ts',root/'console/src/generated/research-client.ts']
- return {str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths if p.suffix!='.pyc' and p.is_file()}
-before=generated_state()
-for script in ['generate_contracts.py','generate_research_api.py']:subprocess.run([sys.executable,str(root/'scripts'/script)],cwd=root,check=True)
-after=generated_state()
-changed=sorted(p for p in before.keys() | after.keys() if before.get(p)!=after.get(p))
-if changed:raise SystemExit('Generated files were stale: '+', '.join(changed))
-print('Generated schemas, bindings and clients are reproducible')
+# SPDX-License-Identifier: BUSL-1.1
+"""Compare an isolated regeneration with source files; never repair the checkout."""
+import hashlib
+import pathlib
+import shutil
+import subprocess
+import sys
+import tempfile
+
+GENERATORS = ('generate_contracts.py', 'generate_research_api.py')
+DIRECTORIES = ('contracts/schemas', 'contracts/generated', 'console/src/generated')
+
+
+def generated_state(root):
+    paths = list((root / 'contracts/schemas').glob('*.json'))
+    paths += list((root / 'contracts/generated').glob('contracts.*'))
+    paths += list((root / 'contracts/generated').glob('research_client.*'))
+    paths += [root / name for name in (
+        'contracts/generated/__init__.py', 'contracts/openapi-research.json',
+        'console/src/generated/contracts.ts', 'console/src/generated/research-client.ts')]
+    state = {}
+    for path in paths:
+        if path.suffix == '.pyc':
+            continue
+        if path.is_symlink():
+            raise ValueError('Generated output must be a regular file: ' + str(path.relative_to(root)))
+        if path.is_file():
+            state[str(path.relative_to(root))] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return state
+
+
+def stale_generated(root):
+    root = pathlib.Path(root).resolve(strict=True)
+    before = generated_state(root)
+    # A fresh skeleton prevents stale schemas/extra outputs from becoming
+    # accidental generator inputs. No Git metadata, runtime files or modules
+    # are needed. mkdtemp's private directory works on Linux and macOS.
+    with tempfile.TemporaryDirectory(prefix='aegis-generated-check-') as temporary:
+        isolated = pathlib.Path(temporary)
+        (isolated / 'scripts').mkdir()
+        for directory in DIRECTORIES:
+            (isolated / directory).mkdir(parents=True)
+        for name in GENERATORS:
+            shutil.copyfile(root / 'scripts' / name, isolated / 'scripts' / name)
+        for name in GENERATORS:
+            subprocess.run([sys.executable, str(isolated / 'scripts' / name)], cwd=isolated, check=True)
+        expected = generated_state(isolated)
+    return sorted(name for name in before.keys() | expected.keys() if before.get(name) != expected.get(name))
+
+
+def main():
+    changed = stale_generated(pathlib.Path(__file__).resolve().parents[1])
+    if changed:
+        raise SystemExit('Generated files are stale: ' + ', '.join(changed))
+    print('Generated schemas, bindings and clients are reproducible')
+
+
+if __name__ == '__main__':
+    main()

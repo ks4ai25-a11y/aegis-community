@@ -53,7 +53,8 @@
     },
     {
       "test": "TestRealBanditWorkerSubmitsBoundReceiptWithoutCompletingJob",
-      "elapsed_seconds": 4.38
+      "elapsed_seconds": 4.38,
+      "renamed_to": "TestRealBanditWorkerFinalizesBoundResultWithoutReleasingCleanup (tests/integration/scannerchannel/worker_test.go); the original name is kept as recorded at the time of this run"
     },
     {
       "test": "TestRealWorkerSuiteUsesDistinctJournalsAndIdenticalApprovedInput",

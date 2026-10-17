@@ -1,8 +1,11 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Separate controller-observed authorizer, only in the explicit Linux CI fixture.
 
 No daemon socket/client identity is mounted in the authorizer. Private runtime
 payloads remain in memory/files; public output is test names and statuses only.
 """
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import hashlib,json,os,pathlib,re,sqlite3,subprocess,time
 from engine_authz_acceptance import run,ROOT
 

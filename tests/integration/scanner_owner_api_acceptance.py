@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Exercise the local owner scan API without executing repository code."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import http.cookiejar,json,pathlib,secrets,sys,time,urllib.request
 from local_context import CREDENTIAL_FILE
 ROOT=pathlib.Path(__file__).resolve().parents[2]

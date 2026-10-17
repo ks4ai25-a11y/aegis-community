@@ -8,12 +8,12 @@
       "image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
       "input_digest": "sha256:b2ceae3c1abc5f9e3fb6596396b4977d8e0eb497b0cd1ac181d6408a1325393a",
       "exit_code": 0,
-      "elapsed_seconds": 4.709,
+      "elapsed_seconds": 5.516,
       "status": "completed",
       "findings": [
         {
           "schema_version": "1.0",
-          "id": "sha256:632f78e627bef149f41fb0782607c033cf0ab59ebed157c962615652bfd9d1ee",
+          "id": "sha256:c3ae50f15db54ad641aea75f82d9480c6722bca425d6f9c7b298d75750366992",
           "app_id": "app_demo",
           "repository_id": "bundled-scanner-fixture",
           "category": "static_pattern",
@@ -29,13 +29,14 @@
               "tool_id": "semgrep_ce",
               "tool_version": "1.180.0",
               "tool_image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
-              "parser_version": "1.0",
+              "parser_version": "1.2",
               "input_digest": "sha256:b2ceae3c1abc5f9e3fb6596396b4977d8e0eb497b0cd1ac181d6408a1325393a",
-              "rule_id": "rules.aegis.synthetic-python-sql-concat"
+              "rule_id": "rules.aegis.synthetic-python-sql-concat",
+              "severity_claimed": "medium"
             }
           ],
           "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
-          "created_at": "2026-10-12T15:29:51.729219Z"
+          "created_at": "2026-10-17T06:25:39.129055Z"
         }
       ],
       "diagnostics": []
@@ -46,7 +47,7 @@
       "image_digest": "sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3",
       "input_digest": "sha256:ebd084b914099baf8aa63e17290273e120080e0f3d7fbdf44a3130174217d2e8",
       "exit_code": 0,
-      "elapsed_seconds": 3.836,
+      "elapsed_seconds": 3.26,
       "status": "completed",
       "findings": [],
       "diagnostics": []
@@ -57,9 +58,9 @@
       "image_digest": "sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0",
       "input_digest": "sha256:b2ceae3c1abc5f9e3fb6596396b4977d8e0eb497b0cd1ac181d6408a1325393a",
       "exit_code": 127,
-      "elapsed_seconds": 1.231,
+      "elapsed_seconds": 1.041,
       "status": "tool_error",
-      "diagnostic": "Scanning dir /src\nStarting filesystem walk for root: /\nScanned /src/package-lock.json file and found 1 package\nEnd status: 1 dirs visited, 5 inodes visited, 1 Extract calls, 5.522ms elapsed, 5.522417ms wall time\ncould not load db for npm ecosystem: unable to fetch OSV database: no offline version of the OSV database is available\nError during extraction: (extracting as vulnmatch/osvlocal) unable to fetch OSV database: no offline version of the OSV database is available\n"
+      "diagnostic": "Scanning dir /src\nStarting filesystem walk for root: /\nScanned /src/package-lock.json file and found 1 package\nEnd status: 1 dirs visited, 5 inodes visited, 1 Extract calls, 4.091667ms elapsed, 4.091917ms wall time\ncould not load db for npm ecosystem: unable to fetch OSV database: no offline version of the OSV database is available\nError during extraction: (extracting as vulnmatch/osvlocal) unable to fetch OSV database: no offline version of the OSV database is available\n"
     },
     {
       "id": "osv_v2-safe",
@@ -67,9 +68,9 @@
       "image_digest": "sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0",
       "input_digest": "sha256:ebd084b914099baf8aa63e17290273e120080e0f3d7fbdf44a3130174217d2e8",
       "exit_code": 127,
-      "elapsed_seconds": 0.739,
+      "elapsed_seconds": 0.92,
       "status": "tool_error",
-      "diagnostic": "Scanning dir /src\nStarting filesystem walk for root: /\nScanned /src/package-lock.json file and found 1 package\nEnd status: 1 dirs visited, 4 inodes visited, 1 Extract calls, 7.99375ms elapsed, 7.993917ms wall time\ncould not load db for npm ecosystem: unable to fetch OSV database: no offline version of the OSV database is available\nError during extraction: (extracting as vulnmatch/osvlocal) unable to fetch OSV database: no offline version of the OSV database is available\n"
+      "diagnostic": "Scanning dir /src\nStarting filesystem walk for root: /\nScanned /src/package-lock.json file and found 1 package\nEnd status: 1 dirs visited, 4 inodes visited, 1 Extract calls, 74.554125ms elapsed, 74.554292ms wall time\ncould not load db for npm ecosystem: unable to fetch OSV database: no offline version of the OSV database is available\nError during extraction: (extracting as vulnmatch/osvlocal) unable to fetch OSV database: no offline version of the OSV database is available\n"
     },
     {
       "id": "trivy-vulnerable",
@@ -77,9 +78,9 @@
       "image_digest": "sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa",
       "input_digest": "sha256:b2ceae3c1abc5f9e3fb6596396b4977d8e0eb497b0cd1ac181d6408a1325393a",
       "exit_code": 1,
-      "elapsed_seconds": 1.364,
+      "elapsed_seconds": 6.079,
       "status": "tool_error",
-      "diagnostic": "2026-10-12T15:29:58Z\tERROR\t[vulndb] The first run cannot skip downloading DB\n2026-10-12T15:29:58Z\tFATAL\tFatal error\trun error: init error: DB error: database error: --skip-db-update cannot be specified on the first run\n"
+      "diagnostic": "2026-10-17T06:25:50Z\tERROR\t[vulndb] The first run cannot skip downloading DB\n2026-10-17T06:25:50Z\tFATAL\tFatal error\trun error: init error: DB error: database error: --skip-db-update cannot be specified on the first run\n"
     },
     {
       "id": "trivy-safe",
@@ -87,9 +88,9 @@
       "image_digest": "sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa",
       "input_digest": "sha256:ebd084b914099baf8aa63e17290273e120080e0f3d7fbdf44a3130174217d2e8",
       "exit_code": 1,
-      "elapsed_seconds": 0.801,
+      "elapsed_seconds": 0.888,
       "status": "tool_error",
-      "diagnostic": "2026-10-12T15:29:59Z\tERROR\t[vulndb] The first run cannot skip downloading DB\n2026-10-12T15:29:59Z\tFATAL\tFatal error\trun error: init error: DB error: database error: --skip-db-update cannot be specified on the first run\n"
+      "diagnostic": "2026-10-17T06:25:51Z\tERROR\t[vulndb] The first run cannot skip downloading DB\n2026-10-17T06:25:51Z\tFATAL\tFatal error\trun error: init error: DB error: database error: --skip-db-update cannot be specified on the first run\n"
     },
     {
       "id": "syft-vulnerable",
@@ -97,7 +98,7 @@
       "image_digest": "sha256:3eb5379ba7b409c3f4069b686110527af0c47df993fa5c10d13e7cf34f49b1aa",
       "input_digest": "sha256:b2ceae3c1abc5f9e3fb6596396b4977d8e0eb497b0cd1ac181d6408a1325393a",
       "exit_code": 0,
-      "elapsed_seconds": 2.886,
+      "elapsed_seconds": 3.213,
       "status": "completed",
       "findings": [],
       "diagnostics": [],
@@ -130,7 +131,7 @@
       "image_digest": "sha256:3eb5379ba7b409c3f4069b686110527af0c47df993fa5c10d13e7cf34f49b1aa",
       "input_digest": "sha256:ebd084b914099baf8aa63e17290273e120080e0f3d7fbdf44a3130174217d2e8",
       "exit_code": 0,
-      "elapsed_seconds": 2.522,
+      "elapsed_seconds": 3.551,
       "status": "completed",
       "findings": [],
       "diagnostics": [],
@@ -163,12 +164,12 @@
       "image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
       "input_digest": "sha256:b2ceae3c1abc5f9e3fb6596396b4977d8e0eb497b0cd1ac181d6408a1325393a",
       "exit_code": 0,
-      "elapsed_seconds": 0.592,
+      "elapsed_seconds": 1.235,
       "status": "completed",
       "findings": [
         {
           "schema_version": "1.0",
-          "id": "sha256:61c92f2bcead3e428631c005d61f6de6ccea1d14a6ef1f7da579636164b9bb3c",
+          "id": "sha256:446d97582f5f693f5a12d4d9bf37dbea7602d281637078d2002486991744da7f",
           "app_id": "app_demo",
           "repository_id": "bundled-scanner-fixture",
           "category": "secret_candidate",
@@ -184,13 +185,14 @@
               "tool_id": "gitleaks",
               "tool_version": "8.30.1",
               "tool_image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
-              "parser_version": "1.0",
+              "parser_version": "1.2",
               "input_digest": "sha256:b2ceae3c1abc5f9e3fb6596396b4977d8e0eb497b0cd1ac181d6408a1325393a",
-              "rule_id": "github-pat"
+              "rule_id": "github-pat",
+              "severity_claimed": "high"
             }
           ],
           "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
-          "created_at": "2026-10-12T15:30:05.899252Z"
+          "created_at": "2026-10-17T06:25:59.604778Z"
         }
       ],
       "diagnostics": []
@@ -201,7 +203,57 @@
       "image_digest": "sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f",
       "input_digest": "sha256:ebd084b914099baf8aa63e17290273e120080e0f3d7fbdf44a3130174217d2e8",
       "exit_code": 0,
-      "elapsed_seconds": 0.742,
+      "elapsed_seconds": 0.805,
+      "status": "completed",
+      "findings": [],
+      "diagnostics": []
+    },
+    {
+      "id": "bandit-vulnerable",
+      "tool_version": "1.9.4",
+      "image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+      "input_digest": "sha256:b2ceae3c1abc5f9e3fb6596396b4977d8e0eb497b0cd1ac181d6408a1325393a",
+      "exit_code": 1,
+      "elapsed_seconds": 1.528,
+      "status": "completed",
+      "findings": [
+        {
+          "schema_version": "1.0",
+          "id": "sha256:1349737c8cd75bd3903e082631b952e67bc75e77e9f64b0d67d96cf15301e02c",
+          "app_id": "app_demo",
+          "repository_id": "bundled-scanner-fixture",
+          "category": "static_pattern",
+          "summary": "Unverified bandit finding: B608",
+          "status": "suspected",
+          "severity": "medium",
+          "confidence": "low",
+          "evidence_tier": "T0",
+          "path": "query.py",
+          "line": 3,
+          "provenance": [
+            {
+              "tool_id": "bandit",
+              "tool_version": "1.9.4",
+              "tool_image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+              "parser_version": "1.2",
+              "input_digest": "sha256:b2ceae3c1abc5f9e3fb6596396b4977d8e0eb497b0cd1ac181d6408a1325393a",
+              "rule_id": "B608",
+              "severity_claimed": "medium"
+            }
+          ],
+          "coverage_note": "Tool-reported static claim only; no application exploitability or remediation proof.",
+          "created_at": "2026-10-17T06:26:02.027301Z"
+        }
+      ],
+      "diagnostics": []
+    },
+    {
+      "id": "bandit-safe",
+      "tool_version": "1.9.4",
+      "image_digest": "sha256:e4719e136e3a4fa8d19cfb0e58e292b253d3202b4a32e7433c98df963391210e",
+      "input_digest": "sha256:ebd084b914099baf8aa63e17290273e120080e0f3d7fbdf44a3130174217d2e8",
+      "exit_code": 0,
+      "elapsed_seconds": 0.908,
       "status": "completed",
       "findings": [],
       "diagnostics": []
@@ -212,5 +264,7 @@
     "Missing offline databases are tool_error, never no findings.",
     "No repository code or package scripts executed."
   ],
-  "completed_at": "2026-10-12T15:30:06Z"
+  "completed_at": "2026-10-17T06:26:02Z",
+  "result": "PASS",
+  "failures": []
 }

@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Deterministic negative security tests for the defence plane (v4 manual H2/H3).
 
 Each check sends a hostile input to a local Aegis stack and asserts it is refused, neutralised or
 recorded without effect. Only the bundled synthetic origin and reserved .test host names are used.
 Uses the environment variables of tests/integration/multi_site_acceptance.py.
 """
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import json, os, pathlib, sys, time, urllib.error, urllib.request
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "integration"))
 import multi_site_acceptance as m

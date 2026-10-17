@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: BUSL-1.1
 """Remediation guidance and validated patch drafts on the bundled synthetic `vulnerable` fixture.
 Requires the local model overlay for the draft check (skipped otherwise). Nothing is written to the
 repository. Uses multi_site_acceptance.py environment variables."""
+if not __debug__:
+ raise SystemExit('Acceptance checks require Python assertions enabled')
 import json, os, pathlib, time
 import multi_site_acceptance as m
 
