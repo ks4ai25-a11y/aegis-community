@@ -58,7 +58,8 @@ def go_module_dir(purl):
     if not m:
         return None, None
     if m.group(1) == "stdlib":
-        return f"stdlib@{m.group(2)}", GOROOT
+        # Some packagers (e.g. Homebrew) keep the licence one level above GOROOT.
+        return f"stdlib@{m.group(2)}", next((d for d in (GOROOT, GOROOT.parent) if (d / "LICENSE").is_file()), GOROOT)
     escaped = re.sub(r"[A-Z]", lambda x: "!" + x.group(0).lower(), m.group(1))
     return f"{m.group(1)}@{m.group(2)}", GOMODCACHE / f"{escaped}@{m.group(2)}"
 
