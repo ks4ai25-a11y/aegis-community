@@ -97,7 +97,9 @@ func RequiredAbsences(m ReconciliationMembership) ([]CleanupAbsence, error) {
 				return nil, ErrNotReleasable
 			}
 			out = append(out, CleanupAbsence{Tool: tool, Container: name})
-		case o.remove == nil || o.create.EngineID == "" || o.create.Container != name:
+		// The removal (and any start) must target exactly the created engine
+		// ID; a removal of some other container proves nothing about this one.
+		case o.remove == nil || o.create.EngineID == "" || o.create.Container != name || o.remove.Container != name || o.remove.Request.EngineID != o.create.EngineID || (o.start != nil && (o.start.Request.EngineID != o.create.EngineID || o.start.Container != name)):
 			return nil, ErrNotReleasable
 		default:
 			out = append(out, CleanupAbsence{Tool: tool, Container: name, EngineID: o.create.EngineID})

@@ -144,3 +144,29 @@ func TestConfirmCleanupRefusesLiveJob(t *testing.T) {
 }
 
 func hashLike(s string) bool { return digestPattern.MatchString(s) }
+
+// Admission already requires start/remove to target the completed create's
+// engine ID (AdmitMutation); RequiredAbsences rechecks it independently. Here a
+// retargeted intent is also refused because its ID no longer matches.
+func TestRequiredAbsencesRefuseRetargetedStartOrRemove(t *testing.T) {
+	q, l, v, req := releasableFixture(t, true)
+	s, e := q.ReconciliationSnapshot(context.Background(), v, scanevidence.ReconciliationRequest{Job: l.Job.ID, Generation: req.Generation, Challenge: strings.Repeat("f", 32)})
+	if e != nil {
+		t.Fatal(e)
+	}
+	if _, e = scanevidence.RequiredAbsences(s.Membership); e != nil {
+		t.Fatal("complete paired lifecycle refused", e)
+	}
+	for _, op := range []string{"remove", "start"} {
+		m := s.Membership
+		m.Mutations = append([]scanevidence.MutationIntent(nil), s.Membership.Mutations...)
+		for i := range m.Mutations {
+			if m.Mutations[i].Request.Operation == op {
+				m.Mutations[i].Request.EngineID = strings.Repeat("d", 64)
+			}
+		}
+		if _, e = scanevidence.RequiredAbsences(m); e == nil {
+			t.Fatal(op + " of another engine ID accepted as proof for the created container")
+		}
+	}
+}
