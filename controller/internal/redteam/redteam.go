@@ -93,6 +93,8 @@ type Inputs struct {
 	Repository string
 	Map        source.Map
 	Findings   []scanevidence.Finding
+	// FindingsUnavailable records that retained findings could not be read.
+	FindingsUnavailable bool
 	// Excerpt reads a redacted excerpt of an inventoried file (repository.Excerpt).
 	Excerpt func(path string, line int) (repository.Excerpt, error)
 }
@@ -250,6 +252,9 @@ func Run(ctx context.Context, c assess.Config, in Inputs, useModel bool) PlanSet
 	ps := PlanSet{Schema: Schema, Repository: in.Repository, MapDigest: in.Map.Digest, Plans: Deterministic(in), ToolLog: []ToolCall{}, Rejected: []string{}, Planner: "deterministic",
 		Limitations: []string{"Plans are hypotheses for a human; none is a confirmed vulnerability.", "Templates test bundled synthetic fixtures, not your application's running code.", "Routes and findings come from static inventory and tool claims."}}
 	ps.ToolLog = append(ps.ToolLog, ToolCall{"list_routes", "", fmt.Sprintf("%d routes", len(in.Map.Routes))}, ToolCall{"find_related_findings", "", fmt.Sprintf("%d findings", len(in.Findings))})
+	if in.FindingsUnavailable {
+		ps.Limitations = append(ps.Limitations, "Retained scanner findings could not be read; plans use the application map only.")
+	}
 	if useModel && c.Provider != "none" {
 		ps.Planner, ps.Model = c.Provider, c.Model
 		if e := modelRound(ctx, c, in, &ps); e != nil {

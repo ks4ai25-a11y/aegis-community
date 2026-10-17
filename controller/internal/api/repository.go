@@ -144,10 +144,23 @@ func (s *Server) researchPlan(w http.ResponseWriter, r *http.Request, owner, rep
 		return
 	}
 	findings := []scanevidence.Finding{}
+	unavailable := s.Scans == nil
 	if s.Scans != nil {
-		if page, e := s.Scans.Catalogue(r.Context(), owner, scanqueue.CatalogueQuery{Repository: repo, Limit: 50}); e == nil && page.Findings != nil {
-			for _, item := range page.Findings.Items {
-				findings = append(findings, item.Finding)
+		// The catalogue pages at most 20 findings; read up to three pages.
+		cursor := ""
+		for i := 0; i < 3; i++ {
+			page, e := s.Scans.Catalogue(r.Context(), owner, scanqueue.CatalogueQuery{Repository: repo, Limit: 20, Cursor: cursor})
+			if e != nil {
+				unavailable = true
+				break
+			}
+			if page.Findings != nil {
+				for _, item := range page.Findings.Items {
+					findings = append(findings, item.Finding)
+				}
+			}
+			if cursor = page.Next; cursor == "" {
+				break
 			}
 		}
 	}
@@ -161,7 +174,7 @@ func (s *Server) researchPlan(w http.ResponseWriter, r *http.Request, owner, rep
 	excerpt := func(path string, line int) (repository.Excerpt, error) {
 		return s.R.Excerpt(owner, repo, path, line, 8)
 	}
-	ps := redteam.Run(r.Context(), s.AI, redteam.Inputs{Repository: repo, Map: m, Findings: findings, Excerpt: excerpt}, in.UseModel)
+	ps := redteam.Run(r.Context(), s.AI, redteam.Inputs{Repository: repo, Map: m, Findings: findings, FindingsUnavailable: unavailable, Excerpt: excerpt}, in.UseModel)
 	if e = s.S.Audit(owner, "research.plan", repo, ps.Planner, map[string]any{"plan_set_digest": ps.Digest, "map_digest": ps.MapDigest, "plans": len(ps.Plans), "rejected": len(ps.Rejected), "model": ps.Model}); e != nil {
 		fail(w, 500, "INTERNAL_ERROR", "Research plan audit unavailable")
 		return

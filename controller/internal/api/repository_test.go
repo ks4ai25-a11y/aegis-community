@@ -87,6 +87,10 @@ func TestRepositoryHTTPRejectsPathsAndUnknownFields(t *testing.T) {
 	if plan["map_digest"] != repo["map_digest"] || plan["planner"] != "deterministic" {
 		t.Fatal(plan)
 	}
+	// The findings catalogue was read (an empty page), not silently refused.
+	if b, _ := json.Marshal(plan["limitations"]); strings.Contains(string(b), "could not be read") {
+		t.Fatal("catalogue query refused", string(b))
+	}
 	call("POST", "/repos/"+id+"/research-plan", map[string]any{"use_model": false, "tools": []string{"run_shell_anywhere"}}, 400)
 	call("POST", "/repos/unknown/research-plan", map[string]any{}, 404)
 }
