@@ -9,7 +9,7 @@ IDs and pinned base images. Refuses to run on a dirty tree so the evidence match
 
   python3 scripts/release/release_evidence.py [--allow-dirty] [--tag TAG]
 """
-import argparse, collections, hashlib, json, os, pathlib, re, subprocess, sys, time
+import argparse, collections, hashlib, json, os, pathlib, re, shutil, subprocess, sys, tempfile, time
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 LOCK = json.loads((ROOT / "tools/scanners.lock.json").read_text())
@@ -107,6 +107,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--allow-dirty", action="store_true")
     ap.add_argument("--tag", default="release-evidence")
+    ap.add_argument("--evidence-out", help="write a compact script-produced evidence summary to this path")
     ap.add_argument("--sign-key", help="OpenSSH private key; writes SHA256SUMS.sig (namespace aegis-release)")
     a = ap.parse_args()
     commit = run("git", "rev-parse", "HEAD")
@@ -114,7 +115,10 @@ def main():
     if dirty and not a.allow_dirty:
         sys.exit("refusing: working tree has uncommitted changes (evidence must match a commit)")
     out = ROOT / "dist" / f"release-{commit[:12]}"
-    out.mkdir(parents=True, exist_ok=True)
+    # Start empty: a rerun must not leave a previous SHA256SUMS.sig or artefact behind.
+    if out.exists():
+        shutil.rmtree(out)
+    out.mkdir(parents=True)
     manifest = {"schema_version": "1.0", "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "source_commit": commit, "working_tree_clean": not dirty,
                 "toolchain": {"go": run("go", "version"), "node": run("node", "--version"), "docker": run("docker", "version", "--format", "{{.Server.Version}}")},
                 "sbom_tool": SYFT, "images": [], "binaries": [], "console_npm": {}, "notices": {}, "licences": {}, "limitations": [
@@ -157,10 +161,13 @@ def main():
         for goos, goarch in PLATFORMS:
             name = f"{cmd}-{goos}-{goarch}"
             digests = []
-            for attempt in (1, 2):  # build twice from a fresh cache key to check reproducibility
+            for attempt in (1, 2):  # the second build uses an empty build cache, so every package is recompiled
                 target = bins / (name if attempt == 1 else name + ".rebuild")
                 env = {**os.environ, "CGO_ENABLED": "0", "GOOS": goos, "GOARCH": goarch, "GOFLAGS": "-mod=readonly"}
-                subprocess.run(["go", "build", "-trimpath", "-buildvcs=false", "-ldflags=-buildid=", "-o", str(target), f"./cmd/{cmd}"], cwd=ROOT / module, env=env, check=True, capture_output=True)
+                with tempfile.TemporaryDirectory(prefix="aegis-gocache-") as cache:
+                    if attempt == 2:
+                        env["GOCACHE"] = cache
+                    subprocess.run(["go", "build", "-trimpath", "-buildvcs=false", "-ldflags=-buildid=", "-o", str(target), f"./cmd/{cmd}"], cwd=ROOT / module, env=env, check=True, capture_output=True)
                 digests.append(sha256(target))
             (bins / (name + ".rebuild")).unlink()
             path = bins / name
@@ -174,9 +181,15 @@ def main():
         # Licence texts are read from the installed packages; the npm cache is used when it has them.
         subprocess.run(["npm", "ci", "--ignore-scripts", "--prefer-offline", "--no-audit", "--no-fund"], cwd=ROOT / "console", check=True, capture_output=True)
     npm = collections.Counter()
+    stale = []
     for key, pkg in lock.get("packages", {}).items():
         if key and not pkg.get("dev"):
             npm[pkg.get("license") or "unknown"] += 1
+            installed = ROOT / "console" / key / "package.json"
+            if installed.is_file() and json.loads(installed.read_text()).get("version") != pkg.get("version"):
+                stale.append(key.removeprefix("node_modules/"))
+    if stale:
+        sys.exit("console/node_modules does not match package-lock.json (run npm ci): " + ", ".join(stale[:10]))
     manifest["console_npm"] = {"sbom": console_sbom.name, "sbom_sha256": sha256(console_sbom), "production_packages_by_licence": dict(npm.most_common()),
                                "note": "Licences from package-lock.json; devDependencies (build and test tools) are excluded because they are not shipped."}
     for k, n in npm.items():
@@ -208,11 +221,41 @@ def main():
     sums = [f"{sha256(p)}  {p.name}" for p in sorted(out.iterdir()) if p.is_file() and p.name not in ("SHA256SUMS", "SHA256SUMS.sig")]
     sums += [f"{b['sha256'].removeprefix('sha256:')}  bin/{b['name']}" for b in manifest["binaries"]]
     (out / "SHA256SUMS").write_text("\n".join(sorted(sums, key=lambda x: x.split("  ")[1])) + "\n")
+    checks = []
+    def check(name, ok, detail=None):
+        checks.append({"id": name, "result": "PASS" if ok else "FAIL", **({"detail": detail} if detail is not None else {})})
+    check("tree_clean_at_commit", not dirty)
+    check("every_component_has_licence_metadata_or_licence_file", not unknown, len(unknown))
+    check("every_shipped_go_module_and_npm_package_has_licence_text", not manifest["notices"]["without_licence_text"])
+    check("cli_binaries_rebuild_identical_with_empty_build_cache", all(b["rebuild_identical"] for b in manifest["binaries"]), len(manifest["binaries"]))
+    # Re-hash every listed file from disk, as a customer would with shasum -c.
+    listed = [l.split("  ", 1) for l in (out / "SHA256SUMS").read_text().splitlines()]
+    check("sha256sums_verify", all(sha256(out / f) == h for h, f in listed), len(listed))
     if a.sign_key:
         # OpenSSH signatures need no paid service or online CA; verify with
         # ssh-keygen -Y verify -f allowed_signers -I <identity> -n aegis-release -s SHA256SUMS.sig < SHA256SUMS
         subprocess.run(["ssh-keygen", "-Y", "sign", "-f", a.sign_key, "-n", "aegis-release", str(out / "SHA256SUMS")], check=True, capture_output=True)
-    print(json.dumps({"output": str(out.relative_to(ROOT)), "images": [(i["name"], i["components"]) for i in manifest["images"]], "licence_ids": len(licences), "copyleft_for_review": copyleft, "without_licence": len(unknown), "without_licence_text": manifest["notices"]["without_licence_text"]}, indent=1))
+        with tempfile.TemporaryDirectory() as d:
+            signers = pathlib.Path(d) / "allowed_signers"
+            signers.write_text("aegis-release " + pathlib.Path(a.sign_key + ".pub").read_text())
+            verify = lambda data: subprocess.run(["ssh-keygen", "-Y", "verify", "-f", str(signers), "-I", "aegis-release", "-n", "aegis-release", "-s", str(out / "SHA256SUMS.sig")], input=data, capture_output=True).returncode == 0
+            sums_bytes = (out / "SHA256SUMS").read_bytes()
+            check("sha256sums_signature_verifies", verify(sums_bytes), "key " + subprocess.run(["ssh-keygen", "-l", "-f", a.sign_key + ".pub"], capture_output=True, text=True).stdout.split()[1])
+            check("edited_sha256sums_signature_refused", not verify(b"0" + sums_bytes[1:]))
+    manifest["checks"] = checks
+    manifest["result"] = "PASS" if all(c["result"] == "PASS" for c in checks) else "FAIL"
+    # Written after SHA256SUMS on purpose: these checks are about the signed set.
+    (out / "release-checks.json").write_text(json.dumps({"source_commit": commit, "checks": checks, "result": manifest["result"]}, indent=1) + "\n")
+    if a.evidence_out:
+        # A compact, script-produced summary for docs/evidence (no artefacts).
+        summary = {"schema_version": "1.0", "test_scope": "release-supply-chain-evidence", "command": " ".join(["python3", "scripts/release/release_evidence.py"] + (["--sign-key", "<key>"] if a.sign_key else [])),
+                   **{k: manifest[k] for k in ("source_commit", "working_tree_clean", "generated_at", "toolchain", "sbom_tool", "licences", "limitations", "checks", "result")},
+                   "images": [{k: i[k] for k in ("name", "base_images", "components", "sbom_sha256")} for i in manifest["images"]],
+                   "binaries": [{k: b[k] for k in ("name", "sha256", "rebuild_identical")} for b in manifest["binaries"]],
+                   "console_npm": {k: manifest["console_npm"][k] for k in ("production_packages_by_licence", "sbom_sha256")},
+                   "notices": {k: manifest["notices"][k] for k in ("sha256", "go_modules", "without_licence_text")}}
+        pathlib.Path(a.evidence_out).write_text(json.dumps(summary, indent=1) + "\n")
+    print(json.dumps({"result": manifest["result"], "output": str(out.relative_to(ROOT)), "images": [(i["name"], i["components"]) for i in manifest["images"]], "licence_ids": len(licences), "copyleft_for_review": copyleft, "without_licence": len(unknown), "without_licence_text": manifest["notices"]["without_licence_text"]}, indent=1))
 
 
 if __name__ == "__main__":
