@@ -85,8 +85,8 @@ type Writer struct {
 	mu    sync.Mutex
 }
 
-func init() { caddy.RegisterModule(Writer{}) }
-func (Writer) CaddyModule() caddy.ModuleInfo {
+func init() { caddy.RegisterModule(new(Writer)) }
+func (*Writer) CaddyModule() caddy.ModuleInfo {
 	return caddy.ModuleInfo{ID: "caddy.logging.writers.aegis", New: func() caddy.Module { return new(Writer) }}
 }
 func (w *Writer) Provision(caddy.Context) error {
