@@ -66,6 +66,10 @@ mcp-keychain-build:
 	@test "$$(uname -s)" = Darwin || { echo "mcp-keychain-build requires macOS" >&2; exit 1; }
 	cd controller && CGO_ENABLED=1 go build -trimpath -buildvcs=false -o ../bin/aegis-mcp-keychain ./cmd/aegis-mcp
 
+.PHONY: mcp-universal-build
+mcp-universal-build:
+	bash scripts/release/build_desktop_macos.sh bin/aegis-mcp-keychain-universal
+
 # Exercise the compiled bridge against the owner API on an ephemeral loopback port.
 desktop-verify: mcp-build
 	cd controller && AEGIS_TEST_MCP_PATH="$(CURDIR)/bin/aegis-mcp" go test -race -count=1 -v ./internal/api -run '^TestPackagedDesktopBridgeJourney$$'

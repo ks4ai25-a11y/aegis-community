@@ -54,7 +54,19 @@ jobs:
         with:
           go-version: '1.27.1'
           cache-dependency-path: controller/go.sum
-      - name: Verify the native bridge with a disposable Keychain
+      - name: Build the universal bridge
+        run: make mcp-universal-build
+      - name: Verify a clean-cache universal rebuild
+        if: matrix.runner == 'macos-15'
+        shell: bash
+        run: |
+          rebuild="$RUNNER_TEMP/aegis-rebuild"
+          mkdir -p "$rebuild/source"
+          git archive HEAD controller shared/source scripts/release/build_desktop_macos.sh | tar -x -C "$rebuild/source"
+          GOCACHE="$rebuild/cache" bash "$rebuild/source/scripts/release/build_desktop_macos.sh" "$rebuild/aegis-mcp"
+          cmp bin/aegis-mcp-keychain-universal "$rebuild/aegis-mcp"
+          shasum -a 256 bin/aegis-mcp-keychain-universal
+      - name: Verify the universal bridge with a disposable Keychain
         shell: bash
         run: |
           keychain="$RUNNER_TEMP/aegis-desktop.keychain-db"
@@ -63,9 +75,8 @@ jobs:
           security create-keychain -p "$password" "$keychain"
           security default-keychain -s "$keychain"
           security unlock-keychain -p "$password" "$keychain"
-          make mcp-keychain-build
           cd controller
-          AEGIS_TEST_KEYCHAIN_ACCOUNT=ci-desktop AEGIS_TEST_MCP_PATH="$GITHUB_WORKSPACE/bin/aegis-mcp-keychain" \
+          AEGIS_TEST_KEYCHAIN_ACCOUNT=ci-desktop AEGIS_TEST_MCP_PATH="$GITHUB_WORKSPACE/bin/aegis-mcp-keychain-universal" \
             go test -race -count=1 -v ./internal/api -run '^TestPackagedDesktopBridgeJourney$'
   trusted-demo:
     runs-on: ubuntu-24.04

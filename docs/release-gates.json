@@ -111,7 +111,10 @@
       "requirement": "Supply-chain provenance, SBOM and notices",
       "status": "partial",
       "evidence": [
-        "docs/evidence/release-supply-chain.json"
+        "docs/evidence/release-supply-chain.json",
+        "docs/operators/release-evidence.md",
+        "scripts/release/build_desktop_macos.sh",
+        "scripts/release/notarize_desktop_macos.sh"
       ]
     },
     {

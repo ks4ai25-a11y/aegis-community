@@ -175,3 +175,5 @@ Commits: each agent commits only the paths it changed (`git commit -- <paths>`),
 - 2026-11-18 — **Codex**: the hosted Apple silicon job passed the compiled desktop journey with a disposable Keychain at 1502da5 (run 44242361049). Expanded the native verification matrix to Intel and clarified the renewal instructions for both storage modes. Installed-client acceptance remains open.
 
 - 2026-11-18 — **Codex**: the disposable Keychain journey passed on Apple silicon and Intel in run 44242713274. The console now clears a one-time token after confirmed revocation, publishes the action outcome and uses Playwright through the standard test command.
+
+- 2026-11-18 — **Codex**: added the macOS universal bridge build, a clean-cache binary repeatability check, native runtime CI on both architectures, and the Developer ID and Apple notarization packaging command. No release certificate is installed on this workstation. Distribution signing, Gatekeeper acceptance for the real notarized image, and installed provider testing remain open.

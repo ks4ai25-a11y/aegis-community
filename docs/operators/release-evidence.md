@@ -43,3 +43,20 @@ Every component is identified either from package metadata reported by Syft or f
 - Image IDs are not claimed reproducible. CLI binaries rebuild identically on the same host; cross-host reproducibility is not yet tested.
 
 Recorded run: `docs/evidence/release-supply-chain.json`.
+
+
+## macOS desktop bridge
+
+Run `make mcp-universal-build` on macOS with the repository's Go version and Apple's macOS SDK. It builds both architectures with macOS 14 as the deployment target, combines them as `bin/aegis-mcp-keychain-universal` and verifies the ad-hoc signature for both slices. macOS CI repeats the build from a fresh source export with an empty Go cache and compares the executable bytes from the same Go and SDK versions. Both runner architectures exercise the universal executable with a disposable Keychain. The comparison covers the preview executable. Developer ID timestamps and notarization are applied during release packaging.
+
+Build a distribution disk image from a clean checkout of the release commit. The signing Mac needs the publisher's Developer ID Application certificate and private key in its Keychain, an authenticated `notarytool` Keychain profile, and Apple signing and notarization service access. Use the exact Developer ID Application identity name. The two environment values below name local Keychain entries.
+
+```sh
+AEGIS_DEVELOPER_ID_APPLICATION='Developer ID Application: Example Publisher (TEAMID)' \
+AEGIS_NOTARY_PROFILE='aegis-release' \
+  bash scripts/release/notarize_desktop_macos.sh /absolute/path/to/new-release-directory
+```
+
+This command submits the disk image to Apple. It produces the signed, stapled DMG, the notarization receipt, build information tying the preview hash to the source commit, and SHA-256 checksums. It checks the stapled ticket and Gatekeeper assessment before moving the results into the requested directory. The mounted image contains the publisher's name, signed executable checksum, license and notice.
+
+Compare the DMG checksum with the published checksum from the release's trusted channel. Use the signed image's publisher and the checksum inside the mounted image to verify the executable you copy. Run the installed-client journey on a clean Mac using the final downloaded disk image before recording release acceptance. [Apple distribution signing](https://developer.apple.com/documentation/xcode/creating-distribution-signed-code-for-the-mac) · [Apple notarization workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow)

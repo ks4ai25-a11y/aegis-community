@@ -16,6 +16,8 @@ This repository is unfinished engineering work. No public-beta, production-safet
 
 The hosted Mac jobs ran the compiled bridge against an isolated controller and a disposable Keychain. Both architectures passed fingerprint pairing, scoped handoff, draft review, recovery after a lost renewal response, and revocation. [Apple silicon verification](https://github.com/ks4ai25-a11y/aegis-community/actions/runs/44242713274/job/134594297375) · [Intel verification](https://github.com/ks4ai25-a11y/aegis-community/actions/runs/44242713274/job/134594297161)
 
+The macOS build can produce a reproducible, ad-hoc-signed universal bridge. The distribution command requires a Developer ID Application identity and an Apple notary profile. Credentialed signing, notarization and downloaded-image acceptance remain open.
+
 ## Current scanner acceptance
 
 Independent cleanup release is implemented for the packaged admitted scanner path. Hosted acceptance completed two sequential actual scans with independent reconciliation between them. The pinned daemon also refused the enumerated unadmitted API writes as both broker and observer. The scope is the packaged TLS API listener. Host root and out-of-band daemon administration remain outside that evidence. [ADR 057](architecture/adr/057-scanner-allocation-fencing-and-cleanup-release.md)

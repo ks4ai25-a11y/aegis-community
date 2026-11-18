@@ -24,7 +24,7 @@ Use HTTPS for any non-loopback URL.
 
 ### Optional macOS Keychain storage
 
-Build the native executable with `make mcp-keychain-build`. Choose a new local account label and run:
+Build the native executable for this Mac with `make mcp-keychain-build`. The `make mcp-universal-build` target produces a preview executable for Apple silicon and Intel on macOS 14 or later. [Release packaging and verification](release-evidence.md#macos-desktop-bridge). Choose a new local account label and run:
 
 ```sh
 pbpaste | AEGIS_URL=http://127.0.0.1:7410 \
