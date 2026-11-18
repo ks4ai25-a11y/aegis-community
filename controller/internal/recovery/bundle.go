@@ -98,7 +98,7 @@ func databaseContext(ctx context.Context, path string) (domain.Policy, int, erro
 		return domain.Policy{}, 0, ErrRecovery
 	}
 	var version int
-	if s.DB.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version) != nil || (version < 13 || version > 22) {
+	if s.DB.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version) != nil || (version < 13 || version > 23) {
 		return domain.Policy{}, 0, ErrRecovery
 	}
 	var authorizers int
@@ -135,6 +135,10 @@ func databaseContext(ctx context.Context, path string) (domain.Policy, int, erro
 	}
 	var drafts int
 	if s.DB.QueryRowContext(ctx, "SELECT count(*) FROM sqlite_master WHERE (type='table' AND name='desktop_analysis_drafts') OR (type='trigger' AND name IN ('desktop_handoff_draft_consent_immutable','desktop_draft_immutable'))").Scan(&drafts) != nil || (version >= 22 && drafts != 3) || (version < 22 && drafts != 0) {
+		return domain.Policy{}, 0, ErrRecovery
+	}
+	var pairing int
+	if s.DB.QueryRowContext(ctx, "SELECT count(*) FROM sqlite_master WHERE (type='table' AND name IN ('desktop_pairing_invites','desktop_paired_connectors')) OR (type='trigger' AND name='desktop_paired_scope_immutable')").Scan(&pairing) != nil || (version >= 23 && pairing != 3) || (version < 23 && pairing != 0) {
 		return domain.Policy{}, 0, ErrRecovery
 	}
 	var integrity string
@@ -248,7 +252,7 @@ func verified(ctx context.Context, c Config, path string) (*private, Envelope, e
 		return nil, empty, ErrRecovery
 	}
 	d := m.Document
-	if d.Schema != "1.0" || d.Product != domain.Version || d.Profile != profile || (d.SchemaVersion < 13 || d.SchemaVersion > 22) || !digestPattern.MatchString(d.Policy) {
+	if d.Schema != "1.0" || d.Product != domain.Version || d.Profile != profile || (d.SchemaVersion < 13 || d.SchemaVersion > 23) || !digestPattern.MatchString(d.Policy) {
 		return nil, empty, ErrRecovery
 	}
 	stamp, e := time.Parse(time.RFC3339Nano, d.Created)

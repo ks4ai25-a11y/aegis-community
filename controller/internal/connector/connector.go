@@ -31,6 +31,7 @@ var (
 	// Read routes a connector may call. Anything else is refused before routing.
 	allowed = []*regexp.Regexp{
 		regexp.MustCompile(`^/system/status$`),
+		regexp.MustCompile(`^/desktop/status$`),
 		regexp.MustCompile(`^/desktop/handoffs/[0-9a-f]{64}$`),
 		regexp.MustCompile(`^/desktop/drafts/[0-9a-f-]{36}$`),
 		regexp.MustCompile(`^/sites$`),
@@ -44,13 +45,15 @@ var (
 )
 
 type Credential struct {
-	ID       string `json:"connector_id"`
-	Name     string `json:"name"`
-	Scope    string `json:"scope"`
-	State    string `json:"state"`
-	Created  string `json:"created_at"`
-	Expires  int64  `json:"expires_unix"`
-	LastUsed int64  `json:"last_used_unix"`
+	ID          string `json:"connector_id"`
+	Name        string `json:"name"`
+	Scope       string `json:"scope"`
+	State       string `json:"state"`
+	Created     string `json:"created_at"`
+	Expires     int64  `json:"expires_unix"`
+	LastUsed    int64  `json:"last_used_unix"`
+	Fingerprint string `json:"fingerprint,omitempty"`
+	AllowDraft  bool   `json:"allow_analysis_draft"`
 }
 
 type Registry struct {
@@ -91,7 +94,7 @@ func (r *Registry) Issue(owner, name string, ttl time.Duration) (Credential, str
 		return Credential{}, "", e
 	}
 	token := prefix + hex.EncodeToString(b)
-	c := Credential{ID: domain.ID(), Name: name, Scope: Scope, State: "active", Created: domain.Now(), Expires: r.now().Add(ttl).Unix()}
+	c := Credential{ID: domain.ID(), Name: name, Scope: Scope, State: "active", AllowDraft: true, Created: domain.Now(), Expires: r.now().Add(ttl).Unix()}
 	tx, e := r.S.DB.Begin()
 	if e != nil {
 		return Credential{}, "", e
@@ -107,7 +110,8 @@ func (r *Registry) Issue(owner, name string, ttl time.Duration) (Credential, str
 }
 
 func (r *Registry) List(owner string) ([]Credential, error) {
-	rows, e := r.S.DB.Query("SELECT id,name,scope,state,created_at,expires,last_used FROM connector_credentials WHERE owner=? ORDER BY created_at DESC LIMIT 100", owner)
+	rows, e := r.S.DB.Query(`SELECT c.id,c.name,c.scope,c.state,c.created_at,c.expires,c.last_used,coalesce(p.fingerprint,''),coalesce(p.allow_draft,1)
+ FROM connector_credentials c LEFT JOIN desktop_paired_connectors p ON p.id=c.id WHERE c.owner=? ORDER BY c.created_at DESC LIMIT 100`, owner)
 	if e != nil {
 		return nil, e
 	}
@@ -116,8 +120,11 @@ func (r *Registry) List(owner string) ([]Credential, error) {
 	now := r.now().Unix()
 	for rows.Next() {
 		var c Credential
-		if e = rows.Scan(&c.ID, &c.Name, &c.Scope, &c.State, &c.Created, &c.Expires, &c.LastUsed); e != nil {
+		if e = rows.Scan(&c.ID, &c.Name, &c.Scope, &c.State, &c.Created, &c.Expires, &c.LastUsed, &c.Fingerprint, &c.AllowDraft); e != nil {
 			return nil, e
+		}
+		if c.Fingerprint != "" {
+			c.Scope = PairedScope
 		}
 		if c.State == "active" && c.Expires <= now {
 			c.State = "expired"
@@ -149,11 +156,17 @@ func (r *Registry) Revoke(owner, connector string) error {
 // Authenticate resolves an Authorization header to the issuing owner.
 func (r *Registry) Authenticate(header string) (owner, connector string, err error) {
 	token, ok := strings.CutPrefix(header, "Bearer ")
-	if !ok || !tokenShape.MatchString(token) {
+	paired := pairedTokenShape.MatchString(token)
+	if !ok || (!paired && !tokenShape.MatchString(token)) {
 		return "", "", ErrInvalid
 	}
 	now := r.now().Unix()
-	e := r.S.DB.QueryRow("SELECT owner,id FROM connector_credentials WHERE token_hash=? AND state='active' AND expires>?", domain.Hash([]byte(token)), now).Scan(&owner, &connector)
+	hash := domain.Hash([]byte(token))
+	if paired {
+		hash = domain.Hash([]byte("aegis-paired-token-v1\x00" + token))
+	}
+	e := r.S.DB.QueryRow(`SELECT c.owner,c.id FROM connector_credentials c WHERE c.token_hash=? AND c.state='active' AND c.expires>?
+ AND (EXISTS(SELECT 1 FROM desktop_paired_connectors p WHERE p.id=c.id))=?`, hash, now, paired).Scan(&owner, &connector)
 	if e == sql.ErrNoRows || e != nil {
 		return "", "", ErrInvalid
 	}

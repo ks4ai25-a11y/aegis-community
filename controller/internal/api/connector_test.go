@@ -4,6 +4,7 @@ package api
 import (
 	"aegis.local/controller/internal/auth"
 	"aegis.local/controller/internal/connector"
+	"aegis.local/controller/internal/domain"
 	"aegis.local/controller/internal/research"
 	"aegis.local/controller/internal/store"
 	"bytes"
@@ -264,6 +265,82 @@ func TestConnectorCredentialIsReadOnlyAndRevocable(t *testing.T) {
 	if code, _ := send("POST", "/connectors/"+id+"/revoke", map[string]any{}, nil, true); code != 409 {
 		t.Fatal("double revoke", code)
 	}
+	t.Run("device pairing requires confirmation and limits routes", func(t *testing.T) {
+		code, out := send("POST", "/desktop/pairing", map[string]any{"name": "Work Mac", "lifetime_minutes": 30, "allow_analysis_draft": false}, nil, true)
+		if code != 201 {
+			t.Fatalf("invite: %d", code)
+		}
+		p := out["pairing"].(map[string]any)
+		id := p["pairing_id"].(string)
+		codeValue := out["invite_code"].(string)
+		pairedToken := "aegis_dp_" + strings.Repeat("a", 64)
+		tokenDigest := domain.Hash([]byte("aegis-paired-token-v1\x00" + pairedToken))
+		proof := strings.Repeat("b", 64)
+		bridge := map[string]any{"pairing_id": id, "invite_code": codeValue, "device_proof": proof, "credential_digest": tokenDigest}
+		h := map[string]string{"Authorization": "Bearer " + pairedToken}
+		if code, _ := send("GET", "/desktop/status", nil, h, false); code != 401 {
+			t.Fatalf("credential activated early: %d", code)
+		}
+		if code, _ := send("POST", "/desktop/pairing/claim", bridge, nil, true); code != 404 {
+			t.Fatalf("cookie accepted for bridge claim: %d", code)
+		}
+		if code, _ := send("POST", "/desktop/pairing/claim", bridge, nil, false); code != 200 {
+			t.Fatalf("device claim: %d", code)
+		}
+		changed := map[string]any{"pairing_id": id, "invite_code": codeValue, "device_proof": strings.Repeat("c", 64), "credential_digest": tokenDigest}
+		if code, _ := send("POST", "/desktop/pairing/claim", changed, nil, false); code != 404 {
+			t.Fatalf("pairing proof replaced: %d", code)
+		}
+		redeem := map[string]any{"pairing_id": id, "device_proof": proof}
+		if code, _ := send("POST", "/desktop/pairing/redeem", redeem, nil, false); code != 409 {
+			t.Fatalf("unapproved redeem: %d", code)
+		}
+		path := "/desktop/pairing/" + id
+		if code, _ := send("POST", path, map[string]any{"approve": true, "fingerprint": strings.Repeat("0", 20)}, nil, true); code != 404 {
+			t.Fatalf("wrong fingerprint approved: %d", code)
+		}
+		fingerprint := domain.Hash([]byte("aegis-pairing-v1\n" + id + "\n" + proof + "\n" + tokenDigest))[7:27]
+		if code, _ := send("POST", path, map[string]any{"approve": true, "fingerprint": fingerprint}, nil, true); code != 200 {
+			t.Fatalf("owner confirmation: %d", code)
+		}
+		if code, v := send("POST", "/desktop/pairing/redeem", redeem, nil, false); code != 200 || v["scope"] != connector.PairedScope || v["token"] != nil {
+			t.Fatalf("redeem: %d", code)
+		}
+		if code, _ := send("POST", "/desktop/pairing/redeem", redeem, nil, false); code != 200 {
+			t.Fatalf("exact redeem retry: %d", code)
+		}
+		if code, _ := send("GET", "/desktop/status", nil, h, false); code != 200 {
+			t.Fatalf("paired ready: %d", code)
+		}
+		if code, _ := send("GET", "/sites", nil, h, false); code != 403 {
+			t.Fatalf("paired device bypassed scope: %d", code)
+		}
+		if code, _ := send("POST", "/desktop/drafts", map[string]any{}, h, false); code != 403 {
+			t.Fatalf("paired device bypassed draft scope: %d", code)
+		}
+		code, preview := send("GET", "/desktop/handoff-preview?incident_id=inc-1", nil, nil, true)
+		if code != 200 {
+			t.Fatalf("paired incident preview: %d", code)
+		}
+		approvedInput := map[string]any{"connector_id": id, "incident_id": "inc-1", "preview_digest": preview["preview_digest"], "approve_redacted_export": true, "allow_analysis_draft": true}
+		if code, _ := send("POST", "/desktop/handoffs", approvedInput, nil, true); code != 404 {
+			t.Fatalf("handoff exceeded paired draft scope: %d", code)
+		}
+		approvedInput["allow_analysis_draft"] = false
+		code, shared := send("POST", "/desktop/handoffs", approvedInput, nil, true)
+		if code != 201 {
+			t.Fatalf("paired handoff: %d", code)
+		}
+		if code, _ := send("GET", "/desktop/handoffs/"+shared["handoff_id"].(string), nil, h, false); code != 200 {
+			t.Fatalf("paired handoff read: %d", code)
+		}
+		if code, _ := send("POST", "/connectors/"+id+"/revoke", map[string]any{}, nil, true); code != 200 {
+			t.Fatalf("revoke paired connector: %d", code)
+		}
+		if code, _ := send("GET", "/desktop/status", nil, h, false); code != 401 {
+			t.Fatalf("revoked paired credential works: %d", code)
+		}
+	})
 	if e = s.VerifyAudit(); e != nil {
 		t.Fatal(e)
 	}

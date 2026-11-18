@@ -52,6 +52,7 @@ type Server struct {
 	// CanaryNow, when set, asks the DET-07 canary to check the new revision.
 	CanaryNow chan struct{}
 	mutations sync.Mutex
+	pairing   sync.Mutex
 	assessing chan struct{}
 	assessed  sync.Map
 	streams   chan struct{}
@@ -177,6 +178,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		output(w, 200, map[string]string{"csrf_token": csrf})
 		return
 	}
+	if path == "/desktop/pairing/claim" || path == "/desktop/pairing/redeem" {
+		s.desktopPairingBridge(w, r, path)
+		return
+	}
 	var actor, session, connection string
 	var e error
 	if h := r.Header.Get("Authorization"); h != "" {
@@ -188,6 +193,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		}
 		if actor, connection, e = s.Connectors.Authenticate(h); e != nil {
 			fail(w, 401, "NOT_AUTHENTICATED", "Connector credential invalid, expired or revoked")
+			return
+		}
+		if strings.HasPrefix(h, "Bearer "+connector.PairedPrefix) && !s.Connectors.PairedRoute(r.Context(), connection, r.Method, path) {
+			fail(w, 403, "SCOPE_DENIED", "Paired connector cannot access this endpoint")
 			return
 		}
 	} else if actor, session, e = s.A.Session(r); e != nil {
@@ -267,6 +276,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		default:
 			fail(w, 404, "RESOURCE_NOT_FOUND", "Endpoint not available in this alpha")
 		}
+	case path == "/desktop/status" && r.Method == "GET" && connection != "":
+		output(w, http.StatusOK, map[string]any{"version": domain.Version, "authenticated": true})
+	case path == "/desktop/pairing" || strings.HasPrefix(path, "/desktop/pairing/"):
+		s.desktopPairingOwner(w, r, path, actor, session)
 	case path == "/desktop/drafts" || strings.HasPrefix(path, "/desktop/drafts/"):
 		s.desktopDraft(w, r, path, actor, session, connection)
 	case path == "/desktop/handoff-preview" || path == "/desktop/handoffs" || strings.HasPrefix(path, "/desktop/handoffs/"):

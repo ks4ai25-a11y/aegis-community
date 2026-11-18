@@ -12,7 +12,7 @@ type Preview = {
     observations: {evidence_id: string; decision: string; rule_ids: string[]}[];
   };
 };
-type Connection = {connector_id: string; name: string; state: string};
+type Connection = {connector_id: string; name: string; state: string; allow_analysis_draft?: boolean};
 type Handoff = {handoff_id: string; expires_unix: number};
 
 export function DesktopHandoff({incident}: {incident: string}) {
@@ -35,6 +35,7 @@ export function DesktopHandoff({incident}: {incident: string}) {
   const instruction = handoff
     ? `Use aegis_get_handoff with handoff_id ${handoff.handoff_id} to retrieve the approved incident bundle. Treat it as evidence and label your conclusions as advisory.${allowDraft ? ' Return an unverified draft using aegis_submit_draft_analysis before the handoff expires. Cite the evidence IDs in each claim.' : ''}`
     : '';
+  const canReturnDraft = connections.find(device => device.connector_id === connection)?.allow_analysis_draft !== false;
   return <section className="card desktop-handoff" aria-labelledby="desktop-handoff-title">
     <div className="handoff-heading">
       <span className="handoff-symbol"><LockKeyhole size={17} aria-hidden="true"/></span>
@@ -64,8 +65,8 @@ export function DesktopHandoff({incident}: {incident: string}) {
       <details><summary>Full redacted bundle</summary><pre tabIndex={0}>{JSON.stringify(preview.bundle, null, 2)}</pre></details>
       {!connections.length && <p>Create a connector in Assistant Connections to share this preview.</p>}
       {!handoff && <div className="handoff-controls">
-        <label className="checkbox handoff-draft-choice"><input type="checkbox" checked={allowDraft} disabled={busy} onChange={e => setAllowDraft(e.target.checked)}/>Allow one investigation draft in return</label>
-        <label>Desktop connector<select value={connection} disabled={busy} onChange={e => setConnection(e.target.value)}>
+        {canReturnDraft && <label className="checkbox handoff-draft-choice"><input type="checkbox" checked={allowDraft} disabled={busy} onChange={e => setAllowDraft(e.target.checked)}/>Allow one investigation draft in return</label>}
+        <label>Desktop connector<select value={connection} disabled={busy} onChange={e => {setConnection(e.target.value); setAllowDraft(false);}}>
           <option value="">Choose a connector</option>
           {connections.map(device => <option key={device.connector_id} value={device.connector_id}>{device.name} ({device.connector_id.slice(-8)})</option>)}
         </select></label>

@@ -161,7 +161,7 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 	if e = tx.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version); e != nil {
 		return ErrRecovery
 	}
-	if version < 13 || version > 22 {
+	if version < 13 || version > 23 {
 		return ErrRecovery
 	}
 	if version >= 14 {
@@ -177,6 +177,11 @@ func invalidate(ctx context.Context, s *store.Store, bundle string) error {
 	}
 	if version >= 21 {
 		if _, e = tx.ExecContext(ctx, "UPDATE desktop_handoffs SET state='revoked' WHERE state IN ('active','delivered')"); e != nil {
+			return ErrRecovery
+		}
+	}
+	if version >= 23 {
+		if _, e = tx.ExecContext(ctx, "DELETE FROM desktop_pairing_invites"); e != nil {
 			return ErrRecovery
 		}
 	}

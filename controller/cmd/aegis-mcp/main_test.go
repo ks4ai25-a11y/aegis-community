@@ -3,11 +3,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 )
@@ -181,5 +184,80 @@ func TestDraftToolPostsOnlyToDraftEndpointWithRetryKey(t *testing.T) {
 	bad := call(t, c, "tools/call", map[string]any{"name": draftTool.Name, "arguments": map[string]any{"idempotency_key": "invalid"}})
 	if bad["error"] == nil || calls.Load() != 1 {
 		t.Fatal("invalid draft arguments reached transport")
+	}
+}
+
+func TestPairBridgeStoresOnlyLocallyGeneratedCredential(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("requires private POSIX file modes")
+	}
+	const id = "01900000-0000-7000-8000-000000000000"
+	code := strings.Repeat("c", 64)
+	var claim struct {
+		ID     string `json:"pairing_id"`
+		Code   string `json:"invite_code"`
+		Proof  string `json:"device_proof"`
+		Digest string `json:"credential_digest"`
+	}
+	var lock sync.Mutex
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		lock.Lock()
+		defer lock.Unlock()
+		if r.Method != http.MethodPost || r.Header.Get("Authorization") != "" || r.URL.RawQuery != "" {
+			t.Error("pairing secret leaked into headers or URL")
+		}
+		switch r.URL.Path {
+		case "/api/v1/desktop/pairing/claim":
+			if json.NewDecoder(r.Body).Decode(&claim) != nil || claim.ID != id || claim.Code != code || claim.Proof == "" || claim.Digest == "" {
+				t.Error("claim missing private proof or digest")
+			}
+			w.Write([]byte(`{"state":"claimed"}`))
+		case "/api/v1/desktop/pairing/redeem":
+			var redeem struct {
+				Proof string `json:"device_proof"`
+			}
+			if json.NewDecoder(r.Body).Decode(&redeem) != nil || redeem.Proof != claim.Proof {
+				t.Error("redeem did not prove claim possession")
+			}
+			fmt.Fprintf(w, `{"connector_id":%q,"state":"active","scope":"desktop_handoff_v1"}`, id)
+		default:
+			t.Errorf("unexpected pairing route %s", r.URL.Path)
+			w.WriteHeader(404)
+		}
+	}))
+	defer srv.Close()
+	directory, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.Chmod(directory, 0700); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(directory, "bridge-token")
+	t.Setenv("AEGIS_URL", srv.URL)
+	t.Setenv("AEGIS_CONNECTOR_TOKEN_FILE", path)
+	var status strings.Builder
+	if err = pair(strings.NewReader(id+":"+code+"\n"), &status); err != nil {
+		t.Fatal(err)
+	}
+	st, err := os.Stat(path)
+	if err != nil || st.Mode().Perm() != 0600 {
+		t.Fatal("credential mode invalid")
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	token := strings.TrimSpace(string(raw))
+	lock.Lock()
+	defer lock.Unlock()
+	if !strings.HasPrefix(token, "aegis_dp_") || pairingHash("aegis-paired-token-v1\x00"+token) != claim.Digest {
+		t.Fatal("saved credential does not match the controller-bound digest")
+	}
+	if strings.Contains(status.String(), token) || strings.Contains(status.String(), code) || !strings.Contains(status.String(), pairingHash("aegis-pairing-v1\n" + id + "\n" + claim.Proof + "\n" + claim.Digest)[7:27]) {
+		t.Fatal("pairing output did not isolate the verification fingerprint")
+	}
+	if err = storePairedCredential(path, "replacement"); err == nil {
+		t.Fatal("existing credential overwritten")
 	}
 }

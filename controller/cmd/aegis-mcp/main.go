@@ -53,6 +53,7 @@ func idArg(args map[string]string, name string) (string, error) {
 }
 
 var tools = []tool{
+	{"aegis_status", "Check the authenticated desktop connection and Aegis version.", none, nil, func(map[string]string) (string, error) { return "/desktop/status", nil }},
 	{"aegis_system_status", "Gateway mode, revision health, telemetry loss counters and incident counts.", none, nil, func(map[string]string) (string, error) { return "/system/status", nil }},
 	{"aegis_list_sites", "Applications protected by this Aegis gateway with their mode.", none, nil, func(map[string]string) (string, error) { return "/sites", nil }},
 	{"aegis_list_incidents", "Recent incidents for one site, with detector IDs.", arg("site_id", "Site ID from aegis_list_sites, e.g. site_demo"), nil, func(a map[string]string) (string, error) {
@@ -103,22 +104,30 @@ type client struct {
 }
 
 // loadClient accepts only loopback HTTP or HTTPS and a private token file.
-func loadClient() (*client, error) {
+func consoleBase() (string, error) {
 	base := os.Getenv("AEGIS_URL")
 	if base == "" {
 		base = "http://127.0.0.1:7410"
 	}
 	u, e := url.Parse(base)
 	if e != nil || u.User != nil || u.Hostname() == "" || u.Opaque != "" || u.ForceQuery || u.RawQuery != "" || u.Fragment != "" || strings.Contains(base, "#") || u.RawPath != "" || (u.Path != "" && u.Path != "/") {
-		return nil, errors.New("AEGIS_URL must be a base URL")
+		return "", errors.New("AEGIS_URL must be a base URL")
 	}
 	if u.Scheme == "http" {
 		host := u.Hostname()
 		if ip := net.ParseIP(host); host != "localhost" && (ip == nil || !ip.IsLoopback()) {
-			return nil, errors.New("plain HTTP is allowed only to a loopback Aegis console")
+			return "", errors.New("plain HTTP is allowed only to a loopback Aegis console")
 		}
 	} else if u.Scheme != "https" {
-		return nil, errors.New("AEGIS_URL must use http (loopback) or https")
+		return "", errors.New("AEGIS_URL must use http (loopback) or https")
+	}
+	return strings.TrimRight(u.String(), "/"), nil
+}
+
+func loadClient() (*client, error) {
+	base, e := consoleBase()
+	if e != nil {
+		return nil, e
 	}
 	path := os.Getenv("AEGIS_CONNECTOR_TOKEN_FILE")
 	if path == "" {
@@ -137,7 +146,7 @@ func loadClient() (*client, error) {
 	if e != nil {
 		return nil, e
 	}
-	return &client{strings.TrimRight(u.String(), "/"), strings.TrimSpace(string(b)), connectorHTTPClient()}, nil
+	return &client{base, strings.TrimSpace(string(b)), connectorHTTPClient()}, nil
 }
 
 func connectorHTTPClient() *http.Client {
@@ -166,7 +175,9 @@ func (c *client) request(method, path string, body []byte, key string) (string, 
 	if e != nil {
 		return "", e
 	}
-	req.Header.Set("Authorization", "Bearer "+c.token)
+	if c.token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.token)
+	}
 	if method == http.MethodPost {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Idempotency-Key", key)
@@ -177,7 +188,7 @@ func (c *client) request(method, path string, body []byte, key string) (string, 
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK && !(method == http.MethodPost && resp.StatusCode == http.StatusCreated) {
-		return "", fmt.Errorf("Aegis returned HTTP %d", resp.StatusCode)
+		return "", httpStatusError(resp.StatusCode)
 	}
 	b, e := io.ReadAll(io.LimitReader(resp.Body, responseLimit+1))
 	if e != nil || len(b) > responseLimit {
@@ -265,7 +276,22 @@ func handle(c *client, req request) map[string]any {
 	return rpcError(req.ID, -32601, "method not supported")
 }
 
+type httpStatusError int
+
+func (e httpStatusError) Error() string { return fmt.Sprintf("Aegis returned HTTP %d", e) }
+
 func main() {
+	if len(os.Args) > 1 {
+		if len(os.Args) != 2 || os.Args[1] != "pair" {
+			fmt.Fprintln(os.Stderr, "usage: aegis-mcp [pair]")
+			os.Exit(2)
+		}
+		if err := pair(os.Stdin, os.Stderr); err != nil {
+			fmt.Fprintln(os.Stderr, "aegis-mcp:", err)
+			os.Exit(1)
+		}
+		return
+	}
 	c, e := loadClient()
 	if e != nil {
 		// Still answer the protocol so the desktop app can show the reason.

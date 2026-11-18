@@ -142,12 +142,17 @@ func (r *Registry) ApproveHandoff(ctx context.Context, owner, connection, incide
 	}
 	now := r.now()
 	var expires int64
-	err = tx.QueryRowContext(ctx, "SELECT expires FROM connector_credentials WHERE owner=? AND id=? AND state IN ('active','delivered') AND expires>?", owner, connection, now.Unix()).Scan(&expires)
+	var draftAllowed bool
+	err = tx.QueryRowContext(ctx, `SELECT c.expires,coalesce(p.allow_draft,1) FROM connector_credentials c LEFT JOIN desktop_paired_connectors p ON p.id=c.id
+ WHERE c.owner=? AND c.id=? AND c.state='active' AND c.expires>?`, owner, connection, now.Unix()).Scan(&expires, &draftAllowed)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Handoff{}, ErrHandoffUnavailable
 	}
 	if err != nil {
 		return Handoff{}, err
+	}
+	if allowDraft && !draftAllowed {
+		return Handoff{}, ErrHandoffUnavailable
 	}
 	if _, err = tx.ExecContext(ctx, "DELETE FROM desktop_handoffs WHERE expires<=?", now.Unix()); err != nil {
 		return Handoff{}, err

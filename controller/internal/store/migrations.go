@@ -215,8 +215,24 @@ WHEN NEW.id!=OLD.id OR NEW.owner!=OLD.owner OR NEW.connector!=OLD.connector OR N
 BEGIN SELECT RAISE(ABORT,'draft provenance is immutable'); END;
 `
 
+const desktopPairingSchema = `
+CREATE TABLE desktop_pairing_invites(
+ id TEXT PRIMARY KEY, owner TEXT NOT NULL REFERENCES owners(id), name TEXT NOT NULL,
+ invite_hash TEXT NOT NULL, expires INTEGER NOT NULL, minutes INTEGER NOT NULL CHECK(minutes IN (15,30,60)),
+ allow_draft INTEGER NOT NULL CHECK(allow_draft IN (0,1)), state TEXT NOT NULL CHECK(state IN ('new','claimed','approved','redeemed','cancelled')),
+ proof_hash TEXT NOT NULL DEFAULT '', fingerprint TEXT NOT NULL DEFAULT '', token_hash TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX desktop_pairing_expiry ON desktop_pairing_invites(expires);
+CREATE TABLE desktop_paired_connectors(
+ id TEXT PRIMARY KEY REFERENCES connector_credentials(id), allow_draft INTEGER NOT NULL CHECK(allow_draft IN (0,1)),
+ fingerprint TEXT NOT NULL CHECK(length(fingerprint)=20)
+);
+CREATE TRIGGER desktop_paired_scope_immutable BEFORE UPDATE ON desktop_paired_connectors
+BEGIN SELECT RAISE(ABORT,'paired scope is immutable'); END;
+`
+
 func migrationBodies() []string {
-	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema, scannerCleanupConfirmationSchema, scannerReleaseGuardSchema, scannerMutationRepairSchema, desktopHandoffSchema, desktopDraftSchema}
+	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema, scannerCleanupConfirmationSchema, scannerReleaseGuardSchema, scannerMutationRepairSchema, desktopHandoffSchema, desktopDraftSchema, desktopPairingSchema}
 }
 func migrate(db *sql.DB) error {
 	versions := migrationBodies()

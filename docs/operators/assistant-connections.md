@@ -8,9 +8,23 @@ Aegis ships `aegis-mcp`, a small local stdio MCP server. Your desktop AI app (Cl
 make mcp-build        # produces bin/aegis-mcp (static, no network listener)
 ```
 
-## 2. Create a connection in the console
+## 2. Pair a local device
 
-Open **AI Apps → Assistant connections**, name the connection and choose a lifetime (1–720 hours). Aegis shows the token **once**. Save it to a private file:
+In **AI Apps → Pair a desktop assistant**, choose a device name and access duration. The optional draft permission lets that device submit a report only when you separately approve it for a specific handoff. Create and copy the five-minute invitation. On the same Mac as the bridge, feed the copied invitation through standard input:
+
+```sh
+install -d -m 700 "$HOME/.config/aegis"
+pbpaste | AEGIS_URL=http://127.0.0.1:7410 \
+  AEGIS_CONNECTOR_TOKEN_FILE="$HOME/.config/aegis/work-device-token" ./bin/aegis-mcp pair
+```
+
+On other POSIX systems, provide the invitation from a private input file or a local clipboard tool. Use the fingerprint displayed by the bridge to confirm the device in the console. The bridge creates the designated file with mode 0600 after confirmation. Choose a fresh path for each pairing. Configure the desktop app with that path and the same Aegis URL, then start a new session and use `aegis_status` to check access. You can revoke the device from **Assistant connections**. When the credential expires, pair again.
+
+The local connector can retrieve only incident handoffs you approve and return specifically permitted drafts. Use HTTPS for any non-loopback URL. OS keychain support and unattended credential renewal remain open.
+
+### Advanced manual connector
+
+Only use **AI Apps → Assistant connections → Advanced manual connector** when you need the legacy broader read scope. Name the connection and choose a lifetime (1–720 hours). Aegis shows the token **once**. Save it to a private file:
 
 ```sh
 umask 077 && pbpaste > ~/.config/aegis/connector-token   # or paste with an editor

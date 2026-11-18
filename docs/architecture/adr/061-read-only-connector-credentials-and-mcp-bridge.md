@@ -39,3 +39,10 @@ The preview excludes free text, raw request identifiers, routes, query values, h
 The owner may grant a single draft submission when approving a handoff. Existing approvals default to export only. The connector must first retrieve the snapshot, then submit before the original deadline. The draft transaction checks the original owner and connector, live consent, the approved snapshot digest, evidence references, and the idempotency key. A retained draft is initially unverified. Its content and provenance are immutable. The owner alone can dismiss it. Connector status calls return the draft identifier and review state for the original credential.
 
 Restoring the database preserves drafts as review history and invalidates the connector and handoff used to create them. Proposed steps remain plain text in the console. Reports do not authorize scanner execution, policy changes, or remediation.
+
+
+## Local device pairing (migration 023)
+
+The owner creates a five-minute invitation and selects a 15-, 30- or 60-minute credential lifetime. The local bridge claims the invitation with a private device proof and a hash of its locally generated credential. The fingerprint binds the invitation ID, device proof and credential hash. The owner compares it against the value shown by the bridge. The device proves possession again after confirmation, and only then does the controller activate the credential. The response contains connection metadata, never the token.
+
+Paired token hashes are domain separated and require a corresponding immutable scope mapping. Paired credentials can read authenticated connector status and retrieve explicitly approved handoffs. A device-level draft permission and a separate handoff-level approval are both required to submit a draft. Revocation stops access and restore erases outstanding invitations. This path supports explicit local configuration and private file storage. Installed app interoperability, OS-specific keychain integration, and renewal are separate acceptance work.

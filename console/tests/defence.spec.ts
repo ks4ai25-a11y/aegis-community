@@ -93,9 +93,10 @@ test('assistant connection shows the token once and revokes', async ({page}) => 
   await page.goto('/');
   await page.getByRole('button', {name: 'AI Apps', exact: true}).click();
   await expect(page.getByText('Deterministic only')).toBeVisible();
+  await page.getByText('Advanced manual connector').click();
   await page.getByRole('button', {name: 'Create connection'}).click();
   await expect(page.getByText('aegis_ct_' + '1'.repeat(64))).toBeVisible();
-  await expect(page.getByText('"AEGIS_CONNECTOR_TOKEN_FILE"', {exact: false})).toBeVisible();
+  await expect(page.getByText('/path/to/aegis-connector-token', {exact: false})).toBeVisible();
   await page.getByRole('button', {name: 'Revoke'}).click();
   await expect(page.getByText('revoked')).toBeVisible();
   expect(calls.filter(c => c.path === '/connectors' && c.method === 'POST')[0].body).toEqual({name: 'Claude Desktop', lifetime_hours: 168});
@@ -206,4 +207,34 @@ test('desktop handoff previews before approval and can be revoked', async ({page
   await page.getByRole('button', {name: 'Dismiss draft'}).click();
   await expect(page.getByText('Draft dismissed.')).toBeVisible();
   await expect(page.getByText('Dismissed', {exact: true})).toBeVisible();
+});
+
+test('guided pairing requires a fingerprint from the device', async ({page}) => {
+  const id = '01900000-0000-7000-8000-000000000001';
+  const fingerprint = 'a'.repeat(20);
+  let state = 'new';
+  const pairing = () => ({pairing_id: id, name: 'Work laptop', state, expires_unix: 1900000000, lifetime_minutes: 30});
+  const calls = await mock(page, (path, method) => {
+    if (path === '/connectors') return {items: []};
+    if (path === '/desktop/pairing') return {status: 201, json: {pairing: pairing(), invite_code: 'b'.repeat(64)}};
+    if (path === '/desktop/pairing/' + id && method === 'GET') return pairing();
+    if (path === '/desktop/pairing/' + id && method === 'POST') {
+      state = 'redeemed';
+      return {approved: true};
+    }
+  });
+  await page.goto('/');
+  await page.getByRole('button', {name: 'AI Apps', exact: true}).click();
+  const region = page.getByRole('region', {name: 'Pair a desktop assistant'});
+  await region.getByLabel('Device name').fill('Work laptop');
+  await region.getByRole('button', {name: 'Create pairing invitation'}).click();
+  await expect(region.getByLabel('Pairing invitation')).toHaveValue(id + ':' + 'b'.repeat(64));
+  state = 'claimed';
+  const confirm = region.getByRole('button', {name: 'Confirm fingerprint'});
+  await expect(confirm).toBeDisabled();
+  await expect(region.getByLabel('Pairing invitation')).toHaveCount(0);
+  await region.getByLabel('Fingerprint shown by the bridge').fill(fingerprint);
+  await confirm.click();
+  expect(calls.find(c => c.method === 'POST' && c.path === '/desktop/pairing/' + id)?.body).toEqual({approve: true, fingerprint});
+  await expect(region.getByText(/Paired\. Open a new desktop assistant session/)).toBeVisible();
 });

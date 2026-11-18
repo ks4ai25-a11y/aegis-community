@@ -513,6 +513,9 @@ func TestLegacyFourteenAndFifteenRestoreWithoutAllocationTables(t *testing.T) {
 func removeRepairSchema(t *testing.T, s *store.Store) {
 	t.Helper()
 	for _, statement := range []string{
+		"DROP TABLE IF EXISTS desktop_pairing_invites",
+		"DROP TABLE IF EXISTS desktop_paired_connectors",
+		"DELETE FROM migrations WHERE version=23",
 		"DROP TABLE IF EXISTS desktop_analysis_drafts",
 		"DELETE FROM migrations WHERE version=22",
 		"DROP TABLE IF EXISTS desktop_handoffs",
