@@ -183,6 +183,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var actor, session, connection string
+	var paired bool
 	var e error
 	if h := r.Header.Get("Authorization"); h != "" {
 		// Connector credentials are limited to an explicit allowlist,
@@ -195,7 +196,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			fail(w, 401, "NOT_AUTHENTICATED", "Connector credential invalid, expired or revoked")
 			return
 		}
-		if strings.HasPrefix(h, "Bearer "+connector.PairedPrefix) && !s.Connectors.PairedRoute(r.Context(), connection, r.Method, path) {
+		paired = strings.HasPrefix(h, "Bearer "+connector.PairedPrefix)
+		if paired && !s.Connectors.PairedRoute(r.Context(), connection, r.Method, path) {
 			fail(w, 403, "SCOPE_DENIED", "Paired connector cannot access this endpoint")
 			return
 		}
@@ -277,7 +279,17 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			fail(w, 404, "RESOURCE_NOT_FOUND", "Endpoint not available in this alpha")
 		}
 	case path == "/desktop/status" && r.Method == "GET" && connection != "":
-		output(w, http.StatusOK, map[string]any{"version": domain.Version, "authenticated": true})
+		status := map[string]any{"version": domain.Version, "authenticated": true, "scope": connector.Scope}
+		if paired {
+			draft, err := s.Connectors.PairedDraftScope(r.Context(), connection)
+			if err != nil {
+				fail(w, http.StatusForbidden, "SCOPE_DENIED", "Paired connector unavailable")
+				return
+			}
+			status["scope"] = connector.PairedScope
+			status["allow_analysis_draft"] = draft
+		}
+		output(w, http.StatusOK, status)
 	case path == "/desktop/pairing" || strings.HasPrefix(path, "/desktop/pairing/"):
 		s.desktopPairingOwner(w, r, path, actor, session)
 	case path == "/desktop/drafts" || strings.HasPrefix(path, "/desktop/drafts/"):

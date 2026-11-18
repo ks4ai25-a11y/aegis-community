@@ -29,6 +29,8 @@ jobs:
           cache: npm
           cache-dependency-path: console/package-lock.json
       - run: make test
+      - name: Verify the compiled desktop bridge
+        run: make desktop-verify
       - name: Install pinned test browser
         working-directory: console
         run: npx playwright install --with-deps chromium

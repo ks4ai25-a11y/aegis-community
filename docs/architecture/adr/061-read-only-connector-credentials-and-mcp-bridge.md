@@ -31,7 +31,7 @@ Store tests check trigger immutability, unknown-scope refusal and one-way revoca
 
 An owner session previews the minimum redacted incident bundle and binds approval to its exact hash and one active connector. Approval rechecks the digest and connector in one transaction, then stores the immutable snapshot and emits an audit event. Retrieval rechecks the connector and approval in the same transaction that marks delivery and records its audit event. Each handle is random, expires in at most five minutes and can be read once. Restore revokes unused and delivered approvals. The SQLite migration is additive and earlier migration bodies are preserved.
 
-The preview excludes free text, raw request identifiers, routes, query values, headers, and client or path pseudonyms. Existing connector scopes retain their documented reads. A scoped pairing protocol and GUI interoperability with installed desktop apps remain open.
+The preview excludes free text, raw request identifiers, routes, query values, headers, and client or path pseudonyms. Existing connector scopes retain their documented reads. The scoped pairing protocol is described below. GUI interoperability with installed desktop apps remains open.
 
 
 ## Investigation draft increment (migration 022)
@@ -46,3 +46,8 @@ Restoring the database preserves drafts as review history and invalidates the co
 The owner creates a five-minute invitation and selects a 15-, 30- or 60-minute credential lifetime. The local bridge claims the invitation with a private device proof and a hash of its locally generated credential. The fingerprint binds the invitation ID, device proof and credential hash. The owner compares it against the value shown by the bridge. The device proves possession again after confirmation, and only then does the controller activate the credential. The response contains connection metadata, never the token.
 
 Paired token hashes are domain separated and require a corresponding immutable scope mapping. Paired credentials can read authenticated connector status and retrieve explicitly approved handoffs. A device-level draft permission and a separate handoff-level approval are both required to submit a draft. Revocation stops access and restore erases outstanding invitations. This path supports explicit local configuration and private file storage. Installed app interoperability, OS-specific keychain integration, and renewal are separate acceptance work.
+
+
+## Compiled bridge acceptance
+
+`make desktop-verify` runs the compiled stdio bridge against an isolated real controller and migrated SQLite database. It requires owner fingerprint confirmation, a scoped authenticated status check, exact single delivery, idempotent draft submission with the approved bundle digest, owner dismissal, and denial on the still-running bridge after revocation. It also verifies protocol negotiation and admission of tool calls only after initialization. The source workflow runs this gate before browser checks. This establishes executable interoperability with the controller. App-specific GUI acceptance remains separate.

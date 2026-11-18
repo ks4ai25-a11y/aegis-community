@@ -261,3 +261,37 @@ func TestPairBridgeStoresOnlyLocallyGeneratedCredential(t *testing.T) {
 		t.Fatal("existing credential overwritten")
 	}
 }
+
+func TestPairedToolListUsesControllerScope(t *testing.T) {
+	for _, tt := range []struct {
+		name   string
+		status int
+		body   string
+		want   string
+	}{
+		{"handoff only", 200, `{"authenticated":true,"scope":"desktop_handoff_v1","allow_analysis_draft":false}`, "aegis_status,aegis_get_handoff"},
+		{"draft permission", 200, `{"authenticated":true,"scope":"desktop_handoff_v1","allow_analysis_draft":true}`, "aegis_status,aegis_get_handoff,aegis_get_draft_status,aegis_submit_draft_analysis"},
+		{"revoked", 401, `{}`, "aegis_status"},
+		{"unexpected scope", 200, `{"authenticated":true,"scope":"read_defence_v1","allow_analysis_draft":true}`, "aegis_status"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodGet || r.URL.Path != "/api/v1/desktop/status" {
+					t.Error("tool discovery called an unexpected route")
+				}
+				w.WriteHeader(tt.status)
+				w.Write([]byte(tt.body))
+			}))
+			defer srv.Close()
+			c := &client{srv.URL, "aegis_dp_" + strings.Repeat("a", 64), connectorHTTPClient()}
+			defer c.http.CloseIdleConnections()
+			var names []string
+			for _, tool := range toolsForClient(c) {
+				names = append(names, tool.Name)
+			}
+			if strings.Join(names, ",") != tt.want {
+				t.Fatal("tool list does not match authorized scope")
+			}
+		})
+	}
+}

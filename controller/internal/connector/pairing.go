@@ -233,9 +233,15 @@ func (r *Registry) RedeemPairing(ctx context.Context, id, proof string) (Credent
 	return c, tx.Commit()
 }
 
-func (r *Registry) PairedRoute(ctx context.Context, id, method, path string) bool {
+func (r *Registry) PairedDraftScope(ctx context.Context, id string) (bool, error) {
 	var draft bool
-	if r.S.DB.QueryRowContext(ctx, "SELECT allow_draft FROM desktop_paired_connectors WHERE id=?", id).Scan(&draft) != nil {
+	err := r.S.DB.QueryRowContext(ctx, "SELECT allow_draft FROM desktop_paired_connectors WHERE id=?", id).Scan(&draft)
+	return draft, err
+}
+
+func (r *Registry) PairedRoute(ctx context.Context, id, method, path string) bool {
+	draft, err := r.PairedDraftScope(ctx, id)
+	if err != nil {
 		return false
 	}
 	if method == "GET" && (path == "/desktop/status" || strings.HasPrefix(path, "/desktop/handoffs/")) {

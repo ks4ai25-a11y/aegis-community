@@ -82,3 +82,10 @@ The owner preview, approval, delivery and revocation use the controller. Approva
 When approving a handoff, select **Allow one investigation draft in return** if you want the selected connector to submit a report. It must retrieve the approved bundle first and submit before the original expiry. The connector calls `aegis_submit_draft_analysis` with an idempotency key and the evidence IDs from the bundle. Repeating the same submission during that window returns the retained draft. A changed submission or an attempt to create another draft for that handoff is refused.
 
 Use **Check for drafts** on the incident to review the report, its supporting evidence IDs, limitations and suggestions. A client label is self-reported. Every report starts unverified. **Dismiss draft** records your review decision. The assistant can read its own draft's review state using `aegis_get_draft_status`.
+
+
+### Verify the installed bridge build
+
+Run `make desktop-verify` to build the executable and test it against a disposable controller database on an ephemeral loopback port. The test drives the actual stdio process through pairing, owner-approved handoff, evidence-bound draft submission, replay, dismissal, and revocation. It uses fixture data and an isolated test profile. Run the same journey inside each supported desktop application before claiming compatibility for that application.
+
+The stdio bridge supports the `2025-06-18` MCP handshake. It offers that revision if a client requests an unsupported one and waits for the initialized notification before enabling tool calls. For a paired device, the tool list reflects its current controller permissions. See the [MCP lifecycle specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/lifecycle).

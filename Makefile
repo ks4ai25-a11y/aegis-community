@@ -1,4 +1,4 @@
-.PHONY: gateway-build release-evidence mcp-build defence-verify test generate check-generated build demo-up demo-verify scoped-verify repository-verify research-build
+.PHONY: gateway-build release-evidence mcp-build desktop-verify defence-verify test generate check-generated build demo-up demo-verify scoped-verify repository-verify research-build
 
 test: check-generated gateway-build
 	python3 -m unittest discover -s tests/integration -p test_generated_check.py
@@ -59,6 +59,10 @@ engine-relay-build:
 
 mcp-build:
 	cd controller && CGO_ENABLED=0 go build -trimpath -buildvcs=false -o ../bin/aegis-mcp ./cmd/aegis-mcp
+
+# Exercise the compiled bridge against the owner API on an ephemeral loopback port.
+desktop-verify: mcp-build
+	cd controller && AEGIS_TEST_MCP_PATH="$(CURDIR)/bin/aegis-mcp" go test -race -count=1 -v ./internal/api -run '^TestPackagedDesktopBridgeJourney$$'
 
 # Live defence-plane suites against a running stack (defaults: the demo on 7410/8080).
 # Override AEGIS_CONSOLE_URL, AEGIS_GATEWAY_URL, AEGIS_COMPOSE_FILES and AEGIS_CREDENTIAL for another install.

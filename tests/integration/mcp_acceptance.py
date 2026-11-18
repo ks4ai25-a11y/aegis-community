@@ -19,9 +19,25 @@ def check(name, detail=None):
 
 
 def bridge(token_file, requests):
-    p = subprocess.run([str(BRIDGE)], input="\n".join(json.dumps(r) for r in requests) + "\n", capture_output=True, text=True, timeout=60,
+    # Each subprocess is its own stdio session.
+    prefix = []
+    if not requests or requests[0]["method"] != "initialize":
+        prefix = [
+            {"jsonrpc": "2.0", "id": "handshake", "method": "initialize", "params": {
+                "protocolVersion": "2025-06-18", "capabilities": {},
+                "clientInfo": {"name": "acceptance", "version": "1"},
+            }},
+            {"jsonrpc": "2.0", "method": "notifications/initialized"},
+        ]
+    p = subprocess.run([str(BRIDGE)], input="\n".join(json.dumps(r) for r in prefix + requests) + "\n", capture_output=True, text=True, timeout=60,
                        env={"PATH": os.environ.get("PATH", ""), "AEGIS_URL": m.CONSOLE, "AEGIS_CONNECTOR_TOKEN_FILE": token_file})
-    return [json.loads(l) for l in p.stdout.splitlines()]
+    assert p.returncode == 0, "bridge process failed"
+    responses = [json.loads(l) for l in p.stdout.splitlines()]
+    if prefix:
+        assert responses and responses[0]["id"] == "handshake"
+        assert responses[0]["result"]["protocolVersion"] == "2025-06-18"
+        return responses[1:]
+    return responses
 
 
 def text(resp):
