@@ -431,6 +431,13 @@ details summary{cursor:pointer}
 .handoff-observations li {padding:6px 0; border-top:1px solid var(--border);}
 .handoff-preview summary {cursor:pointer; color:var(--text-2);}
 .handoff-preview pre {white-space:pre-wrap; overflow-wrap:anywhere; max-height:18rem; overflow:auto;}
+.assistant-connections tbody th {
+ position:static; padding:11px 12px; background:none; color:var(--text);
+ font-size:13.5px; font-weight:550; border-radius:0;
+}
+.assistant-connections tbody tr:hover th {background:var(--surface-2);}
+.assistant-connections tbody tr:last-child th {border-bottom:0;}
+.connection-actions {display:flex; flex-wrap:wrap; gap:6px;}
 .desktop-setup {display:grid; gap:10px; justify-items:start; margin-top:14px;}
 .desktop-setup label {width:min(100%, 230px);}
 .desktop-setup p, .desktop-setup pre {margin:0; max-width:100%;}

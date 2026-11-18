@@ -98,7 +98,9 @@ test('assistant connection shows the token once and revokes', async ({page}) => 
   await expect(page.getByText('aegis_ct_' + '1'.repeat(64))).toBeVisible();
   await expect(page.getByText('/path/to/aegis-connector-token', {exact: false})).toBeVisible();
   await page.getByRole('button', {name: 'Revoke'}).click();
-  await expect(page.getByText('revoked')).toBeVisible();
+  await expect(page.getByRole('status')).toHaveText('Claude Desktop was revoked.');
+  await expect(page.getByRole('row', {name: /Claude Desktop/}).getByText('Revoked')).toBeVisible();
+  await expect(page.getByText('aegis_ct_' + '1'.repeat(64))).toHaveCount(0);
   expect(calls.filter(c => c.path === '/connectors' && c.method === 'POST')[0].body).toEqual({name: 'Claude Desktop', lifetime_hours: 168});
 });
 

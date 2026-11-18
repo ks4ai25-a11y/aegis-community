@@ -113,20 +113,73 @@ export function Proposals({incident, onChanged}: {incident: string; onChanged: (
   </section>;
 }
 
+type AssistantConnection = {
+  connector_id: string;
+  name: string;
+  scope: string;
+  state: string;
+  expires_unix: number;
+  last_used_unix: number;
+};
+
 function Connectors() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<AssistantConnection[]>();
   const [name, setName] = useState('Claude Desktop');
   const [hours, setHours] = useState(168);
-  const [issued, setIssued] = useState<any>();
+  const [issued, setIssued] = useState<{connector: AssistantConnection; token: string}>();
   const [error, setError] = useState('');
-  const [renewing, setRenewing] = useState('');
-  const [renewal, setRenewal] = useState<{name: string; until: number}>();
-  const load = useCallback(() => api('/connectors').then(v => setItems(v.items)).catch(e => setError(e.message)), []);
+  const [notice, setNotice] = useState('');
+  const [working, setWorking] = useState(false);
+  const [renewal, setRenewal] = useState<{id: string; name: string; until: number}>();
+  const load = useCallback(() => api<{items: AssistantConnection[]}>('/connectors').then(v => setItems(v.items)).catch(e => setError(e.message)), []);
   useEffect(() => { load(); }, []);
   const config = issued ? JSON.stringify({mcpServers: {aegis: {command: '/path/to/aegis-mcp', env: {AEGIS_URL: location.origin, AEGIS_CONNECTOR_TOKEN_FILE: '/path/to/aegis-connector-token'}}}}, null, 2) : '';
+  async function createConnection() {
+    setWorking(true);
+    setError('');
+    setNotice('');
+    try {
+      const response = await api<{connector: AssistantConnection; token: string}>('/connectors', {name, lifetime_hours: hours});
+      setIssued(response);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Connection creation failed.');
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function changeConnection(connection: AssistantConnection, action: 'renew' | 'revoke') {
+    const id = connection.connector_id;
+    setWorking(true);
+    setError('');
+    setNotice('');
+    if (action === 'renew') setRenewal(undefined);
+    try {
+      const response = await api('/connectors/' + encodeURIComponent(id) + '/' + action, {});
+      if (action === 'renew') {
+        if (response.connector_id !== id || !Number.isSafeInteger(response.approval_expires_unix)) {
+          throw new Error('Renewal approval could not be confirmed.');
+        }
+        setRenewal({id, name: connection.name, until: response.approval_expires_unix});
+      } else {
+        if (response.state !== 'revoked') throw new Error('Revocation could not be confirmed.');
+        setIssued(current => current?.connector.connector_id === id ? undefined : current);
+        setRenewal(current => current?.id === id ? undefined : current);
+        setItems(current => current?.map(item => item.connector_id === id ? {...item, state: 'revoked'} : item));
+        setNotice(connection.name + ' was revoked.');
+        await load();
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Connection update failed.');
+    } finally {
+      setWorking(false);
+    }
+  }
   return <><DesktopPairing onPaired={load}/><section className="card">
     <div className="card-heading"><h2>Assistant connections</h2></div>
     {error && <div role="alert" className="alert error">{error}</div>}
+    {notice && <p role="status" className="muted">{notice}</p>}
     {renewal && <div role="status" className="note"><div>
       <strong>Renewal approved for {renewal.name}</strong>
       <p>Before {new Date(renewal.until * 1000).toLocaleTimeString()}, run <code>aegis-mcp renew</code> for a private file or <code>aegis-mcp-keychain renew</code> for macOS Keychain. Use the device’s existing Aegis URL and credential setting, then restart its desktop session.</p>
@@ -136,7 +189,7 @@ function Connectors() {
       <label>Name<input value={name} maxLength={64} onChange={e => setName(e.target.value)}/></label>
       <label>Lifetime (hours)<input type="number" min={1} max={720} value={hours} onChange={e => setHours(Number(e.target.value))}/></label>
     </div>
-    <button className="button primary" disabled={!name} onClick={() => api('/connectors', {name, lifetime_hours: hours}).then(v => { setIssued(v); load(); }).catch(e => setError(e.message))}>Create connection</button>
+    <button className="button primary" disabled={!name.trim() || working} onClick={createConnection}>Create connection</button>
     {issued && <div className="note"><div>
       <p><strong>Copy this token now; it is shown once.</strong> Save it to a file readable only by you (<span className="mono">chmod 600</span>).</p>
       <pre className="mono">{issued.token}</pre>
@@ -144,20 +197,26 @@ function Connectors() {
       <pre className="mono">{config}</pre>
     </div></div>}
     </details>
-    <div className="table-wrap"><table><thead><tr><th>Name</th><th>Access</th><th>State</th><th>Expires</th><th>Last used</th><th></th></tr></thead><tbody>
-      {items.map(c => <tr key={c.connector_id}><td>{c.name}</td><td>{c.scope === 'desktop_handoff_v1' ? 'Approved handoffs' : 'Manual connector'}</td><td><span className="badge">{human(c.state)}</span></td><td>{new Date(c.expires_unix * 1000).toLocaleString()}</td><td>{c.last_used_unix ? new Date(c.last_used_unix * 1000).toLocaleString() : 'Never'}</td>
-        <td>{c.state === 'active' && c.scope === 'desktop_handoff_v1' && <button className="button light" disabled={renewing !== ''} onClick={async () => {
-          setError(''); setRenewing(c.connector_id); setRenewal(undefined);
-          try {
-            const response = await api('/connectors/' + encodeURIComponent(c.connector_id) + '/renew', {});
-            if (response.connector_id !== c.connector_id || !Number.isSafeInteger(response.approval_expires_unix)) {
-              throw new Error('Renewal approval could not be confirmed.');
-            }
-            setRenewal({name: c.name, until: response.approval_expires_unix});
-          } catch (e) {setError(e instanceof Error ? e.message : 'Renewal unavailable.');}
-          finally {setRenewing('');}
-        }}>Approve 60-minute renewal</button>}{c.state === 'active' && <button className="button light" onClick={() => api('/connectors/' + encodeURIComponent(c.connector_id) + '/revoke', {}).then(load).catch(e => setError(e.message))}>Revoke</button>}</td></tr>)}
-    </tbody></table></div>
+    {items?.length === 0 && <p className="muted">No assistant connections yet.</p>}
+    {!!items?.length && <div className="table-wrap"><table className="assistant-connections">
+      <thead><tr><th scope="col">Name</th><th scope="col">Access</th><th scope="col">State</th>
+        <th scope="col">Expires</th><th scope="col">Last used</th><th scope="col">Actions</th></tr></thead>
+      <tbody>{items.map(connection => {
+        const paired = connection.scope === 'desktop_handoff_v1';
+        const active = connection.state === 'active';
+        return <tr key={connection.connector_id}>
+          <th scope="row">{connection.name}</th>
+          <td>{paired ? 'Approved handoffs' : 'Manual connector'}</td>
+          <td><span className={'badge' + (active ? ' allowed' : '')}>{human(connection.state)}</span></td>
+          <td>{new Date(connection.expires_unix * 1000).toLocaleString()}</td>
+          <td>{connection.last_used_unix ? new Date(connection.last_used_unix * 1000).toLocaleString() : 'Never'}</td>
+          <td>{active && <div className="connection-actions">
+            {paired && <button className="button light" disabled={working} onClick={() => changeConnection(connection, 'renew')}>Approve 60-minute renewal</button>}
+            <button className="button light" disabled={working} onClick={() => changeConnection(connection, 'revoke')}>Revoke</button>
+          </div>}</td>
+        </tr>;
+      })}</tbody>
+    </table></div>}
   </section></>;
 }
 

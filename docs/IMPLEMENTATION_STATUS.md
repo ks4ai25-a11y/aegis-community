@@ -12,7 +12,9 @@ This repository is unfinished engineering work. No public-beta, production-safet
 | C1 security research | Bounded parsers, pinned images, fixed invocation plans and owner-scoped provisioned repository maps | Real Semgrep CE / Gitleaks / Syft / Bandit fixture runs pass; OSV / Trivy run with operator-provisioned, verified offline databases through the guarded executor (ADR 068); without an approved digest the controller keeps their results `completed_stale_db`. Express/FastAPI/Flask route extraction; change-triggered rescans (ADR 070) |
 | C2 closed loop | Trusted synthetic tenant challenge with correct, incorrect and overbroad variants | Six HTTP controls pass for correct variant; full patch/VM/AI orchestration pending |
 | C3 operational release | Supply chain, full fault/restore tests, independent installations and security review | Not implemented |
-| Desktop AI apps | Guided pairing, revocation and owner-approved renewal. Single-use redacted handoffs, evidence-bound drafts and owner dismissal. Private-file storage and an optional native macOS Keychain build | Compiled private-file and Apple silicon Keychain journeys pass. Intel runtime and installed-client checks are pending |
+| Desktop AI apps | Guided pairing, revocation and owner-approved renewal. Single-use redacted handoffs, evidence-bound drafts and owner dismissal. Private-file storage and an optional native macOS Keychain build | Compiled private-file journey passes. Native Keychain journey passes on Apple silicon and Intel. Installed-client checks remain open |
+
+The hosted Mac jobs ran the compiled bridge against an isolated controller and a disposable Keychain. Both architectures passed fingerprint pairing, scoped handoff, draft review, recovery after a lost renewal response, and revocation. [Apple silicon verification](https://github.com/ks4ai25-a11y/aegis-community/actions/runs/44242713274/job/134594297375) · [Intel verification](https://github.com/ks4ai25-a11y/aegis-community/actions/runs/44242713274/job/134594297161)
 
 ## Current scanner acceptance
 
