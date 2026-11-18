@@ -14,6 +14,14 @@ This repository is unfinished engineering work. No public-beta, production-safet
 | C3 operational release | Supply chain, full fault/restore tests, independent installations and security review | Not implemented |
 | Desktop AI apps | UI identifies unverified integrations; read-only `aegis-mcp` connector (ADR 061) | Pairing and real GUI acceptance pending |
 
+## Current scanner acceptance
+
+Independent cleanup release is implemented for the packaged admitted scanner path. Hosted acceptance completed two sequential actual scans with independent reconciliation between them. The pinned daemon also refused the enumerated unadmitted API writes as both broker and observer. The scope is the packaged TLS API listener. Host root and out-of-band daemon administration remain outside that evidence. [ADR 057](architecture/adr/057-scanner-allocation-fencing-and-cleanup-release.md)
+
+The packaged crash repair test exercises interruption after a committed create admission, sealed quarantine, observed daemon restart, a retained `not_created` repair, independent release and another actual scan. The latest merge carrying those checks passed hosted acceptance. Other repair branches have local coverage described in ADR 057. [Crash repair evidence](evidence/packaged-crash-repair-ci.json) · [Hosted acceptance](https://github.com/ks4ai25-a11y/aegis-community/actions/runs/39035962456)
+
+The notes below describe milestones at the time they landed. [Release gate status](release-gates.json) tracks current acceptance limits.
+
 ## Required v4 architecture changes
 
 1. Typed deployer separated; controller gateway socket removed. Independent security review and stronger approval receipts remain.

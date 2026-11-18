@@ -3,6 +3,7 @@
 test: check-generated gateway-build
 	python3 -m unittest discover -s tests/integration -p test_generated_check.py
 	python3 -m unittest discover -s tests/integration -p test_acceptance_assertions.py
+	python3 -m unittest discover -s tests/integration -p test_scanner_acceptance.py
 	cd gateway && go test -race ./...
 	cd controller && go test -race ./...
 	python3 tests/integration/database_snapshot_acceptance.py

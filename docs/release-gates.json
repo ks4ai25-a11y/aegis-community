@@ -77,7 +77,11 @@
         "docs/evidence/controller-observed-gate-validation.json",
         "docs/architecture/adr/055-packaged-controller-observed-authorizer.md",
         "alpha/engineauthz/packaged_real_test.go",
-        "tests/integration/packaged_authorizer_fixture.py"
+        "tests/integration/packaged_authorizer_fixture.py",
+        "docs/architecture/adr/057-scanner-allocation-fencing-and-cleanup-release.md",
+        "docs/evidence/packaged-api-write-mediation-ci.json",
+        "docs/evidence/packaged-crash-repair-ci.json",
+        "docs/evidence/scanner-database-executor-acceptance.json"
       ]
     },
     {
