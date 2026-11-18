@@ -31,4 +31,11 @@ Store tests check trigger immutability, unknown-scope refusal and one-way revoca
 
 An owner session previews the minimum redacted incident bundle and binds approval to its exact hash and one active connector. Approval rechecks the digest and connector in one transaction, then stores the immutable snapshot and emits an audit event. Retrieval rechecks the connector and approval in the same transaction that marks delivery and records its audit event. Each handle is random, expires in at most five minutes and can be read once. Restore revokes unused and delivered approvals. The SQLite migration is additive and earlier migration bodies are preserved.
 
-The preview excludes free text, raw request identifiers, routes, query values, headers, and client or path pseudonyms. Existing connector scopes retain their documented reads. A scoped pairing protocol, draft submission, and GUI interoperability with installed desktop apps remain open.
+The preview excludes free text, raw request identifiers, routes, query values, headers, and client or path pseudonyms. Existing connector scopes retain their documented reads. A scoped pairing protocol and GUI interoperability with installed desktop apps remain open.
+
+
+## Investigation draft increment (migration 022)
+
+The owner may grant a single draft submission when approving a handoff. Existing approvals default to export only. The connector must first retrieve the snapshot, then submit before the original deadline. The draft transaction checks the original owner and connector, live consent, the approved snapshot digest, evidence references, and the idempotency key. A retained draft is initially unverified. Its content and provenance are immutable. The owner alone can dismiss it. Connector status calls return the draft identifier and review state for the original credential.
+
+Restoring the database preserves drafts as review history and invalidates the connector and handoff used to create them. Proposed steps remain plain text in the console. Reports do not authorize scanner execution, policy changes, or remediation.

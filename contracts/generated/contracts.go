@@ -2374,6 +2374,29 @@ type RecoveryOperationReceiptV1 struct {
 	PublisherSignatureVerified     bool   `json:"publisher_signature_verified"`
 	RestoredDatabaseDigest         string `json:"restored_database_digest,omitempty"`
 }
+type DesktopDraftInputV1 struct {
+	IncidentId     string                                 `json:"incident_id"`
+	HandoffId      string                                 `json:"handoff_id"`
+	Claims         []DesktopDraftInputV1ClaimsItem        `json:"claims"`
+	Limitations    []string                               `json:"limitations"`
+	ProposedSteps  []DesktopDraftInputV1ProposedStepsItem `json:"proposed_steps"`
+	ClientLabel    string                                 `json:"client_label"`
+	IdempotencyKey string                                 `json:"idempotency_key,omitempty"`
+}
+type DesktopDraftInputV1ClaimsItem struct {
+	Claim     string   `json:"claim"`
+	SourceIds []string `json:"source_ids"`
+	Kind      string   `json:"kind"`
+}
+type DesktopDraftInputV1ProposedStepsItem struct {
+	Text                  string `json:"text"`
+	Kind                  string `json:"kind"`
+	RequiresOwnerApproval bool   `json:"requires_owner_approval"`
+}
+type DesktopDraftStatusV1 struct {
+	DraftId string `json:"draft_id"`
+	State   string `json:"state"`
+}
 type ScannerDatabaseManifestV1 struct {
 	SchemaVersion  string                                   `json:"schema_version"`
 	CreatedAt      string                                   `json:"created_at"`

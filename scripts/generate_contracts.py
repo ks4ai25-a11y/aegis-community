@@ -160,10 +160,34 @@ schemas.update(json.loads(json.dumps({'ScannerReconcilerIdentityV1':reconciler_i
 schemas['DatabaseSnapshotReceiptV1']=obj({'schema_version':string(const='1.0'),'status':string(const='created'),'scope':string(const='controller_database_only'),'database_digest':hash,'byte_count':integer(100,536870912),'created_at':string(format='date-time'),'gateway_configuration_captured':{'type':'boolean','const':False},'tool_manifest_captured':{'type':'boolean','const':False},'restore_verified':{'type':'boolean','const':False}})
 
 recovery_artifact=obj({'byte_count':integer(1,536870912),'sha256':hash})
-recovery_manifest=obj({'schema_version':string(const='1.0'),'product_version':string(const='0.1.0-alpha.1'),'deployment_profile':string(const='demo-http-v1'),'created_at':string(format='date-time'),'database_schema_version':integer(13,21),'policy_digest':hash,'database':recovery_artifact,'gateway_configuration':obj({'byte_count':integer(1,65536),'sha256':hash}),'scanner_lock':obj({'byte_count':integer(1,65536),'sha256':hash})})
+recovery_manifest=obj({'schema_version':string(const='1.0'),'product_version':string(const='0.1.0-alpha.1'),'deployment_profile':string(const='demo-http-v1'),'created_at':string(format='date-time'),'database_schema_version':integer(13,22),'policy_digest':hash,'database':recovery_artifact,'gateway_configuration':obj({'byte_count':integer(1,65536),'sha256':hash}),'scanner_lock':obj({'byte_count':integer(1,65536),'sha256':hash})})
 recovery_receipt=obj({'schema_version':string(const='1.0'),'status':string(enum=['bundle_created','bundle_verified','restored_offline']),'bundle_digest':hash,'policy_digest':hash,'tool_lock_digest':hash,'integrity_verified':{'type':'boolean','const':True},'restored_authorities_invalidated':{'type':'boolean'},'scanner_cleanup_holds_preserved':{'type':'boolean'},'live_activated':{'type':'boolean','const':False},'application_restore_verified':{'type':'boolean','const':False},'publisher_signature_verified':{'type':'boolean','const':False},'restored_database_digest':hash},['schema_version','status','bundle_digest','policy_digest','tool_lock_digest','integrity_verified','restored_authorities_invalidated','scanner_cleanup_holds_preserved','live_activated','application_restore_verified','publisher_signature_verified'])
 recovery_receipt['allOf']=[{'if':{'properties':{'status':{'const':'restored_offline'}}},'then':{'required':['restored_database_digest'],'properties':{'restored_authorities_invalidated':{'const':True},'scanner_cleanup_holds_preserved':{'const':True}}},'else':{'properties':{'restored_authorities_invalidated':{'const':False},'scanner_cleanup_holds_preserved':{'const':False}},'not':{'required':['restored_database_digest']}}}]
 schemas.update({'RecoveryBundleManifestV1':recovery_manifest,'RecoveryBundleEnvelopeV1':obj({'bundle_digest':hash,'document':recovery_manifest}),'RecoveryOperationReceiptV1':recovery_receipt})
+
+# Desktop draft submission content. The bounded idempotency key can be sent
+# as a header or via the equivalent optional request field.
+draft_claim=obj({
+ 'claim':string(minLength=1,maxLength=500),
+ 'source_ids':array(hash,minItems=1,maxItems=8,uniqueItems=True),
+ 'kind':string(enum=['observation','hypothesis']),
+})
+draft_step=obj({
+ 'text':string(minLength=1,maxLength=400),
+ 'kind':string(enum=['investigation','verification']),
+ 'requires_owner_approval':{'type':'boolean'},
+})
+draft_step['allOf']=[{'if':{'properties':{'kind':{'const':'verification'}}},'then':{'properties':{'requires_owner_approval':{'const':True}}}}]
+draft_fields={
+ 'incident_id':string(pattern=r'^[A-Za-z0-9_.:-]{1,160}$'),
+ 'handoff_id':string(pattern=r'^[0-9a-f]{64}$'),
+ 'claims':array(draft_claim,minItems=1,maxItems=10),
+ 'limitations':array(string(minLength=1,maxLength=320),minItems=1,maxItems=8),
+ 'proposed_steps':array(draft_step,maxItems=8),
+ 'client_label':string(minLength=1,maxLength=80),
+}
+schemas['DesktopDraftInputV1']=obj({**draft_fields,'idempotency_key':string(pattern=r'^[A-Za-z0-9_-]{16,128}$')},list(draft_fields))
+schemas['DesktopDraftStatusV1']=obj({'draft_id':uuid,'state':string(enum=['unverified','dismissed'])})
 
 # Offline scanner databases (ADR 068, alpha/scannerdb). Operator-fetched, read-only mounted.
 scanner_db_file=obj({'path':string(minLength=1,maxLength=512),'sha256':hash,'size':integer(0,2147483647)})

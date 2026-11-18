@@ -52,8 +52,8 @@ try:
         ])
         assert [o["id"] for o in out] == [1, 2, 3, 4, 5], out
         tools = out[1]["result"]["tools"]
-        assert tools and all(t["annotations"]["readOnlyHint"] for t in tools)
-        check("bridge_initializes_with_read_only_tools", {"tools": [t["name"] for t in tools]})
+        assert tools and [t["name"] for t in tools if not t["annotations"]["readOnlyHint"]] == ["aegis_submit_draft_analysis"]
+        check("bridge_initializes_with_one_draft_submission_tool", {"tools": [t["name"] for t in tools]})
         assert text(out[2]).startswith("UNTRUSTED DATA FROM AEGIS") and "site_demo" in text(out[2])
         check("bridge_reads_sites_with_untrusted_notice")
         if incidents:
@@ -68,6 +68,7 @@ try:
                 "connector_id": issued["connector"]["connector_id"],
                 "preview_digest": preview["preview_digest"],
                 "approve_redacted_export": True,
+                "allow_analysis_draft": True,
             }, expected=201)
             request = {"jsonrpc": "2.0", "id": 6, "method": "tools/call", "params": {
                 "name": "aegis_get_handoff", "arguments": {"handoff_id": scoped["handoff_id"]},
@@ -77,6 +78,28 @@ try:
             assert json.loads(text(first).split("\n\n", 1)[1]) == preview["bundle"]
             assert replay["result"]["isError"] and "404" in text(replay)
             check("bridge_delivers_exact_approved_handoff_once")
+            observations = preview["bundle"]["observations"]
+            if observations:
+                draft = {"jsonrpc": "2.0", "id": 8, "method": "tools/call", "params": {
+                    "name": "aegis_submit_draft_analysis", "arguments": {
+                        "idempotency_key": "fixture-handoff-draft-001",
+                        "incident_id": inc, "handoff_id": scoped["handoff_id"],
+                        "client_label": "Synthetic acceptance",
+                        "claims": [{"claim": "The bundle contains a retained observation.", "kind": "observation",
+                                    "source_ids": [observations[0]["evidence_id"]]}],
+                        "limitations": ["This report covers the bundled fixture only."],
+                        "proposed_steps": [],
+                    },
+                }}
+                response, retried = bridge(token, [draft, {**draft, "id": 10}])
+                assert not response["result"].get("isError") and not retried["result"].get("isError")
+                receipt = json.loads(text(response).split("\n\n", 1)[1])
+                assert receipt["state"] == "unverified"
+                assert json.loads(text(retried).split("\n\n", 1)[1]) == receipt
+                assert any(d["draft_id"] == receipt["draft_id"] for d in m.call(
+                    "/desktop/drafts?incident_id=" + urllib.parse.quote(inc,safe=""))["items"])
+                check("bridge_returns_evidence_bound_unverified_draft_idempotently")
+
         # The same credential cannot reach mutating or sensitive routes directly.
         for method, path in [("POST", "/sites/site_demo/policies/validate"), ("GET", "/audit"), ("GET", "/connectors"), ("POST", "/connectors")]:
             req = m.urllib.request.Request(m.CONSOLE + "/api/v1" + path, method=method, data=b"{}" if method == "POST" else None, headers={"Authorization": "Bearer " + issued["token"], "Content-Type": "application/json"})

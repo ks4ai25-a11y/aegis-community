@@ -127,7 +127,7 @@ func (r *Registry) PreviewHandoff(ctx context.Context, incident string) (Handoff
 	return preview(ctx, tx, incident)
 }
 
-func (r *Registry) ApproveHandoff(ctx context.Context, owner, connection, incident, digest string) (Handoff, error) {
+func (r *Registry) ApproveHandoff(ctx context.Context, owner, connection, incident, digest string, allowDraft bool) (Handoff, error) {
 	tx, err := r.S.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return Handoff{}, err
@@ -165,10 +165,10 @@ func (r *Registry) ApproveHandoff(ctx context.Context, owner, connection, incide
 	}
 	h := Handoff{ID: hex.EncodeToString(random[:]), Expires: min(expires, now.Add(handoffLifetime).Unix())}
 	document, _ := json.Marshal(p.Bundle)
-	if _, err = tx.ExecContext(ctx, "INSERT INTO desktop_handoffs(id,owner,connector,incident,document,digest,expires,state) VALUES(?,?,?,?,?,?,?,'active')", h.ID, owner, connection, incident, string(document), digest, h.Expires); err != nil {
+	if _, err = tx.ExecContext(ctx, "INSERT INTO desktop_handoffs(id,owner,connector,incident,document,digest,expires,state,allow_draft) VALUES(?,?,?,?,?,?,?,'active',?)", h.ID, owner, connection, incident, string(document), digest, h.Expires, allowDraft); err != nil {
 		return Handoff{}, err
 	}
-	if err = store.AuditTx(tx, owner, "desktop.handoff_approved", h.ID, "active", map[string]any{"connector_id": connection, "incident_id": incident, "preview_digest": digest}); err != nil {
+	if err = store.AuditTx(tx, owner, "desktop.handoff_approved", h.ID, "active", map[string]any{"connector_id": connection, "incident_id": incident, "preview_digest": digest, "allow_analysis_draft": allowDraft}); err != nil {
 		return Handoff{}, err
 	}
 	return h, tx.Commit()

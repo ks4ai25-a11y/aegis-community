@@ -2372,6 +2372,29 @@ export interface RecoveryOperationReceiptV1 {
   publisher_signature_verified: false;
   restored_database_digest?: string;
 }
+export interface DesktopDraftInputV1 {
+  incident_id: string;
+  handoff_id: string;
+  claims: Array<DesktopDraftInputV1ClaimsItem>;
+  limitations: Array<string>;
+  proposed_steps: Array<DesktopDraftInputV1ProposedStepsItem>;
+  client_label: string;
+  idempotency_key?: string;
+}
+export interface DesktopDraftInputV1ClaimsItem {
+  claim: string;
+  source_ids: Array<string>;
+  kind: "observation" | "hypothesis";
+}
+export interface DesktopDraftInputV1ProposedStepsItem {
+  text: string;
+  kind: "investigation" | "verification";
+  requires_owner_approval: boolean;
+}
+export interface DesktopDraftStatusV1 {
+  draft_id: string;
+  state: "unverified" | "dismissed";
+}
 export interface ScannerDatabaseManifestV1 {
   schema_version: "1.0";
   created_at: string;

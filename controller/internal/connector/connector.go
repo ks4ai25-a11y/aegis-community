@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
-// Package connector issues owner-scoped, read-only bearer credentials for local
+// Package connector issues owner-scoped bearer credentials for local
 // assistants (for example an MCP bridge started by a desktop AI app). A credential
-// can only read defence data through an explicit route allowlist; it can never
+// can read defence data and return an explicitly approved draft; it can never
 // change policy, start jobs or read scanner/worker channels.
 package connector
 
@@ -28,10 +28,11 @@ var (
 	tokenShape  = regexp.MustCompile(`^aegis_ct_[0-9a-f]{64}$`)
 	nameShape   = regexp.MustCompile(`^[A-Za-z0-9 ._()-]{1,64}$`)
 	id          = `[A-Za-z0-9_.:-]{1,160}`
-	// Read-only routes a connector may call. Anything else is refused before routing.
+	// Read routes a connector may call. Anything else is refused before routing.
 	allowed = []*regexp.Regexp{
 		regexp.MustCompile(`^/system/status$`),
 		regexp.MustCompile(`^/desktop/handoffs/[0-9a-f]{64}$`),
+		regexp.MustCompile(`^/desktop/drafts/[0-9a-f-]{36}$`),
 		regexp.MustCompile(`^/sites$`),
 		regexp.MustCompile(`^/sites/` + id + `/(incidents|endpoints|policy|events)$`),
 		regexp.MustCompile(`^/incidents/` + id + `$`),
@@ -66,6 +67,9 @@ func (r *Registry) now() time.Time {
 
 // Allowed reports whether a connector may call method+path (API-relative path).
 func Allowed(method, path string) bool {
+	if method == "POST" && path == "/desktop/drafts" {
+		return true
+	}
 	if method != "GET" {
 		return false
 	}

@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/DesktopDraftInputV1.json",
+  "title": "DesktopDraftInputV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "incident_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]{1,160}$"
+    },
+    "handoff_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "claim": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "source_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "minItems": 1,
+            "maxItems": 8,
+            "uniqueItems": true
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "observation",
+              "hypothesis"
+            ]
+          }
+        },
+        "required": [
+          "claim",
+          "source_ids",
+          "kind"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 10
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 320
+      },
+      "minItems": 1,
+      "maxItems": 8
+    },
+    "proposed_steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 400
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "investigation",
+              "verification"
+            ]
+          },
+          "requires_owner_approval": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "text",
+          "kind",
+          "requires_owner_approval"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "verification"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "requires_owner_approval": {
+                  "const": true
+                }
+              }
+            }
+          }
+        ]
+      },
+      "maxItems": 8
+    },
+    "client_label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{16,128}$"
+    }
+  },
+  "required": [
+    "incident_id",
+    "handoff_id",
+    "claims",
+    "limitations",
+    "proposed_steps",
+    "client_label"
+  ]
+}

@@ -1339,6 +1339,12 @@
       "DatabaseSnapshotReceiptV1": {
         "$ref": "schemas/DatabaseSnapshotReceiptV1.json"
       },
+      "DesktopDraftInputV1": {
+        "$ref": "schemas/DesktopDraftInputV1.json"
+      },
+      "DesktopDraftStatusV1": {
+        "$ref": "schemas/DesktopDraftStatusV1.json"
+      },
       "EmptyObjectV1": {
         "$ref": "schemas/EmptyObjectV1.json"
       },

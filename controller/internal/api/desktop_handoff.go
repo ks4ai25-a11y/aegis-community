@@ -28,10 +28,11 @@ func (s *Server) desktopHandoff(w http.ResponseWriter, r *http.Request, path, ow
 		output(w, http.StatusOK, p)
 	case session != "" && path == base && r.Method == http.MethodPost:
 		var in struct {
-			Incident  string `json:"incident_id"`
-			Connector string `json:"connector_id"`
-			Digest    string `json:"preview_digest"`
-			Consent   bool   `json:"approve_redacted_export"`
+			Incident   string `json:"incident_id"`
+			Connector  string `json:"connector_id"`
+			Digest     string `json:"preview_digest"`
+			Consent    bool   `json:"approve_redacted_export"`
+			AllowDraft bool   `json:"allow_analysis_draft"`
 		}
 		if auth.Decode(r, &in) != nil || in.Incident == "" || in.Connector == "" || in.Digest == "" {
 			fail(w, http.StatusBadRequest, "VALIDATION_FAILED", "Select an incident preview and a connector")
@@ -41,7 +42,7 @@ func (s *Server) desktopHandoff(w http.ResponseWriter, r *http.Request, path, ow
 			fail(w, http.StatusForbidden, "CONSENT_REQUIRED", "Approve the redacted incident preview before sharing")
 			return
 		}
-		h, err := s.Connectors.ApproveHandoff(ctx, owner, in.Connector, in.Incident, in.Digest)
+		h, err := s.Connectors.ApproveHandoff(ctx, owner, in.Connector, in.Incident, in.Digest, in.AllowDraft)
 		if err != nil {
 			handoffError(w, err)
 			return

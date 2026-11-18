@@ -173,6 +173,87 @@ func TestConnectorCredentialIsReadOnlyAndRevocable(t *testing.T) {
 			t.Fatalf("expired handoff delivered: %d", code)
 		}
 		server.Connectors.Now = nil
+
+		source := p["bundle"].(map[string]any)["observations"].([]any)[0].(map[string]any)["evidence_id"].(string)
+		draft := map[string]any{
+			"incident_id": "inc-1", "handoff_id": strings.TrimPrefix(path, "/desktop/handoffs/"),
+			"client_label": "Synthetic app", "limitations": []string{"Fixture evidence only."}, "proposed_steps": []any{},
+		}
+		draft["claims"] = []any{map[string]any{"claim": "One retained gateway record was blocked.", "kind": "observation", "source_ids": []string{source}}}
+		submit := func(headers map[string]string, ownerSession bool) (int, map[string]any) {
+			t.Helper()
+			return send("POST", "/desktop/drafts", draft, headers, ownerSession)
+		}
+		primary := map[string]string{"Authorization": bearer["Authorization"], "Idempotency-Key": "fixture-draft-key-001"}
+		if code, _ := submit(primary, false); code != 403 {
+			t.Fatalf("draft accepted without distinct consent: %d", code)
+		}
+		in["allow_analysis_draft"] = true
+		allowed := create()
+		draft["handoff_id"] = strings.TrimPrefix(allowed, "/desktop/handoffs/")
+		if code, _ := submit(primary, false); code != 403 {
+			t.Fatalf("draft accepted before handoff delivery: %d", code)
+		}
+		if code, _ := send("GET", allowed, nil, bearer, false); code != 200 {
+			t.Fatalf("draft handoff delivery: %d", code)
+		}
+		if code, _ := submit(nil, true); code != 403 {
+			t.Fatalf("owner impersonated connector: %d", code)
+		}
+		wrong := map[string]string{"Authorization": "Bearer " + other["token"].(string), "Idempotency-Key": "fixture-draft-key-001"}
+		if code, _ := submit(wrong, false); code != 403 {
+			t.Fatalf("wrong connector submitted draft: %d", code)
+		}
+		draft["claims"] = []any{map[string]any{"claim": "One retained record.", "kind": "observation", "source_ids": []string{"sha256:" + strings.Repeat("f", 64)}}}
+		if code, v := submit(primary, false); code != 400 || v["error"].(map[string]any)["code"] != "SOURCE_ID_INVALID" {
+			t.Fatalf("foreign evidence accepted: %d", code)
+		}
+		draft["claims"] = []any{map[string]any{"claim": "One retained gateway record was blocked.", "kind": "observation", "source_ids": []string{source}}}
+		code, created := submit(primary, false)
+		if code != 201 || created["state"] != "unverified" {
+			t.Fatalf("draft submission: %d %v", code, created)
+		}
+		did := created["draft_id"].(string)
+		if code, retry := submit(primary, false); code != 200 || retry["draft_id"] != did {
+			t.Fatalf("draft replay: %d", code)
+		}
+		draft["client_label"] = "Changed label"
+		if code, _ := submit(primary, false); code != 409 {
+			t.Fatalf("changed replay: %d", code)
+		}
+		draft["client_label"] = "Synthetic app"
+		if code, _ := submit(map[string]string{"Authorization": bearer["Authorization"], "Idempotency-Key": "fixture-draft-key-002"}, false); code != 409 {
+			t.Fatalf("second draft per handoff: %d", code)
+		}
+		statusPath := "/desktop/drafts/" + did
+		if code, v := send("GET", statusPath, nil, bearer, false); code != 200 || len(v) != 2 || v["state"] != "unverified" {
+			t.Fatalf("draft status scope: %d", code)
+		}
+		if code, _ := send("GET", statusPath, nil, wrong, false); code != 404 {
+			t.Fatalf("wrong connector read draft status: %d", code)
+		}
+		if code, _ := send("GET", "/desktop/drafts?incident_id=inc-1", nil, bearer, false); code != 403 {
+			t.Fatalf("connector enumerated drafts: %d", code)
+		}
+		code, ownerDrafts := send("GET", "/desktop/drafts?incident_id=inc-1", nil, nil, true)
+		if code != 200 || len(ownerDrafts["items"].([]any)) != 1 {
+			t.Fatalf("owner review list: %d", code)
+		}
+		if code, _ := send("POST", statusPath+"/dismiss", map[string]any{}, bearer, true); code != 403 {
+			t.Fatalf("connector dismissed draft: %d", code)
+		}
+		if code, _ := send("POST", statusPath+"/dismiss", map[string]any{}, nil, true); code != 200 {
+			t.Fatalf("owner dismissal: %d", code)
+		}
+		if code, v := send("GET", statusPath, nil, bearer, false); code != 200 || v["state"] != "dismissed" {
+			t.Fatalf("dismissal not observable: %d", code)
+		}
+		if code, _ := send("POST", allowed+"/revoke", map[string]any{}, nil, true); code != 200 {
+			t.Fatalf("draft handoff withdrawal: %d", code)
+		}
+		if code, _ := submit(primary, false); code != 403 {
+			t.Fatalf("withdrawn handoff replayed: %d", code)
+		}
 	})
 	if code, _ := send("POST", "/connectors/"+id+"/revoke", map[string]any{}, nil, true); code != 200 {
 		t.Fatal("revoke", code)

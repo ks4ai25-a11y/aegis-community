@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 // aegis-mcp is a local stdio MCP server that a desktop AI application starts. It
-// exposes read-only Aegis tools backed by an owner-issued connector credential.
+// reads Aegis evidence and returns owner-approved drafts using a connector credential.
 // It loads no model, stores nothing, and cannot change policy: the controller
 // refuses every non-allowlisted route for connector credentials.
 package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -76,6 +77,11 @@ var tools = []tool{
 			return "", errors.New("handoff_id must be an approved handoff identifier")
 		}
 		return "/desktop/handoffs/" + id, nil
+	}},
+
+	{"aegis_get_draft_status", "Read only the review state of this connector's submitted draft.", arg("draft_id", "Draft ID returned after submission"), nil, func(a map[string]string) (string, error) {
+		id, err := idArg(a, "draft_id")
+		return "/desktop/drafts/" + id, err
 	}},
 
 	{"aegis_list_endpoints", "Observed route templates for one site. Not proof of authorization weaknesses.", arg("site_id", "Site ID"), nil, func(a map[string]string) (string, error) {
@@ -152,17 +158,25 @@ func connectorHTTPClient() *http.Client {
 }
 
 func (c *client) get(path string) (string, error) {
-	req, e := http.NewRequest("GET", c.base+"/api/v1"+path, nil)
+	return c.request(http.MethodGet, path, nil, "")
+}
+
+func (c *client) request(method, path string, body []byte, key string) (string, error) {
+	req, e := http.NewRequest(method, c.base+"/api/v1"+path, bytes.NewReader(body))
 	if e != nil {
 		return "", e
 	}
 	req.Header.Set("Authorization", "Bearer "+c.token)
+	if method == http.MethodPost {
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Idempotency-Key", key)
+	}
 	resp, e := c.http.Do(req)
 	if e != nil {
 		return "", errors.New("Aegis console unreachable")
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK && !(method == http.MethodPost && resp.StatusCode == http.StatusCreated) {
 		return "", fmt.Errorf("Aegis returned HTTP %d", resp.StatusCode)
 	}
 	b, e := io.ReadAll(io.LimitReader(resp.Body, responseLimit+1))
@@ -202,17 +216,24 @@ func handle(c *client, req request) map[string]any {
 		if p.Version != "" && len(p.Version) <= 32 {
 			v = p.Version
 		}
-		return result(req.ID, map[string]any{"protocolVersion": v, "capabilities": map[string]any{"tools": map[string]any{"listChanged": false}}, "serverInfo": map[string]any{"name": "aegis-community", "version": "0.1.0-alpha.1"}, "instructions": "Read-only access to an Aegis Community installation. Tools never change gateway policy."})
+		return result(req.ID, map[string]any{"protocolVersion": v, "capabilities": map[string]any{"tools": map[string]any{"listChanged": false}}, "serverInfo": map[string]any{"name": "aegis-community", "version": "0.1.0-alpha.1"}, "instructions": "Read evidence and return owner-approved draft analysis. Tools never change gateway policy."})
 	case "ping":
 		return result(req.ID, map[string]any{})
 	case "tools/list":
-		return result(req.ID, map[string]any{"tools": tools})
+		return result(req.ID, map[string]any{"tools": append(append([]tool(nil), tools...), draftTool)})
 	case "tools/call":
 		var p struct {
-			Name string            `json:"name"`
-			Args map[string]string `json:"arguments"`
+			Name string          `json:"name"`
+			Args json.RawMessage `json:"arguments"`
 		}
 		if json.Unmarshal(req.Params, &p) != nil {
+			return rpcError(req.ID, -32602, "invalid tool arguments")
+		}
+		if p.Name == draftTool.Name {
+			return submitDraftTool(c, req.ID, p.Args)
+		}
+		var args map[string]string
+		if len(p.Args) > 0 && json.Unmarshal(p.Args, &args) != nil {
 			return rpcError(req.ID, -32602, "invalid tool arguments")
 		}
 		for _, t := range tools {
@@ -220,10 +241,10 @@ func handle(c *client, req request) map[string]any {
 				continue
 			}
 			required, _ := t.Schema["required"].([]string)
-			if len(p.Args) != len(required) {
+			if len(args) != len(required) {
 				return rpcError(req.ID, -32602, "invalid tool arguments")
 			}
-			path, e := t.path(p.Args)
+			path, e := t.path(args)
 			if e == nil && c == nil {
 				e = errors.New("aegis-mcp is not configured")
 			}

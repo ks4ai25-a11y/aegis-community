@@ -61,4 +61,10 @@ Revoke a connection in the console at any time; the next tool call fails with 40
 
 Open an incident and select **Preview what will be shared**. The preview contains the incident ID, severity, opening hour, and up to 20 retained observations with opaque evidence IDs, decisions and numeric rule IDs. Choose the intended active connector, then select **Approve once** and paste the generated investigation request into that desktop app. The selected connector can retrieve the approved snapshot once with `aegis_get_handoff` before the earlier of its credential expiry and five minutes. **Revoke handoff** prevents further use of the approval. A lost retrieval response requires a fresh approval.
 
-The owner preview, approval, delivery and revocation use the controller. Approval, delivery and revocation are audited. Restoring a backup revokes existing approvals and connector credentials. The optional handoff uses the existing read-only connector. That credential continues to have its ordinary read permissions as described above. Scoped pairing and assistant draft submission are separate v4 work.
+The owner preview, approval, delivery and revocation use the controller. Approval, delivery and revocation are audited. Restoring a backup revokes existing approvals and connector credentials. The optional handoff uses the existing connector and its ordinary read permissions. Draft submission requires separate consent on each handoff. Guided pairing remains separate v4 work.
+
+### Receive and review an investigation draft
+
+When approving a handoff, select **Allow one investigation draft in return** if you want the selected connector to submit a report. It must retrieve the approved bundle first and submit before the original expiry. The connector calls `aegis_submit_draft_analysis` with an idempotency key and the evidence IDs from the bundle. Repeating the same submission during that window returns the retained draft. A changed submission or an attempt to create another draft for that handoff is refused.
+
+Use **Check for drafts** on the incident to review the report, its supporting evidence IDs, limitations and suggestions. A client label is self-reported. Every report starts unverified. **Dismiss draft** records your review decision. The assistant can read its own draft's review state using `aegis_get_draft_status`.

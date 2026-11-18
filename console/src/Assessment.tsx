@@ -122,7 +122,7 @@ function Connectors() {
   useEffect(() => { load(); }, []);
   const config = issued ? JSON.stringify({mcpServers: {aegis: {command: '/path/to/aegis-mcp', env: {AEGIS_URL: location.origin, AEGIS_CONNECTOR_TOKEN_FILE: '/path/to/aegis-connector-token'}}}}, null, 2) : '';
   return <section className="card">
-    <div className="card-heading"><h2>Assistant connections (MCP)</h2><span className="badge">Read-only</span></div>
+    <div className="card-heading"><h2>Assistant connections (MCP)</h2><span className="badge">Evidence and drafts</span></div>
     <p className="muted">Let a desktop AI app (Claude, Codex, Kimi or any MCP client) read sites, incidents, assessments and proposals through the local <span className="mono">aegis-mcp</span> bridge. A connection can never change policy, start jobs or read scanner channels. The app uses its own subscription; Aegis never receives its credentials.</p>
     {error && <div role="alert" className="alert error">{error}</div>}
     <div className="form-grid">

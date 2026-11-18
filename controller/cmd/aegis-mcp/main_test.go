@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 )
 
@@ -37,11 +38,11 @@ func TestToolsAreReadOnlyAndArgumentsValidated(t *testing.T) {
 		t.Fatal(init)
 	}
 	list := call(t, c, "tools/list", map[string]any{})["result"].(map[string]any)["tools"].([]any)
-	if len(list) != len(tools) {
+	if len(list) != len(tools)+1 {
 		t.Fatal(list)
 	}
 	for _, x := range list {
-		if x.(map[string]any)["annotations"].(map[string]any)["readOnlyHint"] != true {
+		if got := x.(map[string]any); got["annotations"].(map[string]any)["readOnlyHint"] != (got["name"] != draftTool.Name) {
 			t.Fatal("tool not marked read-only", x)
 		}
 	}
@@ -151,5 +152,34 @@ func TestConnectorUsesDirectTransportAndRefusesRedirect(t *testing.T) {
 	c := &client{origin.URL, "fixture-token", hc}
 	if _, err := c.get("/system/status"); err == nil || err.Error() != "Aegis returned HTTP 307" {
 		t.Fatalf("unexpected redirect outcome: %v", err)
+	}
+}
+
+func TestDraftToolPostsOnlyToDraftEndpointWithRetryKey(t *testing.T) {
+	const key = "fixture-draft-key-001"
+	var calls atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		if r.Method != http.MethodPost || r.URL.Path != "/api/v1/desktop/drafts" ||
+			r.Header.Get("Idempotency-Key") != key || r.Header.Get("Content-Type") != "application/json" {
+			t.Error("unexpected draft transport")
+		}
+		var body map[string]any
+		if json.NewDecoder(r.Body).Decode(&body) != nil || body["idempotency_key"] != key || body["incident_id"] != "incident-1" {
+			t.Error("draft body lost its immutable inputs")
+		}
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{"draft_id":"fixture","state":"unverified"}`))
+	}))
+	defer srv.Close()
+	c := &client{srv.URL, "fixture-token", connectorHTTPClient()}
+	defer c.http.CloseIdleConnections()
+	good := call(t, c, "tools/call", map[string]any{"name": draftTool.Name, "arguments": map[string]any{"idempotency_key": key, "incident_id": "incident-1"}})
+	if good["error"] != nil || good["result"].(map[string]any)["isError"] == true {
+		t.Fatal("draft submission failed")
+	}
+	bad := call(t, c, "tools/call", map[string]any{"name": draftTool.Name, "arguments": map[string]any{"idempotency_key": "invalid"}})
+	if bad["error"] == nil || calls.Load() != 1 {
+		t.Fatal("invalid draft arguments reached transport")
 	}
 }

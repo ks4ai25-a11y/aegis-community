@@ -152,6 +152,7 @@ test('the research planner shows catalogue hypotheses and rejected model suggest
 test('desktop handoff previews before approval and can be revoked', async ({page}) => {
   const incident = {incident_id: 'inc-share', summary: 'Review the synthetic incident', opened_at: '2026-10-16T12:00:00Z', state: 'open', severity: 'medium', confidence: 'high', synthetic: true, evidence: []};
   const handoff = 'd'.repeat(64);
+  let draftState = 'unverified';
   const calls = await mock(page, (path, method) => {
     if (path === '/sites/site_demo/incidents') return {items: [incident]};
     if (path === '/incidents/inc-share') return incident;
@@ -162,6 +163,12 @@ test('desktop handoff previews before approval and can be revoked', async ({page
     }};
     if (path === '/desktop/handoffs' && method === 'POST') return {status: 201, json: {handoff_id: handoff, expires_unix: 1900000000}};
     if (path === '/desktop/handoffs/' + handoff + '/revoke') return {state: 'revoked'};
+    if (path === '/desktop/drafts') return {items: [{draft_id: 'draft-1', state: draftState,
+      created_unix: 1900000000, connector_id: 'device-1', approved_bundle_digest: digest,
+      document: {client_label: 'Fixture desktop', claims: [{kind: 'hypothesis', claim: '<img src=canary>', source_ids: [digest]}],
+        limitations: ['Only one observation was reviewed.'], proposed_steps: []},
+    }]};
+    if (path === '/desktop/drafts/draft-1/dismiss') {draftState = 'dismissed'; return {state: draftState};}
   });
   await page.goto('/');
   await page.getByRole('button', {name: 'Incidents', exact: true}).click();
@@ -173,6 +180,9 @@ test('desktop handoff previews before approval and can be revoked', async ({page
   await expect(page.getByRole('option', {name: /Revoked device/})).toHaveCount(0);
   expect(calls.some(c => c.path === '/desktop/handoffs')).toBe(false);
   await page.getByLabel('Desktop connector').selectOption('device-1');
+  const draftConsent = page.getByRole('checkbox', {name: 'Allow one investigation draft in return'});
+  await expect(draftConsent).not.toBeChecked();
+  await draftConsent.check();
   await approve.click();
   await expect(page.getByLabel('Investigation request')).toHaveValue(new RegExp(handoff));
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -185,8 +195,15 @@ test('desktop handoff previews before approval and can be revoked', async ({page
 
   const approved = calls.find(c => c.path === '/desktop/handoffs')!;
   expect(approved.headers['x-csrf-token']).toBe('csrf');
-  expect(approved.body).toEqual({incident_id: 'inc-share', connector_id: 'device-1', preview_digest: digest, approve_redacted_export: true});
+  expect(approved.body).toEqual({incident_id: 'inc-share', connector_id: 'device-1', preview_digest: digest, approve_redacted_export: true, allow_analysis_draft: true});
   await page.getByRole('button', {name: 'Revoke handoff'}).click();
   await expect(page.getByRole('region', {name: 'Investigate with a desktop assistant'}).getByRole('status')).toHaveText('The handoff was revoked.');
   await expect(page.getByLabel('Investigation request')).toHaveCount(0);
+  await page.getByRole('button', {name: 'Check for drafts'}).click();
+  await expect(page.getByText('Unverified draft', {exact: true})).toBeVisible();
+  await expect(page.getByText('<img src=canary>', {exact: true})).toBeVisible();
+  await expect(page.locator('img[src=canary]')).toHaveCount(0);
+  await page.getByRole('button', {name: 'Dismiss draft'}).click();
+  await expect(page.getByText('Draft dismissed.')).toBeVisible();
+  await expect(page.getByText('Dismissed', {exact: true})).toBeVisible();
 });

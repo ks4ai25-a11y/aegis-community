@@ -194,8 +194,29 @@ WHEN OLD.id!=NEW.id OR OLD.owner!=NEW.owner OR OLD.connector!=NEW.connector OR O
 BEGIN SELECT RAISE(ABORT,'handoff scope is immutable'); END;
 `
 
+const desktopDraftSchema = `
+ALTER TABLE desktop_handoffs ADD COLUMN allow_draft INTEGER NOT NULL DEFAULT 0 CHECK(allow_draft IN (0,1));
+CREATE TRIGGER desktop_handoff_draft_consent_immutable BEFORE UPDATE OF allow_draft ON desktop_handoffs
+WHEN NEW.allow_draft != OLD.allow_draft
+BEGIN SELECT RAISE(ABORT,'handoff draft consent is immutable'); END;
+CREATE TABLE desktop_analysis_drafts(
+ id TEXT PRIMARY KEY, owner TEXT NOT NULL REFERENCES owners(id),
+ connector TEXT NOT NULL REFERENCES connector_credentials(id), incident TEXT NOT NULL,
+ handoff TEXT NOT NULL UNIQUE, idempotency_key TEXT NOT NULL, document TEXT NOT NULL CHECK(length(document) BETWEEN 2 AND 32768),
+ content_digest TEXT NOT NULL, approved_bundle_digest TEXT NOT NULL, created_at INTEGER NOT NULL,
+ state TEXT NOT NULL CHECK(state IN ('unverified','dismissed')),
+ UNIQUE(connector,idempotency_key)
+);
+CREATE INDEX desktop_drafts_incident ON desktop_analysis_drafts(owner,incident,created_at DESC,id DESC);
+CREATE TRIGGER desktop_draft_immutable BEFORE UPDATE ON desktop_analysis_drafts
+WHEN NEW.id!=OLD.id OR NEW.owner!=OLD.owner OR NEW.connector!=OLD.connector OR NEW.incident!=OLD.incident OR NEW.handoff!=OLD.handoff
+ OR NEW.idempotency_key!=OLD.idempotency_key OR NEW.document!=OLD.document OR NEW.content_digest!=OLD.content_digest
+ OR NEW.approved_bundle_digest!=OLD.approved_bundle_digest OR NEW.created_at!=OLD.created_at OR (OLD.state='dismissed' AND NEW.state!='dismissed')
+BEGIN SELECT RAISE(ABORT,'draft provenance is immutable'); END;
+`
+
 func migrationBodies() []string {
-	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema, scannerCleanupConfirmationSchema, scannerReleaseGuardSchema, scannerMutationRepairSchema, desktopHandoffSchema}
+	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema, scannerCleanupConfirmationSchema, scannerReleaseGuardSchema, scannerMutationRepairSchema, desktopHandoffSchema, desktopDraftSchema}
 }
 func migrate(db *sql.DB) error {
 	versions := migrationBodies()

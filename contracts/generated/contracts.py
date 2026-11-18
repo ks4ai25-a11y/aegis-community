@@ -2121,6 +2121,25 @@ class RecoveryOperationReceiptV1(TypedDict):
     application_restore_verified: bool
     publisher_signature_verified: bool
     restored_database_digest: NotRequired[str]
+class DesktopDraftInputV1(TypedDict):
+    incident_id: str
+    handoff_id: str
+    claims: list[DesktopDraftInputV1ClaimsItem]
+    limitations: list[str]
+    proposed_steps: list[DesktopDraftInputV1ProposedStepsItem]
+    client_label: str
+    idempotency_key: NotRequired[str]
+class DesktopDraftInputV1ClaimsItem(TypedDict):
+    claim: str
+    source_ids: list[str]
+    kind: str
+class DesktopDraftInputV1ProposedStepsItem(TypedDict):
+    text: str
+    kind: str
+    requires_owner_approval: bool
+class DesktopDraftStatusV1(TypedDict):
+    draft_id: str
+    state: str
 class ScannerDatabaseManifestV1(TypedDict):
     schema_version: str
     created_at: str

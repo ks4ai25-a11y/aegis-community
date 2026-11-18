@@ -180,10 +180,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	var actor, session, connection string
 	var e error
 	if h := r.Header.Get("Authorization"); h != "" {
-		// Connector credentials are read-only and limited to an explicit allowlist,
+		// Connector credentials are limited to an explicit allowlist,
 		// checked before routing so no other handler is reachable with them.
 		if s.Connectors == nil || !connector.Allowed(r.Method, path) {
-			fail(w, 403, "FORBIDDEN", "Connector credentials can only read defence data")
+			fail(w, 403, "FORBIDDEN", "Connector credential cannot access this endpoint")
 			return
 		}
 		if actor, connection, e = s.Connectors.Authenticate(h); e != nil {
@@ -267,6 +267,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		default:
 			fail(w, 404, "RESOURCE_NOT_FOUND", "Endpoint not available in this alpha")
 		}
+	case path == "/desktop/drafts" || strings.HasPrefix(path, "/desktop/drafts/"):
+		s.desktopDraft(w, r, path, actor, session, connection)
 	case path == "/desktop/handoff-preview" || path == "/desktop/handoffs" || strings.HasPrefix(path, "/desktop/handoffs/"):
 		s.desktopHandoff(w, r, path, actor, session, connection)
 	case path == "/connectors" && r.Method == "GET" && session != "":

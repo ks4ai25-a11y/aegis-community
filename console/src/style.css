@@ -443,3 +443,10 @@ details summary{cursor:pointer}
 
 .workspace-view {animation:handoff-reveal 160ms ease-out both;}
 .desktop-handoff>.handoff-preview-button {margin-top:0;}
+.handoff-controls .handoff-draft-choice {flex:1 0 100%;}
+.desktop-draft {overflow-wrap:anywhere;}
+.desktop-draft .button {margin-top:14px;}
+.desktop-draft time {color:var(--muted); font-size:12px;}
+.draft-claim {padding:12px 0; border-top:1px solid var(--border);}
+.draft-claim p {margin:5px 0;}
+.draft-claim ul {margin-bottom:0;}

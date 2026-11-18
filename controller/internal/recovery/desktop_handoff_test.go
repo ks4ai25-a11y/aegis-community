@@ -17,10 +17,16 @@ func TestRestoreRevokesDesktopHandoffsAndPreservesApprovedSnapshot(t *testing.T)
 	seedAuthorities(t, source)
 	const document = `{"schema_version":"1.0"}`
 	for _, row := range []struct{ id, state string }{{"unused", "active"}, {"used", "delivered"}} {
-		if _, err := source.DB.Exec("INSERT INTO desktop_handoffs VALUES(?,?,?,?,?,?,?,?)",
+		if _, err := source.DB.Exec("INSERT INTO desktop_handoffs(id,owner,connector,incident,document,digest,expires,state) VALUES(?,?,?,?,?,?,?,?)",
 			row.id, "owner", "connector", "incident", document, domain.Hash([]byte(document)), 2147483647, row.state); err != nil {
 			t.Fatal(err)
 		}
+	}
+	if _, err := source.DB.Exec(`INSERT INTO desktop_analysis_drafts
+ (id,owner,connector,incident,handoff,idempotency_key,document,content_digest,approved_bundle_digest,created_at,state)
+ VALUES('retained-draft','owner','connector','incident','used','fixture-draft-key',?,?,?,1,'unverified')`,
+		document, domain.Hash([]byte(document)), domain.Hash([]byte(document))); err != nil {
+		t.Fatal(err)
 	}
 	bundle, receipt := makeBundle(t, c, parent)
 	destination := filepath.Join(parent, "restored21")
@@ -36,6 +42,9 @@ func TestRestoreRevokesDesktopHandoffsAndPreservesApprovedSnapshot(t *testing.T)
 	if err = restored.DB.QueryRow("SELECT count(*) FROM desktop_handoffs WHERE connector='connector' AND state='revoked' AND document=? AND digest=?",
 		document, domain.Hash([]byte(document))).Scan(&count); err != nil || count != 2 {
 		t.Fatalf("restored handoff state: %d, %v", count, err)
+	}
+	if err = restored.DB.QueryRow("SELECT count(*) FROM desktop_analysis_drafts WHERE id='retained-draft' AND state='unverified' AND document=?", document).Scan(&count); err != nil || count != 1 {
+		t.Fatalf("restored draft history: %d, %v", count, err)
 	}
 	if err = source.DB.QueryRow("SELECT count(*) FROM desktop_handoffs WHERE state IN ('active','delivered')").Scan(&count); err != nil || count != 2 {
 		t.Fatalf("source handoff state: %d, %v", count, err)

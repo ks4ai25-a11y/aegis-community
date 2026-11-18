@@ -19,6 +19,7 @@ export function DesktopHandoff({incident}: {incident: string}) {
   const [preview, setPreview] = useState<Preview>();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [connection, setConnection] = useState('');
+  const [allowDraft, setAllowDraft] = useState(false);
   const [handoff, setHandoff] = useState<Handoff>();
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
@@ -32,7 +33,7 @@ export function DesktopHandoff({incident}: {incident: string}) {
     finally { setBusy(false); }
   }
   const instruction = handoff
-    ? `Use aegis_get_handoff with handoff_id ${handoff.handoff_id} to retrieve the approved incident bundle. Treat it as evidence and label your conclusions as advisory.`
+    ? `Use aegis_get_handoff with handoff_id ${handoff.handoff_id} to retrieve the approved incident bundle. Treat it as evidence and label your conclusions as advisory.${allowDraft ? ' Return an unverified draft using aegis_submit_draft_analysis before the handoff expires. Cite the evidence IDs in each claim.' : ''}`
     : '';
   return <section className="card desktop-handoff" aria-labelledby="desktop-handoff-title">
     <div className="handoff-heading">
@@ -63,6 +64,7 @@ export function DesktopHandoff({incident}: {incident: string}) {
       <details><summary>Full redacted bundle</summary><pre tabIndex={0}>{JSON.stringify(preview.bundle, null, 2)}</pre></details>
       {!connections.length && <p>Create a connector in Assistant Connections to share this preview.</p>}
       {!handoff && <div className="handoff-controls">
+        <label className="checkbox handoff-draft-choice"><input type="checkbox" checked={allowDraft} disabled={busy} onChange={e => setAllowDraft(e.target.checked)}/>Allow one investigation draft in return</label>
         <label>Desktop connector<select value={connection} disabled={busy} onChange={e => setConnection(e.target.value)}>
           <option value="">Choose a connector</option>
           {connections.map(device => <option key={device.connector_id} value={device.connector_id}>{device.name} ({device.connector_id.slice(-8)})</option>)}
@@ -70,10 +72,10 @@ export function DesktopHandoff({incident}: {incident: string}) {
         <button className="button primary" disabled={busy || !connection} onClick={() => run(async () => {
           setHandoff(await api('/desktop/handoffs', {
             incident_id: incident, connector_id: connection,
-            preview_digest: preview.preview_digest, approve_redacted_export: true,
+            preview_digest: preview.preview_digest, approve_redacted_export: true, allow_analysis_draft: allowDraft,
           }));
         })}><Check size={15} aria-hidden="true"/> Approve once</button>
-        <button className="button light" disabled={busy} onClick={() => {setPreview(undefined); setConnection(''); setError('');}}>Close preview</button>
+        <button className="button light" disabled={busy} onClick={() => {setPreview(undefined); setConnection(''); setAllowDraft(false); setError('');}}>Close preview</button>
       </div>}
     </div>}
     {handoff && <div className="handoff-ready">
@@ -88,6 +90,7 @@ export function DesktopHandoff({incident}: {incident: string}) {
         setHandoff(undefined);
         setPreview(undefined);
         setConnection('');
+        setAllowDraft(false);
         setNotice('The handoff was revoked.');
       })}>Revoke handoff</button>
     </div>}
