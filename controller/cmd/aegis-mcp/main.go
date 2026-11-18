@@ -310,11 +310,21 @@ func (e httpStatusError) Error() string { return fmt.Sprintf("Aegis returned HTT
 
 func main() {
 	if len(os.Args) > 1 {
-		if len(os.Args) != 2 || os.Args[1] != "pair" {
-			fmt.Fprintln(os.Stderr, "usage: aegis-mcp [pair]")
+		if len(os.Args) != 2 {
+			fmt.Fprintln(os.Stderr, "usage: aegis-mcp [pair|renew]")
 			os.Exit(2)
 		}
-		if err := pair(os.Stdin, os.Stderr); err != nil {
+		var err error
+		switch os.Args[1] {
+		case "pair":
+			err = pair(os.Stdin, os.Stderr)
+		case "renew":
+			err = renew(os.Stderr)
+		default:
+			fmt.Fprintln(os.Stderr, "usage: aegis-mcp [pair|renew]")
+			os.Exit(2)
+		}
+		if err != nil {
 			fmt.Fprintln(os.Stderr, "aegis-mcp:", err)
 			os.Exit(1)
 		}

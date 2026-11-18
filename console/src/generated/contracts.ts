@@ -2395,6 +2395,17 @@ export interface DesktopDraftStatusV1 {
   draft_id: string;
   state: "unverified" | "dismissed";
 }
+export interface DesktopRenewalRequestV1 {
+  credential_digest: string;
+}
+export interface DesktopRenewalApprovalV1 {
+  connector_id: string;
+  approval_expires_unix: number;
+}
+export interface DesktopRenewalReceiptV1 {
+  connector_id: string;
+  expires_unix: number;
+}
 export interface ScannerDatabaseManifestV1 {
   schema_version: "1.0";
   created_at: string;

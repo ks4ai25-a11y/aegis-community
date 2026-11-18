@@ -51,3 +51,9 @@ Paired token hashes are domain separated and require a corresponding immutable s
 ## Compiled bridge acceptance
 
 `make desktop-verify` runs the compiled stdio bridge against an isolated real controller and migrated SQLite database. It requires owner fingerprint confirmation, a scoped authenticated status check, exact single delivery, idempotent draft submission with the approved bundle digest, owner dismissal, and denial on the still-running bridge after revocation. It also verifies protocol negotiation and admission of tool calls only after initialization. The source workflow runs this gate before browser checks. This establishes executable interoperability with the controller. App-specific GUI acceptance remains separate.
+
+## Owner-approved renewal (migration 024)
+
+An authenticated owner may approve rotation for an active paired credential. The approval is pinned to that credential and expires in at most five minutes. The bridge syncs a private replacement file before submitting its hash. An audited transaction swaps the token and expiry under the existing connector ID and scope. The old token can only recover the matching receipt inside that approval window. Already revoked credentials and retired hashes cannot be restored as current tokens.
+
+The bridge installs the replacement atomically after checking that it authenticates. The compiled acceptance journey simulates a lost receipt after commit and verifies that a restarted bridge retains the device identity. Offline restore preserves rotation history, cancels pending grants, and revokes all connectors.

@@ -2140,6 +2140,14 @@ class DesktopDraftInputV1ProposedStepsItem(TypedDict):
 class DesktopDraftStatusV1(TypedDict):
     draft_id: str
     state: str
+class DesktopRenewalRequestV1(TypedDict):
+    credential_digest: str
+class DesktopRenewalApprovalV1(TypedDict):
+    connector_id: str
+    approval_expires_unix: int
+class DesktopRenewalReceiptV1(TypedDict):
+    connector_id: str
+    expires_unix: int
 class ScannerDatabaseManifestV1(TypedDict):
     schema_version: str
     created_at: str

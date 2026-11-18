@@ -231,8 +231,25 @@ CREATE TRIGGER desktop_paired_scope_immutable BEFORE UPDATE ON desktop_paired_co
 BEGIN SELECT RAISE(ABORT,'paired scope is immutable'); END;
 `
 
+const desktopRenewalSchema = `
+CREATE TABLE desktop_renewals(
+ old_hash TEXT PRIMARY KEY, connector TEXT NOT NULL REFERENCES desktop_paired_connectors(id),
+ old_expires INTEGER NOT NULL, approved_until INTEGER NOT NULL,
+ state TEXT NOT NULL CHECK(state IN ('approved','applied','completed','cancelled')),
+ new_hash TEXT NOT NULL DEFAULT '', new_expires INTEGER NOT NULL DEFAULT 0
+);
+DROP TRIGGER connector_credentials_scope_immutable;
+CREATE TRIGGER connector_credentials_scope_immutable BEFORE UPDATE OF id,owner,name,scope,created_at ON connector_credentials
+BEGIN SELECT RAISE(ABORT,'connector identity is immutable'); END;
+CREATE TRIGGER desktop_renewal_guard BEFORE UPDATE OF token_hash,expires ON connector_credentials
+WHEN OLD.state!='active' OR NEW.state!='active' OR NOT EXISTS (
+ SELECT 1 FROM desktop_renewals r WHERE r.connector=OLD.id AND r.old_hash=OLD.token_hash AND r.old_expires=OLD.expires
+  AND r.state='applied' AND r.new_hash=NEW.token_hash AND r.new_expires=NEW.expires)
+BEGIN SELECT RAISE(ABORT,'connector token rotation requires an applied renewal'); END;
+`
+
 func migrationBodies() []string {
-	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema, scannerCleanupConfirmationSchema, scannerReleaseGuardSchema, scannerMutationRepairSchema, desktopHandoffSchema, desktopDraftSchema, desktopPairingSchema}
+	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema, scannerCleanupConfirmationSchema, scannerReleaseGuardSchema, scannerMutationRepairSchema, desktopHandoffSchema, desktopDraftSchema, desktopPairingSchema, desktopRenewalSchema}
 }
 func migrate(db *sql.DB) error {
 	versions := migrationBodies()

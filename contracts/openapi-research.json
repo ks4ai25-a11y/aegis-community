@@ -1345,6 +1345,15 @@
       "DesktopDraftStatusV1": {
         "$ref": "schemas/DesktopDraftStatusV1.json"
       },
+      "DesktopRenewalApprovalV1": {
+        "$ref": "schemas/DesktopRenewalApprovalV1.json"
+      },
+      "DesktopRenewalReceiptV1": {
+        "$ref": "schemas/DesktopRenewalReceiptV1.json"
+      },
+      "DesktopRenewalRequestV1": {
+        "$ref": "schemas/DesktopRenewalRequestV1.json"
+      },
       "EmptyObjectV1": {
         "$ref": "schemas/EmptyObjectV1.json"
       },

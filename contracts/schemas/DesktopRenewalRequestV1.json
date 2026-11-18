@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/DesktopRenewalRequestV1.json",
+  "title": "DesktopRenewalRequestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "credential_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "credential_digest"
+  ]
+}

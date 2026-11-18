@@ -2397,6 +2397,17 @@ type DesktopDraftStatusV1 struct {
 	DraftId string `json:"draft_id"`
 	State   string `json:"state"`
 }
+type DesktopRenewalRequestV1 struct {
+	CredentialDigest string `json:"credential_digest"`
+}
+type DesktopRenewalApprovalV1 struct {
+	ConnectorId         string `json:"connector_id"`
+	ApprovalExpiresUnix int64  `json:"approval_expires_unix"`
+}
+type DesktopRenewalReceiptV1 struct {
+	ConnectorId string `json:"connector_id"`
+	ExpiresUnix int64  `json:"expires_unix"`
+}
 type ScannerDatabaseManifestV1 struct {
 	SchemaVersion  string                                   `json:"schema_version"`
 	CreatedAt      string                                   `json:"created_at"`

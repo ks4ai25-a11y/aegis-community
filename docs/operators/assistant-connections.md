@@ -89,3 +89,9 @@ Use **Check for drafts** on the incident to review the report, its supporting ev
 Run `make desktop-verify` to build the executable and test it against a disposable controller database on an ephemeral loopback port. The test drives the actual stdio process through pairing, owner-approved handoff, evidence-bound draft submission, replay, dismissal, and revocation. It uses fixture data and an isolated test profile. Run the same journey inside each supported desktop application before claiming compatibility for that application.
 
 The stdio bridge supports the `2025-06-18` MCP handshake. It offers that revision if a client requests an unsupported one and waits for the initialized notification before enabling tool calls. For a paired device, the tool list reflects its current controller permissions. See the [MCP lifecycle specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/lifecycle).
+
+### Renew a paired device
+
+While the paired credential is still active, choose **Approve 60-minute renewal** next to the device in **Assistant connections**. Run `aegis-mcp renew` on that device before the earlier of the five-minute approval deadline and the current credential expiry. Use its existing `AEGIS_URL` and `AEGIS_CONNECTOR_TOKEN_FILE` settings. Restart the desktop app session after the bridge confirms renewal. An expired or revoked device requires a new pairing.
+
+The bridge keeps its device ID and permissions and replaces the token. The retired token loses access immediately. If the controller commits but its reply is lost, the bridge checks the saved replacement directly. Run the same command again if the bridge tells you to retry. Keep the adjacent private renewal file until the command finishes so the bridge can recover the same replacement. Remove the stale files only after revoking the device if you decide to abandon renewal.

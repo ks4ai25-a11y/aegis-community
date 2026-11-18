@@ -238,3 +238,20 @@ test('guided pairing requires a fingerprint from the device', async ({page}) => 
   expect(calls.find(c => c.method === 'POST' && c.path === '/desktop/pairing/' + id)?.body).toEqual({approve: true, fingerprint});
   await expect(region.getByText(/Paired\. Open a new desktop assistant session/)).toBeVisible();
 });
+
+test('owner can approve renewal only for an active paired device', async ({page}) => {
+  const paired = {connector_id: 'paired-1', name: 'Work Mac', state: 'active', expires_unix: 1900000000, scope: 'desktop_handoff_v1', last_used_unix: 0};
+  const calls = await mock(page, (path, method) => {
+    if (path === '/connectors') return {items: [paired, {...paired, connector_id: 'expired', name: 'Expired device', state: 'expired'}, {...paired, connector_id: 'manual', name: 'Manual device', scope: 'read_defence_v1'}]};
+    if (path === '/connectors/paired-1/renew' && method === 'POST') return {connector_id: 'paired-1', approval_expires_unix: 1899999900};
+  });
+  await page.goto('/');
+  await page.getByRole('button', {name: 'AI Apps', exact: true}).click();
+  const approve = page.getByRole('button', {name: 'Approve 60-minute renewal'});
+  await expect(approve).toHaveCount(1);
+  await expect(page.getByRole('row', {name: /Work Mac/}).getByRole('button', {name: 'Approve 60-minute renewal'})).toBeVisible();
+  await approve.click();
+  await expect(page.getByText('Renewal approved for Work Mac')).toBeVisible();
+  await expect(page.getByText('aegis-mcp renew', {exact: true})).toBeVisible();
+  expect(calls.find(c => c.path === '/connectors/paired-1/renew')?.headers['x-csrf-token']).toBe('csrf');
+});

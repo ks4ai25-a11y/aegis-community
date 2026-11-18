@@ -513,6 +513,11 @@ func TestLegacyFourteenAndFifteenRestoreWithoutAllocationTables(t *testing.T) {
 func removeRepairSchema(t *testing.T, s *store.Store) {
 	t.Helper()
 	for _, statement := range []string{
+		"DROP TRIGGER IF EXISTS desktop_renewal_guard",
+		"DROP TABLE IF EXISTS desktop_renewals",
+		"DELETE FROM migrations WHERE version=24",
+		"DROP TRIGGER connector_credentials_scope_immutable",
+		"CREATE TRIGGER connector_credentials_scope_immutable BEFORE UPDATE OF id,owner,name,token_hash,scope,created_at,expires ON connector_credentials BEGIN SELECT RAISE(ABORT,'connector credential scope is immutable'); END",
 		"DROP TABLE IF EXISTS desktop_pairing_invites",
 		"DROP TABLE IF EXISTS desktop_paired_connectors",
 		"DELETE FROM migrations WHERE version=23",

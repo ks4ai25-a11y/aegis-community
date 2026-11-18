@@ -33,6 +33,10 @@ func TestRestoreRevokesDesktopHandoffsAndPreservesApprovedSnapshot(t *testing.T)
   INSERT INTO desktop_paired_connectors VALUES('connector',0,'0123456789abcdef0123');`); err != nil {
 		t.Fatal(err)
 	}
+	if _, err := source.DB.Exec(`INSERT INTO desktop_renewals(old_hash,connector,old_expires,approved_until,state)
+ VALUES('connector-token-hash','connector',2147483647,2147483600,'approved')`); err != nil {
+		t.Fatal(err)
+	}
 	bundle, receipt := makeBundle(t, c, parent)
 	destination := filepath.Join(parent, "restored21")
 	if _, err := Restore(context.Background(), c, bundle, destination, receipt.Bundle); err != nil {
@@ -57,6 +61,9 @@ func TestRestoreRevokesDesktopHandoffsAndPreservesApprovedSnapshot(t *testing.T)
 	if err = restored.DB.QueryRow(`SELECT count(*) FROM desktop_paired_connectors p JOIN connector_credentials c ON c.id=p.id
  WHERE p.id='connector' AND c.state='revoked'`).Scan(&count); err != nil || count != 1 {
 		t.Fatalf("restored paired scope history: %d, %v", count, err)
+	}
+	if err = restored.DB.QueryRow("SELECT count(*) FROM desktop_renewals WHERE connector='connector' AND state='cancelled'").Scan(&count); err != nil || count != 1 {
+		t.Fatalf("restored renewal remained live: %d, %v", count, err)
 	}
 	if err = source.DB.QueryRow("SELECT count(*) FROM desktop_handoffs WHERE state IN ('active','delivered')").Scan(&count); err != nil || count != 2 {
 		t.Fatalf("source handoff state: %d, %v", count, err)

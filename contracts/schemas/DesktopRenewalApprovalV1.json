@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegis.invalid/contracts/DesktopRenewalApprovalV1.json",
+  "title": "DesktopRenewalApprovalV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "connector_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "approval_expires_unix": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9999999999
+    }
+  },
+  "required": [
+    "connector_id",
+    "approval_expires_unix"
+  ]
+}

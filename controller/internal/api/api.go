@@ -182,6 +182,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		s.desktopPairingBridge(w, r, path)
 		return
 	}
+	if path == "/desktop/renew" {
+		s.desktopRenewCredential(w, r)
+		return
+	}
 	var actor, session, connection string
 	var paired bool
 	var e error
@@ -287,6 +291,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			status["scope"] = connector.PairedScope
+			status["connector_id"] = connection
 			status["allow_analysis_draft"] = draft
 		}
 		output(w, http.StatusOK, status)
@@ -318,6 +323,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		output(w, 201, map[string]any{"connector": c, "token": token, "token_shown_once": true})
+	case strings.HasPrefix(path, "/connectors/") && strings.HasSuffix(path, "/renew") && r.Method == "POST" && session != "":
+		s.desktopApproveRenewal(w, r, actor, strings.TrimSuffix(strings.TrimPrefix(path, "/connectors/"), "/renew"))
 	case strings.HasPrefix(path, "/connectors/") && strings.HasSuffix(path, "/revoke") && r.Method == "POST" && session != "":
 		if e := s.Connectors.Revoke(actor, strings.TrimSuffix(strings.TrimPrefix(path, "/connectors/"), "/revoke")); e != nil {
 			fail(w, 409, "CONFLICT", e.Error())

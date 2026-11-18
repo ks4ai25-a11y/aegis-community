@@ -163,7 +163,7 @@ func (r *Registry) Authenticate(header string) (owner, connector string, err err
 	now := r.now().Unix()
 	hash := domain.Hash([]byte(token))
 	if paired {
-		hash = domain.Hash([]byte("aegis-paired-token-v1\x00" + token))
+		hash = pairedCredentialHash(token)
 	}
 	e := r.S.DB.QueryRow(`SELECT c.owner,c.id FROM connector_credentials c WHERE c.token_hash=? AND c.state='active' AND c.expires>?
  AND (EXISTS(SELECT 1 FROM desktop_paired_connectors p WHERE p.id=c.id))=?`, hash, now, paired).Scan(&owner, &connector)

@@ -119,13 +119,19 @@ function Connectors() {
   const [hours, setHours] = useState(168);
   const [issued, setIssued] = useState<any>();
   const [error, setError] = useState('');
+  const [renewing, setRenewing] = useState('');
+  const [renewal, setRenewal] = useState<{name: string; until: number}>();
   const load = useCallback(() => api('/connectors').then(v => setItems(v.items)).catch(e => setError(e.message)), []);
   useEffect(() => { load(); }, []);
   const config = issued ? JSON.stringify({mcpServers: {aegis: {command: '/path/to/aegis-mcp', env: {AEGIS_URL: location.origin, AEGIS_CONNECTOR_TOKEN_FILE: '/path/to/aegis-connector-token'}}}}, null, 2) : '';
   return <><DesktopPairing onPaired={load}/><section className="card">
     <div className="card-heading"><h2>Assistant connections (MCP)</h2><span className="badge">Evidence and drafts</span></div>
-    <details><summary>Advanced manual connector</summary><p className="muted">Let a desktop AI app (Claude, Codex, Kimi or any MCP client) read sites, incidents, assessments and proposals through the local <span className="mono">aegis-mcp</span> bridge. A connection can never change policy, start jobs or read scanner channels. The app uses its own subscription; Aegis never receives its credentials.</p>
     {error && <div role="alert" className="alert error">{error}</div>}
+    {renewal && <div role="status" className="note"><div>
+      <strong>Renewal approved for {renewal.name}</strong>
+      <p>Before {new Date(renewal.until * 1000).toLocaleTimeString()}, run <code>aegis-mcp renew</code> on that device using its existing Aegis URL and token file settings. Then restart its desktop session.</p>
+    </div></div>}
+    <details><summary>Advanced manual connector</summary><p className="muted">Let a desktop AI app (Claude, Codex, Kimi or any MCP client) read sites, incidents, assessments and proposals through the local <span className="mono">aegis-mcp</span> bridge. A connection can never change policy, start jobs or read scanner channels. The app uses its own subscription; Aegis never receives its credentials.</p>
     <div className="form-grid">
       <label>Name<input value={name} maxLength={64} onChange={e => setName(e.target.value)}/></label>
       <label>Lifetime (hours)<input type="number" min={1} max={720} value={hours} onChange={e => setHours(Number(e.target.value))}/></label>
@@ -140,7 +146,17 @@ function Connectors() {
     </details>
     <div className="table-wrap"><table><thead><tr><th>Name</th><th>Access</th><th>State</th><th>Expires</th><th>Last used</th><th></th></tr></thead><tbody>
       {items.map(c => <tr key={c.connector_id}><td>{c.name}</td><td>{c.scope === 'desktop_handoff_v1' ? 'Approved handoffs' : 'Manual connector'}</td><td><span className="badge">{human(c.state)}</span></td><td>{new Date(c.expires_unix * 1000).toLocaleString()}</td><td>{c.last_used_unix ? new Date(c.last_used_unix * 1000).toLocaleString() : 'Never'}</td>
-        <td>{c.state === 'active' && <button className="button light" onClick={() => api('/connectors/' + encodeURIComponent(c.connector_id) + '/revoke', {}).then(load).catch(e => setError(e.message))}>Revoke</button>}</td></tr>)}
+        <td>{c.state === 'active' && c.scope === 'desktop_handoff_v1' && <button className="button light" disabled={renewing !== ''} onClick={async () => {
+          setError(''); setRenewing(c.connector_id); setRenewal(undefined);
+          try {
+            const response = await api('/connectors/' + encodeURIComponent(c.connector_id) + '/renew', {});
+            if (response.connector_id !== c.connector_id || !Number.isSafeInteger(response.approval_expires_unix)) {
+              throw new Error('Renewal approval could not be confirmed.');
+            }
+            setRenewal({name: c.name, until: response.approval_expires_unix});
+          } catch (e) {setError(e instanceof Error ? e.message : 'Renewal unavailable.');}
+          finally {setRenewing('');}
+        }}>Approve 60-minute renewal</button>}{c.state === 'active' && <button className="button light" onClick={() => api('/connectors/' + encodeURIComponent(c.connector_id) + '/revoke', {}).then(load).catch(e => setError(e.message))}>Revoke</button>}</td></tr>)}
     </tbody></table></div>
   </section></>;
 }

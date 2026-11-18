@@ -15,6 +15,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -59,7 +60,21 @@ func TestPackagedDesktopBridgeJourney(t *testing.T) {
  INSERT INTO incident_events(incident,event) VALUES('inc-fixture','ev-fixture')`); err != nil {
 		t.Fatal(err)
 	}
-	server := httptest.NewServer((&Server{S: s, A: a, Assets: t.TempDir(), Connectors: &connector.Registry{S: s}}).Handler())
+	handler := (&Server{S: s, A: a, Assets: t.TempDir(), Connectors: &connector.Registry{S: s}}).Handler()
+	var simulateLostRenewalReceipt atomic.Bool
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/desktop/renew" && simulateLostRenewalReceipt.CompareAndSwap(true, false) {
+			recorded := httptest.NewRecorder()
+			handler.ServeHTTP(recorded, r)
+			if recorded.Code == http.StatusOK {
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
+			w.WriteHeader(recorded.Code)
+			return
+		}
+		handler.ServeHTTP(w, r)
+	}))
 	t.Cleanup(server.Close)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	t.Cleanup(cancel)
@@ -324,10 +339,64 @@ func TestPackagedDesktopBridgeJourney(t *testing.T) {
 	if !tool("aegis_get_draft_status", map[string]string{"draft_id": receipt.ID}, &replay) || replay.State != "dismissed" {
 		t.Fatal("bridge could not observe owner dismissal")
 	}
-	owner("POST", "/connectors/"+invitation.Pairing.ID+"/revoke", map[string]bool{}, 200)
-	if tool("aegis_status", map[string]string{}, &status) {
-		t.Fatal("already-running bridge outlived revocation")
+	owner("POST", "/connectors/"+invitation.Pairing.ID+"/renew", map[string]bool{}, 200)
+	simulateLostRenewalReceipt.Store(true)
+	rotation := exec.CommandContext(ctx, binary, "renew")
+	rotation.Env = env
+	rotation.Stdout = io.Discard
+	rotation.Stderr = io.Discard
+	if err = rotation.Run(); err != nil || simulateLostRenewalReceipt.Load() {
+		t.Fatalf("bridge could not recover committed renewal: %v", err)
 	}
+	if tool("aegis_status", map[string]string{}, &status) {
+		t.Fatal("already-running bridge kept using its retired credential")
+	}
+	// Reopen a stdio process with the rotated token file.
+	checkFreshStatus := func(want bool) {
+		t.Helper()
+		fresh := exec.CommandContext(ctx, binary)
+		fresh.Env = env
+		fresh.Stdin = strings.NewReader(`{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}
+{"jsonrpc":"2.0","method":"notifications/initialized"}
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"aegis_status","arguments":{}}}
+`)
+		data, e := fresh.Output()
+		if e != nil {
+			t.Fatal("could not check restarted bridge")
+		}
+		dec := json.NewDecoder(bytes.NewReader(data))
+		var init json.RawMessage
+		var reply struct {
+			ID     int `json:"id"`
+			Result struct {
+				IsError bool `json:"isError"`
+				Content []struct {
+					Text string `json:"text"`
+				} `json:"content"`
+			} `json:"result"`
+		}
+		if dec.Decode(&init) != nil || dec.Decode(&reply) != nil || reply.ID != 2 || reply.Result.IsError == want || len(reply.Result.Content) != 1 {
+			t.Fatal("restarted bridge status did not match credential state")
+		}
+		if want {
+			_, body, ok := strings.Cut(reply.Result.Content[0].Text, "\n\n")
+			if !ok {
+				t.Fatal("restarted bridge omitted connector status")
+			}
+			var active struct {
+				ID    string `json:"connector_id"`
+				Scope string `json:"scope"`
+			}
+			decodeDesktopAcceptance(t, []byte(body), &active)
+			if active.ID != invitation.Pairing.ID || active.Scope != connector.PairedScope {
+				t.Fatal("renewal changed connector identity or scope")
+			}
+		}
+	}
+	checkFreshStatus(true)
+	t.Log("compiled bridge recovered a lost rotation response, retired the old token and preserved the connector ID")
+	owner("POST", "/connectors/"+invitation.Pairing.ID+"/revoke", map[string]bool{}, 200)
+	checkFreshStatus(false)
 	if err = stdin.Close(); err != nil {
 		t.Fatal(err)
 	}
@@ -339,7 +408,7 @@ func TestPackagedDesktopBridgeJourney(t *testing.T) {
 	if err = s.VerifyAudit(); err != nil {
 		t.Fatal("invalid audit chain")
 	}
-	t.Log("compiled bridge returned one unverified draft, reported dismissal, and stopped working on revocation")
+	t.Log("compiled bridge returned one unverified draft, reported dismissal, and lost access on revocation")
 }
 
 func decodeDesktopAcceptance(t *testing.T, raw []byte, value any) {
