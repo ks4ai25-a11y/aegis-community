@@ -127,7 +127,12 @@ func TestPackagedDesktopBridgeJourney(t *testing.T) {
 	if invitation.Pairing.ID == "" || invitation.Code == "" {
 		t.Fatal("missing invitation")
 	}
-	env := []string{"AEGIS_URL=" + server.URL, "AEGIS_CONNECTOR_TOKEN_FILE=" + filepath.Join(private, "token")}
+	env := []string{"AEGIS_URL=" + server.URL}
+	if account := os.Getenv("AEGIS_TEST_KEYCHAIN_ACCOUNT"); account != "" {
+		env = append(env, "AEGIS_CONNECTOR_KEYCHAIN_ACCOUNT="+account, "HOME="+os.Getenv("HOME"))
+	} else {
+		env = append(env, "AEGIS_CONNECTOR_TOKEN_FILE="+filepath.Join(private, "token"))
+	}
 	pairing := exec.CommandContext(ctx, binary, "pair")
 	pairing.Env = env
 	pairing.Stdin = strings.NewReader(invitation.Pairing.ID + ":" + invitation.Code + "\n")
@@ -351,7 +356,7 @@ func TestPackagedDesktopBridgeJourney(t *testing.T) {
 	if tool("aegis_status", map[string]string{}, &status) {
 		t.Fatal("already-running bridge kept using its retired credential")
 	}
-	// Reopen a stdio process with the rotated token file.
+	// Reopen a stdio process with the rotated credential.
 	checkFreshStatus := func(want bool) {
 		t.Helper()
 		fresh := exec.CommandContext(ctx, binary)

@@ -104,7 +104,6 @@ type client struct {
 	http  *http.Client
 }
 
-// loadClient accepts only loopback HTTP or HTTPS and a private token file.
 func consoleBase() (string, error) {
 	base := os.Getenv("AEGIS_URL")
 	if base == "" {
@@ -130,9 +129,21 @@ func loadClient() (*client, error) {
 	if e != nil {
 		return nil, e
 	}
-	path := os.Getenv("AEGIS_CONNECTOR_TOKEN_FILE")
-	if path == "" {
-		return nil, errors.New("AEGIS_CONNECTOR_TOKEN_FILE is required")
+	path, account, e := credentialLocation()
+	if e != nil {
+		return nil, e
+	}
+	if account != "" {
+		store, e := openKeychain(base, account)
+		if e != nil {
+			return nil, e
+		}
+		defer store.close()
+		token, e := store.read(false)
+		if e != nil {
+			return nil, e
+		}
+		return &client{base, token, connectorHTTPClient()}, nil
 	}
 	st, e := os.Stat(path)
 	if e != nil || !st.Mode().IsRegular() || st.Mode().Perm()&0o077 != 0 {

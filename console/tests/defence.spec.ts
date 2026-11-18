@@ -226,6 +226,14 @@ test('guided pairing requires a fingerprint from the device', async ({page}) => 
   await page.goto('/');
   await page.getByRole('button', {name: 'AI Apps', exact: true}).click();
   const region = page.getByRole('region', {name: 'Pair a desktop assistant'});
+  await region.getByText('Local MCP configuration').click();
+  await expect(region.locator('pre')).toContainText('AEGIS_CONNECTOR_TOKEN_FILE');
+  await region.getByLabel('Credential storage').selectOption('keychain');
+  await expect(region.locator('pre')).toContainText('AEGIS_CONNECTOR_KEYCHAIN_ACCOUNT');
+  await expect(region.locator('pre')).not.toContainText('AEGIS_CONNECTOR_TOKEN_FILE');
+  await expect(region.getByText('make mcp-keychain-build', {exact: true})).toBeVisible();
+  await page.setViewportSize({width: 390, height: 844});
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   await region.getByLabel('Device name').fill('Work laptop');
   await region.getByRole('button', {name: 'Create pairing invitation'}).click();
   await expect(region.getByLabel('Pairing invitation')).toHaveValue(id + ':' + 'b'.repeat(64));
@@ -236,7 +244,7 @@ test('guided pairing requires a fingerprint from the device', async ({page}) => 
   await region.getByLabel('Fingerprint shown by the bridge').fill(fingerprint);
   await confirm.click();
   expect(calls.find(c => c.method === 'POST' && c.path === '/desktop/pairing/' + id)?.body).toEqual({approve: true, fingerprint});
-  await expect(region.getByText(/Paired\. Open a new desktop assistant session/)).toBeVisible();
+  await expect(region.getByText('Invitation confirmed.', {exact: false})).toBeVisible();
 });
 
 test('owner can approve renewal only for an active paired device', async ({page}) => {

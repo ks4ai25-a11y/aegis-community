@@ -39,6 +39,30 @@ jobs:
         run: npm run test:browser
       - run: make research-build
       - run: python3 scripts/source_manifest.py
+  macos-desktop:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: controller/go.sum
+      - name: Verify the native bridge with a disposable Keychain
+        shell: bash
+        run: |
+          keychain="$RUNNER_TEMP/aegis-desktop.keychain-db"
+          password="$(openssl rand -hex 24)"
+          trap 'security delete-keychain "$keychain"' EXIT
+          security create-keychain -p "$password" "$keychain"
+          security default-keychain -s "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          make mcp-keychain-build
+          cd controller
+          AEGIS_TEST_KEYCHAIN_ACCOUNT=ci-desktop AEGIS_TEST_MCP_PATH="$GITHUB_WORKSPACE/bin/aegis-mcp-keychain" \
+            go test -race -count=1 -v ./internal/api -run '^TestPackagedDesktopBridgeJourney$'
   trusted-demo:
     runs-on: ubuntu-24.04
     timeout-minutes: 25

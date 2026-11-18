@@ -36,16 +36,26 @@ func pair(input io.Reader, status io.Writer) error {
 	if err != nil {
 		return err
 	}
-	path := os.Getenv("AEGIS_CONNECTOR_TOKEN_FILE")
-	parent := filepath.Dir(path)
-	canonical, err := filepath.EvalSymlinks(parent)
-	info, statErr := os.Stat(parent)
-	if !filepath.IsAbs(path) || filepath.Clean(path) != path || err != nil || canonical != parent ||
-		statErr != nil || !info.IsDir() || info.Mode().Perm()&0o077 != 0 {
-		return errors.New("set AEGIS_CONNECTOR_TOKEN_FILE to a new path in a private directory")
+	path, account, err := credentialLocation()
+	if err != nil {
+		return err
 	}
-	if _, err = os.Lstat(path); !errors.Is(err, os.ErrNotExist) {
-		return errors.New("choose a new connector token file")
+	var save func(string) error
+	if account != "" {
+		store, e := openKeychain(base, account)
+		if e != nil {
+			return e
+		}
+		defer store.close()
+		if e = checkKeychainPairingSlot(store); e != nil {
+			return e
+		}
+		save = func(token string) error { return store.add(false, token) }
+	} else {
+		if err := checkPairingPath(path); err != nil {
+			return err
+		}
+		save = func(token string) error { return storePairedCredential(path, token) }
 	}
 	fmt.Fprintln(status, "Provide the one-time invitation from the Aegis console on stdin.")
 	in := bufio.NewScanner(input)
@@ -86,7 +96,7 @@ func pair(input io.Reader, status io.Writer) error {
 			if json.Unmarshal([]byte(raw), &result) != nil || result.ID != id || result.Scope != "desktop_handoff_v1" || result.State != "active" {
 				return errors.New("invalid pairing confirmation")
 			}
-			if err = storePairedCredential(path, token); err != nil {
+			if err = save(token); err != nil {
 				return err
 			}
 			fmt.Fprintln(status, "Paired. Start a new desktop app session and call aegis_status.")
@@ -98,6 +108,20 @@ func pair(input io.Reader, status io.Writer) error {
 		time.Sleep(2 * time.Second)
 	}
 	return errors.New("pairing invitation expired")
+}
+
+func checkPairingPath(path string) error {
+	parent := filepath.Dir(path)
+	canonical, err := filepath.EvalSymlinks(parent)
+	info, statErr := os.Stat(parent)
+	if !filepath.IsAbs(path) || filepath.Clean(path) != path || err != nil || canonical != parent ||
+		statErr != nil || !info.IsDir() || info.Mode().Perm()&0o077 != 0 {
+		return errors.New("set AEGIS_CONNECTOR_TOKEN_FILE to a new path in a private directory")
+	}
+	if _, err := os.Lstat(path); !errors.Is(err, os.ErrNotExist) {
+		return errors.New("choose a new connector token file")
+	}
+	return nil
 }
 
 func storePairedCredential(path, token string) error {

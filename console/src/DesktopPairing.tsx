@@ -9,6 +9,7 @@ export function DesktopPairing({onPaired}: {onPaired: () => void}) {
   const [name, setName] = useState('');
   const [minutes, setMinutes] = useState(30);
   const [draft, setDraft] = useState(false);
+  const [storage, setStorage] = useState('file');
   const [invite, setInvite] = useState('');
   const [fingerprint, setFingerprint] = useState('');
   const [pairing, setPairing] = useState<Pairing>();
@@ -51,9 +52,14 @@ export function DesktopPairing({onPaired}: {onPaired: () => void}) {
     finally { setBusy(false); }
   }
   const active = ['new', 'claimed', 'approved'].includes(state ?? '');
+  const keychain = storage === 'keychain';
+  const binary = keychain ? 'aegis-mcp-keychain' : 'aegis-mcp';
+  const credential = keychain
+    ? {AEGIS_CONNECTOR_KEYCHAIN_ACCOUNT: 'work-device'}
+    : {AEGIS_CONNECTOR_TOKEN_FILE: '/absolute/private/path/to/device-token'};
   const config = JSON.stringify({mcpServers: {aegis: {
-    command: '/absolute/path/to/aegis-mcp',
-    env: {AEGIS_URL: location.origin, AEGIS_CONNECTOR_TOKEN_FILE: '/absolute/private/path/to/device-token'},
+    command: '/absolute/path/to/' + binary,
+    env: {AEGIS_URL: location.origin, ...credential},
   }}}, null, 2);
 
   return <section className="card desktop-handoff" aria-labelledby="desktop-pairing-title">
@@ -77,7 +83,7 @@ export function DesktopPairing({onPaired}: {onPaired: () => void}) {
     </div>}
     {state === 'new' && <div className="handoff-preview">
       <h3>Connect the local bridge</h3>
-      <p>Give this one-use invitation to <code>aegis-mcp pair</code> on the device. It expires after five minutes.</p>
+      <p>Give this one-use invitation to <code>{binary} pair</code> on the device. It expires after five minutes.</p>
       <label>Pairing invitation<textarea readOnly value={invite}/></label>
       <button className="button light" disabled={busy} onClick={() => perform(async () => {
         await navigator.clipboard.writeText(invite); setNotice('Pairing invitation copied.');
@@ -91,15 +97,27 @@ export function DesktopPairing({onPaired}: {onPaired: () => void}) {
       })}>Confirm fingerprint</button>
     </div>}
     {state === 'approved' && <p role="status">Approved. Waiting for the local bridge to finish pairing.</p>}
-    {state === 'redeemed' && <p role="status">Paired. Open a new desktop assistant session and call <code>aegis_status</code>.</p>}
+    {state === 'redeemed' && <p role="status">Invitation confirmed. When the bridge reports that pairing is complete, open a new desktop assistant session and call <code>aegis_status</code>.</p>}
     {state === 'expired' && <p role="status">The invitation expired. Create another invitation to try again.</p>}
     {active && <button className="button light" disabled={busy} onClick={() => perform(async () => {
       await api('/desktop/pairing/' + encodeURIComponent(id!), {approve: false});
       setInvite(''); setFingerprint(''); setPairing(undefined); setNotice('Pairing invitation cancelled.');
     })}>Cancel pairing</button>}
     <details className="handoff-preview"><summary>Local MCP configuration</summary>
-      <p>Set the same URL and new token file path when you run <code>aegis-mcp pair</code>. Use a private directory and the app’s local stdio configuration.</p>
-      <pre>{config}</pre>
+      <div className="desktop-setup">
+        <label>Credential storage<select value={storage} onChange={e => setStorage(e.target.value)}>
+          <option value="file">Private file</option>
+          <option value="keychain">macOS Keychain</option>
+        </select></label>
+        <p>{keychain
+          ? <>Build with <code>make mcp-keychain-build</code> and pick a new account label for this device.</>
+          : <>Build with <code>make mcp-build</code> and choose a new token path in a private directory.</>}</p>
+        <p>Use the same URL and credential setting when you run <code>{binary} pair</code> and configure your desktop app.</p>
+        <pre>{config}</pre>
+        <button className="button light" disabled={busy} onClick={() => perform(async () => {
+          await navigator.clipboard.writeText(config); setNotice('MCP configuration copied.');
+        })}>Copy MCP configuration</button>
+      </div>
     </details>
     {notice && <p role="status">{notice}</p>}
     {error && <p role="alert">{error}</p>}
