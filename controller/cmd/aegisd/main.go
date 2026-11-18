@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -249,13 +250,42 @@ func main() {
 	}
 	app := &api.Server{Signer: signer, CanaryNow: canaryNow, S: s, A: a, P: m, I: i, V: v, Q: q, R: repos, Scans: sq, Assets: env("AEGIS_ASSETS", "/opt/aegis/console"), AI: ai, Connectors: &connector.Registry{S: s}}
 	server := &http.Server{Addr: env("AEGIS_LISTEN", "127.0.0.1:7410"), Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32768}
+	desktop, err := desktopTLSServer(app.DesktopTransportHandler())
+	if err != nil {
+		panic(err)
+	}
+	if desktop != nil {
+		listener, err := net.Listen("tcp", desktop.Addr)
+		if err != nil {
+			panic(err)
+		}
+		defer desktop.Close()
+		go func() {
+			if err := desktop.ServeTLS(listener, "", ""); err != nil && err != http.ErrServerClosed {
+				fmt.Fprintln(os.Stderr, "Aegis desktop mTLS listener stopped:", err)
+			}
+		}()
+	}
+	stopped := make(chan struct{})
 	go func() {
+		defer close(stopped)
 		<-ctx.Done()
 		c, cn := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cn()
-		server.Shutdown(c)
+		if desktop != nil {
+			desktopStopped := make(chan struct{})
+			go func() {
+				defer close(desktopStopped)
+				_ = desktop.Shutdown(c)
+			}()
+			_ = server.Shutdown(c)
+			<-desktopStopped
+			return
+		}
+		_ = server.Shutdown(c)
 	}()
 	if e := server.ListenAndServe(); e != nil && e != http.ErrServerClosed {
 		panic(e)
 	}
+	<-stopped
 }

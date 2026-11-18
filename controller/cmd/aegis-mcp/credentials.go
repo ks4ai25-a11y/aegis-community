@@ -60,10 +60,16 @@ func renew(status io.Writer) error {
 	if err != nil {
 		return err
 	}
+	httpClient, err := configuredHTTPClient(base)
+	if err != nil {
+		return err
+	}
+	defer httpClient.CloseIdleConnections()
+	confirm := func(old, next string) error { return confirmRotation(base, old, next, httpClient) }
 	if account == "" {
-		err = renewFile(base, path)
+		err = renewFile(path, confirm)
 	} else {
-		err = renewKeychain(base, account)
+		err = renewKeychain(base, account, confirm)
 	}
 	if err != nil {
 		return err
@@ -101,9 +107,8 @@ func rotateKeychain(store keychainStore, confirm func(old, next string) error) e
 	return store.clearPending()
 }
 
-func confirmRotation(base, old, next string) error {
-	c := &client{base: base, token: old, http: connectorHTTPClient()}
-	defer c.http.CloseIdleConnections()
+func confirmRotation(base, old, next string, httpClient *http.Client) error {
+	c := &client{base: base, token: old, http: httpClient}
 	digest := pairingHash("aegis-paired-token-v1\x00" + next)
 	body, _ := json.Marshal(map[string]string{"credential_digest": digest})
 	raw, err := c.request(http.MethodPost, "/desktop/renew", body, "")

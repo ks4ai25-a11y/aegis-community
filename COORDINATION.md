@@ -177,3 +177,5 @@ Commits: each agent commits only the paths it changed (`git commit -- <paths>`),
 - 2026-11-18 — **Codex**: the disposable Keychain journey passed on Apple silicon and Intel in run 44242713274. The console now clears a one-time token after confirmed revocation, publishes the action outcome and uses Playwright through the standard test command.
 
 - 2026-11-18 — **Codex**: added the macOS universal bridge build, a clean-cache binary repeatability check, native runtime CI on both architectures, and the Developer ID and Apple notarization packaging command. No release certificate is installed on this workstation. Distribution signing, Gatekeeper acceptance for the real notarized image, and installed provider testing remain open.
+
+- 2026-11-18 — **Codex**: added an opt-in private mTLS management listener for desktop pairing and scoped operations, an explicit private-interface Compose binding, and setup templates for both local and private connections. The compiled bridge journey verifies both transports and refuses wrong hosts, untrusted or missing client certificates, and owner routes.

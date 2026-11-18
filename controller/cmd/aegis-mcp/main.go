@@ -129,6 +129,10 @@ func loadClient() (*client, error) {
 	if e != nil {
 		return nil, e
 	}
+	httpClient, e := configuredHTTPClient(base)
+	if e != nil {
+		return nil, e
+	}
 	path, account, e := credentialLocation()
 	if e != nil {
 		return nil, e
@@ -143,7 +147,7 @@ func loadClient() (*client, error) {
 		if e != nil {
 			return nil, e
 		}
-		return &client{base, token, connectorHTTPClient()}, nil
+		return &client{base, token, httpClient}, nil
 	}
 	st, e := os.Stat(path)
 	if e != nil || !st.Mode().IsRegular() || st.Mode().Perm()&0o077 != 0 {
@@ -158,7 +162,7 @@ func loadClient() (*client, error) {
 	if e != nil {
 		return nil, e
 	}
-	return &client{base, strings.TrimSpace(string(b)), connectorHTTPClient()}, nil
+	return &client{base, strings.TrimSpace(string(b)), httpClient}, nil
 }
 
 func connectorHTTPClient() *http.Client {

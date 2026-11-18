@@ -181,7 +181,7 @@ func (s *macKeychain) item(pending bool, operation C.int, token string) (string,
 	return value, nil
 }
 
-func renewKeychain(base, account string) error {
+func renewKeychain(base, account string, confirm func(old, next string) error) error {
 	cache, err := os.UserCacheDir()
 	if err != nil || !filepath.IsAbs(cache) {
 		return errors.New("could not resolve the Aegis renewal lock directory")
@@ -206,5 +206,5 @@ func renewKeychain(base, account string) error {
 		return err
 	}
 	defer store.close()
-	return rotateKeychain(store, func(old, next string) error { return confirmRotation(base, old, next) })
+	return rotateKeychain(store, confirm)
 }

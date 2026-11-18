@@ -234,6 +234,11 @@ test('guided pairing requires a fingerprint from the device', async ({page}) => 
   await expect(region.locator('pre')).toContainText('AEGIS_CONNECTOR_KEYCHAIN_ACCOUNT');
   await expect(region.locator('pre')).not.toContainText('AEGIS_CONNECTOR_TOKEN_FILE');
   await expect(region.getByText('make mcp-keychain-build', {exact: true})).toBeVisible();
+  await region.getByRole('combobox', {name: 'Connection', exact: true}).selectOption('remote');
+  await expect(region.locator('pre')).toContainText('https://aegis.private.example:7443');
+  await expect(region.locator('pre')).toContainText('AEGIS_DESKTOP_CLIENT_KEY_FILE');
+  await region.getByRole('combobox', {name: 'Connection', exact: true}).selectOption('local');
+  await expect(region.locator('pre')).not.toContainText('AEGIS_DESKTOP_CLIENT_KEY_FILE');
   await page.setViewportSize({width: 390, height: 844});
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   await region.getByLabel('Device name').fill('Work laptop');

@@ -27,6 +27,14 @@ import (
 // This test uses the compiled bridge, the real API handler and a disposable
 // database. The only incident data are fixed synthetic records inserted here.
 func TestPackagedDesktopBridgeJourney(t *testing.T) {
+	for _, fixture := range []struct {
+		name string
+		mtls bool
+	}{{"console", false}, {"mutual-tls", true}} {
+		t.Run(fixture.name, func(t *testing.T) { runDesktopBridgeJourney(t, fixture.mtls) })
+	}
+}
+func runDesktopBridgeJourney(t *testing.T, mtls bool) {
 	binary := os.Getenv("AEGIS_TEST_MCP_PATH")
 	if binary == "" {
 		t.Skip("run make desktop-verify to test the compiled bridge")
@@ -60,21 +68,25 @@ func TestPackagedDesktopBridgeJourney(t *testing.T) {
  INSERT INTO incident_events(incident,event) VALUES('inc-fixture','ev-fixture')`); err != nil {
 		t.Fatal(err)
 	}
-	handler := (&Server{S: s, A: a, Assets: t.TempDir(), Connectors: &connector.Registry{S: s}}).Handler()
+	app := &Server{S: s, A: a, Assets: t.TempDir(), Connectors: &connector.Registry{S: s}}
+	handler := app.Handler()
 	var simulateLostRenewalReceipt atomic.Bool
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/api/v1/desktop/renew" && simulateLostRenewalReceipt.CompareAndSwap(true, false) {
-			recorded := httptest.NewRecorder()
-			handler.ServeHTTP(recorded, r)
-			if recorded.Code == http.StatusOK {
-				w.WriteHeader(http.StatusServiceUnavailable)
+	withLostRenewalReceipt := func(handler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/api/v1/desktop/renew" && simulateLostRenewalReceipt.CompareAndSwap(true, false) {
+				recorded := httptest.NewRecorder()
+				handler.ServeHTTP(recorded, r)
+				if recorded.Code == http.StatusOK {
+					w.WriteHeader(http.StatusServiceUnavailable)
+					return
+				}
+				w.WriteHeader(recorded.Code)
 				return
 			}
-			w.WriteHeader(recorded.Code)
-			return
-		}
-		handler.ServeHTTP(w, r)
-	}))
+			handler.ServeHTTP(w, r)
+		})
+	}
+	server := httptest.NewServer(withLostRenewalReceipt(handler))
 	t.Cleanup(server.Close)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	t.Cleanup(cancel)
@@ -127,8 +139,16 @@ func TestPackagedDesktopBridgeJourney(t *testing.T) {
 	if invitation.Pairing.ID == "" || invitation.Code == "" {
 		t.Fatal("missing invitation")
 	}
-	env := []string{"AEGIS_URL=" + server.URL}
+	bridgeURL := server.URL
+	var env []string
+	if mtls {
+		bridgeURL, env = desktopTLSFixture(t, withLostRenewalReceipt(app.DesktopTransportHandler()), private, cookies[0])
+	}
+	env = append(env, "AEGIS_URL="+bridgeURL)
 	if account := os.Getenv("AEGIS_TEST_KEYCHAIN_ACCOUNT"); account != "" {
+		if mtls {
+			account += "-mtls"
+		}
 		env = append(env, "AEGIS_CONNECTOR_KEYCHAIN_ACCOUNT="+account, "HOME="+os.Getenv("HOME"))
 	} else {
 		env = append(env, "AEGIS_CONNECTOR_TOKEN_FILE="+filepath.Join(private, "token"))

@@ -36,6 +36,11 @@ func pair(input io.Reader, status io.Writer) error {
 	if err != nil {
 		return err
 	}
+	httpClient, err := configuredHTTPClient(base)
+	if err != nil {
+		return err
+	}
+	defer httpClient.CloseIdleConnections()
 	path, account, err := credentialLocation()
 	if err != nil {
 		return err
@@ -74,8 +79,7 @@ func pair(input io.Reader, status io.Writer) error {
 	}
 	token := "aegis_dp_" + secret
 	digest := pairingHash("aegis-paired-token-v1\x00" + token)
-	c := &client{base: base, http: connectorHTTPClient()}
-	defer c.http.CloseIdleConnections()
+	c := &client{base: base, http: httpClient}
 	claim, _ := json.Marshal(map[string]string{"pairing_id": id, "invite_code": code, "device_proof": proof, "credential_digest": digest})
 	if _, err = c.request(http.MethodPost, "/desktop/pairing/claim", claim, ""); err != nil {
 		return err

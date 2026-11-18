@@ -64,6 +64,31 @@ Most MCP clients accept a configuration like this (Claude Desktop: `claude_deskt
 
 `AEGIS_URL` must be a loopback `http://` address or an `https://` URL. The bridge connects directly and rejects redirects. It caps each response at 512 KiB and surfaces only the HTTP status when the controller returns an error. Restart the app or start a new session so it loads the server.
 
+## Private self-hosted connection
+
+Use an existing private route such as a VPN. Keep the owner console on its existing loopback binding and reach it from the desktop through your authenticated management session, for example an SSH port forward. Use the separate desktop listener for pairing commands and MCP. It serves only fingerprint pairing, paired-device status and renewal, approved handoffs, and draft submission and status. It requires TLS 1.3 and a client certificate from the configured desktop client CA. The connector still needs an owner-approved invitation and scoped credential.
+
+Provision a server certificate with a DNS name or IP address matching the bridge URL, and a client certificate with the Client Authentication extended key usage. Use a dedicated client CA for this listener. Give the controller process access to a directory containing `server.pem`, `server-key.pem` (mode 0600), and `client-ca.pem`. Keep CA private keys away from the controller and desktop. The Compose controller uses UID 10001.
+
+```sh
+AEGIS_DESKTOP_MTLS_BIND_IP=10.12.0.5 \
+AEGIS_DESKTOP_MTLS_PEM_DIR=/absolute/path/to/controller-tls \
+  docker compose -f deploy/compose.demo.yaml -f deploy/compose.desktop-mtls.yaml up -d
+```
+
+Replace the example IP with the host's private interface. The optional `AEGIS_DESKTOP_MTLS_PORT` sets the published port (default 7443). For a native controller, set `AEGIS_DESKTOP_MTLS_LISTEN` to its private IP and port, and set `AEGIS_DESKTOP_MTLS_CERT_FILE`, `AEGIS_DESKTOP_MTLS_KEY_FILE` and `AEGIS_DESKTOP_MTLS_CLIENT_CA_FILE` to the corresponding absolute paths. Restart the controller to apply certificate or trust changes.
+
+In addition to your file or Keychain credential setting, use these values consistently for `pair`, `renew` and the desktop app configuration:
+
+```sh
+AEGIS_URL=https://aegis.private.example:7443
+AEGIS_DESKTOP_CA_FILE=/absolute/path/to/server-ca.pem
+AEGIS_DESKTOP_CLIENT_CERT_FILE=/absolute/path/to/client.pem
+AEGIS_DESKTOP_CLIENT_KEY_FILE=/absolute/path/to/client-key.pem
+```
+
+The dedicated server CA file supplies the bridge's trust roots for that connection. Store the device's client key in a regular file with mode 0600, and include the configured hostname or IP in the server's certificate SAN. Revoke a device in the owner console to end application access immediately. Manage client certificate issuance and rotation separately.
+
 ## Tools
 
 | Tool | Reads |

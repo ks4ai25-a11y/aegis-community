@@ -13,7 +13,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-func renewFile(base, path string) error {
+func renewFile(path string, confirm func(old, next string) error) error {
 	parent := filepath.Dir(path)
 	canonical, err := filepath.EvalSymlinks(parent)
 	info, statErr := os.Stat(parent)
@@ -42,7 +42,7 @@ func renewFile(base, path string) error {
 	if err != nil || next == old || syncCredentialDirectory(parent) != nil {
 		return errors.New("private renewal file unavailable")
 	}
-	if err := confirmRotation(base, old, next); err != nil {
+	if err := confirm(old, next); err != nil {
 		return err
 	}
 	if err = os.Rename(pending, path); err != nil {

@@ -10,6 +10,7 @@ export function DesktopPairing({onPaired}: {onPaired: () => void}) {
   const [minutes, setMinutes] = useState(30);
   const [draft, setDraft] = useState(false);
   const [storage, setStorage] = useState('file');
+  const [connection, setConnection] = useState('local');
   const [invite, setInvite] = useState('');
   const [fingerprint, setFingerprint] = useState('');
   const [pairing, setPairing] = useState<Pairing>();
@@ -57,9 +58,17 @@ export function DesktopPairing({onPaired}: {onPaired: () => void}) {
   const credential = keychain
     ? {AEGIS_CONNECTOR_KEYCHAIN_ACCOUNT: 'work-device'}
     : {AEGIS_CONNECTOR_TOKEN_FILE: '/absolute/private/path/to/device-token'};
+  const remote = connection === 'remote';
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+  const endpoint = remote ? 'https://aegis.private.example:7443' : local ? location.origin : 'http://127.0.0.1:7410';
+  const tlsSettings = remote ? {
+    AEGIS_DESKTOP_CA_FILE: '/absolute/path/to/server-ca.pem',
+    AEGIS_DESKTOP_CLIENT_CERT_FILE: '/absolute/path/to/client.pem',
+    AEGIS_DESKTOP_CLIENT_KEY_FILE: '/absolute/path/to/client-key.pem',
+  } : {};
   const config = JSON.stringify({mcpServers: {aegis: {
     command: '/absolute/path/to/' + binary,
-    env: {AEGIS_URL: location.origin, ...credential},
+    env: {AEGIS_URL: endpoint, ...credential, ...tlsSettings},
   }}}, null, 2);
 
   return <section className="card desktop-handoff" aria-labelledby="desktop-pairing-title">
@@ -105,14 +114,21 @@ export function DesktopPairing({onPaired}: {onPaired: () => void}) {
     })}>Cancel pairing</button>}
     <details className="handoff-preview"><summary>Local MCP configuration</summary>
       <div className="desktop-setup">
-        <label>Credential storage<select value={storage} onChange={e => setStorage(e.target.value)}>
-          <option value="file">Private file</option>
-          <option value="keychain">macOS Keychain</option>
-        </select></label>
+        <div className="desktop-setup-options">
+          <label>Connection<select value={connection} onChange={e => setConnection(e.target.value)}>
+            <option value="local">On this computer</option>
+            <option value="remote">Private self-hosted Aegis</option>
+          </select></label>
+          <label>Credential storage<select value={storage} onChange={e => setStorage(e.target.value)}>
+            <option value="file">Private file</option>
+            <option value="keychain">macOS Keychain</option>
+          </select></label>
+        </div>
         <p>{keychain
           ? <>Build with <code>make mcp-keychain-build</code> and pick a new account label for this device.</>
           : <>Build with <code>make mcp-build</code> and choose a new token path in a private directory.</>}</p>
-        <p>Use the same URL and credential setting when you run <code>{binary} pair</code> and configure your desktop app.</p>
+        {remote && <p>Replace the example URL with the private desktop listener and use the CA and client certificates issued for that listener.</p>}
+        <p>Use these same settings when you run <code>{binary} pair</code> and configure your desktop app.</p>
         <pre>{config}</pre>
         <button className="button light" disabled={busy} onClick={() => perform(async () => {
           await navigator.clipboard.writeText(config); setNotice('MCP configuration copied.');

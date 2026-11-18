@@ -11,6 +11,6 @@ func openKeychain(base, account string) (keychainStore, error) {
 	return nil, errKeychainUnavailable
 }
 
-func renewKeychain(base, account string) error {
+func renewKeychain(base, account string, confirm func(old, next string) error) error {
 	return errKeychainUnavailable
 }

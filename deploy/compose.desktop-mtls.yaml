@@ -1,0 +1,19 @@
+# Opt-in private management endpoint for the desktop bridge.
+services:
+  controller:
+    environment:
+      AEGIS_DESKTOP_MTLS_LISTEN: "0.0.0.0:7443"
+      AEGIS_DESKTOP_MTLS_CERT_FILE: /run/desktop-tls/server.pem
+      AEGIS_DESKTOP_MTLS_KEY_FILE: /run/desktop-tls/server-key.pem
+      AEGIS_DESKTOP_MTLS_CLIENT_CA_FILE: /run/desktop-tls/client-ca.pem
+    ports:
+      - target: 7443
+        published: "${AEGIS_DESKTOP_MTLS_PORT:-7443}"
+        host_ip: "${AEGIS_DESKTOP_MTLS_BIND_IP:?Set the host IP of the private management interface}"
+    volumes:
+      - type: bind
+        source: "${AEGIS_DESKTOP_MTLS_PEM_DIR:?Set the absolute directory containing the controller TLS files}"
+        target: /run/desktop-tls
+        read_only: true
+        bind:
+          create_host_path: false
