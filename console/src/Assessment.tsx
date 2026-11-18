@@ -125,11 +125,11 @@ function Connectors() {
   useEffect(() => { load(); }, []);
   const config = issued ? JSON.stringify({mcpServers: {aegis: {command: '/path/to/aegis-mcp', env: {AEGIS_URL: location.origin, AEGIS_CONNECTOR_TOKEN_FILE: '/path/to/aegis-connector-token'}}}}, null, 2) : '';
   return <><DesktopPairing onPaired={load}/><section className="card">
-    <div className="card-heading"><h2>Assistant connections (MCP)</h2><span className="badge">Evidence and drafts</span></div>
+    <div className="card-heading"><h2>Assistant connections</h2></div>
     {error && <div role="alert" className="alert error">{error}</div>}
     {renewal && <div role="status" className="note"><div>
       <strong>Renewal approved for {renewal.name}</strong>
-      <p>Before {new Date(renewal.until * 1000).toLocaleTimeString()}, run <code>aegis-mcp renew</code> on that device using its existing Aegis URL and token file settings. Then restart its desktop session.</p>
+      <p>Before {new Date(renewal.until * 1000).toLocaleTimeString()}, run <code>aegis-mcp renew</code> for a private file or <code>aegis-mcp-keychain renew</code> for macOS Keychain. Use the device’s existing Aegis URL and credential setting, then restart its desktop session.</p>
     </div></div>}
     <details><summary>Advanced manual connector</summary><p className="muted">Let a desktop AI app (Claude, Codex, Kimi or any MCP client) read sites, incidents, assessments and proposals through the local <span className="mono">aegis-mcp</span> bridge. A connection can never change policy, start jobs or read scanner channels. The app uses its own subscription; Aegis never receives its credentials.</p>
     <div className="form-grid">

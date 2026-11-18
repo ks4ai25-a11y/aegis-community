@@ -261,5 +261,6 @@ test('owner can approve renewal only for an active paired device', async ({page}
   await approve.click();
   await expect(page.getByText('Renewal approved for Work Mac')).toBeVisible();
   await expect(page.getByText('aegis-mcp renew', {exact: true})).toBeVisible();
+  await expect(page.getByText('aegis-mcp-keychain renew', {exact: true})).toBeVisible();
   expect(calls.find(c => c.path === '/connectors/paired-1/renew')?.headers['x-csrf-token']).toBe('csrf');
 });
