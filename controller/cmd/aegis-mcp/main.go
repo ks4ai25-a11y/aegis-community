@@ -18,9 +18,13 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
-const protocol = "2025-06-18"
+const (
+	protocol      = "2025-06-18"
+	responseLimit = 512 << 10
+)
 
 var idPattern = regexp.MustCompile(`^[A-Za-z0-9_.:-]{1,160}$`)
 
@@ -90,7 +94,7 @@ func loadClient() (*client, error) {
 		base = "http://127.0.0.1:7410"
 	}
 	u, e := url.Parse(base)
-	if e != nil || u.User != nil || u.RawQuery != "" || (u.Path != "" && u.Path != "/") {
+	if e != nil || u.User != nil || u.Hostname() == "" || u.Opaque != "" || u.ForceQuery || u.RawQuery != "" || u.Fragment != "" || strings.Contains(base, "#") || u.RawPath != "" || (u.Path != "" && u.Path != "/") {
 		return nil, errors.New("AEGIS_URL must be a base URL")
 	}
 	if u.Scheme == "http" {
@@ -118,7 +122,24 @@ func loadClient() (*client, error) {
 	if e != nil {
 		return nil, e
 	}
-	return &client{strings.TrimRight(u.String(), "/"), strings.TrimSpace(string(b)), &http.Client{Timeout: 20 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
+	return &client{strings.TrimRight(u.String(), "/"), strings.TrimSpace(string(b)), connectorHTTPClient()}, nil
+}
+
+func connectorHTTPClient() *http.Client {
+	transport := &http.Transport{
+		DialContext:            (&net.Dialer{Timeout: 5 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
+		TLSHandshakeTimeout:    5 * time.Second,
+		ResponseHeaderTimeout:  10 * time.Second,
+		MaxResponseHeaderBytes: 64 << 10,
+		MaxIdleConnsPerHost:    2,
+		IdleConnTimeout:        30 * time.Second,
+		ForceAttemptHTTP2:      true,
+	}
+	return &http.Client{
+		Transport:     transport,
+		Timeout:       20 * time.Second,
+		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+	}
 }
 
 func (c *client) get(path string) (string, error) {
@@ -132,18 +153,15 @@ func (c *client) get(path string) (string, error) {
 		return "", errors.New("Aegis console unreachable")
 	}
 	defer resp.Body.Close()
-	b, e := io.ReadAll(io.LimitReader(resp.Body, 512<<10))
-	if e != nil {
-		return "", e
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Aegis returned HTTP %d", resp.StatusCode)
 	}
-	if resp.StatusCode != 200 {
-		var env struct {
-			Error struct {
-				Message string `json:"message"`
-			} `json:"error"`
-		}
-		json.Unmarshal(b, &env)
-		return "", fmt.Errorf("Aegis returned %d: %s", resp.StatusCode, env.Error.Message)
+	b, e := io.ReadAll(io.LimitReader(resp.Body, responseLimit+1))
+	if e != nil || len(b) > responseLimit {
+		return "", errors.New("Aegis response could not be read within the connector limit")
+	}
+	if !utf8.Valid(b) || !json.Valid(b) {
+		return "", errors.New("Aegis response is not valid JSON")
 	}
 	return string(b), nil
 }
@@ -191,6 +209,10 @@ func handle(c *client, req request) map[string]any {
 		for _, t := range tools {
 			if t.Name != p.Name {
 				continue
+			}
+			required, _ := t.Schema["required"].([]string)
+			if len(p.Args) != len(required) {
+				return rpcError(req.ID, -32602, "invalid tool arguments")
 			}
 			path, e := t.path(p.Args)
 			if e == nil && c == nil {

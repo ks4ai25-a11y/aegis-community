@@ -37,7 +37,7 @@ Most MCP clients accept a configuration like this (Claude Desktop: `claude_deskt
 }
 ```
 
-`AEGIS_URL` must be a loopback `http://` address or an `https://` URL. Restart the app or start a new session so it loads the server.
+`AEGIS_URL` must be a loopback `http://` address or an `https://` URL. The bridge connects directly and rejects redirects. It caps each response at 512 KiB and surfaces only the HTTP status when the controller returns an error. Restart the app or start a new session so it loads the server.
 
 ## Tools
 

@@ -59,6 +59,14 @@ func TestToolsAreReadOnlyAndArgumentsValidated(t *testing.T) {
 	if call(t, c, "tools/call", map[string]any{"name": "aegis_delete_everything"})["error"] == nil {
 		t.Fatal("unknown tool accepted")
 	}
+	for _, params := range []map[string]any{
+		{"name": "aegis_system_status", "arguments": map[string]string{"extra": "value"}},
+		{"name": "aegis_get_incident", "arguments": map[string]string{"incident_id": "inc-1", "extra": "value"}},
+	} {
+		if call(t, c, "tools/call", params)["error"] == nil {
+			t.Fatal("unexpected extra tool argument accepted")
+		}
+	}
 	if len(paths) != 1 || paths[0] != "/api/v1/sites/site_shop/incidents?limit=50" {
 		t.Fatal(paths)
 	}
@@ -72,7 +80,7 @@ func TestClientConfigurationRefusesUnsafeSettings(t *testing.T) {
 	token := filepath.Join(dir, "token")
 	os.WriteFile(token, []byte("aegis_ct_x\n"), 0600)
 	t.Setenv("AEGIS_CONNECTOR_TOKEN_FILE", token)
-	for _, bad := range []string{"http://192.168.1.10:7410", "ftp://127.0.0.1", "http://user:pw@127.0.0.1:7410", "http://127.0.0.1:7410/api?x=1"} {
+	for _, bad := range []string{"http://192.168.1.10:7410", "ftp://127.0.0.1", "http://user:pw@127.0.0.1:7410", "http://127.0.0.1:7410/api?x=1", "https:", "https://", "https://example.test/#", "https://example.test/?", "https://example.test/%2f"} {
 		t.Setenv("AEGIS_URL", bad)
 		if _, e := loadClient(); e == nil {
 			t.Fatal("accepted", bad)
@@ -86,5 +94,62 @@ func TestClientConfigurationRefusesUnsafeSettings(t *testing.T) {
 	os.Chmod(token, 0644)
 	if _, e = loadClient(); e == nil {
 		t.Fatal("world-readable token accepted")
+	}
+}
+
+func TestConnectorRefusesPartialResponseAndUntrustedErrorText(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		status int
+		body   string
+		want   string
+	}{
+		{"valid", http.StatusOK, `{"status":"ok"}`, ""},
+		{"oversized with valid prefix", http.StatusOK, "{}" + strings.Repeat(" ", responseLimit), "connector limit"},
+		{"truncated JSON", http.StatusOK, `{"status":`, "valid JSON"},
+		{"invalid UTF-8", http.StatusOK, "\"\xff\"", "valid JSON"},
+		{"untrusted error", http.StatusUnauthorized, `{"error":{"message":"private canary"}}`, "Aegis returned HTTP 401"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(tc.status)
+				_, _ = w.Write([]byte(tc.body))
+			}))
+			defer srv.Close()
+			hc := connectorHTTPClient()
+			defer hc.CloseIdleConnections()
+			c := &client{srv.URL, "fixture-token", hc}
+			body, err := c.get("/system/status")
+			if tc.want == "" {
+				if err != nil || body != tc.body {
+					t.Fatalf("valid response refused: %v", err)
+				}
+				return
+			}
+			if body != "" || err == nil || !strings.Contains(err.Error(), tc.want) || strings.Contains(err.Error(), "private canary") {
+				t.Fatal("invalid or private response was not rejected")
+			}
+		})
+	}
+}
+
+func TestConnectorUsesDirectTransportAndRefusesRedirect(t *testing.T) {
+	hc := connectorHTTPClient()
+	defer hc.CloseIdleConnections()
+	if hc.Transport.(*http.Transport).Proxy != nil {
+		t.Fatal("connector inherited a proxy configuration")
+	}
+	dest := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		t.Error("connector followed a redirect")
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer dest.Close()
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, dest.URL, http.StatusTemporaryRedirect)
+	}))
+	defer origin.Close()
+	c := &client{origin.URL, "fixture-token", hc}
+	if _, err := c.get("/system/status"); err == nil || err.Error() != "Aegis returned HTTP 307" {
+		t.Fatalf("unexpected redirect outcome: %v", err)
 	}
 }
