@@ -513,6 +513,8 @@ func TestLegacyFourteenAndFifteenRestoreWithoutAllocationTables(t *testing.T) {
 func removeRepairSchema(t *testing.T, s *store.Store) {
 	t.Helper()
 	for _, statement := range []string{
+		"DROP TABLE IF EXISTS desktop_handoffs",
+		"DELETE FROM migrations WHERE version=21",
 		"DROP TABLE scanner_mutation_repairs",
 		"DROP TRIGGER scanner_mutation_completion_once",
 		"CREATE TRIGGER scanner_mutation_completion_once BEFORE UPDATE OF state,response_digest,response_status,result_engine_id,completed_at ON scanner_mutation_intents WHEN OLD.state!='pending' OR NEW.state!='completed' OR NEW.response_digest='' OR NEW.completed_at='' OR NOT ((NEW.operation='create' AND NEW.response_status=201 AND length(NEW.result_engine_id)=64) OR (NEW.operation IN ('start','remove') AND NEW.response_status=204 AND NEW.result_engine_id=NEW.target_engine_id)) BEGIN SELECT RAISE(ABORT,'mutation completion is immutable'); END",

@@ -177,8 +177,25 @@ CREATE TRIGGER scanner_mutation_repair_scoped BEFORE INSERT ON scanner_mutation_
 CREATE TRIGGER scanner_mutation_completion_once BEFORE UPDATE OF state,response_digest,response_status,result_engine_id,completed_at ON scanner_mutation_intents WHEN OLD.state!='pending' OR NOT ((NEW.state='completed' AND NEW.response_digest!='' AND NEW.completed_at!='' AND ((NEW.operation='create' AND NEW.response_status=201 AND length(NEW.result_engine_id)=64) OR (NEW.operation IN ('start','remove') AND NEW.response_status=204 AND NEW.result_engine_id=NEW.target_engine_id))) OR (NEW.state='repaired' AND NEW.response_status=0 AND EXISTS (SELECT 1 FROM scanner_mutation_repairs r WHERE r.intent=NEW.id AND r.digest=NEW.response_digest AND r.engine_id=NEW.result_engine_id AND r.created_at=NEW.completed_at))) BEGIN SELECT RAISE(ABORT,'mutation completion is immutable'); END;
 `
 
+const desktopHandoffSchema = `
+CREATE TABLE desktop_handoffs(
+ id TEXT PRIMARY KEY, owner TEXT NOT NULL REFERENCES owners(id),
+ connector TEXT NOT NULL REFERENCES connector_credentials(id),
+ incident TEXT NOT NULL, document TEXT NOT NULL CHECK(length(document) BETWEEN 2 AND 16384),
+ digest TEXT NOT NULL CHECK(length(digest)=71),
+ expires INTEGER NOT NULL, state TEXT NOT NULL CHECK(state IN ('active','delivered','revoked'))
+);
+CREATE INDEX desktop_handoff_expiry ON desktop_handoffs(expires);
+CREATE TRIGGER desktop_handoff_scope BEFORE INSERT ON desktop_handoffs
+WHEN NOT EXISTS (SELECT 1 FROM connector_credentials WHERE id=NEW.connector AND owner=NEW.owner AND state='active' AND expires>=NEW.expires)
+BEGIN SELECT RAISE(ABORT,'handoff connector scope invalid'); END;
+CREATE TRIGGER desktop_handoff_immutable BEFORE UPDATE ON desktop_handoffs
+WHEN OLD.id!=NEW.id OR OLD.owner!=NEW.owner OR OLD.connector!=NEW.connector OR OLD.incident!=NEW.incident OR OLD.document!=NEW.document OR OLD.digest!=NEW.digest OR OLD.expires!=NEW.expires OR (OLD.state='revoked' AND NEW.state!='revoked') OR (OLD.state='delivered' AND NEW.state='active')
+BEGIN SELECT RAISE(ABORT,'handoff scope is immutable'); END;
+`
+
 func migrationBodies() []string {
-	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema, scannerCleanupConfirmationSchema, scannerReleaseGuardSchema, scannerMutationRepairSchema}
+	return []string{schema, researchSchema, repositorySchema, scannerSchema, scannerLeaseSchema, scannerWorkerSchema, scannerReceiptSchema, scannerResultSchema, scannerLaunchSchema, scannerWorkspaceSchema, scannerGuardSchema, findingTriageSchema, scannerVerifierSchema, scannerAuthorizerSchema, connectorCredentialSchema, scannerAllocationSchema, scannerReconcilerSchema, scannerCleanupConfirmationSchema, scannerReleaseGuardSchema, scannerMutationRepairSchema, desktopHandoffSchema}
 }
 func migrate(db *sql.DB) error {
 	versions := migrationBodies()

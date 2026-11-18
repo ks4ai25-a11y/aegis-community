@@ -148,3 +148,45 @@ test('the research planner shows catalogue hypotheses and rejected model suggest
   expect(calls.find(c => c.path === '/repos/repo-1/research-plan')!.body).toEqual({use_model: true});
   expect(calls.filter(c => c.method === 'POST').map(c => c.path)).toEqual(['/repos/repo-1/research-plan']);
 });
+
+test('desktop handoff previews before approval and can be revoked', async ({page}) => {
+  const incident = {incident_id: 'inc-share', summary: 'Review the synthetic incident', opened_at: '2026-10-16T12:00:00Z', state: 'open', severity: 'medium', confidence: 'high', synthetic: true, evidence: []};
+  const handoff = 'd'.repeat(64);
+  const calls = await mock(page, (path, method) => {
+    if (path === '/sites/site_demo/incidents') return {items: [incident]};
+    if (path === '/incidents/inc-share') return incident;
+    if (path === '/connectors') return {items: [{connector_id: 'device-1', name: 'Local desktop', state: 'active'}, {connector_id: 'device-2', name: 'Revoked device', state: 'revoked'}]};
+    if (path === '/desktop/handoff-preview') return {preview_digest: digest, bundle: {
+      incident_id: 'inc-share', opened_hour: incident.opened_at, severity: 'medium',
+      observations: [{evidence_id: 'ev-1', decision: 'blocked', rule_ids: ['942100']}],
+    }};
+    if (path === '/desktop/handoffs' && method === 'POST') return {status: 201, json: {handoff_id: handoff, expires_unix: 1900000000}};
+    if (path === '/desktop/handoffs/' + handoff + '/revoke') return {state: 'revoked'};
+  });
+  await page.goto('/');
+  await page.getByRole('button', {name: 'Incidents', exact: true}).click();
+  await page.getByRole('button', {name: /Review the synthetic incident/}).click();
+  await page.getByRole('button', {name: 'Preview what will be shared'}).click();
+  await expect(page.getByText('blocked · Rules 942100')).toBeVisible();
+  const approve = page.getByRole('button', {name: 'Approve once'});
+  await expect(approve).toBeDisabled();
+  await expect(page.getByRole('option', {name: /Revoked device/})).toHaveCount(0);
+  expect(calls.some(c => c.path === '/desktop/handoffs')).toBe(false);
+  await page.getByLabel('Desktop connector').selectOption('device-1');
+  await approve.click();
+  await expect(page.getByLabel('Investigation request')).toHaveValue(new RegExp(handoff));
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  if (process.env.AEGIS_HANDOFF_SCREENSHOT) {
+    await page.getByRole('region', {name: 'Investigate with a desktop assistant'}).screenshot({path: process.env.AEGIS_HANDOFF_SCREENSHOT});
+  }
+  await page.setViewportSize({width: 390, height: 844});
+  await expect(page.getByLabel('Investigation request')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+
+  const approved = calls.find(c => c.path === '/desktop/handoffs')!;
+  expect(approved.headers['x-csrf-token']).toBe('csrf');
+  expect(approved.body).toEqual({incident_id: 'inc-share', connector_id: 'device-1', preview_digest: digest, approve_redacted_export: true});
+  await page.getByRole('button', {name: 'Revoke handoff'}).click();
+  await expect(page.getByRole('region', {name: 'Investigate with a desktop assistant'}).getByRole('status')).toHaveText('The handoff was revoked.');
+  await expect(page.getByLabel('Investigation request')).toHaveCount(0);
+});

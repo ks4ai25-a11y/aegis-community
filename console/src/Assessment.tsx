@@ -11,6 +11,13 @@ export function useAIStatus() {
   return status;
 }
 
+function assessmentResponse(value: any, incident: string) {
+  return value?.incident_id === incident && value.advisory_only === true &&
+    typeof value?.provenance?.assessor === 'string' &&
+    ['observed_facts', 'hypotheses', 'recommendations', 'recommended_tests', 'uncertainties']
+      .every(key => Array.isArray(value[key]));
+}
+
 // Advisory only: an assessment never changes policy. The model, when configured,
 // receives only the incident dossier built from sanitized evidence.
 export function Assessment({incident}: {incident: string}) {
@@ -18,10 +25,22 @@ export function Assessment({incident}: {incident: string}) {
   const [result, setResult] = useState<any>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  useEffect(() => { setResult(undefined); setError(''); api('/incidents/' + encodeURIComponent(incident) + '/assessment').then(setResult).catch(() => {}); }, [incident]);
+  useEffect(() => {
+    let current = true;
+    setResult(undefined);
+    setError('');
+    api('/incidents/' + encodeURIComponent(incident) + '/assessment').then(value => {
+      if (current && assessmentResponse(value, incident)) setResult(value);
+    }).catch(() => {});
+    return () => { current = false; };
+  }, [incident]);
   async function run(useModel: boolean) {
     setBusy(true); setError('');
-    try { setResult(await api('/incidents/' + encodeURIComponent(incident) + '/assessment', {use_model: useModel})); }
+    try {
+      const value = await api('/incidents/' + encodeURIComponent(incident) + '/assessment', {use_model: useModel});
+      if (!assessmentResponse(value, incident)) throw new Error('Assessment response unavailable');
+      setResult(value);
+    }
     catch (e) { setError((e as Error).message); }
     finally { setBusy(false); }
   }
@@ -54,9 +73,24 @@ export function Proposals({incident, onChanged}: {incident: string; onChanged: (
   const [ack, setAck] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(''), [done, setDone] = useState('');
-  useEffect(() => { setPreview(undefined); setDone(''); api('/incidents/' + encodeURIComponent(incident) + '/proposals').then(setData).catch(e => setError(e.message)); }, [incident]);
+  useEffect(() => {
+    let current = true;
+    setPreview(undefined);
+    setData(undefined);
+    setDone('');
+    setError('');
+    api('/incidents/' + encodeURIComponent(incident) + '/proposals').then(value => {
+      if (!current) return;
+      if (Array.isArray(value?.proposals) && Array.isArray(value?.not_proposed)) setData(value);
+      else setError('Mitigation proposals are unavailable.');
+    }).catch(e => { if (current) setError(e.message); });
+    return () => { current = false; };
+  }, [incident]);
   async function work(f: () => Promise<any>) { setBusy(true); setError(''); try { await f(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } }
-  if (!data) return null;
+  if (!data) return error ? <section className="card">
+    <h2>Mitigation proposals</h2>
+    <p role="status" className="muted">{error}</p>
+  </section> : null;
   return <section className="card">
     <div className="card-heading"><h2>Mitigation proposals</h2><span className="badge">{data.proposals.length} proposed</span></div>
     {error && <div role="alert" className="alert error">{error}</div>}

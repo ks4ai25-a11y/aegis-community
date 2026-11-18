@@ -56,3 +56,9 @@ Every result begins with a notice that the data is untrusted and may contain att
 ## Revoking
 
 Revoke a connection in the console at any time; the next tool call fails with 401. Connections also expire automatically, and an offline restore revokes all of them.
+
+## Share one reviewed incident bundle
+
+Open an incident and select **Preview what will be shared**. The preview contains the incident ID, severity, opening hour, and up to 20 retained observations with opaque evidence IDs, decisions and numeric rule IDs. Choose the intended active connector, then select **Approve once** and paste the generated investigation request into that desktop app. The selected connector can retrieve the approved snapshot once with `aegis_get_handoff` before the earlier of its credential expiry and five minutes. **Revoke handoff** prevents further use of the approval. A lost retrieval response requires a fresh approval.
+
+The owner preview, approval, delivery and revocation use the controller. Approval, delivery and revocation are audited. Restoring a backup revokes existing approvals and connector credentials. The optional handoff uses the existing read-only connector. That credential continues to have its ordinary read permissions as described above. Scoped pairing and assistant draft submission are separate v4 work.

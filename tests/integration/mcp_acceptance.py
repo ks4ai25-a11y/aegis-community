@@ -5,7 +5,7 @@ desktop AI app would. Checks read-only tools, the untrusted-data notice, refusal
 revocation. Build the bridge first with `make mcp-build`. Uses multi_site_acceptance.py variables."""
 if not __debug__:
  raise SystemExit('Acceptance checks require Python assertions enabled')
-import json, os, pathlib, subprocess, tempfile, time
+import json, os, pathlib, subprocess, tempfile, time, urllib.parse
 import multi_site_acceptance as m
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -61,6 +61,22 @@ try:
             check("bridge_reads_incident_evidence")
         assert out[4]["result"]["isError"], "path-like identifier accepted"
         check("bridge_refuses_path_identifiers")
+        if incidents:
+            preview = m.call("/desktop/handoff-preview?incident_id=" + urllib.parse.quote(inc,safe=""))
+            scoped = m.call("/desktop/handoffs", {
+                "incident_id": inc,
+                "connector_id": issued["connector"]["connector_id"],
+                "preview_digest": preview["preview_digest"],
+                "approve_redacted_export": True,
+            }, expected=201)
+            request = {"jsonrpc": "2.0", "id": 6, "method": "tools/call", "params": {
+                "name": "aegis_get_handoff", "arguments": {"handoff_id": scoped["handoff_id"]},
+            }}
+            first, replay = bridge(token, [request, {**request, "id": 7}])
+            assert not first["result"].get("isError")
+            assert json.loads(text(first).split("\n\n", 1)[1]) == preview["bundle"]
+            assert replay["result"]["isError"] and "404" in text(replay)
+            check("bridge_delivers_exact_approved_handoff_once")
         # The same credential cannot reach mutating or sensitive routes directly.
         for method, path in [("POST", "/sites/site_demo/policies/validate"), ("GET", "/audit"), ("GET", "/connectors"), ("POST", "/connectors")]:
             req = m.urllib.request.Request(m.CONSOLE + "/api/v1" + path, method=method, data=b"{}" if method == "POST" else None, headers={"Authorization": "Bearer " + issued["token"], "Content-Type": "application/json"})

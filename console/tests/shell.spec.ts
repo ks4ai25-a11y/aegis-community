@@ -15,7 +15,7 @@ async function mock(page: Page, extra: (path: string) => any = () => undefined) 
 test('the command palette jumps to a page by keyboard', async ({page}) => {
   await mock(page);
   await page.goto('/');
-  await expect(page.getByRole('heading', {name: 'Your security, in focus.', exact: true})).toBeVisible();
+  await expect(page.getByRole('heading', {name: 'Overview', exact: true})).toBeVisible();
   await expect(page.getByText('1,234,567')).toBeVisible();
   await page.keyboard.press('ControlOrMeta+k');
   const dialog = page.getByRole('dialog', {name: 'Jump to a page'});
@@ -55,14 +55,15 @@ test('on a phone the navigation is a drawer that is not focusable while closed',
   await expect(page.getByRole('heading', {name: 'Sites', exact: true}).first()).toBeVisible();
 });
 
-test('a page that fails to render does not blank the console', async ({page}) => {
+test('invalid mitigation data leaves the incident and navigation usable', async ({page}) => {
   await mock(page, path => path === '/sites/site_demo/incidents' ? {items: [{incident_id: 'i1', summary: 'x', detector_id: 'd', opened_at: '2026-10-17T00:00:00Z', state: 'open', severity: 'low'}]} : path === '/incidents/i1' ? {incident_id: 'i1', summary: 'x', confidence: 'low', unknowns: [], evidence: []} : path === '/incidents/i1/proposals' ? {} : undefined);
   await page.goto('/');
   await page.getByRole('button', {name: 'Incidents', exact: true}).click();
   await page.getByRole('button', {name: /^x/}).click();
-  await expect(page.getByText('This view could not be displayed')).toBeVisible();
+  await expect(page.getByText('Mitigation proposals are unavailable.')).toBeVisible();
+  await expect(page.getByRole('button', {name: 'Preview what will be shared'})).toBeVisible();
   await page.getByRole('button', {name: 'Policies', exact: true}).click();
-  await expect(page.getByText('This view could not be displayed')).toBeHidden();
+  await expect(page.getByText('Mitigation proposals are unavailable.')).toBeHidden();
   await expect(page.getByRole('heading', {name: 'Review a policy change'})).toBeVisible();
 });
 
@@ -93,7 +94,7 @@ test('an expired session returns to sign-in with an explanation', async ({page})
     return route.fulfill({json: {items: []}});
   });
   await page.goto('/');
-  await expect(page.getByRole('heading', {name: 'Your security, in focus.', exact: true})).toBeVisible();
+  await expect(page.getByRole('heading', {name: 'Overview', exact: true})).toBeVisible();
   expired = true;
   await expect(page.getByRole('heading', {name: 'Welcome back.'})).toBeVisible({timeout: 8000});
   await expect(page.getByText('Your session ended. Sign in again to continue.')).toBeVisible();

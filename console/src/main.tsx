@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
+import {DesktopHandoff} from './DesktopHandoff';
 import React, {Component, useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {createRoot} from 'react-dom/client';
-import {Activity, ArrowRight, ChevronRight, Clock3, Command, Eye, FileCheck2, FileSearch, FolderLock, Globe, Layers3, LayoutDashboard, LockKeyhole, LogOut, Menu, Moon, Radio, RefreshCw, RotateCcw, Search, Settings, Shield, ShieldCheck, Sun, Terminal, X, Zap} from 'lucide-react';
+import {Activity, ArrowRight, ChevronRight, Clock3, Command, Eye, FileCheck2, FileSearch, FolderLock, Globe, Layers3, LayoutDashboard, LockKeyhole, LogOut, Menu, Moon, Radio, RefreshCw, RotateCcw, Search, Server, Settings, Shield, ShieldCheck, Sun, Terminal, X, Zap} from 'lucide-react';
 import {Sites} from './Sites';
 import {Exposure} from './Exposure';
 import {Assessment, AIPage, Proposals} from './Assessment';
@@ -52,7 +53,7 @@ const number = (v: unknown) => typeof v === 'number' ? v.toLocaleString() : '—
 type Theme = 'dark' | 'light';
 function initialTheme(): Theme {
   try { const t = localStorage.getItem('aegis-theme'); if (t === 'dark' || t === 'light') return t; } catch {}
-  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  return 'dark';
 }
 
 // A page that throws must not blank the whole console.
@@ -127,8 +128,8 @@ function App() {
     <aside aria-label="Sidebar" id="sidebar">
       <div className="brand"><span className="brand-mark"><Shield size={20}/></span><span className="brand-name">Aegis<small>Community</small></span><button className="icon only-mobile" aria-label="Close navigation" onClick={closeDrawer}><X size={18}/></button></div>
       <div className="workspace">
-        <span className="workspace-avatar">L</span>
-        <span className="workspace-text"><strong>Local workspace</strong><small>Single node · self-hosted</small></span>
+        <span className="workspace-avatar"><Server size={15} aria-hidden="true"/></span>
+        <span className="workspace-text"><strong>Local workspace</strong><small>Self-hosted instance</small></span>
       </div>
       {sites.length > 1 && <label className="site-picker">Site<select aria-label="Selected site" value={site} onChange={e => setSite(e.target.value)}>{sites.map(x => <option key={x.site_id} value={x.site_id}>{x.display_name}</option>)}</select></label>}
       <nav aria-label="Main navigation">
@@ -141,7 +142,6 @@ function App() {
       </nav>
       <div className="aside-bottom">
         <div className="health"><span className={'dot ' + (status?.gateway_healthy ? 'ok' : 'warn')}/>{status?.gateway_healthy ? 'Gateway healthy' : 'Gateway unconfirmed'}</div>
-        <div className="aside-note"><LockKeyhole size={13}/>Local-first. No external services.</div>
         <small>{status?.version || 'Connecting…'} · internal alpha</small>
       </div>
     </aside>
@@ -161,7 +161,7 @@ function App() {
       <div className="content" id="content" tabIndex={-1}>
         <div className="page-heading">
           <div>
-            {page === 'Overview' ? <><div className="eyebrow">Defence, with evidence</div><h1>Your security, in focus.</h1></> : <h1>{page}</h1>}
+            <h1>{page}</h1>
             <p>{subtitles[page]}</p>
           </div>
           {(sites.find(x => x.site_id === site)?.synthetic ?? site === 'site_demo') && ['Overview', 'Sites', 'Live activity', 'Incidents', 'Endpoints', 'Policies'].includes(page) && <span className="pill">Bundled demo · synthetic data</span>}
@@ -169,7 +169,7 @@ function App() {
         {error && <div role="alert" className="alert error">{error}<button onClick={() => setError('')} aria-label="Dismiss error"><X size={14}/></button></div>}
         {statusError && <div role="status" className="alert warn">Live status unavailable: {statusError}. Figures shown may be stale.</div>}
         {toast && <div role="status" className="alert success">{toast}<button onClick={() => setToast('')} aria-label="Dismiss message"><X size={14}/></button></div>}
-        <Boundary page={page}>
+        <div className="workspace-view" key={page}><Boundary page={page}>
           {page === 'Overview' && <Overview status={status} statusError={statusError} site={site} refresh={refresh} busy={busy} go={go} action={action}/>}
           {page === 'Sites' && <Sites action={action} busy={busy} refresh={refresh} onSelect={id => { setSite(id); go('Live activity'); }}/>}
           {page === 'Live activity' && <Events site={site} refresh={refresh}/>}
@@ -182,8 +182,7 @@ function App() {
           {page === 'Findings' && <Catalogue onOpenScan={id => { go('Scans'); setInitialScan(id); }}/>}
           {page === 'AI Apps' && <AIPage/>}
           {page === 'Settings' && <SettingsPage refresh={refresh} theme={theme} setTheme={setTheme} ownerId={ownerId}/>}
-        </Boundary>
-        <footer><Shield size={13}/>Aegis Community<span>Evidence speaks. Claims stay precise.</span></footer>
+        </Boundary></div>
       </div>
     </main>
     {palette && <Palette onClose={() => { setPalette(false); requestAnimationFrame(() => searchButton.current?.focus()); }} onGo={go}/>}
@@ -435,8 +434,9 @@ function Incidents({site, refresh, initial, onOpen}: {site: string; refresh: num
       <h3>Retained evidence</h3>{(detail.evidence || []).map((e: any) => <div className="evidence" key={e.event_id}><span className="mono">{e.event_id}</span><span>{e.rule_ids?.length ? 'CRS ' + e.rule_ids.join(', ') : (e.method || '') + ' ' + (e.route_template || '') + ' · ' + (e.http_status ?? '')} · {e.decision}</span></div>)}
     </section>}
     </div>
-    {detail && <Assessment incident={detail.incident_id}/>}
-    {detail && <Proposals incident={detail.incident_id} onChanged={() => setDetail(undefined)}/>}
+    {detail && <DesktopHandoff key={'desktophandoff/' + detail.incident_id} incident={detail.incident_id}/>}
+    {detail && <Assessment key={'assessment/' + detail.incident_id} incident={detail.incident_id}/>}
+    {detail && <Proposals key={'proposals/' + detail.incident_id} incident={detail.incident_id} onChanged={() => setDetail(undefined)}/>}
   </>;
 }
 

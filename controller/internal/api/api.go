@@ -177,7 +177,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		output(w, 200, map[string]string{"csrf_token": csrf})
 		return
 	}
-	var actor, session string
+	var actor, session, connection string
 	var e error
 	if h := r.Header.Get("Authorization"); h != "" {
 		// Connector credentials are read-only and limited to an explicit allowlist,
@@ -186,7 +186,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			fail(w, 403, "FORBIDDEN", "Connector credentials can only read defence data")
 			return
 		}
-		if actor, _, e = s.Connectors.Authenticate(h); e != nil {
+		if actor, connection, e = s.Connectors.Authenticate(h); e != nil {
 			fail(w, 401, "NOT_AUTHENTICATED", "Connector credential invalid, expired or revoked")
 			return
 		}
@@ -267,6 +267,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		default:
 			fail(w, 404, "RESOURCE_NOT_FOUND", "Endpoint not available in this alpha")
 		}
+	case path == "/desktop/handoff-preview" || path == "/desktop/handoffs" || strings.HasPrefix(path, "/desktop/handoffs/"):
+		s.desktopHandoff(w, r, path, actor, session, connection)
 	case path == "/connectors" && r.Method == "GET" && session != "":
 		items, e := s.Connectors.List(actor)
 		if e != nil {

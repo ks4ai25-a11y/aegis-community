@@ -10,7 +10,7 @@ for(const value of [{job:{state:'completed'}},{items:null},{items:[null]},{items
    await route.fulfill({json:body});
   });
   await page.goto('/');
-  await expect(page.getByRole('heading',{name:'Your security, in focus.',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Overview',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Findings',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Findings',exact:true})).toBeVisible();
   expect(errors).toEqual([]);

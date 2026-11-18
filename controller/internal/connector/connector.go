@@ -31,6 +31,7 @@ var (
 	// Read-only routes a connector may call. Anything else is refused before routing.
 	allowed = []*regexp.Regexp{
 		regexp.MustCompile(`^/system/status$`),
+		regexp.MustCompile(`^/desktop/handoffs/[0-9a-f]{64}$`),
 		regexp.MustCompile(`^/sites$`),
 		regexp.MustCompile(`^/sites/` + id + `/(incidents|endpoints|policy|events)$`),
 		regexp.MustCompile(`^/incidents/` + id + `$`),

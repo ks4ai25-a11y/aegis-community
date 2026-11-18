@@ -10,7 +10,9 @@ import (
 	"encoding/json"
 	"net/http/httptest"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestConnectorCredentialIsReadOnlyAndRevocable(t *testing.T) {
@@ -97,6 +99,81 @@ func TestConnectorCredentialIsReadOnlyAndRevocable(t *testing.T) {
 	if items := out["items"].([]any); code != 200 || len(items) != 1 || items[0].(map[string]any)["last_used_unix"].(float64) == 0 {
 		t.Fatal("list/last_used", code, out)
 	}
+	t.Run("owner preview and single use handoff", func(t *testing.T) {
+		if _, err := s.DB.Exec(`INSERT INTO events(id,at,request,source_key,document) VALUES('raw-event','2026-10-16T12:41:00Z','raw-request','fixture-key','{"client_key":"PRIVATE-CANARY","route_template":"PRIVATE-CANARY","decision":"blocked","rule_ids":["942100","PRIVATE-CANARY"]}');
+  INSERT INTO incident_events(incident,event) VALUES('inc-1','raw-event')`); err != nil {
+			t.Fatal(err)
+		}
+		previewPath := "/desktop/handoff-preview?incident_id=inc-1"
+		if code, _ := send("GET", previewPath, nil, bearer, true); code != 403 {
+			t.Fatalf("connector preview: %d", code)
+		}
+		code, p := send("GET", previewPath, nil, nil, true)
+		if code != 200 {
+			t.Fatalf("preview: %d", code)
+		}
+		previewBytes, _ := json.Marshal(p)
+		if strings.Contains(string(previewBytes), "PRIVATE-CANARY") || strings.Contains(string(previewBytes), "raw-event") || !strings.Contains(string(previewBytes), "942100") {
+			t.Fatal("preview did not isolate approved fields")
+		}
+		in := map[string]any{"incident_id": "inc-1", "connector_id": id, "preview_digest": p["preview_digest"], "approve_redacted_export": false}
+		if code, _ := send("POST", "/desktop/handoffs", in, nil, true); code != 403 {
+			t.Fatalf("no consent: %d", code)
+		}
+		in["approve_redacted_export"] = true
+		if code, _ := send("POST", "/desktop/handoffs", in, map[string]string{"X-CSRF-Token": "invalid"}, true); code != 401 {
+			t.Fatalf("bad CSRF: %d", code)
+		}
+		in["preview_digest"] = "sha256:" + strings.Repeat("0", 64)
+		if code, _ := send("POST", "/desktop/handoffs", in, nil, true); code != 409 {
+			t.Fatalf("stale preview: %d", code)
+		}
+		in["preview_digest"] = p["preview_digest"]
+		if code, _ := send("POST", "/desktop/handoffs", in, bearer, true); code != 403 {
+			t.Fatalf("connector approval: %d", code)
+		}
+		create := func() string {
+			t.Helper()
+			code, h := send("POST", "/desktop/handoffs", in, nil, true)
+			if code != 201 {
+				t.Fatalf("approval: %d %v", code, h)
+			}
+			return "/desktop/handoffs/" + h["handoff_id"].(string)
+		}
+		path := create()
+		if code, _ := send("GET", path, nil, nil, true); code != 403 {
+			t.Fatalf("owner consumed connector handoff: %d", code)
+		}
+		code, other := send("POST", "/connectors", map[string]any{"name": "Other Desktop", "lifetime_hours": 1}, nil, true)
+		if code != 201 {
+			t.Fatal(code)
+		}
+		if code, _ := send("GET", path, nil, map[string]string{"Authorization": "Bearer " + other["token"].(string)}, false); code != 404 {
+			t.Fatalf("wrong connector: %d", code)
+		}
+		code, actual := send("GET", path, nil, bearer, false)
+		expected, _ := json.Marshal(p["bundle"])
+		got, _ := json.Marshal(actual)
+		if code != 200 || !bytes.Equal(expected, got) {
+			t.Fatal("delivery differed from the approved preview", code)
+		}
+		if code, _ := send("GET", path, nil, bearer, false); code != 404 {
+			t.Fatalf("second delivery: %d", code)
+		}
+		revoked := create()
+		if code, _ := send("POST", revoked+"/revoke", map[string]any{}, nil, true); code != 200 {
+			t.Fatalf("handoff revoke: %d", code)
+		}
+		if code, _ := send("GET", revoked, nil, bearer, false); code != 404 {
+			t.Fatalf("revoked handoff delivered: %d", code)
+		}
+		expired := create()
+		server.Connectors.Now = func() time.Time { return time.Now().Add(6 * time.Minute) }
+		if code, _ := send("GET", expired, nil, bearer, false); code != 404 {
+			t.Fatalf("expired handoff delivered: %d", code)
+		}
+		server.Connectors.Now = nil
+	})
 	if code, _ := send("POST", "/connectors/"+id+"/revoke", map[string]any{}, nil, true); code != 200 {
 		t.Fatal("revoke", code)
 	}

@@ -98,7 +98,7 @@ func databaseContext(ctx context.Context, path string) (domain.Policy, int, erro
 		return domain.Policy{}, 0, ErrRecovery
 	}
 	var version int
-	if s.DB.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version) != nil || (version < 13 || version > 20) {
+	if s.DB.QueryRowContext(ctx, "SELECT max(version) FROM migrations").Scan(&version) != nil || (version < 13 || version > 21) {
 		return domain.Policy{}, 0, ErrRecovery
 	}
 	var authorizers int
@@ -127,6 +127,10 @@ func databaseContext(ctx context.Context, path string) (domain.Policy, int, erro
 	// intent table; an older declared version must not carry them.
 	var repairs int
 	if s.DB.QueryRowContext(ctx, "SELECT count(*) FROM sqlite_master WHERE (type='table' AND name='scanner_mutation_repairs') OR (type='trigger' AND name IN ('scanner_mutation_repair_scoped','scanner_mutation_repair_immutable','scanner_mutation_repair_retained'))").Scan(&repairs) != nil || (version >= 20 && repairs != 4) || (version < 20 && repairs != 0) {
+		return domain.Policy{}, 0, ErrRecovery
+	}
+	var handoffs int
+	if s.DB.QueryRowContext(ctx, "SELECT count(*) FROM sqlite_master WHERE (type='table' AND name='desktop_handoffs') OR (type='trigger' AND name IN ('desktop_handoff_scope','desktop_handoff_immutable'))").Scan(&handoffs) != nil || (version >= 21 && handoffs != 3) || (version < 21 && handoffs != 0) {
 		return domain.Policy{}, 0, ErrRecovery
 	}
 	var integrity string
@@ -240,7 +244,7 @@ func verified(ctx context.Context, c Config, path string) (*private, Envelope, e
 		return nil, empty, ErrRecovery
 	}
 	d := m.Document
-	if d.Schema != "1.0" || d.Product != domain.Version || d.Profile != profile || (d.SchemaVersion < 13 || d.SchemaVersion > 20) || !digestPattern.MatchString(d.Policy) {
+	if d.Schema != "1.0" || d.Product != domain.Version || d.Profile != profile || (d.SchemaVersion < 13 || d.SchemaVersion > 21) || !digestPattern.MatchString(d.Policy) {
 		return nil, empty, ErrRecovery
 	}
 	stamp, e := time.Parse(time.RFC3339Nano, d.Created)

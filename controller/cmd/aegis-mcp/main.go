@@ -27,6 +27,7 @@ const (
 )
 
 var idPattern = regexp.MustCompile(`^[A-Za-z0-9_.:-]{1,160}$`)
+var handoffPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
 
 type tool struct {
 	Name        string         `json:"name"`
@@ -69,6 +70,14 @@ var tools = []tool{
 		id, e := idArg(a, "incident_id")
 		return "/incidents/" + id + "/proposals", e
 	}},
+	{"aegis_get_handoff", "Retrieve an owner-approved redacted incident bundle once. The handoff expires within five minutes.", arg("handoff_id", "Handoff ID supplied by the owner"), nil, func(a map[string]string) (string, error) {
+		id := a["handoff_id"]
+		if !handoffPattern.MatchString(id) {
+			return "", errors.New("handoff_id must be an approved handoff identifier")
+		}
+		return "/desktop/handoffs/" + id, nil
+	}},
+
 	{"aegis_list_endpoints", "Observed route templates for one site. Not proof of authorization weaknesses.", arg("site_id", "Site ID"), nil, func(a map[string]string) (string, error) {
 		id, e := idArg(a, "site_id")
 		return "/sites/" + id + "/endpoints", e
